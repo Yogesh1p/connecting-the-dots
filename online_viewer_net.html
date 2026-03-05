@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Connecting the Dots — an intuition-first technical manuscript documenting an AI research learning journey.">
+<title>Connecting the Dots — Yogesh</title>
+<link rel="canonical" href="https://yourdomain.com/connecting-the-dots">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --paper-dark: #ede6d5;
+    --rust: #b85c2a;
+    --rust-light: #d4764a;
+    --sepia: #7a6a52;
+    --sepia-light: #a89880;
+    --gold: #c9a227;
+    --border: #d0c4b0;
+    --margin-note: #8a7a65;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  /* ── Page Fade-in Initial State ── */
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.75;
+    overflow-x: hidden;
+    font-variant-numeric: oldstyle-nums;
+    font-variant-ligatures: common-ligatures;
+    text-rendering: optimizeLegibility;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  /* ── Page Fade-in Loaded State ── */
+  body.loaded {
+    opacity: 1;
+  }
+
+  /* ── Reading Progress Bar ── */
+  .reading-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: var(--rust);
+    z-index: 2000;
+    transition: width 0.1s linear;
+  }
+
+  /* ── Grain overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
+  }
+
+  /* ── Layout ── */
+  .page-wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ── Rule decorations ── */
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--sepia-light);
+    margin: 2rem 0;
+  }
+  .rule::before, .rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+  }
+  .rule span {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── Header / Hero ── */
+  header {
+    padding: 5rem 0 3rem;
+    text-align: left;
+    position: relative;
+    animation: fadeUp 0.9s ease both;
+  }
+
+  .chapter-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .chapter-label::before {
+    content: '§';
+    font-family: 'EB Garamond', serif;
+    font-size: 14px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 900;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--rust);
+  }
+
+  .subtitle {
+    font-size: 1.15rem;
+    color: var(--sepia);
+    margin-top: 1.4rem;
+    max-width: 560px;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* ── Decorative drop cap block ── */
+  .lede {
+    margin: 3rem 0 2rem;
+    border-left: 3px solid var(--rust);
+    padding-left: 1.5rem;
+    animation: fadeUp 0.9s 0.15s ease both;
+  }
+
+  .lede p::first-letter {
+    float: none;
+    font-size: inherit;
+    line-height: inherit;
+    margin: 0;
+    color: inherit;
+    font-weight: inherit;
+    font-family: inherit;
+  }
+
+  .lede p {
+    font-size: 1.12rem;
+    color: var(--ink);
+  }
+
+  /* ── Section headings ── */
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 3rem 0 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Anchor Links (Academic Style) ── */
+  h3 {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: 2.5rem auto 0.8rem;
+    max-width: 640px;
+  }
+
+  h3 a {
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    display: inline-block;
+  }
+
+  h3 a::before {
+    content: "#";
+    position: absolute;
+    left: -1.2rem;
+    opacity: 0;
+    color: var(--sepia-light);
+    transition: opacity 0.2s;
+  }
+
+  h3:hover a::before {
+    opacity: 1;
+  }
+
+  /* ── Body prose ── */
+  .prose {
+    font-size: 1.05rem;
+    color: #2a221a;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeUp 0.9s 0.2s ease both;
+  }
+
+  .prose p {
+    line-height: 1.85; /* Increased for long-form reading */
+  }
+
+  .prose p + p {
+    margin-top: 1.2em;
+    text-indent: 1.5em;
+  }
+
+  .prose p, blockquote {
+    hanging-punctuation: first last;
+  }
+
+  /* ── Margin note ── */
+  .margin-aside {
+    position: absolute;
+    right: -220px;
+    margin: 0;
+    width: 200px;
+    font-size: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--margin-note);
+    line-height: 1.5;
+    border-left: 2px solid var(--border);
+    padding-left: 0.75rem;
+  }
+
+  @media (max-width: 1060px) {
+    .margin-aside { display: none; }
+  }
+
+  /* ── Key Concept Definition Box (Kept in CSS for future use) ── */
+  .key-concept {
+    background-color: #fce7f3; /* Magenta Rose background */
+    border-left: 3px solid #9d174d; /* Magenta Rose border */
+    padding: 1.2rem 1.5rem;
+    margin: 2.5rem auto;
+    max-width: 640px;
+    color: #1a1410;
+    border-radius: 0 4px 4px 0;
+    animation: fadeUp 0.9s 0.25s ease both;
+  }
+
+  .key-concept::before {
+    content: 'Definition';
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #9d174d;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── What this book is ── */
+  .book-anatomy {
+    margin: 2.5rem auto;
+    max-width: 640px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    animation: fadeUp 0.9s 0.3s ease both;
+  }
+
+  @media (max-width: 600px) {
+    .book-anatomy { grid-template-columns: 1fr; }
+  }
+
+  .anatomy-card {
+    background: var(--paper-dark);
+    border: 1px solid var(--border);
+    padding: 1.4rem 1.6rem;
+    position: relative;
+    transition: border-color 0.25s, transform 0.25s;
+  }
+
+  .anatomy-card:hover {
+    border-color: var(--rust-light);
+    transform: translateY(-2px);
+  }
+
+  .anatomy-card .card-num {
+    font-family: 'DM Mono', monospace;
+    font-variant-numeric: tabular-nums lining-nums;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--sepia-light);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .anatomy-card .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+  }
+
+  .anatomy-card p {
+    font-size: 0.88rem;
+    color: var(--sepia);
+    line-height: 1.5;
+  }
+
+  /* ── "What I'm looking for" ── */
+  .collab-list {
+    margin: 2rem auto;
+    max-width: 640px;
+    list-style: none;
+    animation: fadeUp 0.9s 0.35s ease both;
+  }
+
+  .collab-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 1rem;
+    color: #2a221a;
+  }
+
+  .collab-list li:last-child { border-bottom: none; }
+
+  .collab-list .tag {
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.22em 0.55em;
+    margin-top: 0.18em;
+  }
+
+  .collab-list .tag.open   { background: var(--rust); }
+  .collab-list .tag.review { background: var(--sepia); }
+  .collab-list .tag.visual { background: var(--gold); color: var(--ink); }
+  .collab-list .tag.build  { background: #3d5a80; color: var(--paper); } /* Slate Blue */
+
+  /* ── Chapter sample ── */
+  .chapter-sample {
+    background: var(--paper-dark);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--rust);
+    padding: 1.8rem 2rem;
+    margin: 2.5rem auto;
+    max-width: 640px;
+    font-size: 0.94rem;
+    color: #2a221a;
+    animation: fadeUp 0.9s 0.4s ease both;
+    position: relative;
+  }
+
+  .chapter-sample .sample-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 0.8rem;
+  }
+
+  .chapter-sample blockquote {
+    font-style: italic;
+    border-left: 2px solid var(--border);
+    padding-left: 1rem;
+    color: var(--sepia);
+    margin: 1rem 0 0;
+    font-size: 0.92rem;
+  }
+
+  /* ── Equation peek ── */
+  .eq-block {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    background: #1a1410;
+    color: #e8dcc8;
+    padding: 1rem 1.4rem;
+    margin: 1rem 0;
+    border-left: 3px solid var(--rust);
+    letter-spacing: 0.02em;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+
+  /* ── CTA / Contact ── */
+  .cta-section {
+    margin: 4rem auto 2rem;
+    padding: 2.5rem 2.5rem;
+    max-width: 640px;
+    border: 2px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    position: relative;
+    animation: fadeUp 0.9s 0.5s ease both;
+  }
+
+  .cta-section::before {
+    content: 'Open Collaboration';
+    position: absolute;
+    top: -0.7em;
+    left: 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--paper);
+    color: var(--rust);
+    padding: 0 0.6em;
+  }
+
+  .cta-section h2 {
+    color: var(--paper);
+    font-size: 1.6rem;
+    margin: 0 0 0.8rem;
+  }
+
+  .cta-section p {
+    font-size: 0.95rem;
+    color: #c4b89e;
+    max-width: 500px;
+    line-height: 1.65;
+  }
+
+  .cta-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.6rem;
+    flex-wrap: wrap;
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.7em 1.4em;
+    border: 1px solid #c4b89e;
+    color: var(--paper);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .cta-btn:hover {
+    background: var(--paper);
+    color: var(--ink);
+    border-color: var(--paper);
+  }
+
+  .cta-btn.primary {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+
+  .cta-btn.primary:hover {
+    background: var(--rust-light);
+    border-color: var(--rust-light);
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 3rem 0 4rem;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--sepia-light);
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+  }
+
+  footer .ornament {
+    font-size: 1.2rem;
+    display: block;
+    margin-bottom: 0.8rem;
+    color: var(--border);
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Running thread visualization ── */
+  .thread-line {
+    position: absolute;
+    left: -2.5rem;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--border) 20%, var(--border) 80%, transparent);
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .thread-line { display: block; }
+  }
+
+  /* ── Highlight inline ── */
+  mark {
+    background: linear-gradient(to bottom, transparent 60%, rgba(184, 92, 42, 0.22) 60%);
+    color: inherit;
+    padding: 0 0.05em;
+  }
+
+  /* ── Footnote style note ── */
+  .footnote {
+    font-size: 0.8rem;
+    color: var(--sepia);
+    border-top: 1px solid var(--border);
+    padding-top: 0.6rem;
+    margin: 2rem auto 0;
+    max-width: 640px;
+    font-style: italic;
+  }
+
+  /* ── Progress tracker ── */
+  .progress-block {
+    margin: 2.5rem auto;
+    max-width: 640px;
+    animation: fadeUp 0.9s 0.45s ease both;
+  }
+
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem 0;
+    font-size: 0.88rem;
+  }
+
+  .progress-row .ch-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    width: 170px;
+    color: var(--sepia);
+    flex-shrink: 0;
+  }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    position: relative;
+  }
+
+  .progress-bar-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: var(--rust);
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    width: 0;
+  }
+
+  .progress-bar-fill.done   { background: var(--rust); }
+  .progress-bar-fill.draft  { background: var(--gold); }
+  .progress-bar-fill.stub   { background: var(--border); filter: brightness(0.7); }
+
+  .progress-row .pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--sepia-light);
+    width: 36px;
+    text-align: right;
+  }
+
+  .legend {
+    display: flex;
+    gap: 1.4rem;
+    margin-top: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    color: var(--sepia);
+  }
+
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+  }
+
+  .legend .dot {
+    width: 8px; height: 8px;
+    border-radius: 0;
+    display: inline-block;
+  }
+  .dot.done  { background: var(--rust); }
+  .dot.draft { background: var(--gold); }
+  .dot.stub  { background: var(--border); filter: brightness(0.7); }
+
+  /* ── Chapter topics ── */
+  .ch-topics-block {
+    max-width: 640px;
+    margin: 1.5rem auto 0;
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--rust);
+    background: var(--paper-dark);
+  }
+
+  .ch-topics-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.85rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ch-topics-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: var(--rust);
+    color: var(--paper);
+    padding: 0.2em 0.55em;
+    flex-shrink: 0;
+  }
+
+  .ch-topics-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sepia);
+  }
+
+  .ch-topics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  @media (max-width: 560px) {
+    .ch-topics-grid { grid-template-columns: 1fr; }
+  }
+
+  .ch-topic-group {
+    padding: 1rem 1.2rem 1.2rem;
+  }
+
+  .ch-topic-group:first-child {
+    border-right: 1px solid var(--border);
+  }
+
+  .ch-topic-section {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 0.7rem;
+  }
+
+  .ch-topic-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+  }
+
+  .ch-topic {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--sepia);
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    line-height: 1.45;
+  }
+
+  .ch-topic::before {
+    content: '·';
+    color: var(--border);
+    flex-shrink: 0;
+  }
+
+  .ch-topic.done { color: var(--ink); }
+
+  .ch-topic.done::before {
+    content: '✓';
+    color: var(--rust);
+    font-size: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  /* ── Philosophy block ── */
+  .philosophy-block {
+    max-width: 640px;
+    margin: 0 auto 0;
+    border-left: 3px solid var(--gold);
+    padding: 0.2rem 0 0.2rem 1.5rem;
+    animation: fadeUp 0.9s 0.25s ease both;
+  }
+
+  .philosophy-block p {
+    font-size: 1.02rem;
+    color: #2a221a;
+    line-height: 1.85;
+  }
+
+  .philosophy-block p + p {
+    margin-top: 1em;
+    text-indent: 1.5em;
+  }
+
+  /* ── Equation rows ── */
+  .eq-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .eq-row:last-child { border-bottom: none; }
+
+  .eq-comment {
+    font-size: 0.68rem;
+    color: #7a6a5a;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .eq-math {
+    font-size: 1.05rem;
+    color: #e8dcc8;
+    letter-spacing: 0.03em;
+    font-style: italic;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .eq-math sub, .eq-math sup {
+    font-size: 0.62em;
+    font-style: normal;
+  }
+
+  /* ── Taxonomy tree ── */
+  .taxonomy-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 1rem;
+  }
+
+  .tax-root {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    padding: 0.5rem 0 0.8rem;
+    border-bottom: 2px solid var(--rust);
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .tax-principle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--sepia);
+    padding: 0.35rem 0 0.35rem 1rem;
+    border-left: 2px solid var(--border);
+    margin-bottom: 0.4rem;
+    line-height: 1.5;
+  }
+
+  .tax-note {
+    color: var(--sepia-light);
+    font-size: 0.66rem;
+    margin-top: 0.15rem;
+    font-style: italic;
+  }
+
+  .tax-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--rust);
+    color: var(--paper);
+    padding: 0.1em 0.45em;
+    margin-right: 0.4em;
+    vertical-align: middle;
+  }
+
+  .tax-branch-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-top: 1.4rem;
+    margin-bottom: 0.2rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tax-desc {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--sepia-light);
+    font-style: italic;
+    margin-bottom: 0.7rem;
+    padding-left: 0.5rem;
+  }
+
+  .tax-section {
+    padding-left: 1.2rem;
+    border-left: 2px solid var(--border);
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .tax-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--ink);
+    padding: 0.5rem 0 0.3rem;
+    letter-spacing: 0.04em;
+  }
+
+  .tax-dim {
+    color: var(--sepia-light);
+    font-weight: 300;
+    font-size: 0.68rem;
+  }
+
+  .tax-group {
+    padding-left: 1rem;
+    border-left: 1px dashed var(--border);
+    padding-top: 0.2rem;
+    padding-bottom: 0.4rem;
+  }
+
+  .tax-group-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--rust);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.04em;
+  }
+
+  .tax-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tax-items span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--sepia);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    padding: 0.2em 0.55em;
+    letter-spacing: 0.04em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .tax-items span:hover {
+    border-color: var(--rust-light);
+    color: var(--rust);
+  }
+</style>
+</head>
+<body>
+
+<div class="reading-progress"></div>
+
+<main class="page-wrap">
+  <div class="thread-line"></div>
+
+  <header>
+    <div class="chapter-label">Yogesh · A Living Document · Open Collaboration</div>
+    <h1>Connecting the <em>Dots</em></h1>
+    <p class="subtitle">An intuition-first pedagogical document on modern AI — built in public and written from understanding, not memorization.</p>
+  </header>
+
+  <div class="rule"><span>about the project</span></div>
+
+  <div class="lede">
+<p>
+Hey, I'm Yogesh. This project began as a personal attempt to understand how modern AI systems actually work — not just what they do, but why the ideas behind them are structured the way they are. It grew out of months spent working slowly through lectures, textbooks, and research papers, often revisiting the same derivation several times before the intuition behind it finally became clear. This document tries to capture that process — the order in which the understanding actually arrived.
+</p>
+</div>
+
+<div class="prose">
+<p>
+Many of the ideas that first seemed abstract eventually became concrete when they were seen in context. Eigenvalues stopped being a linear algebra exercise when they determined whether gradients vanished during training. The chain rule stopped being calculus homework when it became the mechanism behind backpropagation. Concepts that once appeared disconnected began to fit together as parts of the same system.
+</p>
+
+<p>
+The chapter on autoregressive models, for example, begins with a deceptively simple question: how do you model a joint distribution over a large number of variables without storing an exponential number of parameters? From that starting point the discussion moves through the chain rule, Bayesian networks, FVSBN, NADE, and MADE, eventually arriving at modern sequence models and the Transformer architecture. Each idea appears as a response to a limitation in the one before it.
+</p>
+
+<p>
+The intention is to follow this thread through the broader landscape of modern AI. That includes not only the foundational concepts, but also the systems currently shaping the field — large language models, diffusion models, latent-variable methods, state space models, world models, and the architectures that will inevitably emerge after them.
+</p>
+
+<p>
+The goal is that a reader who finishes a chapter should feel like they <mark>could have invented</mark> the ideas themselves, given the right questions. That sense of reconstruction — of seeing how the pieces logically lead to one another — is what this project is trying to produce.
+</p>
+
+<p>
+I'm building this in the open. Right now it's a one-person effort, but I hope it won't remain that way for long.
+</p>
+</div>
+  </div>
+
+  <div class="rule"><span>a working philosophy</span></div>
+
+  <div class="philosophy-block">
+    <p>Whenever we want to "get a task done," we are ultimately constructing a function that maps inputs to outputs. Neural networks are universal function approximators — but a naive, fully connected model is inefficient, data-hungry, and impractical under real-world constraints.</p>
+    
+    <p>The field has progressed by imposing increasingly sophisticated internal structure on these networks: convolutions for spatial structure, recurrence and gating for temporal dependencies, attention for relational modeling, residual connections for optimization stability, diffusion and latent-variable frameworks for generative modeling. Each architectural advance reshapes the underlying function class, injecting inductive bias that makes learning more efficient and generalization more robust.</p>
+    
+    <p>In this sense, <mark>the central work of modern AI is not merely scaling parameters — it is systematically improving the architecture of the function itself.</mark> That is what this project is trying to trace, one chapter at a time.</p>
+  </div>
+
+  <div class="rule"><span>the sources</span></div>
+
+  <div class="prose" style="animation: fadeUp 0.9s 0.25s ease both;">
+    <p>The project is built on a specific set of materials, worked through in a specific order. Not a curated reading list — a record of what actually landed:</p>
+  </div>
+
+  <div class="book-anatomy" style="margin-top: 1rem;">
+    <div class="anatomy-card">
+      <div class="card-num">→</div>
+      <div class="card-title">Gilbert Strang — 18.06</div>
+      <p>Linear algebra as geometry. The foundation that made eigenvalues mean something.</p>
+    </div>
+    <div class="anatomy-card">
+      <div class="card-num">→</div>
+      <div class="card-title">Stanford CS224N & CS231N</div>
+      <p>NLP and vision lectures. Where loss functions became geometry and backprop became concrete.</p>
+    </div>
+    <div class="anatomy-card">
+      <div class="card-num">→</div>
+      <div class="card-title">Goodfellow, Bengio, Courville</div>
+      <p>The Deep Learning book — read slowly, with friction, with a notebook open beside it.</p>
+    </div>
+    <div class="anatomy-card">
+      <div class="card-num">→</div>
+      <div class="card-title">Research Papers</div>
+      <p>Attention Is All You Need, NADE, MADE, Word2Vec, GloVe, PixelCNN, WaveNet — the originals, not the summaries.</p>
+    </div>
+  </div>
+
+  <div class="rule"><span>taxonomy of generative models</span></div>
+
+  <div class="book-anatomy">
+    <div class="anatomy-card">
+      <div class="card-num">01</div>
+      <div class="card-title">Problem-first structure</div>
+      <p>Every concept is introduced as the answer to a specific failure. Exponential parameters → chain rule. Chain rule alone isn't enough → structural assumptions. And so on.</p>
+    </div>
+    <div class="anatomy-card">
+      <div class="card-num">02</div>
+      <div class="card-title">Honest mathematics</div>
+      <p>Equations are written out, not waved at. But each one is preceded by the question it answers and followed by what it still can't do.</p>
+    </div>
+    <div class="anatomy-card">
+      <div class="card-num">03</div>
+      <div class="card-title">No assumed intuition</div>
+      <p>Words like "attention" and "residual stream" are treated as things that need to be earned, not inherited. The names come after the ideas.</p>
+    </div>
+    <div class="anatomy-card">
+      <div class="card-num">04</div>
+      <div class="card-title">Cumulative narrative</div>
+      <p>NADE's incremental pre-activation sum is the seed of the RNN hidden state. The LSTM's additive cell state echoes NADE again. These threads are made explicit.</p>
+    </div>
+  </div>
+
+  <div class="chapter-sample" style="font-family: 'DM Mono', monospace; font-size: 0.78rem;">
+    <div class="sample-label">Taxonomy — Generative Models</div>
+    <div class="taxonomy-tree">
+
+      <div class="tax-root">Generative Models</div>
+
+      <div class="tax-principle">
+        <span class="tax-badge">Principle</span> Architectural Neutrality
+        <div class="tax-note">CNN, RNN, Transformer, U-Net can appear anywhere in the tree</div>
+      </div>
+      <div class="tax-principle">
+        <span class="tax-badge">Principle</span> Classification Rule for Hybrids
+        <div class="tax-note">Place model according to primary training objective</div>
+      </div>
+      <div class="tax-principle">
+        <span class="tax-badge">Dimension</span> Sequence Length
+        <div class="tax-note">Fixed-length data (images, vectors) · Variable-length data (text, audio)</div>
+      </div>
+
+      <div class="tax-branch-label">I. Explicit Likelihood-Based Models</div>
+      <div class="tax-desc">maximize log-likelihood · p<sub>θ</sub>(x) explicitly defined</div>
+
+      <div class="tax-section">
+        <div class="tax-section-title">A. No Extra Variables <span class="tax-dim">(Direct Models)</span></div>
+
+        <div class="tax-group">
+          <div class="tax-group-title">A1. Fixed-Length Autoregressive Models</div>
+          <div class="tax-items">
+            <span>FVSBN</span><span>NADE</span><span>MADE</span><span>PixelRNN / PixelCNN</span><span>Image AR Transformers</span>
+          </div>
+        </div>
+
+        <div class="tax-group">
+          <div class="tax-group-title">A2. Variable-Length Autoregressive Models <span class="tax-dim">(Sequence Models)</span></div>
+          <div class="tax-items">
+            <span>RNN</span><span>LSTM / GRU</span><span>GPT</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tax-section">
+        <div class="tax-section-title">B. Extra Variables, Not Hidden <span class="tax-dim">(Invertible · Exact Likelihood)</span></div>
+        <div class="tax-group">
+          <div class="tax-group-title">Normalizing Flows</div>
+          <div class="tax-items">
+            <span>NICE</span><span>RealNVP</span><span>Glow</span><span>MAF · IAF · Parallel WaveNet</span><span>Flow++</span><span>FFJORD</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tax-section">
+        <div class="tax-section-title">C. Extra Variables + Hidden <span class="tax-dim">(Latent-Variable · Approx. Likelihood)</span></div>
+
+        <div class="tax-group">
+          <div class="tax-group-title">C1. Amortized Inference <span class="tax-dim">(VAE Family)</span></div>
+          <div class="tax-items">
+            <span>VAE</span><span>β-VAE</span><span>CVAE</span><span>Hierarchical VAEs</span>
+          </div>
+        </div>
+
+        <div class="tax-group">
+          <div class="tax-group-title">C2. Non-Amortized Inference <span class="tax-dim">(Classical EM-Based)</span></div>
+          <div class="tax-items">
+            <span>GMM</span><span>HMM</span><span>Factor Analysis</span><span>Probabilistic PCA</span><span>Kalman Filters</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tax-branch-label">II. Implicit Likelihood Models</div>
+      <div class="tax-desc">divergence minimization · hidden latent variable</div>
+
+      <div class="tax-section">
+        <div class="tax-group">
+          <div class="tax-group-title">GAN Family</div>
+          <div class="tax-items">
+            <span>GAN</span><span>WGAN</span><span>f-GAN</span><span>StyleGAN</span><span>BigGAN</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tax-branch-label">III. Score-Based Models</div>
+      <div class="tax-desc">learn ∇ log p(x) · no tractable likelihood</div>
+
+      <div class="tax-section">
+        <div class="tax-group">
+          <div class="tax-group-title">A. Energy-Based Models</div>
+          <div class="tax-items">
+            <span>Classical EBMs</span><span>Contrastive Divergence</span><span>Persistent CD / NCE-based EBMs</span>
+          </div>
+        </div>
+
+        <div class="tax-group">
+          <div class="tax-group-title">B. Score Matching</div>
+          <div class="tax-items">
+            <span>Hyvärinen Score Matching</span><span>Denoising Score Matching</span><span>Sliced Score Matching</span>
+          </div>
+        </div>
+
+        <div class="tax-group">
+          <div class="tax-group-title">C. Diffusion / Score-SDE Models</div>
+          <div class="tax-items">
+            <span>DDPM</span><span>Improved DDPM</span><span>Score-SDE</span><span>Latent Diffusion (Stable Diffusion)</span><span>Consistency Models</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="chapter-sample">
+    <div class="sample-label">Excerpt — Chapter 1 · The Residual Stream</div>
+    <p style="font-size:0.92rem; color: var(--sepia); margin-bottom: 1rem; font-style: italic;">
+      ResNets and Transformers look different on the surface. The connection runs deeper than it appears.
+    </p>
+
+    <div class="eq-block" style="line-height: 2.4; white-space: normal;">
+
+      <div class="eq-row">
+        <span class="eq-comment">ResNet — each block adds a correction</span>
+        <span class="eq-math">x<sub>ℓ+1</sub> = x<sub>ℓ</sub> + F<sub>ℓ</sub>(x<sub>ℓ</sub>)</span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-comment">Transformer — depth accumulates refinements, not replacements</span>
+        <span class="eq-math">X<sup>(ℓ)</sup> = X<sup>(ℓ−1)</sup> + &Delta;<sup>(ℓ)</sup><sub>attn</sub> + &Delta;<sup>(ℓ)</sup><sub>ffn</sub></span>
+      </div>
+
+      <div class="eq-row">
+        <span class="eq-comment">Unrolled to layer L</span>
+        <span class="eq-math">X<sup>(L)</sup> = X<sup>(0)</sup> + &sum;<sub>ℓ=1</sub><sup>L</sup>&thinsp;(&Delta;<sup>(ℓ)</sup><sub>attn</sub> + &Delta;<sup>(ℓ)</sup><sub>ffn</sub>)</span>
+      </div>
+
+    </div>
+
+    <p style="font-size:0.9rem; color:#2a221a; margin-top: 1rem; line-height: 1.7;">
+      Neither architecture overwrites its representations — they accumulate them. In ResNet, the residual function <em>F<sub>l</sub></em> learns a correction. In the Transformer, that correction is split into two structured parts: <em>Δ<sub>attn</sub></em>, which gathers information across positions, and <em>Δ<sub>ffn</sub></em>, which transforms it locally. The final representation is the original embedding plus every increment every layer ever wrote. Depth, in both cases, is accumulation — not replacement.
+    </p>
+
+    <blockquote>The Transformer does not transform representations — it refines them, layer by layer, through addition. The name is apt in a way the original paper never quite spells out.</blockquote>
+  </div>
+
+  <h3 id="progress"><a href="#progress">Current Progress</a></h3>
+  <div class="progress-block" id="progress-block">
+    <div class="progress-row">
+      <span class="ch-label">Ch 1 · AR Models</span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="70"></div></div>
+      <span class="pct">70%</span>
+    </div>
+    <div class="legend">
+      <span><i class="dot done"></i> Complete draft</span>
+      <span><i class="dot draft"></i> In progress</span>
+      <span><i class="dot stub"></i> Outlined</span>
+    </div>
+  </div>
+
+  <div class="ch-topics-block">
+    <div class="ch-topics-header">
+      <span class="ch-topics-num">Ch 1</span>
+      <span class="ch-topics-title">Autoregressive Models — Topics Covered</span>
+    </div>
+    <div class="ch-topics-grid">
+
+      <div class="ch-topic-group">
+        <div class="ch-topic-section">Fixed-Length Models</div>
+        <div class="ch-topic-items">
+          <span class="ch-topic done">Modeling joint distributions</span>
+          <span class="ch-topic done">Chain rule & exponential cost</span>
+          <span class="ch-topic done">Bayesian networks</span>
+          <span class="ch-topic done">Markov assumption</span>
+          <span class="ch-topic done">Parametric conditionals</span>
+          <span class="ch-topic done">FVSBN</span>
+          <span class="ch-topic done">NADE & weight sharing</span>
+          <span class="ch-topic done">NADE extensions (discrete, RNADE)</span>
+          <span class="ch-topic done">Autoencoders & the cheating problem</span>
+          <span class="ch-topic done">MADE & autoregressive masking</span>
+          <span class="ch-topic done">PixelRNN / PixelCNN</span>
+          <span class="ch-topic done">WaveNet & dilated convolutions</span>
+        </div>
+      </div>
+
+      <div class="ch-topic-group">
+        <div class="ch-topic-section">Variable-Length Models</div>
+        <div class="ch-topic-items">
+          <span class="ch-topic done">Words to vectors — one-hot failures</span>
+          <span class="ch-topic done">Distributional hypothesis</span>
+          <span class="ch-topic done">Word2Vec — Skipgram & CBOW</span>
+          <span class="ch-topic done">Negative sampling</span>
+          <span class="ch-topic done">Geometry of word vectors</span>
+          <span class="ch-topic done">GloVe</span>
+          <span class="ch-topic done">From NADE accumulation → RNN hidden state</span>
+          <span class="ch-topic done">RNNs & backprop through time</span>
+          <span class="ch-topic done">Vanishing & exploding gradients</span>
+          <span class="ch-topic done">LSTM & GRU</span>
+          <span class="ch-topic done">Bidirectional RNNs · Stacked RNNs</span>
+          <span class="ch-topic done">Encoder–decoder seq2seq</span>
+          <span class="ch-topic done">Attention — additive, dot-product, Q/K/V</span>
+          <span class="ch-topic done">Multi-head attention</span>
+          <span class="ch-topic done">Self-attention & cross-attention</span>
+          <span class="ch-topic done">Transformer — full decoder walkthrough</span>
+          <span class="ch-topic done">GPT & autoregressive language modeling</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="rule"><span>the medium: beyond the pdf</span></div>
+
+  <div class="prose">
+    <p>Right now, I am drafting this manuscript in Overleaf. I love the typographic rigor of LaTeX—it feels clean, serious, and easy to read. But a static PDF is fundamentally the wrong container for a field that moves this fast.</p>
+
+    <p>I want to build something that preserves that typographic elegance but evolves alongside my thoughts. A dynamic digital space where intuition is guided by interactive animations, where new research naturally triggers new conceptual branches, and where the text is a living artifact rather than a frozen export. If you are someone who is excited by building interactive technical publications, I would love to build this together.</p>
+  </div>
+
+  <div class="rule"><span>who I'm looking for</span></div>
+
+  <div class="prose">
+    <p>I'm not looking for people to write sections for me. I'm looking for <mark>thinking partners</mark> — people who will read a draft and tell me where the intuition breaks, where I'm hand-waving, where the thread I'm following actually leads somewhere I haven't seen yet.</p>
+  </div>
+
+  <ul class="collab-list">
+    <li>
+      <span class="tag open">Open</span>
+      <div><strong>Technical readers</strong> — people who know the research well enough to catch when an explanation is almost right but not quite. ML researchers, PhD students, self-taught practitioners who've gone deep on these topics.</div>
+    </li>
+    <li>
+      <span class="tag open">Open</span>
+      <div><strong>Careful lay readers</strong> — people without a formal ML background who are willing to flag the exact sentence where they got lost. Your confusion is data, not a failure.</div>
+    </li>
+    <li>
+      <span class="tag visual">Visual</span>
+      <div><strong>Diagram collaborators</strong> — someone who thinks visually about how to represent attention, gradient flow, or the residual stream in ways that are clear without being decorative.</div>
+    </li>
+    <li>
+      <span class="tag build">Build</span>
+      <div><strong>Platform Engineers</strong> — someone who can build the pipeline to enable a dynamic, interactive book-like experience. If you love typography and know how to bridge LaTeX/Markdown with modern web frameworks, we should talk.</div>
+    </li>
+    <li>
+      <span class="tag review">Review</span>
+      <div><strong>Chapter reviewers</strong> — willing to read a 20–40 page draft chapter and leave written notes. No commitment beyond a single chapter if you only have bandwidth for one.</div>
+    </li>
+    <li>
+      <span class="tag review">Review</span>
+      <div><strong>Equation checkers</strong> — someone who will read the math slowly and tell me where notation is inconsistent or a derivation quietly skips a step.</div>
+    </li>
+  </ul>
+
+  <p class="footnote">This is not a paid project. It is not affiliated with any institution. If it ever becomes a real book, collaborators will be acknowledged properly. Right now it is a draft being built in earnest.</p>
+
+  <div class="cta-section">
+    <h2>Interested?</h2>
+    <p>The best way to reach me is by email. Tell me which chapter interests you, what your background looks like — EEE, CS, self-taught, anything — and what kind of collaboration you have time for. I'll share the current draft and we'll go from there.</p>
+    <div class="cta-links">
+      <a class="cta-btn primary" href="mailto:3pyogesh@gmail.com?subject=Connecting the Dots — Collaboration">
+        Write to me →
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span class="ornament">※</span>
+    Connecting the Dots · Yogesh · An open research documentation project · 2025–
+  </footer>
+
+</main><script>
+  // Page load fade-in
+  window.addEventListener("load", () => {
+    document.body.classList.add("loaded");
+  });
+
+  // Reading Progress Bar
+  window.addEventListener("scroll", () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.body.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    document.querySelector(".reading-progress").style.width = progress + "%";
+  });
+
+  window.addEventListener('load', () => {
+    // Safely animate progress bars
+    setTimeout(() => {
+      document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+        bar.style.width = (bar.dataset.w || 0) + '%';
+      });
+    }, 400);
+  });
+</script>
+</body>
+</html>
