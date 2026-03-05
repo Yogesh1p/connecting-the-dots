@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Connecting the Dots — an intuition-first technical manuscript documenting an AI research learning journey.">
+<meta name="description" content="Connecting the Dots — an intuition-first technical manuscript reconstructing modern AI from first principles.">
 <title>Connecting the Dots — Yogesh</title>
 <link rel="canonical" href="https://yourdomain.com/connecting-the-dots">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,9 +43,32 @@
     transition: opacity 0.5s ease;
   }
 
-  /* ── Page Fade-in Loaded State ── */
   body.loaded {
     opacity: 1;
+  }
+
+  /* ── Navigation ── */
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
+    animation: fadeUp 0.9s ease both;
+  }
+
+  nav a { 
+    color: var(--sepia); 
+    text-decoration: none; 
+    transition: color 0.2s; 
+  }
+  
+  nav a:hover { 
+    color: var(--rust); 
   }
 
   /* ── Reading Progress Bar ── */
@@ -103,7 +126,7 @@
 
   /* ── Header / Hero ── */
   header {
-    padding: 5rem 0 3rem;
+    padding: 4rem 0 3rem;
     text-align: left;
     position: relative;
     animation: fadeUp 0.9s ease both;
@@ -225,7 +248,7 @@
   }
 
   .prose p {
-    line-height: 1.85; /* Increased for long-form reading */
+    line-height: 1.85; 
   }
 
   .prose p + p {
@@ -235,47 +258,6 @@
 
   .prose p, blockquote {
     hanging-punctuation: first last;
-  }
-
-  /* ── Margin note ── */
-  .margin-aside {
-    position: absolute;
-    right: -220px;
-    margin: 0;
-    width: 200px;
-    font-size: 0.8rem;
-    font-family: 'DM Mono', monospace;
-    color: var(--margin-note);
-    line-height: 1.5;
-    border-left: 2px solid var(--border);
-    padding-left: 0.75rem;
-  }
-
-  @media (max-width: 1060px) {
-    .margin-aside { display: none; }
-  }
-
-  /* ── Key Concept Definition Box (Kept in CSS for future use) ── */
-  .key-concept {
-    background-color: #fce7f3; /* Magenta Rose background */
-    border-left: 3px solid #9d174d; /* Magenta Rose border */
-    padding: 1.2rem 1.5rem;
-    margin: 2.5rem auto;
-    max-width: 640px;
-    color: #1a1410;
-    border-radius: 0 4px 4px 0;
-    animation: fadeUp 0.9s 0.25s ease both;
-  }
-
-  .key-concept::before {
-    content: 'Definition';
-    display: block;
-    font-family: 'DM Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #9d174d;
-    margin-bottom: 0.5rem;
   }
 
   /* ── What this book is ── */
@@ -361,10 +343,9 @@
     margin-top: 0.18em;
   }
 
-  .collab-list .tag.open   { background: var(--rust); }
   .collab-list .tag.review { background: var(--sepia); }
   .collab-list .tag.visual { background: var(--gold); color: var(--ink); }
-  .collab-list .tag.build  { background: #3d5a80; color: var(--paper); } /* Slate Blue */
+  .collab-list .tag.build  { background: #3d5a80; color: var(--paper); } 
 
   /* ── Chapter sample ── */
   .chapter-sample {
@@ -908,41 +889,37 @@
 <main class="page-wrap">
   <div class="thread-line"></div>
 
+  <nav>
+    <a href="#">Home</a>
+    <a href="#chapters">Chapters</a>
+    <a href="#taxonomy">Taxonomy</a>
+    <a href="#medium">The Medium</a>
+    <a href="#contribute">Contribute</a>
+    <a href="https://github.com/yourusername/connecting-the-dots" target="_blank" style="margin-left: auto;">GitHub ↗</a>
+  </nav>
+
   <header>
     <div class="chapter-label">Yogesh · A Living Document · Open Collaboration</div>
     <h1>Connecting the <em>Dots</em></h1>
-    <p class="subtitle">An intuition-first pedagogical document on modern AI — built in public and written from understanding, not memorization.</p>
+    <p class="subtitle">An intuition-first technical manuscript documenting one engineer's pivot into AI research — built in public, written from understanding, not memorization.</p>
   </header>
 
   <div class="rule"><span>about the project</span></div>
 
   <div class="lede">
-<p>
-Hey, I'm Yogesh. This project began as a personal attempt to understand how modern AI systems actually work — not just what they do, but why the ideas behind them are structured the way they are. It grew out of months spent working slowly through lectures, textbooks, and research papers, often revisiting the same derivation several times before the intuition behind it finally became clear. This document tries to capture that process — the order in which the understanding actually arrived.
-</p>
-</div>
+    <p>Hey, I'm Yogesh. I graduated in Electrical and Electronics Engineering—circuits, signals, control theory. This project reconstructs modern AI from first principles, following the order in which the ideas become necessary. It is an attempt to document the transition from classical engineering math into deep learning architecture, moving from foundational linear algebra straight through to the frontier of generative models.</p>
+  </div>
 
-<div class="prose">
-<p>
-Many of the ideas that first seemed abstract eventually became concrete when they were seen in context. Eigenvalues stopped being a linear algebra exercise when they determined whether gradients vanished during training. The chain rule stopped being calculus homework when it became the mechanism behind backpropagation. Concepts that once appeared disconnected began to fit together as parts of the same system.
-</p>
+  <div class="prose">
+    <p>The EEE background turned out to matter more than I expected. Eigenvalues stopped being abstract when I realized they determine whether your gradients vanish. The chain rule stopped being calculus homework when it became the spine of backpropagation. The vocabulary transferred — it just needed the right translation.</p>
 
-<p>
-The chapter on autoregressive models, for example, begins with a deceptively simple question: how do you model a joint distribution over a large number of variables without storing an exponential number of parameters? From that starting point the discussion moves through the chain rule, Bayesian networks, FVSBN, NADE, and MADE, eventually arriving at modern sequence models and the Transformer architecture. Each idea appears as a response to a limitation in the one before it.
-</p>
+    <p>The chapter on autoregressive models, for instance, begins with a deceptively simple question: how do you model a joint distribution over a hundred variables without storing 2<sup>100</sup> numbers? It walks through the chain rule, Bayesian networks, FVSBN, NADE, MADE, and eventually the Transformer — not as a list of facts, but as a sequence of problems and solutions, each one motivating the next.</p>
 
-<p>
-The intention is to follow this thread through the broader landscape of modern AI. That includes not only the foundational concepts, but also the systems currently shaping the field — large language models, diffusion models, latent-variable methods, state space models, world models, and the architectures that will inevitably emerge after them.
-</p>
+    <p>My intention is to follow this thread all the way to the frontier of modern AI research. Not just the foundational concepts, but the cutting edge—diffusion, latent variables, state space models, and whatever emerges next.</p>
 
-<p>
-The goal is that a reader who finishes a chapter should feel like they <mark>could have invented</mark> the ideas themselves, given the right questions. That sense of reconstruction — of seeing how the pieces logically lead to one another — is what this project is trying to produce.
-</p>
+    <p>The goal is that a reader who finishes a chapter should feel like they <mark>could have invented</mark> the ideas themselves, given the right questions. That feeling is what I'm chasing — and what I want this project to produce in others.</p>
 
-<p>
-I'm building this in the open. Right now it's a one-person effort, but I hope it won't remain that way for long.
-</p>
-</div>
+    <p>I'm doing this alone right now. I'd like to not do it alone for much longer.</p>
   </div>
 
   <div class="rule"><span>a working philosophy</span></div>
@@ -950,15 +927,15 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
   <div class="philosophy-block">
     <p>Whenever we want to "get a task done," we are ultimately constructing a function that maps inputs to outputs. Neural networks are universal function approximators — but a naive, fully connected model is inefficient, data-hungry, and impractical under real-world constraints.</p>
     
-    <p>The field has progressed by imposing increasingly sophisticated internal structure on these networks: convolutions for spatial structure, recurrence and gating for temporal dependencies, attention for relational modeling, residual connections for optimization stability, diffusion and latent-variable frameworks for generative modeling. Each architectural advance reshapes the underlying function class, injecting inductive bias that makes learning more efficient and generalization more robust.</p>
+    <p>The field has progressed by imposing increasingly sophisticated internal structure on these networks: convolutions for spatial structure, recurrence and gating for temporal dependencies, attention for relational modeling, residual connections for optimization stability, diffusion and latent-variable frameworks for generative modeling. Each architectural advance reshapes the underlying function class, injecting inductive bias that makes learning more efficient and generalization more robust. Scaling laws showed that scale matters, but architectural structure determines how efficiently data and compute are used.</p>
     
     <p>In this sense, <mark>the central work of modern AI is not merely scaling parameters — it is systematically improving the architecture of the function itself.</mark> That is what this project is trying to trace, one chapter at a time.</p>
   </div>
 
-  <div class="rule"><span>the sources</span></div>
+  <div class="rule"><span>the pathway</span></div>
 
   <div class="prose" style="animation: fadeUp 0.9s 0.25s ease both;">
-    <p>The project is built on a specific set of materials, worked through in a specific order. Not a curated reading list — a record of what actually landed:</p>
+    <p>The conceptual structure follows a path through linear algebra, probabilistic modeling, and neural architectures. These are the core influences that shaped the foundation:</p>
   </div>
 
   <div class="book-anatomy" style="margin-top: 1rem;">
@@ -986,7 +963,7 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
 
   <div class="rule"><span>taxonomy of generative models</span></div>
 
-  <div class="book-anatomy">
+  <div class="book-anatomy" id="chapters">
     <div class="anatomy-card">
       <div class="card-num">01</div>
       <div class="card-title">Problem-first structure</div>
@@ -1009,7 +986,7 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
     </div>
   </div>
 
-  <div class="chapter-sample" style="font-family: 'DM Mono', monospace; font-size: 0.78rem;">
+  <div class="chapter-sample" id="taxonomy" style="font-family: 'DM Mono', monospace; font-size: 0.78rem;">
     <div class="sample-label">Taxonomy — Generative Models</div>
     <div class="taxonomy-tree">
 
@@ -1147,7 +1124,7 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
       Neither architecture overwrites its representations — they accumulate them. In ResNet, the residual function <em>F<sub>l</sub></em> learns a correction. In the Transformer, that correction is split into two structured parts: <em>Δ<sub>attn</sub></em>, which gathers information across positions, and <em>Δ<sub>ffn</sub></em>, which transforms it locally. The final representation is the original embedding plus every increment every layer ever wrote. Depth, in both cases, is accumulation — not replacement.
     </p>
 
-    <blockquote>The Transformer does not transform representations — it refines them, layer by layer, through addition. The name is apt in a way the original paper never quite spells out.</blockquote>
+    <blockquote>The Transformer does not overwrite representations; it refines them, layer by layer, through addition. The name is apt in a way the original paper never quite spells out.</blockquote>
   </div>
 
   <h3 id="progress"><a href="#progress">Current Progress</a></h3>
@@ -1157,6 +1134,10 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
       <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="70"></div></div>
       <span class="pct">70%</span>
     </div>
+    <div style="margin: 0.6rem 0 1.5rem 11.5rem; display: flex; gap: 0.8rem;">
+      <a href="#" class="cta-btn" style="font-size: 0.65rem; padding: 0.4em 0.8em; border-color: var(--border); color: var(--sepia);">Read current draft (PDF)</a>
+    </div>
+    
     <div class="legend">
       <span><i class="dot done"></i> Complete draft</span>
       <span><i class="dot draft"></i> In progress</span>
@@ -1215,7 +1196,7 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
     </div>
   </div>
 
-  <div class="rule"><span>the medium: beyond the pdf</span></div>
+  <div class="rule" id="medium"><span>the medium: beyond the pdf</span></div>
 
   <div class="prose">
     <p>Right now, I am drafting this manuscript in Overleaf. I love the typographic rigor of LaTeX—it feels clean, serious, and easy to read. But a static PDF is fundamentally the wrong container for a field that moves this fast.</p>
@@ -1223,7 +1204,7 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
     <p>I want to build something that preserves that typographic elegance but evolves alongside my thoughts. A dynamic digital space where intuition is guided by interactive animations, where new research naturally triggers new conceptual branches, and where the text is a living artifact rather than a frozen export. If you are someone who is excited by building interactive technical publications, I would love to build this together.</p>
   </div>
 
-  <div class="rule"><span>who I'm looking for</span></div>
+  <div class="rule" id="contribute"><span>who I'm looking for</span></div>
 
   <div class="prose">
     <p>I'm not looking for people to write sections for me. I'm looking for <mark>thinking partners</mark> — people who will read a draft and tell me where the intuition breaks, where I'm hand-waving, where the thread I'm following actually leads somewhere I haven't seen yet.</p>
@@ -1231,28 +1212,16 @@ I'm building this in the open. Right now it's a one-person effort, but I hope it
 
   <ul class="collab-list">
     <li>
-      <span class="tag open">Open</span>
-      <div><strong>Technical readers</strong> — people who know the research well enough to catch when an explanation is almost right but not quite. ML researchers, PhD students, self-taught practitioners who've gone deep on these topics.</div>
-    </li>
-    <li>
-      <span class="tag open">Open</span>
-      <div><strong>Careful lay readers</strong> — people without a formal ML background who are willing to flag the exact sentence where they got lost. Your confusion is data, not a failure.</div>
+      <span class="tag review">Review</span>
+      <div><strong>Technical Reviewers</strong> — ML researchers, practitioners, or careful readers who can catch when an explanation is almost right but not quite, or where a mathematical derivation quietly skips a step.</div>
     </li>
     <li>
       <span class="tag visual">Visual</span>
-      <div><strong>Diagram collaborators</strong> — someone who thinks visually about how to represent attention, gradient flow, or the residual stream in ways that are clear without being decorative.</div>
+      <div><strong>Visual Collaborators</strong> — Someone who thinks visually about how to represent attention, gradient flow, or the residual stream in ways that are clear without being decorative.</div>
     </li>
     <li>
       <span class="tag build">Build</span>
-      <div><strong>Platform Engineers</strong> — someone who can build the pipeline to enable a dynamic, interactive book-like experience. If you love typography and know how to bridge LaTeX/Markdown with modern web frameworks, we should talk.</div>
-    </li>
-    <li>
-      <span class="tag review">Review</span>
-      <div><strong>Chapter reviewers</strong> — willing to read a 20–40 page draft chapter and leave written notes. No commitment beyond a single chapter if you only have bandwidth for one.</div>
-    </li>
-    <li>
-      <span class="tag review">Review</span>
-      <div><strong>Equation checkers</strong> — someone who will read the math slowly and tell me where notation is inconsistent or a derivation quietly skips a step.</div>
+      <div><strong>Platform Builders</strong> — Someone who can build the pipeline to enable a dynamic, interactive book-like experience, bridging LaTeX/Markdown with modern web frameworks.</div>
     </li>
   </ul>
 
