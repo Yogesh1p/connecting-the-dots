@@ -907,19 +907,31 @@
   <div class="rule"><span>about the project</span></div>
 
   <div class="lede">
-    <p>Hey, I'm Yogesh. I graduated in Electrical and Electronics Engineering—circuits, signals, control theory. This project reconstructs modern AI from first principles, following the order in which the ideas become necessary. It is an attempt to document the transition from classical engineering math into deep learning architecture, moving from foundational linear algebra straight through to the frontier of generative models.</p>
-  </div>
+<p>
+Hey, I'm Yogesh. This project began as a personal attempt to understand how modern AI systems actually work — not just what they do, but why the ideas behind them are structured the way they are. It grew out of months spent working slowly through lectures, textbooks, and research papers, often revisiting the same derivation several times before the intuition behind it finally became clear. This document tries to capture that process — the order in which the understanding actually arrived.
+</p>
+</div>
 
-  <div class="prose">
-    <p>The EEE background turned out to matter more than I expected. Eigenvalues stopped being abstract when I realized they determine whether your gradients vanish. The chain rule stopped being calculus homework when it became the spine of backpropagation. The vocabulary transferred — it just needed the right translation.</p>
+<div class="prose">
+<p>
+Many of the ideas that first seemed abstract eventually became concrete when they were seen in context. Eigenvalues stopped being a linear algebra exercise when they determined whether gradients vanished during training. The chain rule stopped being calculus homework when it became the mechanism behind backpropagation. Concepts that once appeared disconnected began to fit together as parts of the same system.
+</p>
 
-    <p>The chapter on autoregressive models, for instance, begins with a deceptively simple question: how do you model a joint distribution over a hundred variables without storing 2<sup>100</sup> numbers? It walks through the chain rule, Bayesian networks, FVSBN, NADE, MADE, and eventually the Transformer — not as a list of facts, but as a sequence of problems and solutions, each one motivating the next.</p>
+<p>
+The chapter on autoregressive models, for example, begins with a deceptively simple question: how do you model a joint distribution over a large number of variables without storing an exponential number of parameters? From that starting point the discussion moves through the chain rule, Bayesian networks, FVSBN, NADE, and MADE, eventually arriving at modern sequence models and the Transformer architecture. Each idea appears as a response to a limitation in the one before it.
+</p>
 
-    <p>My intention is to follow this thread all the way to the frontier of modern AI research. Not just the foundational concepts, but the cutting edge—diffusion, latent variables, state space models, and whatever emerges next.</p>
+<p>
+The intention is to follow this thread through the broader landscape of modern AI. That includes not only the foundational concepts, but also the systems currently shaping the field — large language models, diffusion models, latent-variable methods, state space models, world models, and the architectures that will inevitably emerge after them.
+</p>
 
-    <p>The goal is that a reader who finishes a chapter should feel like they <mark>could have invented</mark> the ideas themselves, given the right questions. That feeling is what I'm chasing — and what I want this project to produce in others.</p>
+<p>
+The goal is that a reader who finishes a chapter should feel like they <mark>could have invented</mark> the ideas themselves, given the right questions. That sense of reconstruction — of seeing how the pieces logically lead to one another — is what this project is trying to produce.
+</p>
 
-    <p>I'm doing this alone right now. I'd like to not do it alone for much longer.</p>
+<p>
+I'm building this in the open. Right now it's a one-person effort, but I hope it won't remain that way for long.
+</p>
   </div>
 
   <div class="rule"><span>a working philosophy</span></div>
