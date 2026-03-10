@@ -22,6 +22,29 @@
     --highlight: rgba(212, 140, 112, 0.15);
   }
 
+  [data-theme="dark"] {
+    --bg: #16100C;
+    --text: #C5B49A;
+    --accent: #D48C70;
+    --surface: #1F1510;
+    --border: #2E2018;
+    --muted: #736050;
+    --dark: #EAD9C2;
+    --highlight: rgba(212, 140, 112, 0.12);
+  }
+
+  [data-theme="dark"] .anatomy-card,
+  [data-theme="dark"] .chapter-sample,
+  [data-theme="dark"] .ch-topics-block,
+  [data-theme="dark"] .cta-section {
+    background: #1C1208;
+  }
+
+  [data-theme="dark"] .code-block {
+    background: #130E0A;
+    color: #B0A088;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html { scroll-behavior: smooth; }
@@ -35,7 +58,7 @@
     line-height: 1.8;
     overflow-x: hidden;
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease, background-color 0.35s ease, color 0.35s ease;
   }
 
   body.loaded {
@@ -649,11 +672,70 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* ── Dark Mode Toggle ── */
+  .theme-toggle {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: background 0.35s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(212, 140, 112, 0.2);
+  }
+
+  .theme-toggle .toggle-icon {
+    font-size: 1rem;
+    transition: transform 0.5s ease;
+  }
+
+  .theme-toggle:hover .toggle-icon {
+    transform: rotate(25deg);
+  }
+
+  /* ── Transitions for themed elements ── */
+  nav, nav a, h1, h2, h3, .subtitle, p, mark, .lede p,
+  .philosophy-block, .rule, .rule::before, .rule::after,
+  .anatomy-card, .anatomy-card .card-title, .anatomy-card p,
+  .chapter-sample, .sample-label, .tax-root, .tax-branch-label,
+  .tax-desc, .tax-section, .tax-section-title, .tax-group,
+  .tax-items span, .code-block, .eq-math, blockquote,
+  .ch-label, .progress-bar-wrap, .pct, .ch-topics-block,
+  .ch-topics-header, .ch-topic, .collab-list li, .collab-list .tag,
+  .btn, .cta-section, footer {
+    transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+  }
+
 </style>
 </head>
 <body>
 
 <div class="reading-progress"></div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+  <span class="toggle-icon">☽</span>
+  <span class="toggle-label">Dark</span>
+</button>
 
 <main class="page-wrap">
 
@@ -920,7 +1002,7 @@
   <div class="cta-section">
     <h2>Interested?</h2>
     <p>The best way to reach me is by email. Tell me which chapter interests you, what your background looks like — EEE, CS, self-taught, anything — and what kind of collaboration you have time for. I'll share the current draft and we'll go from there.</p>
-    <a class="btn primary" href="mailto:3pyogesh@gmail.com?subject=Connecting the Dots — Collaboration">
+    <a class="btn primary" href="/cdn-cgi/l/email-protection#ac9fdcd5c3cbc9dfc4eccbc1cdc5c082cfc3c193dfd9cec6c9cfd891efc3c2c2c9cfd8c5c2cb8cd8c4c98ce8c3d8df8c4e2c388cefc3c0c0cdcec3decdd8c5c3c2">
       Write to me →
     </a>
   </div>
@@ -931,7 +1013,34 @@
 
 </main>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // Dark mode toggle
+  const toggle = document.getElementById('themeToggle');
+  const icon = toggle.querySelector('.toggle-icon');
+  const label = toggle.querySelector('.toggle-label');
+
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    icon.textContent = '○';
+    label.textContent = 'Light';
+  }
+
+  toggle.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      document.documentElement.removeAttribute('data-theme');
+      icon.textContent = '☽';
+      label.textContent = 'Dark';
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      icon.textContent = '○';
+      label.textContent = 'Light';
+      localStorage.setItem('theme', 'dark');
+    }
+  });
+
   // Page load fade-in
   window.addEventListener("load", () => {
     document.body.classList.add("loaded");
