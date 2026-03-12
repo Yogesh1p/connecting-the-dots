@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script>
 
 <style>
   :root {
@@ -42,7 +46,7 @@
     font-family: 'Lora', Georgia, serif;
     background: var(--bg);
     color: var(--text);
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     line-height: 1.8;
     overflow-x: hidden;
     opacity: 0;
@@ -157,11 +161,11 @@
   .exp-card-body { padding: 1.5rem; }
 
   .exp-card-body p {
-    font-size: 0.95rem; color: var(--text); margin-bottom: 1rem;
+    font-size: 1.05rem; color: var(--text); margin-bottom: 1rem;
   }
 
   .exp-question {
-    font-style: italic; font-size: 1rem; color: var(--dark);
+    font-style: italic; font-size: 1.1rem; color: var(--dark);
     border-left: 3px solid var(--accent); padding-left: 1rem;
     margin: 1rem 0 1.2rem;
   }
@@ -171,9 +175,8 @@
   /* Code snippet display */
   .exp-code-block {
     font-family: ui-monospace, monospace;
-    font-size: 0.82rem;
+    font-size: 0.88rem;
     background: var(--surface);
-    padding: 1.2rem 1.5rem;
     border-radius: 10px;
     margin: 1rem 0;
     color: #5A4E42;
@@ -220,7 +223,7 @@
   .exp-plot-caption { display: flex; flex-direction: column; gap: 0.6rem; }
   .exp-plot-item {
     display: flex; align-items: flex-start; gap: 0.6rem;
-    font-size: 0.82rem; color: var(--text); line-height: 1.5;
+    font-size: 0.88rem; color: var(--text); line-height: 1.5;
   }
   .exp-img {
     width: 100%;
@@ -307,7 +310,7 @@
   .exp-dot-negative .exp-dot-word { color: #C0785A; }
 
   .exp-observation {
-    font-size: 0.82rem; color: var(--muted); font-style: italic;
+    font-size: 0.88rem; color: var(--muted); font-style: italic;
     margin-top: 0.8rem; line-height: 1.6; margin-bottom: 0;
     border-left: 2px solid var(--border); padding-left: 0.8rem;
   }
@@ -325,7 +328,7 @@
     letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.5rem;
   }
 
-  .exp-findings p { font-size: 0.88rem; color: var(--dark); margin: 0; line-height: 1.6; }
+  .exp-findings p { font-size: 0.95rem; color: var(--dark); margin: 0; line-height: 1.6; }
 
   /* Colab button */
   .exp-card-footer {
@@ -602,15 +605,15 @@ candidates = ["money", "water"]</div>
     "After reviewing the evidence, the police concluded that the murderer was"
 )</div>
 
-        <p>At every layer, the attention and feed-forward sublayers each write a small update — Δ_attn and Δ_ffn — into the residual stream at the position of "was". These deltas accumulate. By the final layer, x⁽ᴸ⁾ at "was" has to carry enough information about the entire preceding context to predict the next token. We measure cos(x⁽ˡ⁾, e_name) at each layer for John, Michael, and Sarah — watching how the accumulated deltas push that vector across 36 layers.</p>
+        <p>At every layer, the attention and feed-forward sublayers each write a small update — \(\Delta_\text{attn}\) and \(\Delta_\text{ffn}\) — into the residual stream at the position of "was". These deltas accumulate. By the final layer, \(x^{(L)}\) at "was" has to carry enough information about the entire preceding context to predict the next token. We measure \(\cos(x^{(l)},\, e_\text{name})\) at each layer for John, Michael, and Sarah — watching how the accumulated deltas push that vector across 36 layers.</p>
 
-        <div class="exp-question"><p>Does x⁽ˡ⁾ at "was" drift toward Michael gradually as the deltas stack up — or does it stay flat and only commit in the final few layers?</p></div>
+        <div class="exp-question"><p>Does \(x^{(l)}\) at "was" drift toward Michael gradually as the deltas stack up — or does it stay flat and only commit in the final few layers?</p></div>
 
         <div class="exp-two-cols">
 
           <div class="exp-results-col">
             <div class="exp-results-label">Cosine similarity across 36 layers</div>
-            <div class="exp-results-sub">selected layers · cos(x⁽ˡ⁾, e_name)</div>
+            <div class="exp-results-sub">selected layers · \(\cos(x^{(l)},\, e_\text{name})\)</div>
             <table class="exp-layer-table">
               <thead><tr><th>Layer</th><th>John</th><th>Michael</th><th>Sarah</th></tr></thead>
               <tbody>
@@ -632,9 +635,9 @@ candidates = ["money", "water"]</div>
           <div class="exp-results-col">
             <div class="exp-results-label">Cosine similarity · all 36 layers</div>
             <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/fig1_cosine_similarity-3.png" alt="Cosine similarity across 36 layers" class="exp-img">
-            <div class="exp-results-label" style="margin-top:1rem;">3D PCA trajectory · x⁽⁰⁾ → x⁽ᴸ⁾</div>
+            <div class="exp-results-label" style="margin-top:1rem;">3D PCA trajectory · \(x^{(0)} \to x^{(L)}\)</div>
             <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/fig2_pca_trajectory-3.png" alt="Residual stream PCA trajectory" class="exp-img">
-            <p class="exp-observation">x⁽ˡ⁾ is not the word "was". It is the accumulated sum of every Δ_attn and Δ_ffn written across 36 layers. The trajectory ends closest to e_Michael — d(Michael) = 0.8732 vs d(John) = 0.9083 vs d(Sarah) = 0.9186.</p>
+            <p class="exp-observation">\(x^{(l)}\) is not the word "was". It is the accumulated sum of every \(\Delta_\text{attn}\) and \(\Delta_\text{ffn}\) written across 36 layers. The trajectory ends closest to \(e_\text{Michael}\) — \(d(\text{Michael}) = 0.8732\) vs \(d(\text{John}) = 0.9083\) vs \(d(\text{Sarah}) = 0.9186\).</p>
           </div>
         </div>
       </div>
@@ -659,7 +662,7 @@ candidates = ["money", "water"]</div>
         <span class="exp-card-title">Does the model update its suspicion as evidence arrives? — tracking "murderer" alignment across the story</span>
       </div>
       <div class="exp-card-body">
-        <p>The same murder story, but this time fed in seven incremental chunks — each checkpoint adds one new piece of narrative. At each checkpoint, we read the final-layer vector of the last token and measure cos(x⁽ᴸ⁾, e_name) against each candidate, where e_name is the embedding of the word <em>"murderer"</em>.</p>
+        <p>The same murder story, but this time fed in seven incremental chunks — each checkpoint adds one new piece of narrative. At each checkpoint, we read the final-layer vector of the last token and measure \(\cos(x^{(L)},\, e_\text{name})\) against each candidate, where \(e_\text{name}\) is the embedding of the word <em>"murderer"</em>.</p>
 
         <div class="exp-code-block"><span class="exp-code-comment"># The 7 checkpoints</span>
 [1] Intro                 51 tokens   <span class="exp-code-comment"># three people, one house</span>
@@ -674,7 +677,7 @@ candidates = ["John", "Michael", "Sarah"]</div>
 
         <p>At each checkpoint, we ask: how closely does the final-layer representation of the last token align with the embedding of "murderer" for each of the three candidates? The story systematically eliminates John and Sarah and implicates Michael — and we watch whether those alignment scores move in step with the narrative, or only at the very end.</p>
 
-        <div class="exp-question"><p>Does cos(x⁽ᴸ⁾, e_murderer) for Michael rise as he gets implicated — and do John and Sarah's scores fall as their alibis are established? Or does the model stay uncommitted through most of the story and only shift at checkpoint 7?</p></div>
+        <div class="exp-question"><p>Does \(\cos(x^{(L)},\, e_\text{murderer})\) for Michael rise as he gets implicated — and do John and Sarah's scores fall as their alibis are established? Or does the model stay uncommitted through most of the story and only shift at checkpoint 7?</p></div>
 
         <div class="exp-findings">
           <div class="exp-findings-label">Run it and share what you find</div>
@@ -716,7 +719,7 @@ candidates = ["John", "Michael", "Sarah"]</div>
 
         <p>Resolving this requires chaining through the statements: Dueet claims both Candy and himself are knaves — but a knave can't truthfully call themselves a knave, so Dueet is lying, making him a knave. From Dueet being a knave we can infer things about Candy and Aiken — and from Aiken's claim about Benny, we can resolve Benny's identity. The answer is logically forced.</p>
 
-        <p>We read x⁽ˡ⁾ at the position of the final token "a" across every layer, measuring cos(x⁽ˡ⁾, e_knight) and cos(x⁽ˡ⁾, e_knave) at each layer. As the deltas accumulate at that token, the vector shifts — and those shifts trace out how the logical resolution actually unfolds inside the network.</p>
+        <p>We read \(x^{(l)}\) at the position of the final token "a" across every layer, measuring \(\cos(x^{(l)},\, e_\text{knight})\) and \(\cos(x^{(l)},\, e_\text{knave})\) at each layer. As the deltas accumulate at that token, the vector shifts — and those shifts trace out how the logical resolution actually unfolds inside the network.</p>
 
         <div class="exp-question"><p>How does the alignment at the final token change layer by layer — where does the "knight" curve start, where does it cross "knave", and what does the shape of that crossing look like? Is the separation sharp and late, or does it build steadily from the middle layers?</p></div>
 
