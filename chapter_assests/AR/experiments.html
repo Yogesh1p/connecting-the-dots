@@ -403,6 +403,10 @@
     border-top: 1px solid var(--border); margin-top: 4rem;
   }
 
+  .comments-wrap {
+    margin: 2rem 0 4rem;
+  }
+
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -537,7 +541,7 @@
           <span class="exp-tag">Q/K/V Projections</span>
           <span class="exp-tag">Training Dynamics</span>
         </div>
-        <a href="https://colab.research.google.com/drive/15SNRkyz1pjdbm3Ac0-9jakMCNyCERXBF" target="_blank" class="btn primary colab-btn">
+        <a href="https://colab.research.google.com/drive/1qH88153xf7Mz4sNFPnZMWveLSU53Q_yh" target="_blank" class="btn primary colab-btn">
           <span class="colab-icon"></span>
           Open in Colab
         </a>
@@ -580,9 +584,9 @@
 
           <div class="exp-results-col">
             <div class="exp-results-label">Cosine similarity · all 36 layers</div>
-            <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/fig1_cosine_similarity.png" alt="Cosine similarity across 36 layers" class="exp-img">
+            <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/cosine_similarity.png" alt="Cosine similarity across 36 layers" class="exp-img">
             <div class="exp-results-label" style="margin-top:1rem;">3D PCA trajectory · x⁽⁰⁾ → x⁽ᴸ⁾</div>
-            <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/fig2_pca_trajectory.png" alt="Residual stream PCA trajectory" class="exp-img">
+            <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/Xl_trajectory.png" alt="Residual stream PCA trajectory" class="exp-img">
             <p class="exp-observation">x⁽ˡ⁾ is not the word "was". It is the accumulated sum of every Δ_attn and Δ_ffn written across 36 layers. The trajectory ends closest to e_Michael — d(Michael) = 0.8732 vs d(John) = 0.9083 vs d(Sarah) = 0.9186.</p>
           </div>
         </div>
@@ -594,7 +598,7 @@
           <span class="exp-tag">Qwen 2.5 3B</span>
           <span class="exp-tag">T4 GPU</span>
         </div>
-        <a href="https://colab.research.google.com/drive/1qSMkqJA9Vxa6UEF-2bBU-3aws2uDCp_c#scrollTo=oQrMi4rBGxdE" target="_blank" class="btn primary colab-btn">
+        <a href="https://colab.research.google.com/drive/1-PTtTK0privoxI2V85LV3QbCWJkDf1c8" target="_blank" class="btn primary colab-btn">
           <span class="colab-icon"></span>
           Open in Colab
         </a>
@@ -624,7 +628,7 @@
           <span class="exp-tag">Qwen 2.5 1.5B</span>
           <span class="exp-tag">T4 GPU</span>
         </div>
-        <a href="https://colab.research.google.com/drive/1-PTtTK0privoxI2V85LV3QbCWJkDf1c8" target="_blank" class="btn primary colab-btn">
+        <a href="https://colab.research.google.com/drive/1qSMkqJA9Vxa6UEF-2bBU-3aws2uDCp_c" target="_blank" class="btn primary colab-btn">
           <span class="colab-icon"></span>
           Open in Colab
         </a>
@@ -654,7 +658,7 @@
           <span class="exp-tag">Qwen 2.5 7B</span>
           <span class="exp-tag">T4 GPU</span>
         </div>
-        <a href="https://colab.research.google.com/drive/1qH88153xf7Mz4sNFPnZMWveLSU53Q_yh" target="_blank" class="btn primary colab-btn">
+        <a href="https://colab.research.google.com/drive/15SNRkyz1pjdbm3Ac0-9jakMCNyCERXBF#scrollTo=HTtD-DT6wT_H" target="_blank" class="btn primary colab-btn">
           <span class="colab-icon"></span>
           Open in Colab
         </a>
@@ -668,6 +672,30 @@
   <div class="prose">
     <p>These experiments came out of specific moments in the writing where an assumption needed testing. If you read the chapter and find yourself thinking <em>"but what if..."</em> — that's the right instinct. The Colab notebooks are open; fork them and probe further.</p>
     <p>If you run something interesting and want it included here, the best way to reach me is by email.</p>
+  </div>
+
+  <div class="rule"><span>Ideas & Discussion</span></div>
+
+  <div class="prose">
+    <p>Have an experiment you want to try? A variation on one of the setups above, a different model, a different prompt, a question the data didn't answer? Drop it below — this is the right place for it.</p>
+  </div>
+
+  <div class="comments-wrap">
+    <script src="https://giscus.app/client.js"
+      data-repo="Yogesh1p/connecting-the-dots"
+      data-repo-id="R_kgDORe41-g"
+      data-category="General"
+      data-category-id="DIC_kwDORe41-s4C4NaQ"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="preferred_color_scheme"
+      data-lang="en"
+      crossorigin="anonymous"
+      async>
+    </script>
   </div>
 
   <footer>
