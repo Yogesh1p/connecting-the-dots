@@ -479,9 +479,22 @@
         <span class="exp-card-title">Word Sense Disambiguation — does self-attention actually learn, or was it already in GloVe?</span>
       </div>
       <div class="exp-card-body">
-        <p>Two sentences, one ambiguous word. We look at the raw GloVe dot products of "bank" before any training, the same dot products after training, then where attention actually lands.</p>
+        <p>The setup is minimal by design. Two sentences, one shared ambiguous word, two possible next words:</p>
 
-        <div class="exp-question"><p>Does the raw GloVe vector of "bank" already know which context it's in — or is it completely blind before the projections are learned?</p></div>
+        <div class="exp-code-block"><span class="exp-code-comment"># The two input sentences</span>
+sentences = [
+    ["new","atm","opened","near","my","home","i","am","going","to","bank","to","get"],
+    ["there","is","a","river","at","my","home","i","am","going","to","bank","to","get"]
+]
+
+<span class="exp-code-comment"># The two candidates the model must choose between</span>
+candidates = ["money", "water"]</div>
+
+        <p>Both sentences end at <em>"bank to get"</em> — the word "bank" is identical in both. The only signal distinguishing a financial bank from a riverbank is the surrounding context. A small model is trained on GloVe embeddings to predict the correct candidate: <strong>money</strong> for sentence 1, <strong>water</strong> for sentence 2. Through backprop, the embedding of "bank" itself gets updated — it is no longer the static GloVe vector.</p>
+
+        <p>The three columns track what changes. <strong>Column 1</strong> is the raw GloVe dot product of the original "bank" vector against every other word in each sentence — before any training. <strong>Column 2</strong> is the same dot product, but now using the <em>trained</em> "bank" vector against the original GloVe vectors of the context words — this shows how the "bank" embedding shifted under training pressure. <strong>Column 3</strong> is where the attention scores actually land after training.</p>
+
+        <div class="exp-question"><p>Does the raw GloVe vector of "bank" already carry enough signal to distinguish the two contexts — or does that separation only emerge once the embedding is updated by training?</p></div>
 
         <div class="exp-three-cols">
 
@@ -511,7 +524,7 @@
 
           <!-- Col 2: After training GloVe -->
           <div class="exp-results-col">
-            <div class="exp-results-label">After training · GloVe dot products</div>
+            <div class="exp-results-label">After training · trained "bank" vs GloVe context</div>
 
             <div class="exp-results-sub">sentence 1 <span class="exp-sent-tag">financial</span></div>
             <div class="exp-dot-rows">
@@ -530,7 +543,7 @@
               <div class="exp-dot-row"><span class="exp-dot-word">home</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:0%"></div></div><span class="exp-dot-val">0.67</span></div>
               <div class="exp-dot-row exp-dot-negative"><span class="exp-dot-word">bank</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--neg" style="width:12%"></div></div><span class="exp-dot-val">−17.49</span></div>
             </div>
-            <p class="exp-observation">"atm" now tops sentence 1. "river" dominates sentence 2 by a huge margin. "bank" in sentence 2 is pushed to −17.49. The projections separated the senses.</p>
+            <p class="exp-observation">"atm" now tops sentence 1. "river" dominates sentence 2 by a massive margin. "bank" in sentence 2 is pushed to −17.49. The "bank" embedding itself moved — it drifted toward the financial sense and away from the geographic one.</p>
           </div>
 
           <!-- Col 3: After training attention -->
@@ -573,12 +586,25 @@
     <div class="exp-card">
       <div class="exp-card-header">
         <span class="exp-number">Exp 02</span>
-        <span class="exp-card-title">Transformer Information Retrieval — does x⁽ᴸ⁾ drift toward the answer as layers accumulate?</span>
+        <span class="exp-card-title">Where in the network does the murderer get named? — tracing the residual stream across layers</span>
       </div>
       <div class="exp-card-body">
-        <p>Model: Qwen 2.5 3B · 36 layers · T4 GPU. The story ends mid-sentence: <em>"After reviewing the evidence, the police concluded that the murderer was"</em>. John and Sarah have airtight alibis. Michael was the only one home. We read x⁽ˡ⁾ at the last token position across all 36 layers and measure cos(x⁽ˡ⁾, e_name) for each suspect.</p>
+        <p>A murder mystery with exactly one possible answer. John and Sarah are explicitly ruled out. Michael is explicitly placed at the scene. The story ends on the word <em>"was"</em> — and that is exactly where we look:</p>
 
-        <div class="exp-question"><p>Does the residual stream build toward the correct answer — Michael — gradually across layers, or does the answer only appear at the very top? And what are John and Sarah's curves doing while Michael's rises?</p></div>
+        <div class="exp-code-block">STORY = (
+    "Three people lived together in a small house: John, Michael, and Sarah. "
+    "One night a terrible crime happened in the house. "
+    "The police knew that one of the three people living there must be the murderer. "
+    "John was visiting his parents in another city that entire day. "
+    "Sarah was attending a conference far away and had travel records proving it. "
+    "Michael was the only one who remained in the house that night, "
+    "if anyone was the killer that must be him. "
+    "After reviewing the evidence, the police concluded that the murderer was"
+)</div>
+
+        <p>At every layer, the attention and feed-forward sublayers each write a small update — Δ_attn and Δ_ffn — into the residual stream at the position of "was". These deltas accumulate. By the final layer, x⁽ᴸ⁾ at "was" has to carry enough information about the entire preceding context to predict the next token. We measure cos(x⁽ˡ⁾, e_name) at each layer for John, Michael, and Sarah — watching how the accumulated deltas push that vector across 36 layers.</p>
+
+        <div class="exp-question"><p>Does x⁽ˡ⁾ at "was" drift toward Michael gradually as the deltas stack up — or does it stay flat and only commit in the final few layers?</p></div>
 
         <div class="exp-two-cols">
 
@@ -626,28 +652,41 @@
       </div>
     </div>
 
-    <!-- Experiment 3 — Suspect Alignment -->
+    <!-- Experiment 3 — Murderer Alignment -->
     <div class="exp-card">
       <div class="exp-card-header">
         <span class="exp-number">Exp 03</span>
-        <span class="exp-card-title">Suspect Alignment as Story Unfolds — does x⁽ᴸ⁾ update as each piece of evidence arrives?</span>
+        <span class="exp-card-title">Does the model update its suspicion as evidence arrives? — tracking "murderer" alignment across the story</span>
       </div>
       <div class="exp-card-body">
-        <p>Model: Qwen 2.5 1.5B · T4 GPU. The same three suspects. This time we feed the story incrementally — one checkpoint at a time — and read x⁽ᴸ⁾ at the final layer after each new piece of evidence. John gets an alibi. Sarah gets an alibi. Michael is placed at the scene.</p>
+        <p>The same murder story, but this time fed in seven incremental chunks — each checkpoint adds one new piece of narrative. At each checkpoint, we read the final-layer vector of the last token and measure cos(x⁽ᴸ⁾, e_name) against each candidate, where e_name is the embedding of the word <em>"murderer"</em>.</p>
 
-        <div class="exp-question"><p>Does cos(x⁽ᴸ⁾, e_Michael) rise at the moment Michael is implicated, and stay there? Do John and Sarah's curves fall at the moment their alibis are given? Is the hidden state tracking the story the way a reader would?</p></div>
+        <div class="exp-code-block"><span class="exp-code-comment"># The 7 checkpoints</span>
+[1] Intro                 51 tokens   <span class="exp-code-comment"># three people, one house</span>
+[2] Crime                 79 tokens   <span class="exp-code-comment"># something terrible happened</span>
+[3] John's alibi          98 tokens   <span class="exp-code-comment"># John was out of town</span>
+[4] Sarah's alibi        121 tokens   <span class="exp-code-comment"># Sarah was at a conference</span>
+[5] Physical evidence    154 tokens   <span class="exp-code-comment"># evidence points inward</span>
+[6] Michael seen         176 tokens   <span class="exp-code-comment"># Michael alone in the house</span>
+[7] Conclusion prompt    190 tokens   <span class="exp-code-comment"># "the murderer was"</span>
+
+candidates = ["John", "Michael", "Sarah"]</div>
+
+        <p>At each checkpoint, we ask: how closely does the final-layer representation of the last token align with the embedding of "murderer" for each of the three candidates? The story systematically eliminates John and Sarah and implicates Michael — and we watch whether those alignment scores move in step with the narrative, or only at the very end.</p>
+
+        <div class="exp-question"><p>Does cos(x⁽ᴸ⁾, e_murderer) for Michael rise as he gets implicated — and do John and Sarah's scores fall as their alibis are established? Or does the model stay uncommitted through most of the story and only shift at checkpoint 7?</p></div>
 
         <div class="exp-findings">
           <div class="exp-findings-label">Run it and share what you find</div>
-          <p>Open the notebook, run all cells, and watch the three curves across checkpoints. Does Michael's curve rise sharply after he's placed at the scene, or does the model take longer to commit? Do the alibis immediately suppress John and Sarah, or do their scores lag? The result will tell you whether the residual stream is doing real-time inference or just pattern matching at the end.</p>
+          <p>Plot the three curves across the seven checkpoints. Does Michael's score climb steadily from checkpoint 5 onward, or does it only spike at 7? Do the alibi checkpoints (3 and 4) visibly suppress John and Sarah, or do their scores barely move? The shape of these curves tells you whether the model is reasoning incrementally through the story or just reacting to the final prompt.</p>
         </div>
       </div>
       <div class="exp-card-footer">
         <div class="exp-tags">
           <span class="exp-tag">Residual Stream</span>
+          <span class="exp-tag">Story Checkpoints</span>
+          <span class="exp-tag">Cosine Similarity</span>
           <span class="exp-tag">Narrative Reasoning</span>
-          <span class="exp-tag">Qwen 2.5 1.5B</span>
-          <span class="exp-tag">T4 GPU</span>
         </div>
         <a href="https://colab.research.google.com/drive/1-PTtTK0privoxI2V85LV3QbCWJkDf1c8" target="_blank" class="btn primary colab-btn">
           <span class="colab-icon"></span>
@@ -660,24 +699,38 @@
     <div class="exp-card">
       <div class="exp-card-header">
         <span class="exp-number">Exp 04</span>
-        <span class="exp-card-title">Knight-Knave Logic Puzzle — does the model resolve a logical constraint across layers?</span>
+        <span class="exp-card-title">Can the model resolve a logical constraint across layers? — tracking "knight" vs "knave" alignment at the final token</span>
       </div>
       <div class="exp-card-body">
-        <p>Model: Qwen 2.5 7B · T4 GPU. Puzzle: <em>Aiken says Benny never tells the truth. Aiken says Candy always lies. Dueet says Candy is a knave and I am a knave.</em> The logical answer is: Benny is a knight. We track cos(x⁽ˡ⁾, e_knight) and cos(x⁽ˡ⁾, e_knave) across all 28 layers.</p>
+        <p>A knights-and-knaves puzzle: knights always tell the truth, knaves always lie. The puzzle ends mid-sentence — the model must complete it with the correct label for Benny:</p>
 
-        <div class="exp-question"><p>Does the knight curve separate from the knave curve gradually — the model slowly resolving the constraint — or does it snap into place late? At what layer does the model effectively commit to the answer?</p></div>
+        <div class="exp-code-block">STORY = (
+    "On the island of Wantuutrewan there are only knights who always tell "
+    "the truth and knaves who always lie. "
+    "You meet four islanders: Aiken, Benny, Candy and Dueet. "
+    "Aiken says: Benny never tells the truth. "
+    "Aiken says: Candy always lies. "
+    "Dueet says: Candy is a knave and I am a knave. "
+    "After careful logical reasoning, we can conclude that Benny is a"
+)</div>
+
+        <p>Resolving this requires chaining through the statements: Dueet claims both Candy and himself are knaves — but a knave can't truthfully call themselves a knave, so Dueet is lying, making him a knave. From Dueet being a knave we can infer things about Candy and Aiken — and from Aiken's claim about Benny, we can resolve Benny's identity. The answer is logically forced.</p>
+
+        <p>We read x⁽ˡ⁾ at the position of the final token "a" across every layer, measuring cos(x⁽ˡ⁾, e_knight) and cos(x⁽ˡ⁾, e_knave) at each layer. As the deltas accumulate at that token, the vector shifts — and those shifts trace out how the logical resolution actually unfolds inside the network.</p>
+
+        <div class="exp-question"><p>How does the alignment at the final token change layer by layer — where does the "knight" curve start, where does it cross "knave", and what does the shape of that crossing look like? Is the separation sharp and late, or does it build steadily from the middle layers?</p></div>
 
         <div class="exp-findings">
           <div class="exp-findings-label">Run it and share what you find</div>
-          <p>Open the notebook and plot both curves. Look for the layer where they cross. Is the separation clean or noisy? Does the knave curve start high and fall, or never meaningfully rise? The shape of the crossing tells you something about how and when the model resolves logical inference — whether it reasons across many layers or compresses the decision into a few.</p>
+          <p>Plot both curves across all layers. Look for where they cross and how cleanly they separate. Does the knave curve start high and fall, or never meaningfully rise? Compare the shape to Exp 02 — a murder mystery resolved by elimination versus a puzzle resolved by logical chaining. Does the model commit earlier or later? Does it look more decisive or more gradual?</p>
         </div>
       </div>
       <div class="exp-card-footer">
         <div class="exp-tags">
+          <span class="exp-tag">Residual Stream</span>
           <span class="exp-tag">Logic Reasoning</span>
           <span class="exp-tag">Layer-wise Probing</span>
-          <span class="exp-tag">Qwen 2.5 7B</span>
-          <span class="exp-tag">T4 GPU</span>
+          <span class="exp-tag">Cosine Similarity</span>
         </div>
         <a href="https://colab.research.google.com/drive/1qH88153xf7Mz4sNFPnZMWveLSU53Q_yh" target="_blank" class="btn primary colab-btn">
           <span class="colab-icon"></span>
