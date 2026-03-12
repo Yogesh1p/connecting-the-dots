@@ -1,0 +1,89 @@
+/* Giscus custom theme — Connecting the Dots · Light */
+
+:root {
+  --color-canvas-default: #FDFBF7;
+  --color-canvas-subtle: #F4EFE6;
+  --color-canvas-inset: #EDE8DF;
+
+  --color-border-default: #E8DFD1;
+  --color-border-muted: #EDE8DF;
+
+  --color-fg-default: #4A3F35;
+  --color-fg-muted: #847769;
+  --color-fg-subtle: #A09080;
+  --color-fg-on-emphasis: #FDFBF7;
+
+  --color-accent-fg: #D48C70;
+  --color-accent-emphasis: #D48C70;
+  --color-accent-muted: rgba(212, 140, 112, 0.2);
+  --color-accent-subtle: rgba(212, 140, 112, 0.1);
+
+  --color-btn-bg: #F4EFE6;
+  --color-btn-border: #E8DFD1;
+  --color-btn-hover-bg: #EDE8DF;
+  --color-btn-hover-border: #D48C70;
+  --color-btn-active-bg: #E8DFD1;
+  --color-btn-text: #4A3F35;
+  --color-btn-primary-bg: #D48C70;
+  --color-btn-primary-border: #C07A5E;
+  --color-btn-primary-hover-bg: #BE765A;
+  --color-btn-primary-text: #FDFBF7;
+
+  --color-input-bg: #FDFBF7;
+  --color-input-border: #E8DFD1;
+  --color-input-contrast-bg: #F4EFE6;
+
+  --color-header-bg: #F4EFE6;
+  --color-header-border: #E8DFD1;
+
+  --color-avatar-border: #E8DFD1;
+
+  --color-neutral-muted: rgba(132, 119, 105, 0.1);
+  --color-neutral-subtle: rgba(132, 119, 105, 0.06);
+
+  --color-timeline-badge-bg: #F4EFE6;
+
+  --color-social-reaction-bg-hover: rgba(212, 140, 112, 0.1);
+  --color-social-reaction-bg-reacted-hover: rgba(212, 140, 112, 0.15);
+
+  --color-scale-gray-1: #F4EFE6;
+  --color-scale-gray-2: #EDE8DF;
+  --color-scale-gray-3: #E8DFD1;
+  --color-scale-gray-4: #D1C4B4;
+  --color-scale-gray-5: #B0A090;
+  --color-scale-gray-6: #847769;
+  --color-scale-gray-7: #5C5048;
+  --color-scale-gray-8: #4A3F35;
+  --color-scale-gray-9: #2D241E;
+
+  --font-family: 'Lora', Georgia, serif;
+  --font-size-small: 0.82rem;
+  --font-size-base: 0.92rem;
+  --border-radius: 10px;
+}
+
+.gsc-comment-box-textarea {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 0.92rem;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-default);
+  border-color: var(--color-border-default);
+  border-radius: 10px;
+}
+
+.gsc-comment-box-textarea:focus {
+  border-color: var(--color-accent-fg);
+  box-shadow: 0 0 0 3px rgba(212, 140, 112, 0.15);
+}
+
+.gsc-comment {
+  border-color: var(--color-border-default);
+  border-radius: 12px;
+}
+
+.gsc-header {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+a { color: var(--color-accent-fg); }
+a:hover { color: #BE765A; }
