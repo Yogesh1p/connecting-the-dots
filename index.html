@@ -103,9 +103,9 @@
 
   /* ── Layout ── */
   .page-wrap {
-    max-width: 760px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 3rem;
     position: relative;
     z-index: 2;
   }
@@ -158,8 +158,7 @@
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--accent);
-    margin: 2.5rem auto 1rem;
-    max-width: 640px;
+    margin: 2.5rem 0 1rem;
   }
 
   h3 a {
@@ -171,7 +170,6 @@
     font-size: 1.25rem;
     color: var(--muted);
     margin-top: 1.5rem;
-    max-width: 600px;
     font-style: italic;
     line-height: 1.6;
   }
@@ -187,15 +185,12 @@
 
   /* ── Prose & Content Blocks ── */
   .prose {
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: none;
     animation: fadeUp 0.9s 0.2s ease both;
   }
 
   .lede {
     margin: 3rem auto 2rem;
-    max-width: 640px;
     border-left: 3px solid var(--accent);
     padding-left: 1.5rem;
     animation: fadeUp 0.9s 0.15s ease both;
@@ -207,8 +202,7 @@
   }
 
   .philosophy-block {
-    max-width: 640px;
-    margin: 0 auto;
+    max-width: none;
     background: var(--surface);
     padding: 2rem 2.5rem;
     border-radius: 16px;
@@ -240,8 +234,7 @@
 
   /* ── Book Anatomy Grid ── */
   .book-anatomy {
-    margin: 2.5rem auto;
-    max-width: 640px;
+    margin: 2.5rem 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
@@ -295,8 +288,7 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 2.5rem;
-    margin: 3rem auto;
-    max-width: 640px;
+    margin: 3rem 0;
     animation: fadeUp 0.9s 0.4s ease both;
     box-shadow: 0 4px 12px rgba(74, 63, 53, 0.03);
   }
@@ -467,8 +459,7 @@
 
   /* ── Progress & Topics Grid (Restored full lists) ── */
   .progress-block {
-    margin: 2rem auto;
-    max-width: 640px;
+    margin: 2rem 0;
   }
 
   .progress-row {
@@ -517,8 +508,8 @@
     border: 1px solid var(--border);
     border-radius: 16px;
     overflow: hidden;
-    max-width: 640px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     box-shadow: 0 4px 12px rgba(74, 63, 53, 0.03);
   }
 
@@ -598,8 +589,7 @@
 
   /* ── Collaboration List ── */
   .collab-list {
-    margin: 2rem auto;
-    max-width: 640px;
+    margin: 2rem 0;
     list-style: none;
   }
 
@@ -666,9 +656,8 @@
   }
 
   .cta-section {
-    margin: 4rem auto 2rem;
+    margin: 4rem 0 2rem;
     padding: 3rem;
-    max-width: 640px;
     background: #FFF;
     border-radius: 16px;
     border: 1px solid var(--border);
