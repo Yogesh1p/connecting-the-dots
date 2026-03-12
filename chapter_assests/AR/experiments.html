@@ -405,6 +405,27 @@
 
   .comments-wrap {
     margin: 2rem 0 4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .comments-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent);
+  }
+
+  .comments-body {
+    padding: 1.5rem;
+    background: var(--bg);
+  }
+
+  .comments-body p {
+    font-size: 0.92rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6;
   }
 
   @keyframes fadeUp {
@@ -677,25 +698,28 @@
   <div class="rule"><span>Ideas & Discussion</span></div>
 
   <div class="prose">
-    <p>Have an experiment you want to try? A variation on one of the setups above, a different model, a different prompt, a question the data didn't answer? Drop it below — this is the right place for it.</p>
+    <p>Have an experiment you want to try? A variation on one of the setups above, a different model, a different prompt, a question the data didn't answer? Drop it below.</p>
   </div>
 
   <div class="comments-wrap">
-    <script src="https://giscus.app/client.js"
-      data-repo="Yogesh1p/connecting-the-dots"
-      data-repo-id="R_kgDORe41-g"
-      data-category="General"
-      data-category-id="DIC_kwDORe41-s4C4NaQ"
-      data-mapping="pathname"
-      data-strict="0"
-      data-reactions-enabled="1"
-      data-emit-metadata="0"
-      data-input-position="top"
-      data-theme="preferred_color_scheme"
-      data-lang="en"
-      crossorigin="anonymous"
-      async>
-    </script>
+    <div class="comments-header">Drop an idea or share what you found</div>
+    <div class="comments-body">
+      <script src="https://giscus.app/client.js"
+        data-repo="Yogesh1p/connecting-the-dots"
+        data-repo-id="R_kgDORe41-g"
+        data-category="General"
+        data-category-id="DIC_kwDORe41-s4C4NaQ"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="light"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+      </script>
+    </div>
   </div>
 
   <footer>
@@ -709,6 +733,16 @@
   const icon = toggle.querySelector('.toggle-icon');
   const label = toggle.querySelector('.toggle-label');
 
+  function setGiscusTheme(theme) {
+    const iframe = document.querySelector('iframe.giscus-frame');
+    if (iframe) {
+      iframe.contentWindow.postMessage(
+        { giscus: { setConfig: { theme } } },
+        'https://giscus.app'
+      );
+    }
+  }
+
   const saved = localStorage.getItem('theme');
   if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     document.documentElement.setAttribute('data-theme', 'dark');
@@ -721,10 +755,12 @@
       document.documentElement.removeAttribute('data-theme');
       icon.textContent = '☽'; label.textContent = 'Dark';
       localStorage.setItem('theme', 'light');
+      setGiscusTheme('light');
     } else {
       document.documentElement.setAttribute('data-theme', 'dark');
       icon.textContent = '○'; label.textContent = 'Light';
       localStorage.setItem('theme', 'dark');
+      setGiscusTheme('dark_dimmed');
     }
   });
 
