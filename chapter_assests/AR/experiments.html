@@ -704,20 +704,24 @@
   <div class="comments-wrap">
     <div class="comments-header">Drop an idea or share what you found</div>
     <div class="comments-body">
-      <script src="https://giscus.app/client.js"
-        data-repo="Yogesh1p/connecting-the-dots"
-        data-repo-id="R_kgDORe41-g"
-        data-category="General"
-        data-category-id="DIC_kwDORe41-s4C4NaQ"
-        data-mapping="pathname"
-        data-strict="0"
-        data-reactions-enabled="1"
-        data-emit-metadata="0"
-        data-input-position="top"
-        data-theme="light"
-        data-lang="en"
-        crossorigin="anonymous"
-        async>
+      <script>
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const giscusTheme = (savedTheme === 'dark' || (!savedTheme && prefersDark)) ? 'dark_dimmed' : 'light';
+        document.write('<script src="https://giscus.app/client.js"' +
+          ' data-repo="Yogesh1p/connecting-the-dots"' +
+          ' data-repo-id="R_kgDORe41-g"' +
+          ' data-category="General"' +
+          ' data-category-id="DIC_kwDORe41-s4C4NaQ"' +
+          ' data-mapping="pathname"' +
+          ' data-strict="0"' +
+          ' data-reactions-enabled="1"' +
+          ' data-emit-metadata="0"' +
+          ' data-input-position="top"' +
+          ' data-theme="' + giscusTheme + '"' +
+          ' data-lang="en"' +
+          ' crossorigin="anonymous"' +
+          ' async><\/script>');
       </script>
     </div>
   </div>
