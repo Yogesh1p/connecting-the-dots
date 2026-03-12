@@ -36,8 +36,12 @@
     --highlight: rgba(212, 140, 112, 0.12);
   }
 
-  [data-theme="dark"] .exp-card,
-  [data-theme="dark"] .exp-code-block { background: #1C1208; }
+  [data-theme="dark"] .exp-card { background: #1C1208; }
+  [data-theme="dark"] .exp-code-block {
+    background: #130E0A;
+    color: #B0A088;
+    border-color: #2E2018;
+  }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -186,8 +190,6 @@
     overflow-x: auto;
     white-space: pre;
   }
-
-  [data-theme="dark"] .exp-code-block { color: #B0A088; }
 
   .exp-code-comment { color: var(--accent); font-style: italic; font-family: 'Lora', serif; }
 
