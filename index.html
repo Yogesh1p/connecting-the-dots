@@ -524,12 +524,35 @@
 
   .ch-topics-header {
     background: var(--surface);
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.2rem;
     border-bottom: 1px solid var(--border);
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 600;
     font-size: 0.85rem;
     color: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ch-topics-header .exp-link {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    padding: 0.28em 0.85em;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .ch-topics-header .exp-link:hover {
+    background: var(--accent);
+    color: #fff;
   }
 
   .ch-topics-grid {
@@ -541,7 +564,7 @@
     .ch-topics-grid { grid-template-columns: 1fr; }
   }
 
-  .ch-topic-group { padding: 1.5rem; }
+  .ch-topic-group { padding: 1rem 1.2rem; }
   .ch-topic-group:first-child { border-right: 1px solid var(--border); }
 
   .ch-topic-section {
@@ -551,16 +574,16 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--accent);
-    margin-bottom: 1rem;
+    margin-bottom: 0.6rem;
   }
 
   .ch-topic {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     color: var(--text);
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
     line-height: 1.4;
   }
 
@@ -938,7 +961,10 @@
   </div>
 
   <div class="ch-topics-block">
-    <div class="ch-topics-header">Chapter 1 — Topics Covered</div>
+    <div class="ch-topics-header">
+      <span>Chapter 1 — Autoregressive Models</span>
+      <a href="chapter_assests/AR/experiments.html" class="exp-link">Experiments ↗</a>
+    </div>
     <div class="ch-topics-grid">
       <div class="ch-topic-group">
         <div class="ch-topic-section">Fixed-Length Models</div>
