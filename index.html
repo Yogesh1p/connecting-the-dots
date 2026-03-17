@@ -62,7 +62,12 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html { scroll-behavior: smooth; }
+  /* Lenis required CSS */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+  .lenis.lenis-stopped { overflow: clip; }
+  .lenis.lenis-smooth iframe { pointer-events: none; }
 
   /* ── Page Fade-in Initial State ── */
   body {
@@ -1042,8 +1047,7 @@
   discussion, or exploring an experiment together.
   </p>
 
-  <a target="_blank" class="btn primary"
-     href="mailto:3pyogesh@gmail.com?subject=Collaborate%20on%20Connecting%20the%20Dots">
+  <a target="_blank" class="btn primary" href="/cdn-cgi/l/email-protection#2b185b52444c4e58436b4c464a42470548444614585e49414e485f16684447474a4944594a5f4e0e191b44450e191b684445454e485f42454c0e191b5f434e0e191b6f445f58">
      Send a message →
   </a>
 </div>
@@ -1055,22 +1059,16 @@
 </main>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.16/dist/lenis.min.js"></script>
   <script>
+
+/* Lenis smooth scroll — minimal correct setup */
 const lenis = new Lenis({
-  duration: 1.2,
-  smooth: true,
+  lerp: 0.1,
   smoothWheel: true,
-  smoothTouch: false
+  smoothTouch: false,
+  autoRaf: true,
 })
-
-function raf(time) {
-  lenis.raf(time)
-  requestAnimationFrame(raf)
-}
-
-requestAnimationFrame(raf)
-
 
 /* Dark mode toggle */
 
@@ -1087,9 +1085,7 @@ if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dar
 }
 
 toggle.addEventListener('click', () => {
-
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
-
   if (isDark) {
     document.documentElement.removeAttribute('data-theme')
     icon.textContent = '☽'
@@ -1101,44 +1097,32 @@ toggle.addEventListener('click', () => {
     label.textContent = 'Light'
     localStorage.setItem('theme','dark')
   }
-
 })
 
 
 /* Page fade */
-
 window.addEventListener("load", () => {
   document.body.classList.add("loaded")
 })
 
 
-/* Reading progress */
-
+/* Reading progress — driven by Lenis scroll event */
 const progressBar = document.querySelector(".reading-progress")
 
-function updateProgress(){
-  const scrollTop = window.scrollY
+lenis.on('scroll', ({ scroll }) => {
   const docHeight = document.body.scrollHeight - window.innerHeight
-  const progress = (scrollTop / docHeight) * 100
-  progressBar.style.width = progress + "%"
-}
-
-lenis.on('scroll', updateProgress)
+  progressBar.style.width = (scroll / docHeight) * 100 + "%"
+})
 
 
 /* Progress bars */
-
 window.addEventListener('load', () => {
-
-  setTimeout(() => {
-
-    document.querySelectorAll('.progress-bar-fill').forEach(bar => {
-      bar.style.width = (bar.dataset.w || 0) + '%'
-    })
-
-  },400)
-
+  document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+    const w = bar.dataset.w || 0
+    bar.style.width = w + '%'
+  })
 })
-</script>
+
+  </script>
 </body>
 </html>
