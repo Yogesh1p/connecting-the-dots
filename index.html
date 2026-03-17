@@ -752,7 +752,9 @@
   .btn, .cta-section, footer {
     transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease;
   }
-
+.page-wrap {
+  will-change: transform;
+}
 </style>
 </head>
 <body>
@@ -1006,7 +1008,7 @@
   <div class="rule" id="medium"><span>The Medium: Beyond the PDF</span></div>
 
   <div class="prose">
-    <p>Right now, I am drafting this manuscript in Overleaf. I love the typographic rigor of LaTeX—it feels clean, serious, and easy to read. But a static PDF is fundamentally the wrong container for a field that moves this fast.</p>
+    <p>Right now, I am drafting this manu in Overleaf. I love the typographic rigor of LaTeX—it feels clean, serious, and easy to read. But a static PDF is fundamentally the wrong container for a field that moves this fast.</p>
     <p>I want to build something that preserves that typographic elegance but evolves alongside my thoughts. A dynamic digital space where intuition is guided by interactive animations, where new research naturally triggers new conceptual branches, and where the text is a living artifact rather than a frozen export. If you are someone who is excited by building interactive technical publications, I would love to build this together.</p>
   </div>
 
@@ -1052,55 +1054,91 @@
 
 </main>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  // Dark mode toggle
-  const toggle = document.getElementById('themeToggle');
-  const icon = toggle.querySelector('.toggle-icon');
-  const label = toggle.querySelector('.toggle-label');
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script>
+const lenis = new Lenis({
+  duration: 1.2,
+  smooth: true,
+  smoothWheel: true,
+  smoothTouch: false
+})
 
-  const saved = localStorage.getItem('theme');
-  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    icon.textContent = '○';
-    label.textContent = 'Light';
+function raf(time) {
+  lenis.raf(time)
+  requestAnimationFrame(raf)
+}
+
+requestAnimationFrame(raf)
+
+
+/* Dark mode toggle */
+
+const toggle = document.getElementById('themeToggle')
+const icon = toggle.querySelector('.toggle-icon')
+const label = toggle.querySelector('.toggle-label')
+
+const saved = localStorage.getItem('theme')
+
+if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  icon.textContent = '○'
+  label.textContent = 'Light'
+}
+
+toggle.addEventListener('click', () => {
+
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme')
+    icon.textContent = '☽'
+    label.textContent = 'Dark'
+    localStorage.setItem('theme','light')
+  } else {
+    document.documentElement.setAttribute('data-theme','dark')
+    icon.textContent = '○'
+    label.textContent = 'Light'
+    localStorage.setItem('theme','dark')
   }
 
-  toggle.addEventListener('click', () => {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (isDark) {
-      document.documentElement.removeAttribute('data-theme');
-      icon.textContent = '☽';
-      label.textContent = 'Dark';
-      localStorage.setItem('theme', 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      icon.textContent = '○';
-      label.textContent = 'Light';
-      localStorage.setItem('theme', 'dark');
-    }
-  });
+})
 
-  // Page load fade-in
-  window.addEventListener("load", () => {
-    document.body.classList.add("loaded");
-  });
 
-  // Reading Progress Bar
-  window.addEventListener("scroll", () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.body.scrollHeight - window.innerHeight;
-    const progress = (scrollTop / docHeight) * 100;
-    document.querySelector(".reading-progress").style.width = progress + "%";
-  });
+/* Page fade */
 
-  window.addEventListener('load', () => {
-    // Safely animate progress bars
-    setTimeout(() => {
-      document.querySelectorAll('.progress-bar-fill').forEach(bar => {
-        bar.style.width = (bar.dataset.w || 0) + '%';
-      });
-    }, 400);
-  });
+window.addEventListener("load", () => {
+  document.body.classList.add("loaded")
+})
+
+
+/* Reading progress */
+
+const progressBar = document.querySelector(".reading-progress")
+
+function updateProgress(){
+  const scrollTop = window.scrollY
+  const docHeight = document.body.scrollHeight - window.innerHeight
+  const progress = (scrollTop / docHeight) * 100
+  progressBar.style.width = progress + "%"
+}
+
+lenis.on('scroll', updateProgress)
+
+
+/* Progress bars */
+
+window.addEventListener('load', () => {
+
+  setTimeout(() => {
+
+    document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+      bar.style.width = (bar.dataset.w || 0) + '%'
+    })
+
+  },400)
+
+})
 </script>
 </body>
 </html>
