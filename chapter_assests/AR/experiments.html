@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Experiments · Ch 1 · Connecting the Dots</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../base.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script>
+
+<style>
+  /* Experiments-specific styles */
+  [data-theme="dark"] .exp-card { background: #1C1208; }
+  [data-theme="dark"] .exp-code-block {
+    background: #130E0A;
+    color: #B0A088;
+    border-color: #2E2018;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Lora', Georgia, serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1.15rem;
+    line-height: 1.8;
+    overflow-x: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease, background-color 0.35s ease, color 0.35s ease;
+  }
+  body.loaded { opacity: 1; }
+
+  .reading-progress {
+    position: fixed; top: 0; left: 0; height: 4px;
+    width: 0%; background: var(--accent); z-index: 2000;
+    transition: width 0.1s linear;
+  }
+
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 0 3rem; }
+
+  nav {
+    display: flex; flex-wrap: wrap; gap: 1.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
+    animation: fadeUp 0.9s ease both;
+  }
+  nav a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  nav a:hover { color: var(--accent); }
+  nav a.active { color: var(--accent); }
+
+  header {
+    padding: 4rem 0 2rem;
+    animation: fadeUp 0.9s ease both;
+  }
+
+  .chapter-label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.85rem; font-weight: 600; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.15em;
+    margin-bottom: 1rem; display: block;
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 400; line-height: 1.1; color: var(--dark);
+    letter-spacing: -0.02em; margin-bottom: 1rem;
+  }
+
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .subtitle {
+    font-size: 1.1rem; color: var(--muted); font-style: italic; line-height: 1.6;
+  }
+
+  .rule {
+    display: flex; align-items: center; gap: 1rem; color: var(--muted); margin: 3rem 0;
+  }
+  .rule::before, .rule::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .rule span {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+  }
+
+  /* Intro prose */
+  .prose { animation: fadeUp 0.9s 0.15s ease both; }
+  p { margin-bottom: 1.5rem; }
+  mark {
+    background: var(--highlight); color: var(--dark);
+    padding: 0.1em 0.3em; border-radius: 4px;
+  }
+
+  /* Experiment cards */
+  .exp-grid {
+    margin: 2rem auto;
+    display: flex; flex-direction: column; gap: 2rem;
+    animation: fadeUp 0.9s 0.2s ease both;
+  }
+
+  .exp-card {
+    background: #FFF;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(74, 63, 53, 0.03);
+    transition: box-shadow 0.25s, border-color 0.25s;
+  }
+
+  .exp-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 8px 24px rgba(212, 140, 112, 0.1);
+  }
+
+  .exp-card-header {
+    background: var(--surface);
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .exp-number {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent);
+    background: var(--highlight); padding: 0.3em 0.8em; border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .exp-card-title {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.9rem; font-weight: 600; color: var(--dark);
+  }
+
+  .exp-card-body { padding: 1.5rem; }
+
+  .exp-card-body p {
+    font-size: 1.05rem; color: var(--text); margin-bottom: 1rem;
+  }
+
+  .exp-question {
+    font-style: italic; font-size: 1.1rem; color: var(--dark);
+    border-left: 3px solid var(--accent); padding-left: 1rem;
+    margin: 1rem 0 1.2rem;
+  }
+
+  .exp-question p { margin: 0; }
+
+  /* Code snippet display */
+  .exp-code-block {
+    font-family: ui-monospace, monospace;
+    font-size: 0.88rem;
+    background: var(--surface);
+    padding: 1.2rem 1.5rem;
+    border-radius: 10px;
+    margin: 1rem 0;
+    color: #5A4E42;
+    border: 1px solid var(--border);
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .exp-code-comment { color: var(--accent); font-style: italic; font-family: 'Lora', serif; }
+
+  /* What you'll see */
+  .exp-two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 1.2rem 0;
+  }
+
+  @media (max-width: 560px) { .exp-two-cols { grid-template-columns: 1fr; } }
+
+  .exp-layer-table {
+    width: 100%; border-collapse: collapse;
+    font-family: ui-monospace, monospace;
+    font-size: 0.76rem; margin-bottom: 0.5rem;
+  }
+  .exp-layer-table th {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--accent);
+    padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); text-align: right;
+  }
+  .exp-layer-table th:first-child { text-align: left; }
+  .exp-layer-table td {
+    padding: 0.3rem 0.5rem; color: var(--text);
+    text-align: right; border-bottom: 1px solid var(--border);
+  }
+  .exp-layer-table td:first-child { text-align: left; color: var(--muted); }
+  .exp-layer-table td.neg { color: var(--muted); }
+  .exp-layer-table td.peak { color: var(--accent); font-weight: 700; }
+
+  .exp-plot-caption { display: flex; flex-direction: column; gap: 0.6rem; }
+  .exp-plot-item {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-size: 0.88rem; color: var(--text); line-height: 1.5;
+  }
+  .exp-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+
+  .exp-plot-line {
+    width: 24px; height: 3px; border-radius: 2px;
+    flex-shrink: 0; margin-top: 0.5rem;
+  }
+
+  .exp-three-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+    margin: 1.2rem 0;
+  }
+
+  @media (max-width: 680px) { .exp-three-cols { grid-template-columns: 1fr; } }
+
+  .exp-results-col { display: flex; flex-direction: column; }
+
+  .exp-results-label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.7rem;
+  }
+
+  .exp-results-sub {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.75rem; font-weight: 600; color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .exp-sent-tag {
+    font-size: 0.65rem; font-weight: 500; font-style: normal;
+    background: var(--highlight); color: var(--accent);
+    padding: 0.15em 0.5em; border-radius: 20px; margin-left: 0.3rem;
+  }
+
+  .exp-dot-rows { display: flex; flex-direction: column; gap: 0.25rem; }
+
+  .exp-dot-row {
+    display: grid;
+    grid-template-columns: 52px 1fr 42px;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 1;
+  }
+
+  .exp-dot-row--dim { opacity: 0.45; }
+
+  .exp-dot-highlight .exp-dot-word { color: var(--dark); font-weight: 600; }
+
+  .exp-dot-word {
+    font-family: ui-monospace, monospace;
+    font-size: 0.75rem; color: var(--text);
+  }
+
+  .exp-dot-bar-wrap {
+    height: 6px; background: var(--surface);
+    border-radius: 99px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .exp-dot-bar {
+    height: 100%; border-radius: 99px;
+    background: var(--border);
+    transition: width 0.8s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  .exp-dot-bar--accent { background: var(--accent); opacity: 0.5; }
+  .exp-dot-bar--strong { background: var(--accent); opacity: 1; }
+
+  .exp-dot-val {
+    font-family: ui-monospace, monospace;
+    font-size: 0.7rem; color: var(--muted); text-align: right;
+  }
+
+  .exp-dot-bar--neg { background: #C0785A; opacity: 0.7; }
+  .exp-dot-negative .exp-dot-val { color: #C0785A; }
+  .exp-dot-negative .exp-dot-word { color: #C0785A; }
+
+  .exp-observation {
+    font-size: 0.88rem; color: var(--muted); font-style: italic;
+    margin-top: 0.8rem; line-height: 1.6; margin-bottom: 0;
+    border-left: 2px solid var(--border); padding-left: 0.8rem;
+  }
+
+  .exp-findings {
+    padding: 1rem 1.2rem;
+    background: var(--highlight);
+    border-radius: 10px;
+    border: 1px solid rgba(212, 140, 112, 0.25);
+  }
+
+  .exp-findings-label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.5rem;
+  }
+
+  .exp-findings p { font-size: 0.95rem; color: var(--dark); margin: 0; line-height: 1.6; }
+
+  /* Colab button */
+  .exp-card-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+
+  .exp-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .exp-tag {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.7rem; font-weight: 500; color: var(--muted);
+    background: var(--bg); border: 1px solid var(--border);
+    padding: 0.25em 0.7em; border-radius: 20px;
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--surface); color: var(--dark); text-decoration: none;
+    padding: 0.7rem 1.4rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.82rem; font-weight: 600; border-radius: 30px;
+    border: 1px solid var(--border); transition: all 0.2s; cursor: pointer;
+  }
+  .btn:hover {
+    background: #FFF; border-color: var(--accent); color: var(--accent);
+    transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 140, 112, 0.15);
+  }
+  .btn.primary { background: var(--accent); color: #FFF; border-color: var(--accent); }
+  .btn.primary:hover { background: #BE765A; border-color: #BE765A; color: #FFF; }
+
+  .colab-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .colab-icon {
+    width: 16px; height: 16px; border-radius: 3px;
+    background: #F9AB00; display: inline-block; flex-shrink: 0;
+    position: relative;
+  }
+  .colab-icon::after {
+    content: '▶';
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8px; color: white; line-height: 1;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 50px;
+    padding: 0.6rem 1.2rem; cursor: pointer;
+    display: flex; align-items: center; gap: 0.55rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem; font-weight: 600; color: var(--muted);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: background 0.35s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+  }
+  .theme-toggle:hover {
+    border-color: var(--accent); color: var(--accent);
+    transform: translateY(-2px); box-shadow: 0 6px 24px rgba(212, 140, 112, 0.2);
+  }
+  .theme-toggle .toggle-icon { font-size: 1rem; transition: transform 0.5s ease; }
+  .theme-toggle:hover .toggle-icon { transform: rotate(25deg); }
+
+  footer {
+    padding: 3rem 0 4rem; text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.85rem; color: var(--muted);
+    border-top: 1px solid var(--border); margin-top: 4rem;
+  }
+
+  .comments-wrap {
+    margin: 2rem 0 4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .comments-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent);
+  }
+
+  .comments-body {
+    padding: 1.5rem;
+    background: var(--bg);
+  }
+
+  .comments-body p {
+    font-size: 0.92rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.6;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="reading-progress"></div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+  <span class="toggle-icon">☽</span>
+  <span class="toggle-label">Dark</span>
+</button>
+
+<main class="page-wrap">
+
+  <nav>
+    <a href="../../index.html" style="display:flex;align-items:center;line-height:1;">
+      <img src="../../favicon.svg" alt="Home" style="width:28px;height:28px;display:block;">
+    </a>
+    <a href="../../index.html">← Back</a>
+    <a href="../../index.html#chapters">Chapters</a>
+    <a href="#" class="active">Experiments</a>
+    <a href="https://github.com/Yogesh1p/connecting-the-dots" style="margin-left:auto;">GitHub ↗</a>
+  </nav>
+
+  <header>
+    <span class="chapter-label">Chapter 1 · AR Models</span>
+    <h1>Let's <em>Test This.</em></h1>
+    <p class="subtitle">Don't just read the ideas — probe them. Each experiment below is designed to break an assumption and show you what's actually happening under the hood.</p>
+  </header>
+
+  <div class="rule"><span>What these experiments are</span></div>
+
+  <div class="prose">
+    <p>Every section of Chapter 1 builds an intuition. These experiments are designed to <mark>stress-test those intuitions</mark> — to ask: is this actually doing what I think it is?</p>
+    <p>The experiments run in Google Colab. No setup required. The code is minimal and annotated — the goal is not to build a system but to see something clearly.</p>
+  </div>
+
+  <div class="rule"><span>Experiments</span></div>
+
+  <div class="exp-grid">
+
+    <!-- Experiment 1 — Word Disambiguation -->
+    <div class="exp-card">
+      <div class="exp-card-header">
+        <span class="exp-number">Exp 01</span>
+        <span class="exp-card-title">Word Sense Disambiguation — does self-attention actually learn, or was it already in GloVe?</span>
+      </div>
+      <div class="exp-card-body">
+        <p>The setup is minimal by design. Two sentences, one shared ambiguous word, two possible next words:</p>
+
+        <div class="exp-code-block"><span class="exp-code-comment"># The two input sentences</span>
+sentences = [
+    ["new","atm","opened","near","my","home","i","am","going","to","bank","to","get"],
+    ["there","is","a","river","at","my","home","i","am","going","to","bank","to","get"]
+]
+
+<span class="exp-code-comment"># The two candidates the model must choose between</span>
+candidates = ["money", "water"]</div>
+
+        <p>Both sentences end at <em>"bank to get"</em> — the word "bank" is identical in both. The only signal distinguishing a financial bank from a riverbank is the surrounding context. A small model is trained on GloVe embeddings to predict the correct candidate: <strong>money</strong> for sentence 1, <strong>water</strong> for sentence 2. Through backprop, the embedding of "bank" itself gets updated — it is no longer the static GloVe vector.</p>
+
+        <p>The three columns track what changes. <strong>Column 1</strong> is the raw GloVe dot product of the original "bank" vector against every other word in each sentence — before any training. <strong>Column 2</strong> is the same dot product, but now using the <em>trained</em> "bank" vector against the original GloVe vectors of the context words — this shows how the "bank" embedding shifted under training pressure. <strong>Column 3</strong> is where the attention scores actually land after training.</p>
+
+        <div class="exp-question"><p>Does the raw GloVe vector of "bank" already carry enough signal to distinguish the two contexts — or does that separation only emerge once the embedding is updated by training?</p></div>
+
+        <div class="exp-three-cols">
+
+          <!-- Col 1: Before training GloVe -->
+          <div class="exp-results-col">
+            <div class="exp-results-label">Before training · GloVe dot products</div>
+
+            <div class="exp-results-sub">sentence 1 <span class="exp-sent-tag">financial</span></div>
+            <div class="exp-dot-rows">
+              <div class="exp-dot-row"><span class="exp-dot-word">bank</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:100%"></div></div><span class="exp-dot-val">36.39</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">to</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:53%"></div></div><span class="exp-dot-val">19.22</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">new</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:48%"></div></div><span class="exp-dot-val">17.48</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">near</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:47%"></div></div><span class="exp-dot-val">17.02</span></div>
+              <div class="exp-dot-row exp-dot-highlight"><span class="exp-dot-word">atm</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--accent" style="width:31%"></div></div><span class="exp-dot-val">11.49</span></div>
+            </div>
+
+            <div class="exp-results-sub" style="margin-top:0.9rem;">sentence 2 <span class="exp-sent-tag">geographic</span></div>
+            <div class="exp-dot-rows">
+              <div class="exp-dot-row"><span class="exp-dot-word">bank</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:100%"></div></div><span class="exp-dot-val">36.39</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">to</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:53%"></div></div><span class="exp-dot-val">19.22</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">at</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:52%"></div></div><span class="exp-dot-val">19.04</span></div>
+              <div class="exp-dot-row exp-dot-highlight"><span class="exp-dot-word">river</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--accent" style="width:46%"></div></div><span class="exp-dot-val">16.62</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">home</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:41%"></div></div><span class="exp-dot-val">15.06</span></div>
+            </div>
+            <p class="exp-observation">Both sentences rank identically. "atm" and "river" are buried. "bank" tops both. No disambiguation.</p>
+          </div>
+
+          <!-- Col 2: After training GloVe -->
+          <div class="exp-results-col">
+            <div class="exp-results-label">After training · trained "bank" vs GloVe context</div>
+
+            <div class="exp-results-sub">sentence 1 <span class="exp-sent-tag">financial</span></div>
+            <div class="exp-dot-rows">
+              <div class="exp-dot-row exp-dot-highlight"><span class="exp-dot-word">atm</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--strong" style="width:100%"></div></div><span class="exp-dot-val">6.75</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">bank</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:74%"></div></div><span class="exp-dot-val">4.98</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">new</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:31%"></div></div><span class="exp-dot-val">2.13</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">home</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:26%"></div></div><span class="exp-dot-val">1.77</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">near</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:0%"></div></div><span class="exp-dot-val">−6.58</span></div>
+            </div>
+
+            <div class="exp-results-sub" style="margin-top:0.9rem;">sentence 2 <span class="exp-sent-tag">geographic</span></div>
+            <div class="exp-dot-rows">
+              <div class="exp-dot-row exp-dot-highlight"><span class="exp-dot-word">river</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--strong" style="width:100%"></div></div><span class="exp-dot-val">141.62</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">my</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:36%"></div></div><span class="exp-dot-val">51.75</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">i</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:31%"></div></div><span class="exp-dot-val">43.36</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">home</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:0%"></div></div><span class="exp-dot-val">0.67</span></div>
+              <div class="exp-dot-row exp-dot-negative"><span class="exp-dot-word">bank</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--neg" style="width:12%"></div></div><span class="exp-dot-val">−17.49</span></div>
+            </div>
+            <p class="exp-observation">"atm" now tops sentence 1. "river" dominates sentence 2 by a massive margin. "bank" in sentence 2 is pushed to −17.49. The "bank" embedding itself moved — it drifted toward the financial sense and away from the geographic one.</p>
+          </div>
+
+          <!-- Col 3: After training attention -->
+          <div class="exp-results-col">
+            <div class="exp-results-label">After training · attention weights</div>
+
+            <div class="exp-results-sub">sentence 1 → <strong>money ✓</strong></div>
+            <div class="exp-dot-rows">
+              <div class="exp-dot-row exp-dot-highlight"><span class="exp-dot-word">bank</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--strong" style="width:100%"></div></div><span class="exp-dot-val">0.9998</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">near</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:1%"></div></div><span class="exp-dot-val">0.0001</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">rest</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:0%"></div></div><span class="exp-dot-val">≈ 0</span></div>
+            </div>
+
+            <div class="exp-results-sub" style="margin-top:0.9rem;">sentence 2 → <strong>water ✓</strong></div>
+            <div class="exp-dot-rows">
+              <div class="exp-dot-row exp-dot-highlight"><span class="exp-dot-word">river</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar exp-dot-bar--strong" style="width:100%"></div></div><span class="exp-dot-val">1.0000</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">bank</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:0%"></div></div><span class="exp-dot-val">0.0000</span></div>
+              <div class="exp-dot-row"><span class="exp-dot-word">rest</span><div class="exp-dot-bar-wrap"><div class="exp-dot-bar" style="width:0%"></div></div><span class="exp-dot-val">≈ 0</span></div>
+            </div>
+            <p class="exp-observation">The model was trained to predict "money" or "water" as the next word. To do that, it learned to collapse all attention weight onto the one word that decides the answer.</p>
+          </div>
+
+        </div>
+      </div>
+      <div class="exp-card-footer">
+        <div class="exp-tags">
+          <span class="exp-tag">GloVe</span>
+          <span class="exp-tag">Self-Attention</span>
+          <span class="exp-tag">Q/K/V Projections</span>
+          <span class="exp-tag">Training Dynamics</span>
+        </div>
+        <a target="_blank" href="https://colab.research.google.com/drive/15SNRkyz1pjdbm3Ac0-9jakMCNyCERXBF" class="btn primary colab-btn">
+          <span class="colab-icon"></span>
+          Open in Colab
+        </a>
+      </div>
+    </div>
+
+    <!-- Experiment 2 — Information Retrieval -->
+    <div class="exp-card">
+      <div class="exp-card-header">
+        <span class="exp-number">Exp 02</span>
+        <span class="exp-card-title">Where in the network does the murderer get named? — tracing the residual stream across layers</span>
+      </div>
+      <div class="exp-card-body">
+        <p>A murder mystery with exactly one possible answer. John and Sarah are explicitly ruled out. Michael is explicitly placed at the scene. The story ends on the word <em>"was"</em> — and that is exactly where we look:</p>
+
+        <div class="exp-code-block">STORY = (
+    "Three people lived together in a small house: John, Michael, and Sarah. "
+    "One night a terrible crime happened in the house. "
+    "The police knew that one of the three people living there must be the murderer. "
+    "John was visiting his parents in another city that entire day. "
+    "Sarah was attending a conference far away and had travel records proving it. "
+    "Michael was the only one who remained in the house that night, "
+    "if anyone was the killer that must be him. "
+    "After reviewing the evidence, the police concluded that the murderer was"
+)</div>
+
+        <p>At every layer, the attention and feed-forward sublayers each write a small update — \(\Delta_\text{attn}\) and \(\Delta_\text{ffn}\) — into the residual stream at the position of "was". These deltas accumulate. By the final layer, \(x^{(L)}\) at "was" has to carry enough information about the entire preceding context to predict the next token. We measure \(\cos(x^{(l)},\, e_\text{name})\) at each layer for John, Michael, and Sarah — watching how the accumulated deltas push that vector across 36 layers.</p>
+
+        <div class="exp-question"><p>Does \(x^{(l)}\) at "was" drift toward Michael gradually as the deltas stack up — or does it stay flat and only commit in the final few layers?</p></div>
+
+        <div class="exp-two-cols">
+
+          <div class="exp-results-col">
+            <div class="exp-results-label">Cosine similarity across 36 layers</div>
+            <div class="exp-results-sub">selected layers · \(\cos(x^{(l)},\, e_\text{name})\)</div>
+            <table class="exp-layer-table">
+              <thead><tr><th>Layer</th><th>John</th><th>Michael</th><th>Sarah</th></tr></thead>
+              <tbody>
+                <tr><td>0</td><td>0.022</td><td class="neg">−0.023</td><td class="neg">−0.048</td></tr>
+                <tr><td>5</td><td class="neg">−0.016</td><td class="neg">−0.031</td><td>0.022</td></tr>
+                <tr><td>10</td><td>0.001</td><td class="neg">−0.008</td><td>0.011</td></tr>
+                <tr><td>15</td><td class="neg">−0.004</td><td class="neg">−0.011</td><td class="neg">−0.005</td></tr>
+                <tr><td>20</td><td>0.015</td><td class="neg">−0.001</td><td>0.017</td></tr>
+                <tr><td>25</td><td>0.030</td><td class="neg">−0.001</td><td>0.015</td></tr>
+                <tr><td>30</td><td>0.060</td><td>0.033</td><td>0.023</td></tr>
+                <tr><td>32</td><td>0.037</td><td>0.051</td><td>0.016</td></tr>
+                <tr><td>34</td><td>0.085</td><td class="peak">0.129 ↑ peak</td><td>0.048</td></tr>
+                <tr><td>36</td><td>0.092</td><td class="peak">0.127</td><td>0.081</td></tr>
+              </tbody>
+            </table>
+            <p class="exp-observation">Michael stays near zero or negative through layers 0–30. Then between layers 32 and 34 his alignment surges to 0.129 — the highest of all three suspects. The answer wasn't being built gradually. It arrived late, sharply, in the retrieval zone.</p>
+          </div>
+
+          <div class="exp-results-col">
+            <div class="exp-results-label">Cosine similarity · all 36 layers</div>
+            <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/fig1_cosine_similarity-3.png" alt="Cosine similarity across 36 layers" class="exp-img">
+            <div class="exp-results-label" style="margin-top:1rem;">3D PCA trajectory · \(x^{(0)} \to x^{(L)}\)</div>
+            <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assests/AR/fig2_pca_trajectory-3.png" alt="Residual stream PCA trajectory" class="exp-img">
+            <p class="exp-observation">\(x^{(l)}\) is not the word "was". It is the accumulated sum of every \(\Delta_\text{attn}\) and \(\Delta_\text{ffn}\) written across 36 layers. The trajectory ends closest to \(e_\text{Michael}\) — \(d(\text{Michael}) = 0.8732\) vs \(d(\text{John}) = 0.9083\) vs \(d(\text{Sarah}) = 0.9186\).</p>
+          </div>
+        </div>
+      </div>
+      <div class="exp-card-footer">
+        <div class="exp-tags">
+          <span class="exp-tag">Residual Stream</span>
+          <span class="exp-tag">Layer Probing</span>
+          <span class="exp-tag">Qwen 2.5 3B</span>
+          <span class="exp-tag">T4 GPU</span>
+        </div>
+        <a target="_blank" href="https://colab.research.google.com/drive/1qSMkqJA9Vxa6UEF-2bBU-3aws2uDCp_c" class="btn primary colab-btn">
+          <span class="colab-icon"></span>
+          Open in Colab
+        </a>
+      </div>
+    </div>
+
+    <!-- Experiment 3 — Murderer Alignment -->
+    <div class="exp-card">
+      <div class="exp-card-header">
+        <span class="exp-number">Exp 03</span>
+        <span class="exp-card-title">Does the model update its suspicion as evidence arrives? — tracking "murderer" alignment across the story</span>
+      </div>
+      <div class="exp-card-body">
+        <p>The same murder story, but this time fed in seven incremental chunks — each checkpoint adds one new piece of narrative. At each checkpoint, we read the final-layer vector of the last token and measure \(\cos(x^{(L)},\, e_\text{name})\) against each candidate, where \(e_\text{name}\) is the embedding of the word <em>"murderer"</em>.</p>
+
+        <div class="exp-code-block"><span class="exp-code-comment"># The 7 checkpoints</span>
+[1] Intro                 51 tokens   <span class="exp-code-comment"># three people, one house</span>
+[2] Crime                 79 tokens   <span class="exp-code-comment"># something terrible happened</span>
+[3] John's alibi          98 tokens   <span class="exp-code-comment"># John was out of town</span>
+[4] Sarah's alibi        121 tokens   <span class="exp-code-comment"># Sarah was at a conference</span>
+[5] Physical evidence    154 tokens   <span class="exp-code-comment"># evidence points inward</span>
+[6] Michael seen         176 tokens   <span class="exp-code-comment"># Michael alone in the house</span>
+[7] Conclusion prompt    190 tokens   <span class="exp-code-comment"># "the murderer was"</span>
+
+candidates = ["John", "Michael", "Sarah"]</div>
+
+        <p>At each checkpoint, we ask: how closely does the final-layer representation of the last token align with the embedding of "murderer" for each of the three candidates? The story systematically eliminates John and Sarah and implicates Michael — and we watch whether those alignment scores move in step with the narrative, or only at the very end.</p>
+
+        <div class="exp-question"><p>Does \(\cos(x^{(L)},\, e_\text{murderer})\) for Michael rise as he gets implicated — and do John and Sarah's scores fall as their alibis are established? Or does the model stay uncommitted through most of the story and only shift at checkpoint 7?</p></div>
+
+        <div class="exp-findings">
+          <div class="exp-findings-label">Run it and share what you find</div>
+          <p>Plot the three curves across the seven checkpoints. Does Michael's score climb steadily from checkpoint 5 onward, or does it only spike at 7? Do the alibi checkpoints (3 and 4) visibly suppress John and Sarah, or do their scores barely move? The shape of these curves tells you whether the model is reasoning incrementally through the story or just reacting to the final prompt.</p>
+        </div>
+      </div>
+      <div class="exp-card-footer">
+        <div class="exp-tags">
+          <span class="exp-tag">Residual Stream</span>
+          <span class="exp-tag">Story Checkpoints</span>
+          <span class="exp-tag">Cosine Similarity</span>
+          <span class="exp-tag">Narrative Reasoning</span>
+        </div>
+        <a target="_blank" href="https://colab.research.google.com/drive/1-PTtTK0privoxI2V85LV3QbCWJkDf1c8" class="btn primary colab-btn">
+          <span class="colab-icon"></span>
+          Open in Colab
+        </a>
+      </div>
+    </div>
+
+    <!-- Experiment 4 — Knight-Knave Logic Puzzle -->
+    <div class="exp-card">
+      <div class="exp-card-header">
+        <span class="exp-number">Exp 04</span>
+        <span class="exp-card-title">Can the model resolve a logical constraint across layers? — tracking "knight" vs "knave" alignment at the final token</span>
+      </div>
+      <div class="exp-card-body">
+        <p>A knights-and-knaves puzzle: knights always tell the truth, knaves always lie. The puzzle ends mid-sentence — the model must complete it with the correct label for Benny:</p>
+
+        <div class="exp-code-block">STORY = (
+    "On the island of Wantuutrewan there are only knights who always tell "
+    "the truth and knaves who always lie. "
+    "You meet four islanders: Aiken, Benny, Candy and Dueet. "
+    "Aiken says: Benny never tells the truth. "
+    "Aiken says: Candy always lies. "
+    "Dueet says: Candy is a knave and I am a knave. "
+    "After careful logical reasoning, we can conclude that Benny is a"
+)</div>
+
+        <p>Resolving this requires chaining through the statements: Dueet claims both Candy and himself are knaves — but a knave can't truthfully call themselves a knave, so Dueet is lying, making him a knave. From Dueet being a knave we can infer things about Candy and Aiken — and from Aiken's claim about Benny, we can resolve Benny's identity. The answer is logically forced.</p>
+
+        <p>We read \(x^{(l)}\) at the position of the final token "a" across every layer, measuring \(\cos(x^{(l)},\, e_\text{knight})\) and \(\cos(x^{(l)},\, e_\text{knave})\) at each layer. As the deltas accumulate at that token, the vector shifts — and those shifts trace out how the logical resolution actually unfolds inside the network.</p>
+
+        <div class="exp-question"><p>How does the alignment at the final token change layer by layer — where does the "knight" curve start, where does it cross "knave", and what does the shape of that crossing look like? Is the separation sharp and late, or does it build steadily from the middle layers?</p></div>
+
+        <div class="exp-findings">
+          <div class="exp-findings-label">Run it and share what you find</div>
+          <p>Plot both curves across all layers. Look for where they cross and how cleanly they separate. Does the knave curve start high and fall, or never meaningfully rise? Compare the shape to Exp 02 — a murder mystery resolved by elimination versus a puzzle resolved by logical chaining. Does the model commit earlier or later? Does it look more decisive or more gradual?</p>
+        </div>
+      </div>
+      <div class="exp-card-footer">
+        <div class="exp-tags">
+          <span class="exp-tag">Residual Stream</span>
+          <span class="exp-tag">Logic Reasoning</span>
+          <span class="exp-tag">Layer-wise Probing</span>
+          <span class="exp-tag">Cosine Similarity</span>
+        </div>
+        <a target="_blank" href="https://colab.research.google.com/drive/1qH88153xf7Mz4sNFPnZMWveLSU53Q_yh" class="btn primary colab-btn">
+          <span class="colab-icon"></span>
+          Open in Colab
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="rule"><span>Adding your own</span></div>
+
+  <div class="prose">
+    <p>These experiments came out of specific moments in the writing where an assumption needed testing. If you read the chapter and find yourself thinking <em>"but what if..."</em> — that's the right instinct. The Colab notebooks are open; fork them and probe further.</p>
+    <p>If you run something interesting and want it included here, the best way to reach me is by email.</p>
+  </div>
+
+  <div class="rule"><span>Ideas & Discussion</span></div>
+
+  <div class="prose">
+    <p>Have an experiment you want to try? A variation on one of the setups above, a different model, a different prompt, a question the data didn't answer? Drop it below.</p>
+  </div>
+
+  <div class="comments-wrap">
+    <div class="comments-header">Drop an idea or share what you found</div>
+    <div class="comments-body">
+      <script>
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+        const giscusTheme = isDark
+          ? 'https://yogesh1p.github.io/connecting-the-dots/giscus-theme-dark.css'
+          : 'https://yogesh1p.github.io/connecting-the-dots/giscus-theme-light.css';
+        document.write('<script src="https://giscus.app/client.js"' +
+          ' data-repo="Yogesh1p/connecting-the-dots"' +
+          ' data-repo-id="R_kgDORe41-g"' +
+          ' data-category="General"' +
+          ' data-category-id="DIC_kwDORe41-s4C4NaQ"' +
+          ' data-mapping="pathname"' +
+          ' data-strict="0"' +
+          ' data-reactions-enabled="1"' +
+          ' data-emit-metadata="0"' +
+          ' data-input-position="top"' +
+          ' data-theme="' + giscusTheme + '"' +
+          ' data-lang="en"' +
+          ' crossorigin="anonymous"' +
+          ' async><\/script>');
+      </script>
+    </div>
+  </div>
+
+  <footer>
+    Connecting the Dots · Yogesh · Experiments · Chapter 1 · 2026–
+  </footer>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.16/dist/lenis.min.js"></script>
+<script src="../../base.js"></script>
+</body>
+</html>
