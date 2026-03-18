@@ -490,11 +490,11 @@ candidates = ["John", "Michael", "Sarah"]</div>
     // Load on init
     loadGiscus();
 
-    // Listen for theme toggles from your existing toggle button
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      // Small delay to let base.js update localStorage first
-      setTimeout(updateGiscusTheme, 50);
-    });
+    document.addEventListener('click', (e) => {
+  if (e.target.closest('#themeToggle')) {
+    setTimeout(updateGiscusTheme, 50);
+  }
+});
   </script>
 </div>
 </div>
