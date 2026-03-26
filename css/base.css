@@ -256,7 +256,7 @@ footer {
 
 /* Dark mode specific drop-shadows */
 [data-theme="dark"] .book-img {
-  filter: drop-shadow(0 4px 8px rgba(212, 140, 112, 0.4));
+  filter: drop-shadow(0 4px 8px rgba(212, 140, 112, 0.1));
 }
 [data-theme="dark"] .book-link:hover .book-img {
   filter: drop-shadow(0 12px 24px rgba(212, 140, 112, 0.7));
