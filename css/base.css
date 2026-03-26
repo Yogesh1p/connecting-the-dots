@@ -1,5 +1,5 @@
 /* ============================================================
-   base.css — Shared styles for Connecting the Dots--
+   base.css — Shared styles for Connecting the Dots
    Used by: index.html, chapter_assests/AR/experiments.html
    ============================================================ */
 
@@ -251,15 +251,15 @@ footer {
 /* Hover: Lift up, scale slightly, straighten out, and deepen shadow */
 .book-link:hover .book-img {
   transform: rotate(-2deg) scale(1.05) translateY(-6px);
-  filter: drop-shadow(0 12px 24px rgba(218, 124, 41, 0.15));
+  filter: drop-shadow(0 12px 24px rgba(212, 140, 112, 0.4));
 }
 
 /* Dark mode specific drop-shadows */
 [data-theme="dark"] .book-img {
-  filter: drop-shadow(0 4px 8px rgba(225, 140, 43, 0.4));
+  filter: drop-shadow(0 4px 8px rgba(212, 140, 112, 0.4));
 }
 [data-theme="dark"] .book-link:hover .book-img {
-  filter: drop-shadow(0 12px 24px rgba(227, 128, 36, 0.7));
+  filter: drop-shadow(0 12px 24px rgba(212, 140, 112, 0.7));
 }
 
 /* ── Book Label ── */
