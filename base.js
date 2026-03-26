@@ -39,11 +39,16 @@ if (toggle) {
   const label = toggle.querySelector('.toggle-label');
 
   const saved = localStorage.getItem('theme');
-   
-if (saved === 'dark') {
+  const book  = document.getElementById("bookImg");
+
+  // Initial theme setup
+  if (saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
     icon.textContent  = '○';
     label.textContent = 'Light';
+    if (book) book.src = "assets/book-dark.svg";
+  } else {
+    if (book) book.src = "assets/book-light.svg";
   }
 
   toggle.addEventListener('click', () => {
@@ -51,15 +56,22 @@ if (saved === 'dark') {
       document.documentElement.getAttribute('data-theme') === 'dark';
 
     if (isDark) {
+      // Switch to LIGHT
       document.documentElement.removeAttribute('data-theme');
       icon.textContent  = '☽';
       label.textContent = 'Dark';
       localStorage.setItem('theme', 'light');
+
+      if (book) book.src = "assets/book-light.svg";
+
     } else {
+      // Switch to DARK
       document.documentElement.setAttribute('data-theme', 'dark');
       icon.textContent  = '○';
       label.textContent = 'Light';
       localStorage.setItem('theme', 'dark');
+
+      if (book) book.src = "assets/book-dark.svg";
     }
 
     // Sync giscus theme if present
@@ -81,7 +93,6 @@ if (saved === 'dark') {
 window.addEventListener('load', () => {
   document.body.classList.add('loaded');
 
-  // Progress bars (uses data-w from HTML)
   document.querySelectorAll('.progress-bar-fill').forEach(bar => {
     bar.style.width = (bar.dataset.w || 0) + '%';
   });
@@ -101,7 +112,6 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
       lenis.scrollTo(target);
     }
 
-    // Remove hash so refresh doesn't jump
     history.replaceState(null, null, ' ');
   });
 });
