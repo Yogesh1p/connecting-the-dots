@@ -36,6 +36,12 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-stopped { overflow: clip; }
 .lenis.lenis-smooth iframe { pointer-events: none; }
 
+nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
 /* ── Body ── */
 body {
   font-family: 'Lora', Georgia, serif;
@@ -283,16 +289,16 @@ footer {
 }
 
 .exp-nav {
-  display: inline-flex;   /* important: inline-flex, not flex */
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 
-  padding: 4px 10px;
-  border-radius: 999px;
+  line-height: 1;
+  text-decoration: none;
 
-  background: rgba(212,140,112,0.08);
-
-  line-height: 1; /* fixes baseline mismatch */
+  color: var(--text);   /* 👈 text color same as others */
+  opacity: 0.9;
+  transition: all 0.2s ease;
 }
 
 .exp-nav:hover {
@@ -305,27 +311,15 @@ footer {
   height: 24px;
 }
 
-nav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-.github-link {
-  display: inline-flex;
-  align-items: center;
-  opacity: 0.75;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.github-link:hover {
-  opacity: 1;
-  transform: translateY(-1px);
-}
 
 .github-icon {
   width: 24px;
   height: 24px;
-  color: var(--accent);
-  opacity: 0.8;
+  opacity: 0.85;
   transition: all 0.2s ease;
+}
+
+.github-link:hover .github-icon {
+  opacity: 1;
+  transform: translateY(-1px);
 }
