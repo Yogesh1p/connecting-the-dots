@@ -256,7 +256,7 @@ footer {
 
 /* Dark mode specific drop-shadows */
 [data-theme="dark"] .book-img {
-  filter: drop-shadow(0 4px 8px rgba(212, 140, 112, 0.1));
+  filter: drop-shadow(0 4px 8px rgba(104, 37, 11, 0.3));
 }
 [data-theme="dark"] .book-link:hover .book-img {
   filter: drop-shadow(0 12px 24px rgba(212, 140, 112, 0.7));
@@ -280,4 +280,52 @@ footer {
 
 @media (max-width: 560px) {
   .book-link { display: none; }
+}
+
+.exp-nav {
+  display: inline-flex;   /* important: inline-flex, not flex */
+  align-items: center;
+  gap: 6px;
+
+  padding: 4px 10px;
+  border-radius: 999px;
+
+  background: rgba(212,140,112,0.08);
+
+  line-height: 1; /* fixes baseline mismatch */
+}
+
+.exp-nav:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.exp-icon {
+  width: 24px;
+  height: 24px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.75;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.github-link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.github-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent);
+  opacity: 0.8;
+  transition: all 0.2s ease;
 }
