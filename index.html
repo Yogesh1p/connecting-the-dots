@@ -273,10 +273,17 @@
     <a href="https://github.com/Yogesh1p/connecting-the-dots" target="_blank" style="margin-left: auto;">GitHub ↗</a>
   </nav>
 
-  <header>
-    <div class="chapter-label">Yogesh · A Living Document · Open Collaboration</div>
-    <h1>Connecting <em>the Dots.</em></h1>
-    <p class="subtitle">An intuition-first introduction to modern AI — focused on understanding.</p>
+ <header style="display: flex; align-items: center; justify-content: space-between; gap: 2rem;">
+    <div style="flex: 1;">
+      <div class="chapter-label">Yogesh · A Living Document · Open Collaboration</div>
+      <h1>Connecting <em>the Dots.</em></h1>
+      <p class="subtitle">An intuition-first introduction to modern AI — focused on understanding.</p>
+    </div>
+
+    <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="book-link">
+      <img src="assets/book.svg" alt="Read current draft" class="book-img"/>
+      <div class="book-label">READ DRAFT</div>
+    </a>
   </header>
 
   <div class="rule"><span>About the project</span></div>
@@ -323,7 +330,74 @@
       <p>NADE's incremental pre-activation sum is the seed of the RNN hidden state. The LSTM's additive cell state echoes NADE again. These threads are made explicit.</p>
     </div>
   </div>
+  <h3 id="chapters" style="scroll-margin-top: 1rem;">Current Progress</h3>
 
+  <div class="progress-block">
+    <div class="ch-updated">Updated March 2026</div>
+
+    <div class="progress-row ch-toggle" id="ch1-toggle" onclick="toggleCh1()">
+      <span class="ch-label">Ch 1 · AR Models <span class="toggle-arrow">▶</span></span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="70"></div></div>
+      <span class="pct">70%</span>
+    </div>
+
+    <div class="ch-topics-collapsible" id="ch1-topics">
+      <div class="ch-topics-block">
+        <div class="ch-topics-header">
+          <span>Chapter 1 — Autoregressive Models</span>
+          <a target="_blank" href="chapter_assets/AR/experiments.html" class="exp-link">Experiments ↗</a>
+        </div>
+        <div class="ch-topics-grid">
+          <div class="ch-topic-group">
+            <div class="ch-topic-section">Fixed-Length Models</div>
+            <div class="ch-topic">Modeling joint distributions</div>
+            <div class="ch-topic">Chain rule & exponential cost</div>
+            <div class="ch-topic">Bayesian networks</div>
+            <div class="ch-topic">Markov assumption</div>
+            <div class="ch-topic">Parametric conditionals</div>
+            <div class="ch-topic">FVSBN</div>
+            <div class="ch-topic">NADE & weight sharing</div>
+            <div class="ch-topic">NADE extensions (discrete, RNADE)</div>
+            <div class="ch-topic">Autoencoders & the cheating problem</div>
+            <div class="ch-topic">MADE & autoregressive masking</div>
+          </div>
+          <div class="ch-topic-group">
+            <div class="ch-topic-section">Variable-Length Models</div>
+            <div class="ch-topic">Words to vectors — one-hot failures</div>
+            <div class="ch-topic">Distributional hypothesis</div>
+            <div class="ch-topic">Word2Vec — Skipgram & CBOW, GloVe</div>
+            <div class="ch-topic">Geometry of word vectors</div>
+            <div class="ch-topic">From NADE accumulation → RNN hidden state</div>
+            <div class="ch-topic">RNNs & backprop through time</div>
+            <div class="ch-topic">Vanishing & exploding gradients</div>
+            <div class="ch-topic">LSTM & GRU</div>
+            <div class="ch-topic">Bidirectional RNNs · Stacked RNNs</div>
+            <div class="ch-topic">Encoder–decoder seq2seq</div>
+            <div class="ch-topic">Attention — additive, dot-product, Q/K/V</div>
+            <div class="ch-topic">Self-attention & cross-attention</div>
+            <div class="ch-topic">Multi-head attention</div>
+            <div class="ch-topic">Transformer — full decoder walkthrough</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-row">
+      <span class="ch-label">Ch 2 · LLMs</span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="0"></div></div>
+      <span class="pct">0%</span>
+    </div>
+
+    <div class="progress-row">
+      <span class="ch-label">Ch 3 · Latent Var.</span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="40"></div></div>
+      <span class="pct">40%</span>
+    </div>
+
+    <div style="margin-top: 1.2rem; text-align: center;">
+      <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="btn" style="padding: 0.5rem 1.2rem; font-size: 0.8rem;">Read current draft</a>
+    </div>
+  </div>
   <div class="chapter-sample" id="taxonomy">
     <div class="sample-label">Taxonomy — Generative Models</div>
     <div class="taxonomy-tree">
@@ -446,58 +520,7 @@
     <blockquote>The Transformer does not overwrite representations; it refines them, layer by layer, through addition. The name is apt in a way the original paper never quite spells out.</blockquote>
   </div>
 
-  <h3 id="chapters" style="scroll-margin-top: 1rem;">Current Progress</h3>
-  
-  <div class="progress-block">
-    <div class="progress-row">
-      <span class="ch-label">Ch 1 · AR Models</span>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="70"></div></div>
-      <span class="pct">70%</span>
-    </div>
-    <div style="margin-left: 156px;">
-      <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="btn" style="padding: 0.5rem 1.2rem; font-size: 0.8rem;">Read current draft</a>
-    </div>
-  </div>
 
-  <div class="ch-topics-block">
-    <div class="ch-topics-header">
-      <span>Chapter 1 — Autoregressive Models</span>
-      <a target="_blank" href="chapter_assets/AR/experiments.html" class="exp-link">Experiments ↗</a>
-    </div>
-    <div class="ch-topics-grid">
-      <div class="ch-topic-group">
-        <div class="ch-topic-section">Fixed-Length Models</div>
-        <div class="ch-topic">Modeling joint distributions</div>
-        <div class="ch-topic">Chain rule & exponential cost</div>
-        <div class="ch-topic">Bayesian networks</div>
-        <div class="ch-topic">Markov assumption</div>
-        <div class="ch-topic">Parametric conditionals</div>
-        <div class="ch-topic">FVSBN</div>
-        <div class="ch-topic">NADE & weight sharing</div>
-        <div class="ch-topic">NADE extensions (discrete, RNADE)</div>
-        <div class="ch-topic">Autoencoders & the cheating problem</div>
-        <div class="ch-topic">MADE & autoregressive masking</div>
-      
-      </div>
-      <div class="ch-topic-group">
-        <div class="ch-topic-section">Variable-Length Models</div>
-        <div class="ch-topic">Words to vectors — one-hot failures</div>
-        <div class="ch-topic">Distributional hypothesis</div>
-        <div class="ch-topic">Word2Vec — Skipgram & CBOW, GloVe</div>
-        <div class="ch-topic">Geometry of word vectors</div>
-        <div class="ch-topic">From NADE accumulation → RNN hidden state</div>
-        <div class="ch-topic">RNNs & backprop through time</div>
-        <div class="ch-topic">Vanishing & exploding gradients</div>
-        <div class="ch-topic">LSTM & GRU</div>
-        <div class="ch-topic">Bidirectional RNNs · Stacked RNNs</div>
-        <div class="ch-topic">Encoder–decoder seq2seq</div>
-        <div class="ch-topic">Attention — additive, dot-product, Q/K/V</div>
-        <div class="ch-topic">Self-attention & cross-attention</div>
-        <div class="ch-topic">Multi-head attention</div>
-        <div class="ch-topic">Transformer — full decoder walkthrough</div>
-      </div>
-    </div>
-  </div>
 
   <div class="rule" id="medium"><span>The Medium: Beyond the PDF</span></div>
 
