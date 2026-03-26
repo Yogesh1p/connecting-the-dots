@@ -181,7 +181,13 @@
     width: 0;
   }
   .progress-bar-fill.draft { background: var(--accent); }
-  .pct { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+  .pct { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); width: 2.8rem; text-align: right; }
+  .ch-updated {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.72rem; color: var(--muted); font-style: italic;
+    margin-left: 156px; margin-top: -0.5rem; margin-bottom: 0.8rem;
+    opacity: 0.75;
+  }
 
   /* ── Topics Grid ── */
   .ch-topics-block {
@@ -222,7 +228,26 @@
     font-weight: bold; font-size: 0.8rem; margin-top: 0.1rem;
   }
 
-  /* ── Collab List ── */
+  .ch-toggle {
+    cursor: pointer; user-select: none;
+  }
+  .ch-toggle .toggle-arrow {
+    display: inline-block;
+    font-size: 0.7rem; color: var(--accent);
+    margin-left: 0.4rem;
+    transition: transform 0.3s ease;
+  }
+  .ch-toggle.open .toggle-arrow { transform: rotate(90deg); }
+  .ch-topics-collapsible {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1), margin 0.3s ease;
+    margin-top: 0; margin-bottom: 0;
+  }
+  .ch-topics-collapsible.open {
+    max-height: 800px;
+    margin-top: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
   .collab-list { margin: 2rem 0; list-style: none; }
   .collab-list li {
     display: flex; align-items: flex-start; gap: 1.2rem;
@@ -449,53 +474,69 @@
   <h3 id="chapters" style="scroll-margin-top: 1rem;">Current Progress</h3>
   
   <div class="progress-block">
-    <div class="progress-row">
-      <span class="ch-label">Ch 1 · AR Models</span>
+    <div class="ch-updated" style="margin-left: 0; margin-top: -0.5rem; margin-bottom: 1rem;">Updated March 2026</div>
+
+    <div class="progress-row ch-toggle" id="ch1-toggle" onclick="toggleCh1()">
+      <span class="ch-label">Ch 1 · AR Models <span class="toggle-arrow">▶</span></span>
       <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="70"></div></div>
       <span class="pct">70%</span>
     </div>
-    <div style="margin-left: 156px;">
-      <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="btn" style="padding: 0.5rem 1.2rem; font-size: 0.8rem;">Read current draft</a>
-    </div>
-  </div>
 
-  <div class="ch-topics-block">
-    <div class="ch-topics-header">
-      <span>Chapter 1 — Autoregressive Models</span>
-      <a target="_blank" href="chapter_assets/AR/experiments.html" class="exp-link">Experiments ↗</a>
+    <div class="ch-topics-collapsible" id="ch1-topics">
+      <div class="ch-topics-block">
+        <div class="ch-topics-header">
+          <span>Chapter 1 — Autoregressive Models</span>
+          <a target="_blank" href="chapter_assets/AR/experiments.html" class="exp-link">Experiments ↗</a>
+        </div>
+        <div class="ch-topics-grid">
+          <div class="ch-topic-group">
+            <div class="ch-topic-section">Fixed-Length Models</div>
+            <div class="ch-topic">Modeling joint distributions</div>
+            <div class="ch-topic">Chain rule & exponential cost</div>
+            <div class="ch-topic">Bayesian networks</div>
+            <div class="ch-topic">Markov assumption</div>
+            <div class="ch-topic">Parametric conditionals</div>
+            <div class="ch-topic">FVSBN</div>
+            <div class="ch-topic">NADE & weight sharing</div>
+            <div class="ch-topic">NADE extensions (discrete, RNADE)</div>
+            <div class="ch-topic">Autoencoders & the cheating problem</div>
+            <div class="ch-topic">MADE & autoregressive masking</div>
+          </div>
+          <div class="ch-topic-group">
+            <div class="ch-topic-section">Variable-Length Models</div>
+            <div class="ch-topic">Words to vectors — one-hot failures</div>
+            <div class="ch-topic">Distributional hypothesis</div>
+            <div class="ch-topic">Word2Vec — Skipgram & CBOW, GloVe</div>
+            <div class="ch-topic">Geometry of word vectors</div>
+            <div class="ch-topic">From NADE accumulation → RNN hidden state</div>
+            <div class="ch-topic">RNNs & backprop through time</div>
+            <div class="ch-topic">Vanishing & exploding gradients</div>
+            <div class="ch-topic">LSTM & GRU</div>
+            <div class="ch-topic">Bidirectional RNNs · Stacked RNNs</div>
+            <div class="ch-topic">Encoder–decoder seq2seq</div>
+            <div class="ch-topic">Attention — additive, dot-product, Q/K/V</div>
+            <div class="ch-topic">Self-attention & cross-attention</div>
+            <div class="ch-topic">Multi-head attention</div>
+            <div class="ch-topic">Transformer — full decoder walkthrough</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="ch-topics-grid">
-      <div class="ch-topic-group">
-        <div class="ch-topic-section">Fixed-Length Models</div>
-        <div class="ch-topic">Modeling joint distributions</div>
-        <div class="ch-topic">Chain rule & exponential cost</div>
-        <div class="ch-topic">Bayesian networks</div>
-        <div class="ch-topic">Markov assumption</div>
-        <div class="ch-topic">Parametric conditionals</div>
-        <div class="ch-topic">FVSBN</div>
-        <div class="ch-topic">NADE & weight sharing</div>
-        <div class="ch-topic">NADE extensions (discrete, RNADE)</div>
-        <div class="ch-topic">Autoencoders & the cheating problem</div>
-        <div class="ch-topic">MADE & autoregressive masking</div>
-      
-      </div>
-      <div class="ch-topic-group">
-        <div class="ch-topic-section">Variable-Length Models</div>
-        <div class="ch-topic">Words to vectors — one-hot failures</div>
-        <div class="ch-topic">Distributional hypothesis</div>
-        <div class="ch-topic">Word2Vec — Skipgram & CBOW, GloVe</div>
-        <div class="ch-topic">Geometry of word vectors</div>
-        <div class="ch-topic">From NADE accumulation → RNN hidden state</div>
-        <div class="ch-topic">RNNs & backprop through time</div>
-        <div class="ch-topic">Vanishing & exploding gradients</div>
-        <div class="ch-topic">LSTM & GRU</div>
-        <div class="ch-topic">Bidirectional RNNs · Stacked RNNs</div>
-        <div class="ch-topic">Encoder–decoder seq2seq</div>
-        <div class="ch-topic">Attention — additive, dot-product, Q/K/V</div>
-        <div class="ch-topic">Self-attention & cross-attention</div>
-        <div class="ch-topic">Multi-head attention</div>
-        <div class="ch-topic">Transformer — full decoder walkthrough</div>
-      </div>
+
+    <div class="progress-row">
+      <span class="ch-label">Ch 2 · LLMs</span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="0"></div></div>
+      <span class="pct">0%</span>
+    </div>
+
+    <div class="progress-row">
+      <span class="ch-label">Ch 3 · Latent Var.</span>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="40"></div></div>
+      <span class="pct">40%</span>
+    </div>
+
+    <div style="margin-top: 1rem;">
+      <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="btn" style="padding: 0.5rem 1.2rem; font-size: 0.8rem;">Read current draft</a>
     </div>
   </div>
 
@@ -527,7 +568,7 @@
     </li>
   </ul>
 
-  <div class="cta-section">
+    <div class="cta-section">
   <h2>Interested in collaborating?</h2>
 
   <p>
@@ -547,8 +588,13 @@
 
 </main>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.16/dist/lenis.min.js"></script>
-  <script src="base.js"></script>
-</body>
-</html>
+<script>
+  function toggleCh1() {
+    var toggle = document.getElementById('ch1-toggle');
+    var topics = document.getElementById('ch1-topics');
+    toggle.classList.toggle('open');
+    topics.classList.toggle('open');
+  }
+</script>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/c
