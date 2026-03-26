@@ -219,31 +219,65 @@ footer {
   font-size: 0.72rem; color: var(--muted); font-style: italic;
   margin-bottom: 1rem; opacity: 0.75;
 }
-
-/* ── Book draft button ── */
+/* ── Book draft button & Layout ── */
 .book-link {
   flex-shrink: 0;
   text-decoration: none;
   display: flex;
   flex-direction: column;
   align-items: center;
+  cursor: pointer;
 }
+
+.book-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+
+/* ── Book Image Styling & Physics ── */
 .book-img {
-  width: 120px;
+  width: 140px; /* Adjust this size as needed */
+  height: auto;
+  display: block;
   transform: rotate(-6deg);
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center;
+  /* Smooth, slightly bouncy transition */
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.04));
 }
+
+/* Hover: Lift up, scale slightly, straighten out, and deepen shadow */
 .book-link:hover .book-img {
-  transform: rotate(-3deg) translateY(-4px);
+  transform: rotate(-2deg) scale(1.05) translateY(-6px);
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.15));
 }
+
+/* Dark mode specific drop-shadows */
+[data-theme="dark"] .book-img {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+[data-theme="dark"] .book-link:hover .book-img {
+  filter: drop-shadow(0 12px 24px rgba(227, 128, 36, 0.7));
+}
+
+/* ── Book Label ── */
 .book-label {
-  margin-top: 0.5rem;
+  margin-top: 0.8rem;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--accent);
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
 }
+
+.book-link:hover .book-label {
+  color: var(--text); /* Matches the primary text color on hover */
+}
+
 @media (max-width: 560px) {
   .book-link { display: none; }
 }
