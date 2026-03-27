@@ -50,31 +50,41 @@ function syncWidgetTheme(theme) {
 /* ── IFRAME SHIELD CONTROL (FINAL FIX) ── */
 (function handleIframeShield() {
   const iframe = document.querySelector('.book-widget-frame');
-
-if (iframe) {
-  // When mouse leaves iframe → force reset
-  iframe.addEventListener('mouseleave', () => {
-    iframe.contentWindow.postMessage('RESET_BOOK', '*');
-  });
-}
   const shield = document.querySelector('.iframe-shield');
 
   if (!iframe || !shield) return;
 
   let timeout;
 
-  window.addEventListener('scroll', () => {
-    // Activate shield → blocks iframe instantly
+  function interruptInteraction() {
+    // 🔥 1. Tell iframe to behave like pointer left
+    iframe.contentWindow?.postMessage('FORCE_LEAVE', '*');
+
+    // 🔥 2. Guarantee reset (fallback)
+    iframe.contentWindow?.postMessage('RESET_BOOK', '*');
+
+    // 🔥 3. Activate shield
     shield.style.pointerEvents = 'auto';
 
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      // Deactivate shield → restore interaction
       shield.style.pointerEvents = 'none';
-    }, 120); // tweak 100–150ms if needed
-  });
-})();
+    }, 120);
+  }
 
+  // ✅ Scroll (Lenis / normal)
+  window.addEventListener('scroll', interruptInteraction);
+
+  // ✅ Mouse wheel
+  iframe.addEventListener('wheel', interruptInteraction, { passive: true });
+
+  // 🔥 ✅ Touch support (THIS fixes your issue)
+  iframe.addEventListener('touchstart', interruptInteraction, { passive: true });
+  iframe.addEventListener('touchmove', interruptInteraction, { passive: true });
+
+  // ✅ Leaving iframe
+  iframe.addEventListener('mouseleave', interruptInteraction);
+})();
 
 /* ── THEME SYSTEM ── */
 function applyTheme(theme) {
