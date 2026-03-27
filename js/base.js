@@ -1,15 +1,6 @@
 /* ============================================================
    base.js — Shared JS for Connecting the Dots
-
-   Provides:
-   - Lenis smooth scroll
-   - Reading progress bar
-   - Dark mode toggle (persisted)
-   - Page fade-in-
-   - Chapter progress bars (data-w)
-   - Clean anchor navigation (no sticky #hash)
    ============================================================ */
-
 
 /* ── Lenis smooth scroll ── */
 const lenis = new Lenis({
@@ -18,7 +9,6 @@ const lenis = new Lenis({
   smoothTouch: false,
   autoRaf: true,
 });
-
 
 /* ── Reading progress bar ── */
 const progressBar = document.querySelector('.reading-progress');
@@ -30,64 +20,95 @@ if (progressBar) {
   });
 }
 
+/* ── THEME COLOR HELPER ── */
+function setThemeColor(theme) {
+  const metaTheme = document.getElementById("theme-color-meta");
+  if (!metaTheme) return;
+  metaTheme.setAttribute("content", theme === 'dark' ? '#1C1208' : '#FDFBF7');
+}
 
+/* ── Sync 3D Book Iframe Helper ── */
+function syncWidgetTheme(theme) {
+  const widgetIframe = document.querySelector('.book-widget-frame');
+  if (!widgetIframe) return;
+
+  const sendTheme = () => {
+    if (widgetIframe.contentWindow) {
+      widgetIframe.contentWindow.postMessage({ theme: theme }, '*');
+    }
+  };
+
+  // ✅ 1. Try immediately (works if iframe already loaded)
+  sendTheme();
+
+  // ✅ 2. Also ensure it runs after load (fallback)
+  if (!widgetIframe.dataset.listenerAttached) {
+    widgetIframe.dataset.listenerAttached = "true";
+
+    widgetIframe.addEventListener('load', () => {
+      sendTheme();
+    });
+  }
+}
 /* ── Dark mode toggle ── */
 const toggle = document.getElementById('themeToggle');
 
 if (toggle) {
   const icon  = toggle.querySelector('.toggle-icon');
   const label = toggle.querySelector('.toggle-label');
-
   const saved = localStorage.getItem('theme');
-  const book  = document.getElementById("bookImg");
+  const book  = document.getElementById("bookImg"); // Kept for fallback/other pages
 
   // Initial theme setup
   if (saved === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
-    icon.textContent  = '○';
-    label.textContent = 'Light';
+    if (icon) icon.textContent  = '○';
+    if (label) label.textContent = 'Light';
     if (book) book.src = "assets/book-dark.svg";
+    setThemeColor('dark');
+    
+    // Ensure widget gets dark mode on initial load
+    window.addEventListener('load', () => syncWidgetTheme('dark'));
   } else {
     if (book) book.src = "assets/book-light.svg";
+    setThemeColor('light');
   }
 
   toggle.addEventListener('click', () => {
-    const isDark =
-      document.documentElement.getAttribute('data-theme') === 'dark';
+    // 1. Determine the NEW theme
+    const currentIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = currentIsDark ? 'light' : 'dark';
 
-    if (isDark) {
-      // Switch to LIGHT
-      document.documentElement.removeAttribute('data-theme');
-      icon.textContent  = '☽';
-      label.textContent = 'Dark';
-      localStorage.setItem('theme', 'light');
-
-      if (book) book.src = "assets/book-light.svg";
-
-    } else {
-      // Switch to DARK
+    // 2. Apply DOM changes
+    if (newTheme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
-      icon.textContent  = '○';
-      label.textContent = 'Light';
-      localStorage.setItem('theme', 'dark');
-
-      if (book) book.src = "assets/book-dark.svg";
+      if (icon) icon.textContent  = '○';
+      if (label) label.textContent = 'Light'; 
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      if (icon) icon.textContent  = '☽';
+      if (label) label.textContent = 'Dark'; 
     }
 
-    // Sync giscus theme if present
+    // 3. Save state & update assets
+    localStorage.setItem('theme', newTheme);
+    if (book) book.src = `assets/book-${newTheme}.svg`;
+    setThemeColor(newTheme);
+
+    // 4. Sync 3D Book Widget
+    syncWidgetTheme(newTheme);
+
+    // 5. Sync Giscus
     const iframe = document.querySelector('iframe.giscus-frame');
     if (iframe) {
-      const root  = 'https://yogesh1p.github.io/connecting-the-dots/giscus-theme-';
-      const theme = isDark ? root + 'light.css' : root + 'dark.css';
-
+      const root = 'https://yogesh1p.github.io/connecting-the-dots/giscus-theme-';
       iframe.contentWindow.postMessage(
-        { giscus: { setConfig: { theme } } },
+        { giscus: { setConfig: { theme: root + newTheme + '.css' } } },
         'https://giscus.app'
       );
     }
   });
 }
-
 
 /* ── Page load: fade-in + progress bars ── */
 window.addEventListener('load', () => {
@@ -98,8 +119,7 @@ window.addEventListener('load', () => {
   });
 });
 
-
-/* ── Clean anchor navigation (no sticky #hash) ── */
+/* ── Clean anchor navigation ── */
 document.querySelectorAll('a[href^="#"]').forEach(link => {
   link.addEventListener('click', function (e) {
     const targetId = this.getAttribute('href');
@@ -112,13 +132,17 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
       lenis.scrollTo(target);
     }
 
-    history.replaceState(null, null, ' ');
+    history.pushState(null, null, targetId);
   });
 });
 
-
 /* ── Chapter toggle ── */
-function toggleCh1() {
-  document.getElementById('ch1-toggle').classList.toggle('open');
-  document.getElementById('ch1-topics').classList.toggle('open');
-}
+window.toggleCh1 = function() {
+  const toggleBtn = document.getElementById('ch1-toggle');
+  const topicsBlock = document.getElementById('ch1-topics');
+  
+  if (toggleBtn && topicsBlock) {
+    toggleBtn.classList.toggle('open');
+    topicsBlock.classList.toggle('open');
+  }
+};
