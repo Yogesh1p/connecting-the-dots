@@ -314,3 +314,15 @@ blockquote { font-style: italic; border-left: 3px solid var(--accent); padding-l
   .book-anatomy, .ch-topics-grid { grid-template-columns: 1fr; }
   .ch-topic-group:first-child { border-right: none; border-bottom: 1px solid var(--border); }
 }
+
+.book-widget-frame {
+  position: relative;
+  z-index: 1;
+}
+
+.iframe-shield {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none; /* off by default */
+}
