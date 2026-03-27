@@ -527,30 +527,33 @@ $(function() { Books.init(); });
   // ── Book hover control (replaces CSS :hover) ──
   const book = document.querySelector('.bk-book');
 
-  if (book) {
-    let isHovering = false;
+if (book) {
 
-    // Enter → rotate
-    book.addEventListener('mouseenter', () => {
-      isHovering = true;
-      book.style.transition = 'transform 0.4s ease';
-      book.style.transform = 'rotate3d(0,1,0,35deg)';
-    });
-
-    // Leave → reset
-    book.addEventListener('mouseleave', () => {
-      isHovering = false;
-      resetBook();
-    });
-
-    // 🔥 Critical: handles scroll interruption / iframe shield
-    window.addEventListener('blur', resetBook);
-
-    function resetBook() {
-      book.style.transition = 'transform 0.5s ease';
-      book.style.transform = 'rotate3d(0,1,0,0deg)';
-    }
+  function rotateBook() {
+    book.style.transition = 'transform 0.4s ease';
+    book.style.transform = 'rotate3d(0,1,0,35deg)';
   }
+
+  function resetBook() {
+    book.style.transition = 'transform 0.5s ease';
+    book.style.transform = 'rotate3d(0,1,0,0deg)';
+  }
+
+  // Hover inside iframe
+  book.addEventListener('mouseenter', rotateBook);
+  book.addEventListener('mouseleave', resetBook);
+
+  // 🔥 Handle parent-triggered events
+  window.addEventListener('message', (event) => {
+    if (event.data === 'FORCE_LEAVE') {
+      book.dispatchEvent(new Event('mouseleave'));
+    }
+
+    if (event.data === 'RESET_BOOK') {
+      resetBook();
+    }
+  });
+}
 </script>
 </body>
 </html>
