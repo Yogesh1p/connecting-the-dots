@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#FDFBF7" id="theme-color-meta">
 <meta name="description" content="Connecting the Dots — an intuition-first technical manuscript reconstructing modern AI from first principles.">
 <title>Connecting the Dots — Yogesh</title>
 <link rel="canonical" href="https://yogesh1p.github.io/connecting-the-dots/#taxonomy">
@@ -11,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/book.css">
 <!-- Open Graph -->
 <meta property="og:type"         content="website">
 <meta property="og:site_name"    content="Connecting the Dots">
@@ -26,230 +28,7 @@
 <meta name="twitter:title"       content="Connecting the Dots — Yogesh">
 <meta name="twitter:description" content="An intuition-first introduction to modern AI — focused on understanding, not just usage.">
 <meta name="twitter:image"       content="https://yogesh1p.github.io/connecting-the-dots/assets/og_index.png">
-<style>
-  /* ── Index-specific dark mode overrides ── */
-  [data-theme="dark"] .anatomy-card,
-  [data-theme="dark"] .chapter-sample,
-  [data-theme="dark"] .ch-topics-block,
-  [data-theme="dark"] .cta-section {
-    background: #1C1208;
-  }
-  [data-theme="dark"] .code-block {
-    background: #130E0A;
-    color: #B0A088;
-  }
 
-  /* ── Layout override (index is wider reading) ── */
-  .page-wrap { max-width: 900px; }
-
-  /* ── Lede ── */
-  .lede {
-    margin: 3rem auto 2rem;
-    border-left: 3px solid var(--accent);
-    padding-left: 1.5rem;
-    animation: fadeUp 0.9s 0.15s ease both;
-  }
-  .lede p { font-size: 1.25rem; color: var(--dark); }
-
-  /* ── Philosophy block ── */
-  .philosophy-block {
-    background: var(--surface);
-    padding: 2rem 2.5rem;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    animation: fadeUp 0.9s 0.25s ease both;
-  }
-
-  /* ── Book Anatomy Grid ── */
-  .book-anatomy {
-    margin: 2.5rem 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    animation: fadeUp 0.9s 0.3s ease both;
-  }
-  @media (max-width: 600px) { .book-anatomy { grid-template-columns: 1fr; } }
-
-  .anatomy-card {
-    background: #FFF;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    transition: transform 0.25s, box-shadow 0.25s, background-color 0.35s, border-color 0.35s;
-    box-shadow: 0 4px 12px rgba(74, 63, 53, 0.03);
-  }
-  .anatomy-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(74, 63, 53, 0.06);
-    border-color: var(--accent);
-  }
-  .anatomy-card .card-num {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.75rem; font-weight: 600; color: var(--accent); margin-bottom: 0.5rem;
-  }
-  .anatomy-card .card-title {
-    font-size: 1.2rem; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;
-  }
-  .anatomy-card p { font-size: 0.95rem; color: var(--muted); line-height: 1.6; margin: 0; }
-
-  /* ── Chapter Sample / Taxonomy ── */
-  .chapter-sample {
-    background: #FFF;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 2.5rem;
-    margin: 3rem 0;
-    animation: fadeUp 0.9s 0.4s ease both;
-    box-shadow: 0 4px 12px rgba(74, 63, 53, 0.03);
-    transition: background-color 0.35s, border-color 0.35s;
-  }
-  .sample-label {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.8rem; font-weight: 600; letter-spacing: 0.15em;
-    text-transform: uppercase; color: var(--accent);
-    margin-bottom: 1.5rem; border-bottom: 2px solid var(--surface); padding-bottom: 0.5rem;
-  }
-  .tax-root { font-size: 1.4rem; font-weight: 600; color: var(--dark); margin-bottom: 1rem; }
-  .tax-principle {
-    font-size: 0.95rem; color: var(--text);
-    padding: 0.5rem 0 0.5rem 1rem;
-    border-left: 2px solid var(--surface); margin-bottom: 0.5rem;
-  }
-  .tax-note { color: var(--muted); font-size: 0.85rem; margin-top: 0.2rem; font-style: italic; }
-  .tax-badge {
-    display: inline-block;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    background: var(--surface); color: var(--accent);
-    padding: 0.2em 0.6em; border-radius: 20px; margin-right: 0.5em; vertical-align: middle;
-  }
-  .tax-branch-label {
-    font-size: 1.2rem; font-weight: 600; color: var(--dark);
-    margin: 2.5rem 0 0.2rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border);
-  }
-  .tax-desc { font-size: 0.9rem; color: var(--muted); font-style: italic; margin-bottom: 1rem; padding-left: 0.5rem; }
-  .tax-section { padding-left: 1.5rem; border-left: 2px solid var(--surface); margin: 1.5rem 0; }
-  .tax-section-title { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
-  .tax-dim { color: var(--muted); font-weight: 400; font-size: 0.9rem; font-style: italic; }
-  .tax-group { padding-left: 1.2rem; border-left: 1px dashed var(--border); margin-top: 0.8rem; margin-bottom: 1.2rem; }
-  .tax-group-title {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.8rem; font-weight: 600; color: var(--accent);
-    letter-spacing: 0.05em; margin-bottom: 0.6rem; text-transform: uppercase;
-  }
-  .tax-items { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .tax-items span {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.75rem; font-weight: 500; color: var(--muted);
-    background: var(--bg); border: 1px solid var(--border);
-    padding: 0.3em 0.8em; border-radius: 20px; transition: all 0.2s;
-  }
-  .tax-items span:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ── Code Blocks ── */
-  .code-block {
-    font-family: ui-monospace, monospace; font-size: 0.95rem;
-    background: var(--surface); padding: 1.5rem 2rem;
-    border-radius: 12px; margin: 1.5rem 0; color: #5A4E42;
-    border: 1px solid var(--border); line-height: 1.8;
-    transition: background-color 0.35s, color 0.35s;
-  }
-  .eq-row { margin-bottom: 1rem; }
-  .eq-row:last-child { margin-bottom: 0; }
-  .eq-comment { color: var(--accent); font-family: 'Lora', serif; font-style: italic; font-size: 0.9rem; display: block; }
-  .eq-math { font-size: 1.1rem; color: var(--dark); }
-  blockquote {
-    font-style: italic; border-left: 3px solid var(--accent);
-    padding-left: 1.5rem; color: var(--muted); margin: 2rem 0; font-size: 1.1rem;
-  }
-
-  /* ── Chapter Progress ── */
-  .progress-block { margin: 2rem 0; }
-  .progress-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-  .ch-label {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.85rem; font-weight: 600; color: var(--text); width: 140px;
-  }
-  .progress-bar-wrap {
-    flex: 1; height: 8px; background: var(--surface);
-    border-radius: 99px; overflow: hidden; position: relative;
-  }
-  .progress-bar-fill {
-    position: absolute; left: 0; top: 0; bottom: 0;
-    border-radius: 99px;
-    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-    width: 0;
-  }
-  .progress-bar-fill.draft { background: var(--accent); }
-  .pct { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
-
-  /* ── Topics Grid ── */
-  .ch-topics-block {
-    background: #FFF; border: 1px solid var(--border); border-radius: 16px;
-    overflow: hidden; margin: 0;
-    box-shadow: 0 4px 12px rgba(74, 63, 53, 0.03);
-    transition: background-color 0.35s, border-color 0.35s;
-  }
-  .ch-topics-header {
-    background: var(--surface); padding: 0.75rem 1.2rem; border-bottom: 1px solid var(--border);
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 600; font-size: 0.85rem; color: var(--dark);
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  }
-  .ch-topics-header .exp-link {
-    font-size: 0.72rem; font-weight: 600; color: var(--accent); text-decoration: none;
-    border: 1px solid var(--accent); padding: 0.28em 0.85em; border-radius: 20px;
-    letter-spacing: 0.04em; white-space: nowrap; transition: background 0.2s, color 0.2s; flex-shrink: 0;
-  }
-  .ch-topics-header .exp-link:hover { background: var(--accent); color: #fff; }
-  .ch-topics-grid { display: grid; grid-template-columns: 1fr 1fr; }
-  @media (max-width: 560px) { .ch-topics-grid { grid-template-columns: 1fr; } }
-  .ch-topic-group { padding: 1rem 1.2rem; }
-  .ch-topic-group:first-child { border-right: 1px solid var(--border); }
-  .ch-topic-section {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--accent); margin-bottom: 0.6rem;
-  }
-  .ch-topic {
-    font-size: 0.88rem; color: var(--text);
-    display: flex; align-items: flex-start; gap: 0.5rem;
-    margin-bottom: 0.3rem; line-height: 1.4;
-  }
-  .ch-topic::before {
-    content: '✓'; color: var(--accent);
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: bold; font-size: 0.8rem; margin-top: 0.1rem;
-  }
-
-  /* ── Collab List ── */
-  .collab-list { margin: 2rem 0; list-style: none; }
-  .collab-list li {
-    display: flex; align-items: flex-start; gap: 1.2rem;
-    padding: 1.2rem 0; border-bottom: 1px solid var(--border);
-  }
-  .collab-list li:last-child { border-bottom: none; }
-  .collab-list .tag {
-    flex-shrink: 0;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    background: var(--surface); color: var(--accent);
-    padding: 0.4em 0.8em; border-radius: 20px; margin-top: 0.2rem;
-  }
-
-  /* ── CTA Section ── */
-  .cta-section {
-    margin: 4rem 0 2rem; padding: 3rem;
-    background: #FFF; border-radius: 16px; border: 1px solid var(--border);
-    text-align: center; box-shadow: 0 8px 24px rgba(74, 63, 53, 0.04);
-    transition: background-color 0.35s, border-color 0.35s;
-  }
-  .cta-section h2 { margin: 0 0 1rem; }
-  .cta-section p { color: var(--muted); margin-bottom: 2rem; }
-
-  /* ── will-change for Lenis ── */
-  .page-wrap { will-change: transform; }
-</style>
 </head>
 <body>
 
@@ -266,9 +45,10 @@
     <a  href="#" style="display:flex;align-items:center;line-height:1;">
       <img src="assets/favicon.svg" alt="Home" style="width:28px;height:28px;display:block;">
     </a>
-    <a t href="#chapters">Chapters</a>
+    <a  href="#chapters">Chapters</a>
     <a  href="#taxonomy">Taxonomy</a>
     <a  href="#medium">The Medium</a>
+
 <a href="chapter_assets/AR/experiments.html" class="exp-nav">
   <img src="assets/exp.svg" alt="Experiments" class="exp-icon">
   <span>Experiments</span>
@@ -280,24 +60,29 @@
 </a>
   </nav>
 
- <header style="display: flex; align-items: center; justify-content: space-between; gap: 2rem;">
-    <div style="flex: 1;">
-      <div class="chapter-label">Yogesh · A Living Document · Open Collaboration</div>
-      <h1>Connecting <br><em>the Dots.</em></h1>
-      <p class="subtitle">An intuition-first introduction to modern AI — focused on understanding.</p>
+<header class="main-header">
+  <div class="header-content">
+    <div class="chapter-label">Yogesh · A Living Document · Open Collaboration</div>
+    <h1>Connecting <br><em>the Dots.</em></h1>
+    <p class="subtitle">An intuition-first introduction to modern AI — focused on understanding.</p>
+    
+    <div class="header-cta">
+      <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="btn primary">
+        Read current draft →
+      </a>
     </div>
+  </div>
 
-<a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="book-link">
-  
-  <img id="bookImg"
-       src="assets/book-light.svg"
-       class="book-img"
-       style="width:220px; height:220px; pointer-events:none;" />
-
-  <div class="book-label">READ DRAFT</div>
-
-</a>
-  </header>
+  <div class="widget-container">
+    <iframe 
+      src="assets/book-widget.html" 
+      class="book-widget-frame"
+      scrolling="no"
+      allowtransparency="true"
+      title="Book widget">
+    </iframe>
+  </div>
+</header>
 
   <div class="rule"><span>About the project</span></div>
   
@@ -402,7 +187,7 @@
     </div>
 
     <div class="progress-row">
-      <span class="ch-label">Ch 3 · LVMs.</span>
+      <span class="ch-label">Ch 3 · Latent Var.</span>
       <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="40"></div></div>
       <span class="pct">40%</span>
     </div>
@@ -584,7 +369,13 @@
 </main>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.16/dist/lenis.min.js"></script>
-  <script src="base.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.16/dist/lenis.min.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="js/base.js"></script>
+
+
 </body>
 </html>
