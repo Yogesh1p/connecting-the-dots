@@ -50,6 +50,13 @@ function syncWidgetTheme(theme) {
 /* ── IFRAME SHIELD CONTROL (FINAL FIX) ── */
 (function handleIframeShield() {
   const iframe = document.querySelector('.book-widget-frame');
+
+if (iframe) {
+  // When mouse leaves iframe → force reset
+  iframe.addEventListener('mouseleave', () => {
+    iframe.contentWindow.postMessage('RESET_BOOK', '*');
+  });
+}
   const shield = document.querySelector('.iframe-shield');
 
   if (!iframe || !shield) return;
@@ -67,6 +74,7 @@ function syncWidgetTheme(theme) {
     }, 120); // tweak 100–150ms if needed
   });
 })();
+
 
 /* ── THEME SYSTEM ── */
 function applyTheme(theme) {
