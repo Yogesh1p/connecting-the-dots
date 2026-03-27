@@ -1,24 +1,18 @@
 /* ============================================================
-   base.js — Stable Version (Shield + Smooth Scroll + Theme Sync)
+   base.js — Clean Version (No Lenis + Stable Iframe + Theme Sync)
    ============================================================ */
 
-/* ── Lenis smooth scroll ── */
-const lenis = new Lenis({
-  lerp: 0.1,
-  smoothWheel: true,
-  smoothTouch: false,
-  autoRaf: true,
-});
-
-/* ── Reading progress bar ── */
+/* ── Reading progress bar (native scroll) ── */
 const progressBar = document.querySelector('.reading-progress');
 
-if (progressBar) {
-  lenis.on('scroll', ({ scroll }) => {
-    const docHeight = document.body.scrollHeight - window.innerHeight;
-    progressBar.style.width = (scroll / docHeight) * 100 + '%';
-  });
-}
+window.addEventListener('scroll', () => {
+  if (!progressBar) return;
+
+  const scroll = window.scrollY;
+  const docHeight = document.body.scrollHeight - window.innerHeight;
+
+  progressBar.style.width = (scroll / docHeight) * 100 + '%';
+});
 
 /* ── THEME COLOR ── */
 function setThemeColor(theme) {
@@ -37,17 +31,15 @@ function syncWidgetTheme(theme) {
     iframe.contentWindow?.postMessage({ theme }, '*');
   };
 
-  // Immediate send
   send();
 
-  // Ensure sync after load
   if (!iframe.dataset.bound) {
     iframe.dataset.bound = "true";
     iframe.addEventListener('load', send);
   }
 }
 
-/* ── IFRAME SHIELD CONTROL (FINAL FIX) ── */
+/* ── IFRAME SHIELD + INTERRUPTION HANDLER ── */
 (function handleIframeShield() {
   const iframe = document.querySelector('.book-widget-frame');
   const shield = document.querySelector('.iframe-shield');
@@ -57,32 +49,27 @@ function syncWidgetTheme(theme) {
   let timeout;
 
   function interruptInteraction() {
-    // 🔥 1. Tell iframe to behave like pointer left
     iframe.contentWindow?.postMessage('FORCE_LEAVE', '*');
-
-    // 🔥 2. Guarantee reset (fallback)
     iframe.contentWindow?.postMessage('RESET_BOOK', '*');
 
-    // 🔥 3. Activate shield
     shield.style.pointerEvents = 'auto';
 
     clearTimeout(timeout);
     timeout = setTimeout(() => {
       shield.style.pointerEvents = 'none';
-    }, 120);
+    }, 100);
   }
 
-  // ✅ Scroll (Lenis / normal)
+  // Native scroll
   window.addEventListener('scroll', interruptInteraction);
 
-  // ✅ Mouse wheel
+  // Mouse wheel
   iframe.addEventListener('wheel', interruptInteraction, { passive: true });
 
-  // 🔥 ✅ Touch support (THIS fixes your issue)
+  // Touch support
   iframe.addEventListener('touchstart', interruptInteraction, { passive: true });
-  iframe.addEventListener('touchmove', interruptInteraction, { passive: true });
 
-  // ✅ Leaving iframe
+  // Leaving iframe
   iframe.addEventListener('mouseleave', interruptInteraction);
 })();
 
@@ -153,7 +140,9 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     e.preventDefault();
 
     const target = document.querySelector(targetId);
-    if (target) lenis.scrollTo(target);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
 
     history.pushState(null, null, targetId);
   });
