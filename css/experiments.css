@@ -1,0 +1,113 @@
+/* ── Experiments Page Specifics ── */
+.page-wrap { max-width: 1100px; } 
+
+/* Experiment Cards */
+.exp-grid { 
+  margin: 2rem auto; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 2rem; 
+  animation: fadeUp 0.9s 0.2s ease both; 
+}
+
+.exp-card {
+  background: var(--card-bg); 
+  border: 1px solid var(--border); 
+  border-radius: 16px;
+  overflow: hidden; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: all 0.35s ease;
+}
+
+.exp-card:hover { 
+  border-color: var(--accent); 
+  box-shadow: 0 8px 24px var(--highlight); 
+}
+
+.exp-card-header {
+  background: var(--surface); 
+  padding: 1.2rem 1.5rem; 
+  border-bottom: 1px solid var(--border);
+  display: flex; 
+  align-items: center; 
+  gap: 1rem;
+}
+
+.exp-number {
+  font-family: -apple-system, sans-serif;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); background: var(--highlight); 
+  padding: 0.3em 0.8em; border-radius: 20px; white-space: nowrap;
+}
+
+.exp-card-title { 
+  font-family: -apple-system, sans-serif; 
+  font-size: 0.9rem; font-weight: 600; color: var(--dark); 
+}
+
+.exp-card-body { padding: 1.5rem; }
+
+/* Code Blocks */
+.exp-code-block {
+  font-family: ui-monospace, monospace; font-size: 0.88rem;
+  background: var(--surface); padding: 1.2rem 1.5rem; border-radius: 10px;
+  margin: 1rem 0; color: var(--text); border: 1px solid var(--border);
+  line-height: 1.7; overflow-x: auto; white-space: pre;
+}
+[data-theme="dark"] .exp-code-block { background: #130E0A; color: #B0A088; }
+
+/* Data Visualization Styling */
+.exp-three-cols { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr 1fr; 
+  gap: 1.5rem; 
+  margin: 1.2rem 0; 
+}
+
+.exp-dot-bar-wrap { 
+  height: 6px; 
+  background: var(--surface); 
+  border-radius: 99px; 
+  overflow: hidden; 
+  border: 1px solid var(--border); 
+}
+
+.exp-dot-bar { 
+  height: 100%; 
+  background: var(--accent); 
+  transition: width 0.8s cubic-bezier(0.22,1,0.36,1); 
+}
+
+/* Data Tables */
+.exp-layer-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-family: ui-monospace, monospace; 
+  font-size: 0.76rem; 
+}
+
+.exp-layer-table th { 
+  color: var(--accent); 
+  border-bottom: 1px solid var(--border); 
+  padding: 0.5rem; 
+}
+
+.exp-layer-table td { 
+  padding: 0.4rem; 
+  border-bottom: 1px solid var(--border); 
+}
+
+/* Colab Button */
+.colab-btn { display: inline-flex; align-items: center; gap: 0.5rem; }
+.colab-icon { 
+  width: 16px; height: 16px; border-radius: 3px; 
+  background: #F9AB00; position: relative; 
+}
+.colab-icon::after { 
+  content: '▶'; position: absolute; top: 50%; left: 50%; 
+  transform: translate(-50%, -50%); font-size: 8px; color: white; 
+}
+
+@media (max-width: 850px) {
+  .exp-three-cols { grid-template-columns: 1fr; }
+}
