@@ -5,7 +5,7 @@
    - Lenis smooth scroll
    - Reading progress bar
    - Dark mode toggle (persisted)
-   - Page fade-in
+   - Page fade-in-
    - Chapter progress bars (data-w)
    - Clean anchor navigation (no sticky #hash)
    ============================================================ */
