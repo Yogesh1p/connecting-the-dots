@@ -1,5 +1,5 @@
 /* ============================================================
-   base.js — Shared JS for Connecting the Dots
+   base.js — Stable Version (Shield + Smooth Scroll + Theme Sync)
    ============================================================ */
 
 /* ── Lenis smooth scroll ── */
@@ -20,97 +20,104 @@ if (progressBar) {
   });
 }
 
-/* ── THEME COLOR HELPER ── */
+/* ── THEME COLOR ── */
 function setThemeColor(theme) {
-  const metaTheme = document.getElementById("theme-color-meta");
-  if (!metaTheme) return;
-  metaTheme.setAttribute("content", theme === 'dark' ? '#1C1208' : '#FDFBF7');
-}
-
-/* ── Sync 3D Book Iframe Helper ── */
-function syncWidgetTheme(theme) {
-  const widgetIframe = document.querySelector('.book-widget-frame');
-  if (!widgetIframe) return;
-
-  const sendTheme = () => {
-    if (widgetIframe.contentWindow) {
-      widgetIframe.contentWindow.postMessage({ theme: theme }, '*');
-    }
-  };
-
-  // ✅ 1. Try immediately (works if iframe already loaded)
-  sendTheme();
-
-  // ✅ 2. Also ensure it runs after load (fallback)
-  if (!widgetIframe.dataset.listenerAttached) {
-    widgetIframe.dataset.listenerAttached = "true";
-
-    widgetIframe.addEventListener('load', () => {
-      sendTheme();
-    });
+  const meta = document.getElementById("theme-color-meta");
+  if (meta) {
+    meta.setAttribute("content", theme === 'dark' ? '#1C1208' : '#FDFBF7');
   }
 }
-/* ── Dark mode toggle ── */
+
+/* ── IFRAME THEME SYNC ── */
+function syncWidgetTheme(theme) {
+  const iframe = document.querySelector('.book-widget-frame');
+  if (!iframe) return;
+
+  const send = () => {
+    iframe.contentWindow?.postMessage({ theme }, '*');
+  };
+
+  // Immediate send
+  send();
+
+  // Ensure sync after load
+  if (!iframe.dataset.bound) {
+    iframe.dataset.bound = "true";
+    iframe.addEventListener('load', send);
+  }
+}
+
+/* ── IFRAME SHIELD CONTROL (FINAL FIX) ── */
+(function handleIframeShield() {
+  const iframe = document.querySelector('.book-widget-frame');
+  const shield = document.querySelector('.iframe-shield');
+
+  if (!iframe || !shield) return;
+
+  let timeout;
+
+  window.addEventListener('scroll', () => {
+    // Activate shield → blocks iframe instantly
+    shield.style.pointerEvents = 'auto';
+
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      // Deactivate shield → restore interaction
+      shield.style.pointerEvents = 'none';
+    }, 120); // tweak 100–150ms if needed
+  });
+})();
+
+/* ── THEME SYSTEM ── */
+function applyTheme(theme) {
+  const icon  = document.querySelector('#themeToggle .toggle-icon');
+  const label = document.querySelector('#themeToggle .toggle-label');
+  const book  = document.getElementById("bookImg");
+
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    if (icon) icon.textContent = '○';
+    if (label) label.textContent = 'Light';
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    if (icon) icon.textContent = '☽';
+    if (label) label.textContent = 'Dark';
+  }
+
+  if (book) book.src = `assets/book-${theme}.svg`;
+
+  localStorage.setItem('theme', theme);
+  setThemeColor(theme);
+  syncWidgetTheme(theme);
+
+  // Giscus sync
+  const giscus = document.querySelector('iframe.giscus-frame');
+  if (giscus) {
+    const root = 'https://yogesh1p.github.io/connecting-the-dots/giscus-theme-';
+    giscus.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: root + theme + '.css' } } },
+      'https://giscus.app'
+    );
+  }
+}
+
+/* ── INIT THEME ── */
+(function init() {
+  const saved = localStorage.getItem('theme') || 'light';
+  applyTheme(saved);
+})();
+
+/* ── TOGGLE ── */
 const toggle = document.getElementById('themeToggle');
 
 if (toggle) {
-  const icon  = toggle.querySelector('.toggle-icon');
-  const label = toggle.querySelector('.toggle-label');
-  const saved = localStorage.getItem('theme');
-  const book  = document.getElementById("bookImg"); // Kept for fallback/other pages
-
-  // Initial theme setup
-  if (saved === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    if (icon) icon.textContent  = '○';
-    if (label) label.textContent = 'Light';
-    if (book) book.src = "assets/book-dark.svg";
-    setThemeColor('dark');
-    
-    // Ensure widget gets dark mode on initial load
-    window.addEventListener('load', () => syncWidgetTheme('dark'));
-  } else {
-    if (book) book.src = "assets/book-light.svg";
-    setThemeColor('light');
-  }
-
   toggle.addEventListener('click', () => {
-    // 1. Determine the NEW theme
-    const currentIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const newTheme = currentIsDark ? 'light' : 'dark';
-
-    // 2. Apply DOM changes
-    if (newTheme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      if (icon) icon.textContent  = '○';
-      if (label) label.textContent = 'Light'; 
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      if (icon) icon.textContent  = '☽';
-      if (label) label.textContent = 'Dark'; 
-    }
-
-    // 3. Save state & update assets
-    localStorage.setItem('theme', newTheme);
-    if (book) book.src = `assets/book-${newTheme}.svg`;
-    setThemeColor(newTheme);
-
-    // 4. Sync 3D Book Widget
-    syncWidgetTheme(newTheme);
-
-    // 5. Sync Giscus
-    const iframe = document.querySelector('iframe.giscus-frame');
-    if (iframe) {
-      const root = 'https://yogesh1p.github.io/connecting-the-dots/giscus-theme-';
-      iframe.contentWindow.postMessage(
-        { giscus: { setConfig: { theme: root + newTheme + '.css' } } },
-        'https://giscus.app'
-      );
-    }
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyTheme(isDark ? 'light' : 'dark');
   });
 }
 
-/* ── Page load: fade-in + progress bars ── */
+/* ── PAGE LOAD ── */
 window.addEventListener('load', () => {
   document.body.classList.add('loaded');
 
@@ -119,7 +126,7 @@ window.addEventListener('load', () => {
   });
 });
 
-/* ── Clean anchor navigation ── */
+/* ── CLEAN ANCHOR NAV ── */
 document.querySelectorAll('a[href^="#"]').forEach(link => {
   link.addEventListener('click', function (e) {
     const targetId = this.getAttribute('href');
@@ -128,19 +135,17 @@ document.querySelectorAll('a[href^="#"]').forEach(link => {
     e.preventDefault();
 
     const target = document.querySelector(targetId);
-    if (target) {
-      lenis.scrollTo(target);
-    }
+    if (target) lenis.scrollTo(target);
 
     history.pushState(null, null, targetId);
   });
 });
 
-/* ── Chapter toggle ── */
-window.toggleCh1 = function() {
+/* ── CHAPTER TOGGLE ── */
+window.toggleCh1 = function () {
   const toggleBtn = document.getElementById('ch1-toggle');
   const topicsBlock = document.getElementById('ch1-topics');
-  
+
   if (toggleBtn && topicsBlock) {
     toggleBtn.classList.toggle('open');
     topicsBlock.classList.toggle('open');
