@@ -426,14 +426,16 @@ candidates = ["John", "Michael", "Sarah"]</pre>
 <script src="../../js/base.js"></script>
 
 <script>
-  // Robust Giscus theme handling merged from the old HTML
+  // Point to your live, hosted custom CSS files
   function getGiscusTheme() {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
     
-    // Using default themes if custom CSS isn't fully ready, or swap to your custom URLs if preferred
-    return isDark ? 'noborder_dark' : 'light'; 
+    // Giscus requires absolute URLs to load custom CSS
+    return isDark 
+      ? 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-dark.css' 
+      : 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-light.css'; 
   }
 
   function loadGiscus() {
@@ -469,6 +471,7 @@ candidates = ["John", "Michael", "Sarah"]</pre>
   // Update theme dynamically when the toggle is clicked
   document.addEventListener('click', (e) => {
     if (e.target.closest('#themeToggle') || e.target.closest('#themeToggleMobile')) {
+      // Small timeout allows the main theme script to update localStorage first
       setTimeout(updateGiscusTheme, 50);
     }
   });
