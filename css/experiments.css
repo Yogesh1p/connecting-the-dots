@@ -13,7 +13,14 @@
    ============================================================ */
 
 /* ── Layout ── */
-.page-wrap { max-width: 1100px; } /* wider than index for data columns */
+/* Update this in experiments.css */
+.page-wrap { 
+  width: 100%;             /* Occupy full width on small screens */
+  max-width: 1100px; 
+  margin: 0 auto;          /* Centers it on desktop */
+  padding: 0 1.5rem;       /* Essential gutter for mobile */
+  box-sizing: border-box;  /* Ensures padding doesn't add to width */
+}
 
 /* ════════════════════════════════════════════════════════════
    HUB PAGE
@@ -248,3 +255,27 @@ h1.hub-title {
 /* use class="comments-header label-caps" in HTML */
 .comments-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); }
 .comments-body   { padding: 1.5rem; background: var(--bg); }
+
+@media (max-width: 768px) {
+  /* Allow horizontal scroll for data-heavy elements */
+  .exp-code-block, 
+  .layer-table,
+  .exp-layer-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+  }
+
+  /* Reduce font size slightly for headers to prevent word-wrap issues */
+  h1.chapter-title {
+    font-size: 2.5rem; 
+  }
+}
+@media (max-width: 768px) {
+  .data-grid.grid-2, 
+  .exp-two-cols {
+    grid-template-columns: 1fr !important; /* Force single column */
+    gap: 1.5rem;
+  }
+}

@@ -461,3 +461,14 @@ footer {
   .chapter-label { font-size: 0.7rem; margin-bottom: 0.3rem; }
   .main-header { padding-top: 0.5rem; }
 }
+/* Default behavior for mobile: allow the text to wrap */
+.chapter-label {
+  white-space: normal;
+}
+
+/* For screens 768px and wider (tablets and desktops): force it inline */
+@media (min-width: 768px) {
+  .chapter-label {
+    white-space: nowrap;
+  }
+}
