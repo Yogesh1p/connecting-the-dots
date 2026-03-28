@@ -6,73 +6,44 @@
 <title>Connecting the Dots — 3D Book</title>
 <link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
 <style>
-.book-scale {
-    transform: scale(0.6);
-    transform-origin: top center;
-}
-/* ── Demo shell ── */
-html { height: 100%; }
-*, *:after, *:before {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    padding: 0; margin: 0;
+
+html, body {
+    margin: 0; padding: 0;
+    width: 280px; height: 340px;
+    overflow: hidden;
+    background: transparent;
 }
 body {
     font-family: 'Lato', Calibri, Arial, sans-serif;
-    background: transparent;
-    font-size: 15px;
-    color: #333;
-    overflow-x: hidden;
-    display: block;
-min-height: auto;
+    display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
 }
 
 /* ─────────────────────────────────────────────────────────
    COMPONENT CSS — exact copy from original Tympanus CodePen.
    Only the COLOR VALUES below are changed to oat palette.
 ───────────────────────────────────────────────────────── */
+/* Scaling wrapper: book is 300×400 native, scaled to 180×240.
+   iframe is 280×340 — extra space gives room for shadows and hover rotation. */
 .bk-list {
     list-style: none;
+    padding: 0; margin: 0;
+    width: 180px; height: 240px;
     position: relative;
+    perspective: 1800px;
 }
 .bk-list li {
     position: relative;
-    width: 300px;
-    float: left;
+    width: 300px; height: 400px;
+    transform: scale(0.6);
+    transform-origin: top left;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
     z-index: 1;
-    margin: 0px 50px 40px 0;
-    -webkit-perspective: 1800px;
-    perspective: 1800px;
 }
-.bk-list li:last-child { margin-right: 0; }
 
-.bk-info {
-    position: relative;
-    margin-top: 440px;
-}
-.bk-info button {
-    background: #7a6f61;
-    border: none;
-    color: #fff;
-    display: inline-block;
-    padding: 3px 15px;
-    font-weight: 700;
-    font-size: 14px;
-    text-transform: uppercase;
-    cursor: pointer;
-    margin-right: 4px;
-    box-shadow: 1px 1px 1px rgba(0,0,0,0.15);
-}
-.bk-info button.bk-active,
-.bk-info button:active {
-    box-shadow: 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 1px rgba(0,0,0,0.2);
-}
-.bk-info button:hover,
-.bk-info button.bk-active { background: #5a5148; }
+
 
 .bk-list li .bk-book {
     position: absolute;
@@ -83,7 +54,10 @@ min-height: auto;
     -webkit-transition: -webkit-transform .5s;
     transition: transform .5s;
 }
-
+.bk-list li .bk-book.bk-hovered {
+    -webkit-transform: rotate3d(0,1,0,35deg);
+    transform: rotate3d(0,1,0,35deg);
+}
 .bk-list li .bk-book > div,
 .bk-list li .bk-front > div {
     display: block;
@@ -234,6 +208,9 @@ min-height: auto;
     -webkit-transition: opacity 0.3s ease-in-out;
     transition: opacity 0.3s ease-in-out;
     cursor: default;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 .bk-content-current { opacity: 1; pointer-events: auto; }
 .bk-content p {
@@ -267,89 +244,118 @@ min-height: auto;
     font-size: 13px;
     text-align: center;
 }
+
 /* ─────────────────────────────────────────────────────────
-   OAT BOOK SKIN (High-Contrast 3D Lighting)
+   OAT BOOK SKIN — only these rules change from the original
 ───────────────────────────────────────────────────────── */
 
-/* 1. Base colors & Deep Crease */
+/* Front cover face + back cover + spine: all oat */
 .bk-list li .bk-front > div,
 .bk-list li .bk-back,
-.bk-list li .bk-left {
-    background-color: #F0EBE2; 
+.bk-list li .bk-left,
+.bk-list li .bk-front:after {
+    background-color: #EDE8DF;
 }
 
-/* Deep spine crease for 3D depth */
-.bk-list li .bk-front:after { 
-    background-color: rgba(0,0,0,0.15); 
-}
-
-/* 2. Gutter Groove with a strong white specular highlight */
-.bk-list li .bk-cover:after,
-.bk-list li .bk-back:after {
-    content: ''; position: absolute; top: 0; left: 10px; bottom: 0; width: 3px;
-    background: rgba(0,0,0,0.06);
-    box-shadow: 1px 0 3px rgba(255, 255, 255, 0.4); 
-    z-index: 10;
-}
-
-/* 3. The Front Cover Gradient (Fades to PURE WHITE to pop against your #FDFBF7 background) */
+/* Cover face gradient */
 .bk-list li .bk-cover {
-    background: linear-gradient(to right, #EAE4D9 0%, #ffffffd6 100%);
+    background: linear-gradient(to right, #EDE8DF 0%, #F5F2EB 100%);
 }
 
-/* Back face & crisp physical shadow */
+/* Back face */
 .bk-list li .bk-back {
-    background: linear-gradient(to left, #F0EBE2 0%, #EAE4D9 100%) !important;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 10px 10px 30px rgba(0,0,0,0.25);
+    background: linear-gradient(to left, #EDE8DF 0%, #E6E1D7 100%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .bk-list li .bk-back p {
-    color: #6b5c4d; font-size: 13px; font-family: Georgia, serif; font-style: italic;
-    padding: 40px; text-align: center; line-height: 1.7;
+    color: #6b5c4d;
+    font-size: 13px;
+    font-family: Georgia, serif;
+    font-style: italic;
+    padding: 40px;
+    text-align: center;
+    line-height: 1.7;
 }
 
-/* Back-of-front-cover & Spine */
-.bk-list li .bk-cover-back { background-color: #EDE8DF; }
-.bk-list li .bk-left { background-color: #C8BFB0 !important; }
+/* Back-of-front-cover (visible when book is open) */
+.bk-list li .bk-cover-back {
+    background-color: #E8E3D9;
+}
+
+/* Spine */
+.bk-list li .bk-left {
+    background-color: #C8BFB0 !important;
+}
 .bk-list li .bk-left h2 {
-    color: #5a4e43; font-size: 13px; font-family: Georgia, serif; font-style: italic;
-    font-weight: normal; line-height: 40px; text-align: center;
+    color: #5a4e43;
+    font-size: 13px;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 40px;
+    text-align: center;
 }
 
-/* Cover content typography */
+/* Cover content */
 .cover-design {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; padding: 2rem 1.8rem; text-align: center; position: relative; z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    /* These four lines force it to fill the exact center of the parent */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding: 0;
+    margin: 0;
+    text-align: center;
 }
 .book-title {
-    font-family: Georgia, 'Times New Roman', serif; font-size: 21px; color: #4A3F35;
-    font-style: italic; font-weight: normal; line-height: 1.35;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 21px;
+    color: #4A3F35;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 1.35;
 }
-.divider-line { width: 65%; height: 1px; background: #C8BFB0; margin: 16px 0; }
-.cover-network { width: 78px; height: 78px; }
+.divider-line {
+    width: 65%;
+    height: 1px;
+    background: #C8BFB0;
+    margin: 16px 0;
+}
+.cover-network {
+    width: 78px;
+    height: 78px;
+}
 .book-author {
-    font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #847769; font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11px;
+    color: #847769;
+    font-style: italic;
 }
 
-/* ─────────────────────────────────────────────────────────
-   DARK MODE ADJUSTMENTS
-───────────────────────────────────────────────────────── */
-:root { --accent: #D48C70; }
+/* ── DARK MODE ── */
+[data-theme="dark"] body { background: transparent; }
 
 [data-theme="dark"] .bk-list li .bk-front > div,
 [data-theme="dark"] .bk-list li .bk-back,
-[data-theme="dark"] .bk-list li .bk-left { background-color: #2E2820; }
-
-/* Dark mode cover gradient & crease */
-[data-theme="dark"] .bk-list li .bk-cover {
-    background: linear-gradient(to right, #181613 0%, #201b16 100%);
+[data-theme="dark"] .bk-list li .bk-left,
+[data-theme="dark"] .bk-list li .bk-front:after {
+    background-color: #2E2820;
 }
-[data-theme="dark"] .bk-list li .bk-front:after { background-color: rgba(0,0,0,0.4); }
-
+[data-theme="dark"] .bk-list li .bk-cover {
+    background: linear-gradient(to right, #1a1510 0%, #26201a 100%);
+}
 [data-theme="dark"] .bk-list li .bk-back {
     background: linear-gradient(to left, #2E2820 0%, #26211A 100%) !important;
-    /* The glowing accent shadow */
-    box-shadow: 10px 10px 45px rgba(212, 140, 112, 0.25) !important;
+    box-shadow: 10px 10px 45px rgba(212, 140, 112, 0.2) !important;
 }
 [data-theme="dark"] .bk-list li .bk-back p { color: #B0A088; }
 [data-theme="dark"] .bk-list li .bk-cover-back { background-color: #28231C; }
@@ -364,18 +370,12 @@ min-height: auto;
 [data-theme="dark"] .book-title { color: #D4C8B8; }
 [data-theme="dark"] .book-author { color: #A09080; }
 [data-theme="dark"] .divider-line { background: #5a5048; }
-
-/* Ambient glow in dark mode */
-[data-theme="dark"] .bk-list li {
-    filter: drop-shadow(0px 0px 15px rgba(212, 140, 112, 0.08));
-}
 </style>
 </head>
 <body>
 
-<div style="padding: 1rem;">
-  <div class="book-scale">
-    <ul id="bk-list" class="bk-list">
+<div style="width:280px; height:340px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+  <ul id="bk-list" class="bk-list">
     <li>
       <div class="bk-book bk-bookdefault">
 
@@ -437,10 +437,9 @@ min-height: auto;
         <div class="bk-bottom"></div>
       </div>
 
-      
+
     </li>
-</ul>
-  </div> <!-- book-scale -->
+  </ul>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -510,50 +509,37 @@ var Books = (function() {
 })();
 
 $(function() { Books.init(); });
-</script>
-<script>
-  // Listen for theme toggles from the main index.html
-  window.addEventListener('message', (event) => {
-    if (event.data && event.data.theme) {
-      if (event.data.theme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.removeAttribute('data-theme');
-      }
-    }
-  });
-</script>
-<script>
-  // ── Book hover control (replaces CSS :hover) ──
-  const book = document.querySelector('.bk-book');
 
-if (book) {
-
-  function rotateBook() {
-    book.style.transition = 'transform 0.4s ease';
-    book.style.transform = 'rotate3d(0,1,0,35deg)';
-  }
-
-  function resetBook() {
-    book.style.transition = 'transform 0.5s ease';
-    book.style.transform = 'rotate3d(0,1,0,0deg)';
-  }
-
-  // Hover inside iframe
-  book.addEventListener('mouseenter', rotateBook);
-  book.addEventListener('mouseleave', resetBook);
-
-  // 🔥 Handle parent-triggered events
-  window.addEventListener('message', (event) => {
-    if (event.data === 'FORCE_LEAVE') {
-      book.dispatchEvent(new Event('mouseleave'));
-    }
-
-    if (event.data === 'RESET_BOOK') {
-      resetBook();
-    }
-  });
+var book = document.querySelector('.bk-book');
+var hoverTarget = document.querySelector('.bk-list');
+var hoverTimer = null;
+if (book && hoverTarget) {
+    hoverTarget.addEventListener('mouseenter', function() {
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(function() {
+            if (!book.classList.contains('bk-viewinside') && !book.classList.contains('bk-viewback')) {
+                book.classList.add('bk-hovered');
+            }
+        }, 200);
+    });
+    hoverTarget.addEventListener('mouseleave', function() {
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(function() {
+            book.classList.remove('bk-hovered');
+        }, 200);
+    });
 }
+
+// Dark mode — listens for { theme: 'dark' } or { theme: 'light' } from parent
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.theme) {
+        if (event.data.theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    }
+});
 </script>
 </body>
 </html>
