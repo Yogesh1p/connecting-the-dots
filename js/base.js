@@ -105,6 +105,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  /* ── MOBILE NAV MENU ── */
+  const hamburger   = document.getElementById('navHamburger');
+  const mobileMenu  = document.getElementById('navMobileMenu');
+  const mobileClose = document.getElementById('navMobileClose');
+
+  window.openMobileMenu = function () {
+    if (!mobileMenu || !hamburger) return;
+    mobileMenu.classList.add('open');
+    hamburger.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeMobileMenu = function () {
+    if (!mobileMenu || !hamburger) return;
+    mobileMenu.classList.remove('open');
+    hamburger.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  if (hamburger)   hamburger.addEventListener('click', window.openMobileMenu);
+  if (mobileClose) mobileClose.addEventListener('click', window.closeMobileMenu);
+
   /* ── CLEAN ANCHOR NAV ── */
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', function (e) {
