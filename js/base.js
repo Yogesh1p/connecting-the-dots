@@ -215,24 +215,28 @@ document.addEventListener('DOMContentLoaded', function () {
       bar.style.width = (bar.dataset.w || 0) + '%';
     });
   });
-/* ── BULLETPROOF SMOOTH ANCHOR NAV (Event Delegation) ── */
+/* ── MASTER SMOOTH SCROLL & URL FREEZER ── */
   document.addEventListener('click', function (e) {
-    // 1. Check if the clicked element (or its parent) is an anchor link with a #
     const link = e.target.closest('a[href*="#"]');
     if (!link) return;
 
     const hash = link.hash;
     if (!hash) return;
 
-    // 2. Normalize URLs to check if it points to the current page
-    const linkUrl = link.href.split('#')[0].replace('/index.html', '/');
-    const currentUrl = window.location.href.split('#')[0].replace('/index.html', '/');
+    // 1. Use the exact URL parser that worked perfectly for your mobile links
+    const linkObj = new URL(link.href, window.location.origin);
+    const currentObj = new URL(window.location.href);
 
-    // 3. If it's on the same page, intercept it!
-    if (linkUrl === currentUrl) {
-      e.preventDefault(); // <-- This stops the URL bar from changing
+    const cleanPath = (p) => p.replace(/\/index\.html$/, '').replace(/\/$/, '');
+    
+    const isSamePage = linkObj.origin === currentObj.origin && 
+                       cleanPath(linkObj.pathname) === cleanPath(currentObj.pathname);
 
-      // Smooth scroll logic
+    // 2. Intercept and freeze!
+    if (isSamePage) {
+      e.preventDefault(); // <-- Locks the URL bar securely
+
+      // 3. Glide to section
       if (hash === '#') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
@@ -242,16 +246,54 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
 
-      // 4. Close the mobile menus if a mobile link was clicked
+      // 4. Force close all mobile menus
       const glassBtn = document.getElementById('glassBtn');
-      if (glassBtn && glassBtn.classList.contains('is-active')) {
-        glassBtn.classList.remove('is-active');
-      }
-      if (typeof closeMobileMenu === 'function') {
-        closeMobileMenu();
-      }
+      if (glassBtn) glassBtn.classList.remove('is-active');
+      const overlayMenu = document.getElementById('navMobileMenu');
+      if (overlayMenu) overlayMenu.classList.remove('open');
     }
   });
+
+/* ── AUTO-HIDE FLOATING BUTTONS ON IDLE (Reading Mode) ── */
+  let idleTimeout;
+  const IDLE_TIME = 2500; // Time in milliseconds (2.5 seconds)
+
+  function showFloatingButtons() {
+    const controls = document.querySelector('.floating-controls');
+    const pill = document.querySelector('.floating-theme-pill');
+    if (controls) controls.classList.remove('floating-hidden');
+    if (pill) pill.classList.remove('floating-hidden');
+  }
+
+  function hideFloatingButtons() {
+    const controls = document.querySelector('.floating-controls');
+    const pill = document.querySelector('.floating-theme-pill');
+    const glassBtn = document.getElementById('glassBtn');
+
+    // Safety: NEVER hide the buttons if the menu is actively open!
+    if (glassBtn && glassBtn.classList.contains('is-active')) return;
+
+    if (controls) controls.classList.add('floating-hidden');
+    if (pill) pill.classList.add('floating-hidden');
+  }
+
+  function resetIdleTimer() {
+    // Show buttons immediately upon any interaction
+    showFloatingButtons();
+    
+    // Clear the old timer and start a fresh countdown
+    clearTimeout(idleTimeout);
+    idleTimeout = setTimeout(hideFloatingButtons, IDLE_TIME);
+  }
+
+  // Wake up buttons when the user scrolls, touches, or moves the mouse
+  window.addEventListener('scroll', resetIdleTimer, { passive: true });
+  window.addEventListener('touchstart', resetIdleTimer, { passive: true });
+  window.addEventListener('mousemove', resetIdleTimer, { passive: true });
+
+  // Start the timer immediately when the page loads
+  idleTimeout = setTimeout(hideFloatingButtons, IDLE_TIME);
+
   /* ── CHAPTER TOGGLE ── */
   window.toggleCh1 = function () {
     document.getElementById('ch1-toggle')?.classList.toggle('open');

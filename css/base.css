@@ -745,3 +745,36 @@ footer {
   .floating-controls,
   .floating-theme-pill { display: block; }
 }
+
+/* ── READING MODE: MODERN SPRING & BLUR ── */
+
+/* 1. The "Visible" State (Controls how it pops IN) */
+.floating-controls, 
+.floating-theme-pill {
+  /* Satisfying spring physics for the pop-up (overshoots slightly then settles) */
+  transition: 
+    opacity 0.4s ease-out, 
+    transform 0.6s cubic-bezier(0.34, 1.4, 0.64, 1), 
+    filter 0.4s ease-out !important;
+    
+  filter: blur(0px);
+  transform: translateY(0) scale(1);
+}
+
+/* 2. The "Hidden" State (Controls how it fades OUT) */
+.floating-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  
+  /* Sinks deeper and shrinks more significantly */
+  transform: translateY(28px) scale(0.8) !important;
+  
+  /* Modern glass UI trick: blur it out of focus as it vanishes */
+  filter: blur(6px);
+  
+  /* Faster, accelerating curve for a snappy exit (no bouncing on the way out) */
+  transition: 
+    opacity 0.3s ease-in, 
+    transform 0.3s cubic-bezier(0.4, 0, 1, 1), 
+    filter 0.3s ease-in !important;
+}
