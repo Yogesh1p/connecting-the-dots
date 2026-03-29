@@ -562,26 +562,33 @@ footer {
 }
 
 /* ── The morphing button ──
-   Sits at 54×54 circle at rest.
-   On .is-active it grows to a fixed card size.
-   height is NOT transitioned (auto doesn't animate) — we use
-   a fixed expanded height and clip the rest with overflow:hidden. */
+   Rests as a frosted-glass circle with 3 lines.
+   On .is-active the whole shape — including where the circle
+   used to be — becomes the nav card (no dead space). */
 .glass-hamburger {
   position: relative;
   width: 54px;
   height: 54px;
   border-radius: 27px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   cursor: pointer;
-  background: var(--surface);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.13), 0 1px 4px rgba(0,0,0,0.07);
+  /* Frosted glass — slightly transparent */
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
+    inset 1px 2px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent),
+    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent),
+    inset 0px -1px 2px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent),
+    0px 1px 3px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent),
+    0px 4px 16px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent);
   overflow: hidden;
-  /* Morph: transition width, height, border-radius together */
   transition:
-    width  0.35s cubic-bezier(0.34,1.1,0.64,1),
-    height 0.35s cubic-bezier(0.34,1.1,0.64,1),
-    border-radius 0.35s cubic-bezier(0.34,1.1,0.64,1),
-    box-shadow 0.2s ease;
+    width         0.38s cubic-bezier(0.34,1.1,0.64,1),
+    height        0.38s cubic-bezier(0.34,1.1,0.64,1),
+    border-radius 0.38s cubic-bezier(0.34,1.1,0.64,1),
+    box-shadow    0.25s ease;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -589,23 +596,37 @@ footer {
   transform: scale(0.93);
 }
 .glass-hamburger.is-active {
-  width: 220px;
-  height: 258px;
+  width: 160px;
+  height: 230px;
   border-radius: 20px;
   cursor: default;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.09);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
+    inset 1px 2px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent),
+    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent),
+    inset 0px -1px 2px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent),
+    0px 8px 32px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 18%), transparent),
+    0px 2px 8px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent);
 }
 
-/* ── Three-line icon — always at bottom-left of the button ── */
+/* ── Three lines — centered in the circle, fade out as card opens ── */
 .hamburger-icon {
   position: absolute;
-  bottom: 16px;
-  left: 17px;
+  /* Centered inside the 54×54 circle */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   gap: 5px;
   width: 20px;
-  pointer-events: none; /* clicks fall through to the button or close-hit */
+  pointer-events: none;
+  /* Fade out when expanding */
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+.glass-hamburger.is-active .hamburger-icon {
+  opacity: 0;
 }
 .hamburger-icon span {
   display: block;
@@ -613,47 +634,38 @@ footer {
   width: 20px;
   background: var(--dark);
   border-radius: 2px;
-  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
-              opacity   0.2s  ease,
-              width     0.2s  ease;
 }
-/* X state */
-.glass-hamburger.is-active .hamburger-icon span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.glass-hamburger.is-active .hamburger-icon span:nth-child(2) { opacity: 0; width: 0; }
-.glass-hamburger.is-active .hamburger-icon span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* ── Invisible close hit-area over the X icon (54×54, bottom-left) ── */
+/* ── Close hit-area covers the entire expanded card ── */
 .hamburger-close-hit {
   position: absolute;
-  bottom: 0; left: 0;
-  width: 54px; height: 54px;
+  inset: 0;
   cursor: pointer;
   z-index: 10;
-  /* only active when menu is open */
   display: none;
 }
 .glass-hamburger.is-active .hamburger-close-hit {
   display: block;
 }
 
-/* ── Nav content — fades in after the morph ── */
+/* ── Nav content — fills the FULL card (top-to-bottom, no reserved icon row) ── */
+/* ── Nav content — Updated for better space usage ── */
 .glass-nav-content {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  /* stops above the X icon row */
-  bottom: 54px;
-  padding: 16px 12px 8px;
+  inset: 0;
+  /* Reduced padding-left/right from 12px to 8px to use horizontal space */
+  padding: 12px 8px; 
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease;
   display: flex;
   flex-direction: column;
+  z-index: 11;
 }
 .glass-hamburger.is-active .glass-nav-content {
   opacity: 1;
   pointer-events: auto;
-  /* delay so content appears after shape has expanded */
-  transition: opacity 0.2s 0.2s ease;
+  transition: opacity 0.22s 0.22s ease;
 }
 
 .glass-nav-label {
@@ -710,9 +722,20 @@ footer {
   align-items: center;
   padding: 5px;
   border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.07);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
+    inset 1px 2px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent),
+    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent),
+    inset -2px -4px 1px -3px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 60%), transparent),
+    inset 0px -1px 2px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent),
+    inset -1px 1px 0px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 20%), transparent),
+    inset 0px 2px 2px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 20%), transparent),
+    0px 1px 3px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent),
+    0px 4px 16px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent);
 }
 .mob-pill__opt {
   display: flex;
@@ -770,7 +793,7 @@ footer {
   transform: translateY(28px) scale(0.8) !important;
   
   /* Modern glass UI trick: blur it out of focus as it vanishes */
-  filter: blur(6px);
+  filter: blur(20px);
   
   /* Faster, accelerating curve for a snappy exit (no bouncing on the way out) */
   transition: 
