@@ -17,6 +17,12 @@
   --card-bg:   #FFFFFF;
   --code-bg:   var(--surface);
   --code-text: #5A4E42;
+  
+  /* Liquid Switcher specific */
+  --c-glass: #bbbbbc;
+  --glass-reflex-light: 1;
+  --glass-reflex-dark: 1;
+  --saturation: 150%;
 }
 
 [data-theme="dark"] {
@@ -31,6 +37,10 @@
   --card-bg:   #1C1208;
   --code-bg:   #130E0A;
   --code-text: #B0A088;
+  
+  /* Liquid Switcher specific */
+  --glass-reflex-light: 0.3;
+  --glass-reflex-dark: 2;
 }
 
 /* ── Reset ── */
@@ -54,9 +64,48 @@ body {
   line-height: 1.8;
   overflow-x: hidden;
   opacity: 0;
-  transition: opacity 0.5s ease, background-color 0.35s ease, color 0.35s ease;
+  /* Only fade-in on page load; color changes are instant via html[data-theme] */
+  transition: opacity 0.5s ease;
 }
 body.loaded { opacity: 1; }
+
+/* ── Smooth theme transitions (only fires during toggle, not on hover) ── */
+.theme-transitioning body,
+.theme-transitioning nav,
+.theme-transitioning .anatomy-card,
+.theme-transitioning .chapter-sample,
+.theme-transitioning .ch-topics-block,
+.theme-transitioning .cta-section,
+.theme-transitioning .philosophy-block,
+.theme-transitioning .code-block,
+.theme-transitioning .progress-bar-wrap,
+.theme-transitioning .glass-hamburger,
+.theme-transitioning .mob-pill,
+.theme-transitioning .btn,
+.theme-transitioning .pill-tag,
+.theme-transitioning mark,
+.theme-transitioning .tax-items span,
+.theme-transitioning .ch-topics-header,
+.theme-transitioning .collab-list .tag,
+.theme-transitioning footer,
+.theme-transitioning .rule {
+  transition:
+    background-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color     350ms cubic-bezier(0.4, 0, 0.2, 1),
+    color            350ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow       350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.theme-transitioning h1, .theme-transitioning h2, .theme-transitioning h3,
+.theme-transitioning p, .theme-transitioning a, .theme-transitioning li,
+.theme-transitioning blockquote, .theme-transitioning .lede p,
+.theme-transitioning .tax-root, .theme-transitioning .tax-branch-label,
+.theme-transitioning .ch-label, .theme-transitioning .pct,
+.theme-transitioning .eq-math, .theme-transitioning .eq-comment,
+.theme-transitioning .card-title, .theme-transitioning .card-num,
+.theme-transitioning .anatomy-card p {
+  transition: color 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
 
 .page-wrap { max-width: 900px; margin: 0 auto; padding: 0 3rem; }
 
@@ -75,21 +124,18 @@ nav {
   text-transform: uppercase; padding: 2rem 0;
   border-bottom: 1px solid var(--border);
   animation: fadeUp 0.9s ease both;
-
-  /* ── PERSISTENT STICKY SCROLL ── */
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: color-mix(in srgb, var(--bg) 85%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  position: sticky; top: 0; z-index: 1000;
+  /* Direct var(--bg) — inherits the :root 0.25s transition so it changes
+     in perfect sync with body/page background. No color-mix needed. */
+  background-color: var(--bg);
 }
 
-/* ── THESE WERE ACCIDENTALLY DELETED ── */
+
 nav a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
 nav a:hover, nav a.active { color: var(--accent); }
 
 .nav-right { display: flex; align-items: center; gap: 1.5rem; margin-left: auto; }
+
 /* ── Typography ── */
 h1 {
   font-size: clamp(3rem, 7vw, 4.5rem);
@@ -126,8 +172,6 @@ blockquote {
 }
 
 /* ── Shared Utilities ── */
-
-/* Uppercase accent micro-label. In HTML: class="… label-caps" */
 .label-caps {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.7rem; font-weight: 700;
@@ -135,7 +179,6 @@ blockquote {
   color: var(--accent);
 }
 
-/* Muted bordered pill badge. In HTML: class="… pill-tag" */
 .pill-tag {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.7rem; font-weight: 500;
@@ -160,26 +203,114 @@ blockquote {
 .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 .btn.primary:hover { background: var(--dark); border-color: var(--dark); color: var(--bg); }
 
-/* ── Theme Toggle (pill switch) ── */
-.theme-toggle {
-  display: inline-flex; align-items: center;
-  background: none; border: none; cursor: pointer; padding: 0; user-select: none;
+/* ============================================================
+   LIQUID GLASS SWITCHER (SCALED DOWN FOR NAV)
+   ============================================================ */
+
+.switcher {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  width: 90px;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 4px;
+  margin: 0;
+  border: none;
+  border-radius: 99px;
+  
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
+    inset 1px 2px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent), 
+    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent), 
+    inset -2px -4px 1px -3px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 60%), transparent), 
+    inset 0px -1px 2px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent), 
+    inset -1px 1px 0px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 20%), transparent), 
+    inset 0px 2px 2px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 20%), transparent), 
+    inset 1px -3px 1px -2px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent), 
+    0px 1px 3px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent), 
+    0px 3px 8px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 8%), transparent);
+    
+  transition: background-color 400ms ease, box-shadow 400ms ease;
 }
-.toggle-track {
-  position: relative; display: inline-block;
-  width: 40px; height: 22px;
-  background: var(--border); border-radius: 99px; border: 1px solid var(--border);
-  transition: background 0.3s ease, border-color 0.3s ease; flex-shrink: 0;
+
+.switcher__legend, .switcher__input {
+  position: absolute; width: 1px; height: 1px; margin: -1px; border: 0; padding: 0;
+  clip-path: inset(100%); clip: rect(0 0 0 0); overflow: hidden;
 }
-[data-theme="dark"] .toggle-track { background: var(--accent); border-color: var(--accent); }
-.toggle-thumb {
-  position: absolute; top: 2px; left: 2px;
-  width: 16px; height: 16px; background: #fff; border-radius: 50%;
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+
+.switcher__option {
+  --c: var(--muted);
+  display: flex; justify-content: center; align-items: center;
+  width: 41px; height: 100%;
+  border-radius: 99px; transition: all 160ms; z-index: 2; cursor: pointer;
 }
-[data-theme="dark"] .toggle-thumb { transform: translateX(18px); }
-.theme-toggle:hover .toggle-track { border-color: var(--accent); }
+
+.switcher__icon {
+  display: block; width: 16px; height: 16px;
+  transition: scale 250ms cubic-bezier(0.34, 1.2, 0.64, 1),
+              opacity 200ms ease;
+}
+
+.switcher__option:hover { --c: var(--accent); }
+.switcher__option:hover .switcher__icon { scale: 1.15; }
+
+.switcher__option:has(input:checked) { --c: var(--bg); cursor: auto; }
+.switcher__option:has(input:checked) .switcher__icon { scale: 1; }
+
+/* The Liquid Bubble */
+.switcher::after {
+  content: ''; position: absolute; left: 4px; top: 4px; display: block;
+  width: 41px; height: 30px; border-radius: 99px;
+  background-color: var(--accent); z-index: -1;
+  box-shadow: 
+    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
+    inset 1px 1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent), 
+    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent), 
+    inset -1px -3px 1px -2px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 60%), transparent), 
+    inset -1px 1px 2px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 20%), transparent), 
+    inset 0px -2px 1px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent), 
+    0px 2px 4px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 8%), transparent);
+}
+
+/* Animation triggers */
+.switcher:has(input[value="light"]:checked)::after {
+  translate: 0 0;
+  animation: slideToLight 500ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+
+.switcher:has(input[value="dark"]:checked)::after {
+  translate: 41px 0;
+  animation: slideToDark 500ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+
+/* Pure CSS stretch animation (No JS required) */
+@keyframes slideToDark {
+  0%   { translate: 0 0; width: 41px; }
+  50%  { translate: 0 0; width: 55px; } /* Stretches to the right */
+  100% { translate: 41px 0; width: 41px; }
+}
+
+@keyframes slideToLight {
+  0%   { translate: 41px 0; width: 41px; }
+  50%  { translate: 27px 0; width: 55px; } /* Stretches to the left */
+  100% { translate: 0 0; width: 41px; }
+}
+
+/* Sync bubble position to data-theme set by JS */
+[data-theme="dark"] .switcher::after {
+  translate: 41px 0;
+}
+[data-theme="dark"] .switcher__option:has(input[value="dark"]) { --c: var(--bg); cursor: auto; }
+[data-theme="dark"] .switcher__option:has(input[value="light"]) { --c: var(--muted); }
+
+/* ============================================================
+   MOBILE & OVERLAY MENUS
+   ============================================================ */
 
 /* ── Hamburger ── */
 .nav-hamburger {
@@ -212,15 +343,8 @@ blockquote {
 .nav-mobile-menu a:first-of-type { border-top: 1px solid var(--border); }
 .nav-mobile-menu a:hover { color: var(--accent); }
 
-/* Inline row inside mobile menu (toggle + a link side by side) */
-.mobile-toggle-row {
-  display: flex; align-items: center; width: 100%; padding: 0.9rem 0;
-}
-.mobile-toggle-row a {
-  /* override the block + padding from .nav-mobile-menu a */
-  display: inline; padding: 0; border: none; width: auto;
-  font-size: 1.4rem;
-}
+.mobile-toggle-row { display: flex; align-items: center; width: 100%; padding: 0.9rem 0; }
+.mobile-toggle-row a { display: inline; padding: 0; border: none; width: auto; font-size: 1.4rem; }
 
 .nav-mobile-close {
   position: absolute; top: 1.6rem; right: 1.6rem;
@@ -237,7 +361,6 @@ blockquote {
 }
 .exp-nav:hover { opacity: 1; transform: translateY(-1px); }
 .exp-icon { width: 24px; height: 24px; }
-
 .github-icon { width: 24px; height: 24px; opacity: 0.85; transition: all 0.2s ease; }
 .github-link:hover .github-icon { opacity: 1; transform: translateY(-1px); }
 
@@ -268,14 +391,12 @@ footer {
 }
 .header-content { flex: 1; padding-bottom: 20px; }
 
-/* "Yogesh · A Living Document" line — extends .label-caps in HTML */
 .chapter-label {
   font-size: 0.85rem; font-weight: 600;
   letter-spacing: 0.15em; margin-bottom: 1.5rem; display: block;
 }
 
 .header-cta { margin-top: 2rem; animation: fadeUp 0.9s 0.2s ease both; }
-
 .widget-container { display: flex; justify-content: center; width: 100%; }
 .book-widget-frame { width: 280px; height: 340px; border: none; overflow: hidden; display: block; }
 
@@ -291,12 +412,9 @@ footer {
   animation: fadeUp 0.9s 0.25s ease both;
 }
 
-/* Shared card base — anatomy cards, chapter samples, topics block, CTA */
 .anatomy-card, .chapter-sample, .ch-topics-block, .cta-section {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  transition: all 0.35s ease;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 12px; transition: all 0.35s ease;
 }
 
 .book-anatomy {
@@ -317,13 +435,11 @@ footer {
 
 .chapter-sample { padding: 2.5rem; margin: 3rem 0; animation: fadeUp 0.9s 0.4s ease both; border-radius: 16px; }
 
-/* "Taxonomy — Generative Models" header — extends .label-caps in HTML */
 .sample-label {
   font-size: 0.8rem; font-weight: 600; letter-spacing: 0.15em;
   margin-bottom: 1.5rem; border-bottom: 2px solid var(--surface); padding-bottom: 0.5rem;
 }
 
-/* Taxonomy tree */
 .tax-root { font-size: 1.4rem; font-weight: 600; color: var(--dark); margin-bottom: 1rem; }
 .tax-branch-label { font-size: 1.2rem; font-weight: 600; color: var(--dark); margin: 2.5rem 0 0.2rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
 .tax-desc { font-size: 0.9rem; color: var(--muted); font-style: italic; margin-bottom: 1rem; padding-left: 0.5rem; }
@@ -331,13 +447,10 @@ footer {
 .tax-section-title { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
 .tax-dim { color: var(--muted); font-weight: 400; font-size: 0.9rem; font-style: italic; }
 .tax-group { padding-left: 1.2rem; border-left: 1px dashed var(--border); margin-top: 0.8rem; margin-bottom: 1.2rem; }
-/* .tax-group-title extends .label-caps in HTML */
 .tax-group-title { font-size: 0.8rem; margin-bottom: 0.6rem; }
-/* .tax-items span extends .pill-tag in HTML */
 .tax-items { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .tax-items span:hover { border-color: var(--accent); color: var(--accent); }
 
-/* Code blocks */
 .code-block {
   font-family: ui-monospace, monospace; font-size: 0.95rem;
   background: var(--code-bg); padding: 1.5rem 2rem;
@@ -350,27 +463,15 @@ footer {
 .eq-comment { color: var(--accent); font-family: 'Lora', serif; font-style: italic; font-size: 0.9rem; display: block; }
 .eq-math { font-size: 1.1rem; color: var(--dark); }
 
-/* Chapter progress */
 .progress-block { margin: 2rem 0; }
 .progress-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-.ch-label {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.85rem; font-weight: 600; color: var(--text); width: 140px;
-}
+.ch-label { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text); width: 140px; }
 .progress-bar-wrap { flex: 1; height: 8px; background: var(--surface); border-radius: 99px; overflow: hidden; position: relative; }
 .progress-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; transition: width 1.2s cubic-bezier(0.22,1,0.36,1); width: 0; }
 .progress-bar-fill.draft { background: var(--accent); }
-.pct {
-  width: 2.8rem; text-align: right;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.85rem; font-weight: 600; color: var(--muted);
-}
-.ch-updated {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.72rem; color: var(--muted); font-style: italic; margin-bottom: 1rem; opacity: 0.75;
-}
+.pct { width: 2.8rem; text-align: right; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.ch-updated { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.72rem; color: var(--muted); font-style: italic; margin-bottom: 1rem; opacity: 0.75; }
 
-/* Chapter collapsible */
 .ch-toggle { cursor: pointer; user-select: none; }
 .ch-toggle .toggle-arrow { display: inline-block; font-size: 0.7rem; color: var(--accent); margin-left: 0.4rem; transition: transform 0.3s ease; }
 .ch-toggle.open .toggle-arrow { transform: rotate(90deg); }
@@ -381,7 +482,6 @@ footer {
 .ch-topics-collapsible > div { overflow: hidden; }
 .ch-topics-collapsible.open { grid-template-rows: 1fr; margin-top: 0.6rem; margin-bottom: 0.6rem; opacity: 1; }
 
-/* Topics grid */
 .ch-topics-block { border-radius: 16px; overflow: hidden; margin: 0; }
 .ch-topics-header {
   background: var(--surface); padding: 0.75rem 1.2rem; border-bottom: 1px solid var(--border);
@@ -398,86 +498,250 @@ footer {
 .ch-topics-grid { display: grid; grid-template-columns: 1fr 1fr; }
 .ch-topic-group { padding: 1rem 1.2rem; }
 .ch-topic-group:first-child { border-right: 1px solid var(--border); }
-/* .ch-topic-section extends .label-caps in HTML */
 .ch-topic-section { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
 .ch-topic { font-size: 0.88rem; color: var(--text); display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.3rem; line-height: 1.4; }
 .ch-topic::before { content: '✓'; color: var(--accent); font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-weight: bold; font-size: 0.8rem; margin-top: 0.1rem; }
 
-/* Collab list */
 .collab-list { margin: 2rem 0; list-style: none; }
 .collab-list li { display: flex; align-items: flex-start; gap: 1.2rem; padding: 1.2rem 0; border-bottom: 1px solid var(--border); }
 .collab-list li:last-child { border-bottom: none; }
-/* .collab-list .tag extends .label-caps in HTML — adds surface bg + pill shape */
-.collab-list .tag {
-  flex-shrink: 0; background: var(--surface);
-  padding: 0.4em 0.8em; border-radius: 20px; margin-top: 0.2rem;
-}
+.collab-list .tag { flex-shrink: 0; background: var(--surface); padding: 0.4em 0.8em; border-radius: 20px; margin-top: 0.2rem; }
 
-/* CTA section */
 .cta-section { margin: 4rem 0 2rem; padding: 3rem; border-radius: 16px; text-align: center; }
 .cta-section h2 { margin: 0 0 1rem; }
 .cta-section p { color: var(--muted); margin-bottom: 2rem; }
 
-/* ────────────────────────────────────────────────────────────
-   RESPONSIVE
-   ──────────────────────────────────────────────────────────── */
-
 @media (max-width: 768px) {
   .page-wrap { padding: 0 1rem; }
-
-  .main-header {
-    flex-direction: column-reverse; align-items: center;
-    text-align: center; padding-top: 1rem; padding-bottom: 1rem;
-  }
+  .main-header { flex-direction: column-reverse; align-items: center; text-align: center; padding-top: 1rem; padding-bottom: 1rem; }
   .widget-container { margin-top: 0; }
-
   .book-anatomy, .ch-topics-grid { grid-template-columns: 1fr; }
   .ch-topic-group:first-child { border-right: none; border-bottom: 1px solid var(--border); }
 }
 
 @media (max-width: 680px) {
   nav {
-    padding: 0.6rem 0;
+    position: static;
+    top: auto;
+    padding: 0.5rem 0;
+    /* Mobile nav is just the logo — center it, drop the glass blur */
+    justify-content: center;
+    background-color: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
-  
-  /* 1. Only hide links explicitly marked as desktop-only */
-  .nav-desktop-only, nav .exp-nav { 
-    display: none !important; 
-  }
+  nav::before { display: none; } /* kill pseudo blur layer on mobile */
+  .nav-desktop-only, nav .exp-nav { display: none !important; }
+  .nav-mobile-back { display: block !important; margin-left: 1rem; font-size: 0.95rem; white-space: nowrap; }
+  .nav-right { display: none !important; }
+  /* Center the logo link */
+  nav > a:first-child { margin: 0 auto; }
 
-  /* 2. Format the back button (only applies to Hub/Exp pages) */
-  .nav-mobile-back {
-    display: block !important;
-    margin-left: 1rem;
-    font-size: 0.95rem;
-    white-space: nowrap;
-  }
-
-  /* 3. ALWAYS pin the right-side icons to the far right edge */
-  .nav-right {
-    margin-left: auto !important; 
-  }
-
-  /* Hide GitHub on mobile to save space */
-  .nav-right .github-link { display: none !important; }
-
-  /* Force the hamburger menu to show */
-  .nav-hamburger { display: flex !important; }
-
-  /* ── Typography adjustments ── */
   h1 { font-size: 2.5rem; margin-bottom: 0.4rem; }
   .subtitle { font-size: 1rem; margin-top: 0.4rem; line-height: 1.5; }
   .chapter-label { font-size: 0.7rem; margin-bottom: 0.3rem; }
   .main-header { padding-top: 0.5rem; }
 }
-/* Default behavior for mobile: allow the text to wrap */
-.chapter-label {
-  white-space: normal;
+
+.chapter-label { white-space: normal; }
+@media (min-width: 768px) { .chapter-label { white-space: nowrap; } }
+
+
+
+/* ============================================================
+   MOBILE FLOATING BUTTONS
+   ============================================================ */
+
+/* Wrapper: fixed bottom-left, mobile only */
+.floating-controls {
+  position: fixed;
+  bottom: 24px;
+  left: 20px;
+  z-index: 2001;
+  display: none;
 }
 
-/* For screens 768px and wider (tablets and desktops): force it inline */
-@media (min-width: 768px) {
-  .chapter-label {
-    white-space: nowrap;
-  }
+/* ── The morphing button ──
+   Sits at 54×54 circle at rest.
+   On .is-active it grows to a fixed card size.
+   height is NOT transitioned (auto doesn't animate) — we use
+   a fixed expanded height and clip the rest with overflow:hidden. */
+.glass-hamburger {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 27px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--surface);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.13), 0 1px 4px rgba(0,0,0,0.07);
+  overflow: hidden;
+  /* Morph: transition width, height, border-radius together */
+  transition:
+    width  0.35s cubic-bezier(0.34,1.1,0.64,1),
+    height 0.35s cubic-bezier(0.34,1.1,0.64,1),
+    border-radius 0.35s cubic-bezier(0.34,1.1,0.64,1),
+    box-shadow 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.glass-hamburger:active:not(.is-active) {
+  transform: scale(0.93);
+}
+.glass-hamburger.is-active {
+  width: 220px;
+  height: 258px;
+  border-radius: 20px;
+  cursor: default;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.09);
+}
+
+/* ── Three-line icon — always at bottom-left of the button ── */
+.hamburger-icon {
+  position: absolute;
+  bottom: 16px;
+  left: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 20px;
+  pointer-events: none; /* clicks fall through to the button or close-hit */
+}
+.hamburger-icon span {
+  display: block;
+  height: 2px;
+  width: 20px;
+  background: var(--dark);
+  border-radius: 2px;
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
+              opacity   0.2s  ease,
+              width     0.2s  ease;
+}
+/* X state */
+.glass-hamburger.is-active .hamburger-icon span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.glass-hamburger.is-active .hamburger-icon span:nth-child(2) { opacity: 0; width: 0; }
+.glass-hamburger.is-active .hamburger-icon span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Invisible close hit-area over the X icon (54×54, bottom-left) ── */
+.hamburger-close-hit {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 54px; height: 54px;
+  cursor: pointer;
+  z-index: 10;
+  /* only active when menu is open */
+  display: none;
+}
+.glass-hamburger.is-active .hamburger-close-hit {
+  display: block;
+}
+
+/* ── Nav content — fades in after the morph ── */
+.glass-nav-content {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  /* stops above the X icon row */
+  bottom: 54px;
+  padding: 16px 12px 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  display: flex;
+  flex-direction: column;
+}
+.glass-hamburger.is-active .glass-nav-content {
+  opacity: 1;
+  pointer-events: auto;
+  /* delay so content appears after shape has expanded */
+  transition: opacity 0.2s 0.2s ease;
+}
+
+.glass-nav-label {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+  padding-left: 10px;
+}
+
+.glass-nav-links {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.glass-nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+.glass-nav-links a:hover,
+.glass-nav-links a:active { background: var(--highlight); color: var(--accent); }
+
+.glass-nav-links .nav-icon {
+  width: 13px; height: 13px;
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+/* ── Theme pill: bottom-right, mobile only ── */
+.floating-theme-pill {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 2001;
+  display: none;
+}
+.mob-pill {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.07);
+}
+.mob-pill__opt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s;
+}
+.mob-pill__radio {
+  position: absolute;
+  opacity: 0; width: 0; height: 0;
+  pointer-events: none;
+}
+.mob-pill__icon {
+  width: 22px; height: 22px;
+  color: var(--dark);
+  opacity: 0.4;
+  transition: color 0.15s, transform 0.15s, opacity 0.15s;
+  pointer-events: none;
+}
+.mob-pill__opt:has(.mob-pill__radio:checked) { background: rgba(212,140,112,0.2); }
+.mob-pill__opt:has(.mob-pill__radio:checked) .mob-pill__icon { color: var(--accent); opacity: 1; transform: scale(1.1); }
+.mob-pill__opt:hover .mob-pill__icon { color: var(--accent); opacity: 1; }
+
+/* Show both on mobile only */
+@media (max-width: 680px) {
+  .floating-controls,
+  .floating-theme-pill { display: block; }
 }

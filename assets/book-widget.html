@@ -370,6 +370,40 @@ body {
 [data-theme="dark"] .book-title { color: #D4C8B8; }
 [data-theme="dark"] .book-author { color: #A09080; }
 [data-theme="dark"] .divider-line { background: #5a5048; }
+
+/* ── THEME TRANSITION SYNC ── */
+.theme-transitioning body,
+.theme-transitioning .bk-list li .bk-front > div,
+.theme-transitioning .bk-list li .bk-back,
+.theme-transitioning .bk-list li .bk-left,
+.theme-transitioning .bk-list li .bk-front:after,
+.theme-transitioning .bk-list li .bk-cover-back,
+.theme-transitioning .bk-list li .bk-page,
+.theme-transitioning .bk-list li .bk-right,
+.theme-transitioning .bk-list li .bk-top,
+.theme-transitioning .bk-list li .bk-bottom,
+.theme-transitioning .bk-content,
+.theme-transitioning .divider-line {
+    transition: 
+        background-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.theme-transitioning .bk-content p,
+.theme-transitioning .book-title,
+.theme-transitioning .book-author,
+.theme-transitioning .bk-list li .bk-left h2,
+.theme-transitioning .bk-list li .bk-back p {
+    transition: color 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Note: CSS cannot smoothly animate background linear-gradients. 
+   To make the cover transition smoothly, we transition a pseudo-element's opacity instead, 
+   or just let the gradients snap while the rest of the book glides. */
+.theme-transitioning .bk-list li .bk-cover,
+.theme-transitioning .bk-list li .bk-back {
+    transition: box-shadow 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
 </style>
 </head>
 <body>
@@ -530,9 +564,21 @@ if (book && hoverTarget) {
     });
 }
 
-// Dark mode — listens for { theme: 'dark' } or { theme: 'light' } from parent
+// Dark mode — listens for theme changes and syncs the transition
+let themeTransTimer;
 window.addEventListener('message', function(event) {
     if (event.data && event.data.theme) {
+        
+        // 1. Add the transitioning class
+        document.documentElement.classList.add('theme-transitioning');
+        
+        // 2. Clear any old timers and set a new one to remove the class after 400ms
+        clearTimeout(themeTransTimer);
+        themeTransTimer = setTimeout(function() {
+            document.documentElement.classList.remove('theme-transitioning');
+        }, 400);
+
+        // 3. Apply the actual theme data attribute
         if (event.data.theme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
         } else {
@@ -541,5 +587,6 @@ window.addEventListener('message', function(event) {
     }
 });
 </script>
+
 </body>
 </html>
