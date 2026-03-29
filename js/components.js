@@ -54,12 +54,11 @@ function loadGlobalNav() {
 // Run immediately
 loadGlobalNav();
 
-// Small fix: The radio buttons injected by Javascript won't automatically know 
-// which theme is active when they load. This triggers the applyTheme logic 
-// in base.js to sync the UI switch immediately after injection.
-setTimeout(() => {
-  const currentTheme = localStorage.getItem('theme') || 'light';
-  document.querySelectorAll('input[name="theme"]').forEach(i => {
-    i.checked = (i.value === currentTheme);
-  });
-}, 50);
+
+// After nav is injected
+const currentTheme = localStorage.getItem('theme') || 'light';
+
+// Call the real theme system (not manual checkbox hack)
+if (window.applyTheme) {
+  window.applyTheme(currentTheme);
+}

@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
   })();
 
   /* ── THEME — instant snap ── */
-  function applyTheme(theme) {
+window.applyTheme = function(theme) {
     // Trigger smooth transition on all elements
     document.documentElement.classList.add('theme-transitioning');
     clearTimeout(window._themeTransTimer);
