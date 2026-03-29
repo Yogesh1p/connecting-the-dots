@@ -1,6 +1,6 @@
 /* ============================================================
    base.js — Connecting the Dots
-   Theme System & Morphing Mobile Nav
+   Theme System, Core Utilities, & Floating Mobile Nav
    ============================================================ */
 
 /* ── INSTANT THEME before first paint ── */
@@ -12,13 +12,9 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-
-
-/* ── NAV LINKS — Bulletproof Dynamic Root Path ── */
-  // The browser always resolves .src to an absolute URL (e.g., http://localhost/js/base.js)
-  // We use this to reliably find the project root no matter how deep the current HTML file is.
+  /* ── NAV LINKS — Bulletproof Dynamic Root Path ── */
   const scriptTag = document.querySelector('script[src*="base.js"]');
-  const rootUrl = scriptTag.src.replace('/js/base.js', '/');
+  const rootUrl = scriptTag ? scriptTag.src.replace('/js/base.js', '/') : '/';
 
   const NAV_LINKS = [
     { href: rootUrl + 'index.html', icon: 'home', label: 'Home' },
@@ -27,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     { href: rootUrl + 'index.html#contribute', icon: 'contrib', label: 'Contribute' },
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', icon: 'github', label: 'GitHub', target: '_blank' },
   ];
+  
   const ICONS = {
     home:     `<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 7v8h4v-5h6v5h4V7L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
     chapters: `<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M5 6h6M5 9.5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
@@ -35,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
     github:   `<svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`,
   };
 
-  /* ── AUTO-INJECT MOBILE NAV (skipped if #glassBtn already in HTML) ── */
-  (function injectMobileNav() {
+  /* ── AUTO-INJECT FLOATING MOBILE NAV (Glass Hamburger & Theme Pill) ── */
+  (function injectFloatingNav() {
     if (document.getElementById('glassBtn')) return;
 
     const linksHTML = NAV_LINKS.map(l =>
@@ -119,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
   })();
 
   /* ── THEME — instant snap ── */
-window.applyTheme = function(theme) {
+  window.applyTheme = function(theme) {
     // Trigger smooth transition on all elements
     document.documentElement.classList.add('theme-transitioning');
     clearTimeout(window._themeTransTimer);
@@ -130,7 +127,7 @@ window.applyTheme = function(theme) {
     if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
     else document.documentElement.removeAttribute('data-theme');
 
-    document.querySelectorAll('input[name="theme"]').forEach(i => {
+    document.querySelectorAll('input[name="theme"], input[name="top-theme"]').forEach(i => {
       i.checked = (i.value === theme);
     });
 
@@ -139,17 +136,14 @@ window.applyTheme = function(theme) {
     syncWidgetTheme(theme);
 
     /* ── GISCUS THEME SYNC ── */
-    // Map your theme names to Giscus built-in themes
     const giscusTheme = theme === 'dark' ? 'dark' : 'light';
     const giscusMsg = { giscus: { setConfig: { theme: giscusTheme } } };
 
     const giscus = document.querySelector('iframe.giscus-frame');
     if (giscus) {
-      // If already loaded, send immediately
       if (giscus.contentWindow) {
         giscus.contentWindow.postMessage(giscusMsg, 'https://giscus.app');
       }
-      // Re-send once iframe finishes loading (catches page-load race)
       if (!giscus.dataset.themeListenerBound) {
         giscus.dataset.themeListenerBound = 'true';
         giscus.addEventListener('load', () => {
@@ -166,31 +160,22 @@ window.applyTheme = function(theme) {
 
   applyTheme(localStorage.getItem('theme') || 'light');
   document.addEventListener('change', e => {
-    if (e.target.name === 'theme') applyTheme(e.target.value);
+    if (e.target.name === 'theme' || e.target.name === 'top-theme') applyTheme(e.target.value);
   });
 
-  /* ── MORPHING HAMBURGER ── */
+  /* ── MORPHING HAMBURGER (Floating Nav) ── */
   (function initMorphMenu() {
-    // IDs are now in DOM (either from HTML or just injected above)
     const btn    = document.getElementById('glassBtn');
     const closer = document.getElementById('glassClose');
     if (!btn) return;
 
-    function openMenu() {
-      btn.classList.add('is-active');
-    }
-    function closeMenu() {
-      btn.classList.remove('is-active');
-    }
+    function openMenu() { btn.classList.add('is-active'); }
+    function closeMenu() { btn.classList.remove('is-active'); }
 
-    /* Div click:
-       - When CLOSED: clicking the div opens it
-       - When OPEN:   the close-hit div handles closing via stopPropagation */
     btn.addEventListener('click', () => {
       if (!btn.classList.contains('is-active')) openMenu();
     });
 
-    /* Keyboard: Enter/Space to open (accessibility) */
     btn.addEventListener('keydown', e => {
       if ((e.key === 'Enter' || e.key === ' ') && !btn.classList.contains('is-active')) {
         e.preventDefault();
@@ -198,7 +183,6 @@ window.applyTheme = function(theme) {
       }
     });
 
-    /* Close-hit: sits over the X icon, stops click reaching the div */
     if (closer) {
       closer.addEventListener('click', e => {
         e.stopPropagation();
@@ -206,21 +190,16 @@ window.applyTheme = function(theme) {
       });
     }
 
-    /* Nav links: navigate AND close */
     btn.querySelectorAll('.glass-nav-links a').forEach(a => {
-      a.addEventListener('click', () => {
-        closeMenu();
-      });
+      a.addEventListener('click', () => closeMenu());
     });
 
-    /* Outside click closes */
     document.addEventListener('click', e => {
       if (btn.classList.contains('is-active') && !btn.contains(e.target)) {
         closeMenu();
       }
     });
 
-    /* Escape closes */
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') closeMenu();
     });
@@ -233,7 +212,8 @@ window.applyTheme = function(theme) {
       bar.style.width = (bar.dataset.w || 0) + '%';
     });
   });
-/* ── MASTER SMOOTH SCROLL & URL FREEZER ── */
+
+  /* ── MASTER SMOOTH SCROLL & URL FREEZER ── */
   document.addEventListener('click', function (e) {
     const link = e.target.closest('a[href*="#"]');
     if (!link) return;
@@ -241,7 +221,6 @@ window.applyTheme = function(theme) {
     const hash = link.hash;
     if (!hash) return;
 
-    // 1. Use the exact URL parser that worked perfectly for your mobile links
     const linkObj = new URL(link.href, window.location.origin);
     const currentObj = new URL(window.location.href);
 
@@ -250,11 +229,9 @@ window.applyTheme = function(theme) {
     const isSamePage = linkObj.origin === currentObj.origin && 
                        cleanPath(linkObj.pathname) === cleanPath(currentObj.pathname);
 
-    // 2. Intercept and freeze!
     if (isSamePage) {
-      e.preventDefault(); // <-- Locks the URL bar securely
+      e.preventDefault(); 
 
-      // 3. Glide to section
       if (hash === '#') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
@@ -264,57 +241,63 @@ window.applyTheme = function(theme) {
         }
       }
 
-      // 4. Force close all mobile menus
+      // Force close all mobile menus
       const glassBtn = document.getElementById('glassBtn');
       if (glassBtn) glassBtn.classList.remove('is-active');
       const overlayMenu = document.getElementById('navMobileMenu');
       if (overlayMenu) overlayMenu.classList.remove('open');
+      const topHamBtn = document.getElementById('topHamBtn');
+      const topDrawer = document.getElementById('topDrawer');
+      if (topHamBtn) topHamBtn.classList.remove('is-open');
+      if (topDrawer) topDrawer.classList.remove('is-open');
     }
   });
 
-/* ── HIDE ON SCROLL-DOWN, SHOW ON SCROLL-UP ── */
-  // Industry standard (Medium, Notion, Linear):
-  //   scrolling down  → user is reading → hide chrome
-  //   scrolling up    → user wants nav  → show chrome
-  //   at top of page  → always show
+  /* ── HIDE FLOATING BUTTONS ON SCROLL-DOWN, SHOW ON SCROLL-UP ── */
   let lastScrollY = window.scrollY;
-  const SCROLL_THRESHOLD = 8; // px — ignore tiny jitter / elastic bounce
+  const SCROLL_THRESHOLD = 8; 
+
+  function getTopControlsBottom() {
+    const el = document.getElementById('mobileTopControls');
+    if (!el) return 100;
+    const rect = el.getBoundingClientRect();
+    return rect.bottom + window.scrollY; 
+  }
 
   function showFloatingButtons() {
     const controls = document.querySelector('.floating-controls');
     const pill = document.querySelector('.floating-theme-pill');
-    if (controls) controls.classList.remove('floating-hidden');
-    if (pill) pill.classList.remove('floating-hidden');
+    if (controls) { controls.classList.add('floating-visible'); controls.classList.remove('floating-hidden'); }
+    if (pill)     { pill.classList.add('floating-visible');     pill.classList.remove('floating-hidden'); }
   }
 
   function hideFloatingButtons() {
     const glassBtn = document.getElementById('glassBtn');
-    // Safety: NEVER hide while the nav menu is open
     if (glassBtn && glassBtn.classList.contains('is-active')) return;
 
     const controls = document.querySelector('.floating-controls');
     const pill = document.querySelector('.floating-theme-pill');
-    if (controls) controls.classList.add('floating-hidden');
-    if (pill) pill.classList.add('floating-hidden');
+    if (controls) { controls.classList.add('floating-hidden'); controls.classList.remove('floating-visible'); }
+    if (pill)     { pill.classList.add('floating-hidden');     pill.classList.remove('floating-visible'); }
   }
 
   window.addEventListener('scroll', () => {
     const currentY = window.scrollY;
     const delta = currentY - lastScrollY;
+    const threshold = getTopControlsBottom();
 
-    // Always show when near the top
-    if (currentY < 60) {
-      showFloatingButtons();
+    if (currentY < threshold) {
+      hideFloatingButtons();
       lastScrollY = currentY;
       return;
     }
 
-    if (Math.abs(delta) < SCROLL_THRESHOLD) return; // ignore micro-scroll jitter
+    if (Math.abs(delta) < SCROLL_THRESHOLD) return; 
 
     if (delta > 0) {
-      hideFloatingButtons(); // scrolling down → hide
+      hideFloatingButtons(); 
     } else {
-      showFloatingButtons(); // scrolling up → show
+      showFloatingButtons(); 
     }
 
     lastScrollY = currentY;
