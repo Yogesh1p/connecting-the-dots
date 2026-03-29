@@ -138,18 +138,30 @@ document.addEventListener('DOMContentLoaded', function () {
     setThemeColor(theme);
     syncWidgetTheme(theme);
 
-    /* Inside applyTheme(theme) function */
-const giscus = document.querySelector('iframe.giscus-frame');
-if (giscus && giscus.contentWindow) {
-  giscus.contentWindow.postMessage({
-    giscus: {
-      setConfig: {
-        // Ensure this URL is accessible and correct
-        theme: `https://yogesh1p.github.io/connecting-the-dots/giscus-theme-${theme}.css`
+    /* ── GISCUS THEME SYNC ── */
+    // Map your theme names to Giscus built-in themes
+    const giscusTheme = theme === 'dark' ? 'dark' : 'light';
+    const giscusMsg = { giscus: { setConfig: { theme: giscusTheme } } };
+
+    const giscus = document.querySelector('iframe.giscus-frame');
+    if (giscus) {
+      // If already loaded, send immediately
+      if (giscus.contentWindow) {
+        giscus.contentWindow.postMessage(giscusMsg, 'https://giscus.app');
+      }
+      // Re-send once iframe finishes loading (catches page-load race)
+      if (!giscus.dataset.themeListenerBound) {
+        giscus.dataset.themeListenerBound = 'true';
+        giscus.addEventListener('load', () => {
+          const savedTheme = localStorage.getItem('theme') || 'light';
+          const t = savedTheme === 'dark' ? 'dark' : 'light';
+          giscus.contentWindow?.postMessage(
+            { giscus: { setConfig: { theme: t } } },
+            'https://giscus.app'
+          );
+        });
       }
     }
-  }, 'https://giscus.app');
-}
   }
 
   applyTheme(localStorage.getItem('theme') || 'light');
@@ -260,9 +272,13 @@ if (giscus && giscus.contentWindow) {
     }
   });
 
-/* ── AUTO-HIDE FLOATING BUTTONS ON IDLE (Reading Mode) ── */
-  let idleTimeout;
-  const IDLE_TIME = 2500; // Time in milliseconds (2.5 seconds)
+/* ── HIDE ON SCROLL-DOWN, SHOW ON SCROLL-UP ── */
+  // Industry standard (Medium, Notion, Linear):
+  //   scrolling down  → user is reading → hide chrome
+  //   scrolling up    → user wants nav  → show chrome
+  //   at top of page  → always show
+  let lastScrollY = window.scrollY;
+  const SCROLL_THRESHOLD = 8; // px — ignore tiny jitter / elastic bounce
 
   function showFloatingButtons() {
     const controls = document.querySelector('.floating-controls');
@@ -272,33 +288,37 @@ if (giscus && giscus.contentWindow) {
   }
 
   function hideFloatingButtons() {
-    const controls = document.querySelector('.floating-controls');
-    const pill = document.querySelector('.floating-theme-pill');
     const glassBtn = document.getElementById('glassBtn');
-
-    // Safety: NEVER hide the buttons if the menu is actively open!
+    // Safety: NEVER hide while the nav menu is open
     if (glassBtn && glassBtn.classList.contains('is-active')) return;
 
+    const controls = document.querySelector('.floating-controls');
+    const pill = document.querySelector('.floating-theme-pill');
     if (controls) controls.classList.add('floating-hidden');
     if (pill) pill.classList.add('floating-hidden');
   }
 
-  function resetIdleTimer() {
-    // Show buttons immediately upon any interaction
-    showFloatingButtons();
-    
-    // Clear the old timer and start a fresh countdown
-    clearTimeout(idleTimeout);
-    idleTimeout = setTimeout(hideFloatingButtons, IDLE_TIME);
-  }
+  window.addEventListener('scroll', () => {
+    const currentY = window.scrollY;
+    const delta = currentY - lastScrollY;
 
-  // Wake up buttons when the user scrolls, touches, or moves the mouse
-  window.addEventListener('scroll', resetIdleTimer, { passive: true });
-  window.addEventListener('touchstart', resetIdleTimer, { passive: true });
-  window.addEventListener('mousemove', resetIdleTimer, { passive: true });
+    // Always show when near the top
+    if (currentY < 60) {
+      showFloatingButtons();
+      lastScrollY = currentY;
+      return;
+    }
 
-  // Start the timer immediately when the page loads
-  idleTimeout = setTimeout(hideFloatingButtons, IDLE_TIME);
+    if (Math.abs(delta) < SCROLL_THRESHOLD) return; // ignore micro-scroll jitter
+
+    if (delta > 0) {
+      hideFloatingButtons(); // scrolling down → hide
+    } else {
+      showFloatingButtons(); // scrolling up → show
+    }
+
+    lastScrollY = currentY;
+  }, { passive: true });
 
   /* ── CHAPTER TOGGLE ── */
   window.toggleCh1 = function () {
