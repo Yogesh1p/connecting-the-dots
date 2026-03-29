@@ -138,12 +138,18 @@ document.addEventListener('DOMContentLoaded', function () {
     setThemeColor(theme);
     syncWidgetTheme(theme);
 
-    const giscus = document.querySelector('iframe.giscus-frame');
-    if (giscus) {
-      giscus.contentWindow.postMessage({
-        giscus: { setConfig: { theme: 'https://yogesh1p.github.io/connecting-the-dots/giscus-theme-' + theme + '.css' } }
-      }, 'https://giscus.app');
+    /* Inside applyTheme(theme) function */
+const giscus = document.querySelector('iframe.giscus-frame');
+if (giscus && giscus.contentWindow) {
+  giscus.contentWindow.postMessage({
+    giscus: {
+      setConfig: {
+        // Ensure this URL is accessible and correct
+        theme: `https://yogesh1p.github.io/connecting-the-dots/giscus-theme-${theme}.css`
+      }
     }
+  }, 'https://giscus.app');
+}
   }
 
   applyTheme(localStorage.getItem('theme') || 'light');
