@@ -135,7 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const applyTheme = (theme) => {
     htmlEl.setAttribute('data-theme', theme);
     try { localStorage.setItem('theme', theme); } catch (e) {}
-    
+    const metaThemeColor = document.getElementById('theme-color-meta');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', theme === 'dark' ? '#16100C' : '#FDFBF7');
+    }
     document.querySelectorAll('iframe').forEach(iframe => {
       try {
         if (iframe.contentDocument) {
