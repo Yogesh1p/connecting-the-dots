@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Articles — Connecting the Dots</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <script src="../js/base.js" defer></script>
+
+  <style>
+    /* Apply Lora to the entire page */
+    body {
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    /* 1. Improved Header Layout */
+    .page-header-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end; 
+      justify-content: space-between;
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto 3rem auto;
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .articles-header {
+      margin: 0;
+    }
+
+    .articles-header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.25rem;
+      letter-spacing: -0.02em;
+      transition: font-size 0.2s ease, color 0.2s ease; 
+      font-family: inherit; 
+    }
+
+    .articles-header h1.search-active {
+      font-size: 1.25rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .page-header-container.search-active .subtitle {
+      display: none;
+    }
+
+    .articles-toolbar {
+      margin: 0;
+    }
+
+    .archive-search {
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 300px;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      background: var(--surface);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      cursor: text;
+    }
+
+    .archive-search:hover,
+    .archive-search:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+
+    .archive-search-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .archive-search input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+    }
+
+    .archive-search input::placeholder {
+      color: var(--muted);
+    }
+
+    /* 2. Tactile Article Cards */
+    .articles-list {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .post-item {
+      position: relative; 
+      padding: 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                  box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                  border-color 0.2s ease;
+    }
+
+    .post-item:hover {
+      transform: translateY(-4px); 
+      box-shadow: var(--shadow-md); 
+      border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+    }
+
+    .post-item h3 {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.4rem;
+      font-family: 'Lora', Georgia, serif;
+      text-transform: none; /* <--- Overrides any ALL CAPS styling from base.css */
+    }
+
+    .post-item h3 a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .post-item h3 a::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+    }
+
+    .post-item p {
+      color: var(--muted);
+      margin: 0 0 1rem 0;
+      line-height: 1.6;
+    }
+
+    .pill-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      border-radius: 99px;
+      font-family: inherit;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="global-nav" data-root="../"></div>
+
+  <main class="page-wrap articles-page">
+    
+    <div class="page-header-container" id="headerContainer">
+      <header class="articles-header">
+        <h1 id="mainHeading">Articles & Essays</h1>
+        <p class="subtitle">
+          Explorations in AI systems, architecture history, and conceptual threads.
+        </p>
+      </header>
+
+      <div class="articles-toolbar">
+        <div class="archive-search" id="searchContainer">
+          <svg class="archive-search-icon" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M20 20L17 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <input
+            id="articleSearch"
+            type="text"
+            placeholder="Search archive"
+            aria-label="Search articles"
+          />
+        </div>
+      </div>
+    </div>
+
+    <section class="articles-list" id="articlesList">
+      <article
+        class="post-item"
+        data-title="AI Timeline: From Perceptron to World Models"
+        data-tags="ai history timeline deep-learning llm cnn transformer">
+        <h3>
+          <a href="ai-timeline.html">
+            AI Timeline: From Perceptron to World Models
+          </a>
+        </h3>
+        <p>
+          A historical reconstruction of modern AI as a chain of architectural responses.
+        </p>
+        <span class="pill-tag">Timeline</span>
+      </article>
+    </section>
+  </main>
+
+  <script src="../js/components.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get("q")?.toLowerCase();
+
+      const input = document.getElementById("articleSearch");
+      const searchContainer = document.getElementById("searchContainer");
+      const posts = document.querySelectorAll(".post-item");
+      const header = document.getElementById("mainHeading");
+      const headerContainer = document.getElementById("headerContainer");
+
+      searchContainer.addEventListener("click", () => input.focus());
+
+      function filterPosts(value) {
+        const q = value.trim().toLowerCase();
+        let count = 0;
+
+        posts.forEach(post => {
+          const title = post.dataset.title.toLowerCase();
+          const tags = post.dataset.tags.toLowerCase();
+
+          const match = !q || title.includes(q) || tags.includes(q);
+          post.style.display = match ? "block" : "none";
+
+          if (match) count++;
+        });
+
+        if (q) {
+          header.innerHTML = `Search results for: <em>"${q}"</em> (${count})`;
+          header.classList.add("search-active");
+          headerContainer.classList.add("search-active");
+        } else {
+          header.innerHTML = "Articles & Essays";
+          header.classList.remove("search-active");
+          headerContainer.classList.remove("search-active");
+        }
+      }
+
+      if (query) {
+        input.value = query;
+        filterPosts(query);
+      }
+
+      input.addEventListener("input", e => {
+        const q = e.target.value.trim();
+        const url = new URL(window.location);
+
+        if (q) {
+            url.searchParams.set("q", q);
+        } else {
+            url.searchParams.delete("q");
+        }
+
+        window.history.replaceState({}, "", url);
+        filterPosts(q);
+      });
+    });
+  </script>
+</body>
+</html>

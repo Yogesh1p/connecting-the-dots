@@ -12,18 +12,26 @@ function initGlobalNavigation() {
     root = navPlaceholder.getAttribute('data-root') || '';
   }
 
-  // 1. Define the Navigation Data
+  // Determine current active section based on the URL
+  const currentPath = window.location.pathname.toLowerCase();
+  const isArticles = currentPath.includes('/articles/');
+  const isExperiments = currentPath.includes('/experiments/');
+
+  // 1. Define the Navigation Data (Mobile Drawer Links)
   const NAV_LINKS = [
     { href: root + 'index.html', label: 'Home' },
     { href: root + 'index.html#chapters', label: 'Chapters' },
-    { href: root + 'experiments/hub.html', label: 'Experiments' },
+    { href: root + 'articles/index.html', label: 'Articles' },
+    { href: root + 'experiments/index.html', label: 'Experiments' },
     { href: root + 'index.html#contribute', label: 'Contribute' },
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', label: 'GitHub', target: '_blank' },
   ];
 
-  const drawerLinksHTML = NAV_LINKS.map(l =>
-    `<li><a href="${l.href}"${l.target ? ` target="${l.target}" rel="noopener"` : ''}>${l.label}</a></li>`
-  ).join('');
+  const drawerLinksHTML = NAV_LINKS.map(l => {
+    // Check if this drawer link should be active
+    const isActive = (l.label === 'Articles' && isArticles) || (l.label === 'Experiments' && isExperiments);
+    return `<li><a href="${l.href}" ${isActive ? 'style="color: var(--accent);"' : ''} ${l.target ? ` target="${l.target}" rel="noopener"` : ''}>${l.label}</a></li>`;
+  }).join('');
 
   const pillSVGs = {
     light: `<svg class="top-pill__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36"><path fill="currentColor" fill-rule="evenodd" d="M18 12a6 6 0 1 1 0 12 6 6 0 0 1 0-12Zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" clip-rule="evenodd"/><path fill="currentColor" d="M17 6.038a1 1 0 1 1 2 0v3a1 1 0 0 1-2 0v-3ZM24.244 7.742a1 1 0 1 1 1.618 1.176L24.1 11.345a1 1 0 1 1-1.618-1.176l1.763-2.427ZM29.104 13.379a1 1 0 0 1 .618 1.902l-2.854.927a1 1 0 1 1-.618-1.902l2.854-.927ZM29.722 20.795a1 1 0 0 1-.619 1.902l-2.853-.927a1 1 0 1 1 .618-1.902l2.854.927ZM25.862 27.159a1 1 0 0 1-1.618 1.175l-1.763-2.427a1 1 0 1 1 1.618-1.175l1.763 2.427ZM19 30.038a1 1 0 0 1-2 0v-3a1 1 0 1 1 2 0v3ZM11.755 28.334a1 1 0 0 0-1.618-1.175l1.764-2.427a1 1 0 1 1 1.618 1.175l-1.764 2.427ZM6.896 22.697a1 1 0 1 1-.618-1.902l2.853-.927a1 1 0 1 1 .618 1.902l-2.853.927ZM6.278 15.28a1 1 0 1 1 .618-1.901l2.853.927a1 1 0 1 1-.618 1.902l-2.853-.927ZM10.137 8.918a1 1 0 0 1 1.618-1.176l1.764 2.427a1 1 0 0 1-1.618 1.176l-1.764-2.427Z"/></svg>`,
@@ -54,7 +62,7 @@ function initGlobalNavigation() {
         </div>
         
         <div class="top-drawer" id="topDrawer">
-          <ul class="top-drawer-links" id="topDrawerLinks" style="text-align:left">${drawerLinksHTML}</ul>
+          <ul class="top-drawer-links" id="topDrawerLinks" style="text-align:center">${drawerLinksHTML}</ul>
         </div>
 
         <a href="${root}index.html" class="nav-desktop-only" style="display:flex;align-items:center;line-height:1;">
@@ -62,11 +70,21 @@ function initGlobalNavigation() {
         </a>
         <a href="${root}index.html#chapters" class="nav-desktop-only">Chapters</a>
         <a href="${root}index.html#taxonomy" class="nav-desktop-only">Taxonomy</a>
-        <a href="${root}experiments/hub.html" class="exp-nav nav-desktop-only" style="color: var(--accent);">
+        <a href="${root}articles/index.html" class="nav-desktop-only" ${isArticles ? 'style="color: var(--accent);"' : ''}>Articles</a> 
+        <a href="${root}experiments/index.html" class="exp-nav nav-desktop-only" ${isExperiments ? 'style="color: var(--accent);"' : ''}> 
           <img src="${root}assets/exp.svg" alt="Experiments" class="exp-icon">
           <span>Experiments</span>
         </a>
         <div class="nav-right nav-desktop-only">
+          
+          <div class="nav-search" style="margin-right: 1.5rem; display: flex; align-items: center;">
+            <input type="text" id="globalSearch" placeholder="Search articles..." 
+                   style="padding: 0.35rem 0.8rem; border-radius: 20px; border: 1px solid var(--text-dim); background: transparent; color: inherit; font-family: inherit; font-size: 0.85rem; outline: none; transition: border-color 0.2s ease;"
+                   onfocus="this.style.borderColor='var(--text-main)';"
+                   onblur="this.style.borderColor='var(--text-dim)';"
+                   onkeypress="if(event.key === 'Enter' && this.value.trim() !== '') window.location.href='${root}articles/index.html?q=' + encodeURIComponent(this.value.trim());">
+          </div>
+
           <fieldset class="switcher" aria-label="Theme switcher">
             <legend class="switcher__legend">Choose theme</legend>
             <label class="switcher__option">
@@ -110,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     radio.checked = (radio.value === savedTheme);
   });
 
-  // 2. Mobile Drawer Logic (Hooks onto elements regardless of if they were injected or hardcoded)
+  // 2. Mobile Drawer Logic
   const topHam    = document.getElementById('topHamBtn');
   const topDrawer = document.getElementById('topDrawer');
 
@@ -133,4 +151,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
   }
+
+  // 3. Smooth Scroll Interceptor (Fixes URL changing when clicking anchor links)
+  document.querySelectorAll('a').forEach(anchor => {
+    const href = anchor.getAttribute('href') || '';
+    if (href.includes('#')) {
+      anchor.addEventListener('click', function (e) {
+        const parts = href.split('#');
+        const targetId = parts[1];
+        
+        // Find if the target exists on the CURRENT page
+        const targetEl = document.getElementById(targetId);
+        
+        if (targetEl) {
+          e.preventDefault(); // Stop the URL from changing
+          targetEl.scrollIntoView({ behavior: 'smooth' }); // Scroll down smoothly
+        }
+      });
+    }
+  });
 });

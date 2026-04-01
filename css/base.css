@@ -118,19 +118,26 @@ body.loaded { opacity: 1; }
 
 /* ── Navigation ── */
 nav {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1.25rem;
+
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em;
-  text-transform: uppercase; padding: 2rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+
+  padding: 0.9rem 4rem;
   border-bottom: 1px solid var(--border);
-  animation: fadeUp 0.9s ease both;
-  position: sticky; top: 0; z-index: 1000;
-  /* Direct var(--bg) — inherits the :root 0.25s transition so it changes
-     in perfect sync with body/page background. No color-mix needed. */
+
+  position: sticky;
+  top: 0;
+  z-index: 1000;
   background-color: var(--bg);
 }
 
-
+ 
 nav a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
 nav a:hover, nav a.active { color: var(--accent); }
 
@@ -200,9 +207,51 @@ blockquote {
   background: var(--bg); border-color: var(--accent); color: var(--accent);
   transform: translateY(-2px); box-shadow: 0 4px 12px var(--highlight);
 }
-.btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-.btn.primary:hover { background: var(--dark); border-color: var(--dark); color: var(--bg); }
+.btn.primary {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 1rem 2.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 999px;
 
+  box-shadow:
+    0 10px 25px rgba(212, 140, 112, 0.25),
+    0 4px 10px rgba(0,0,0,0.06);
+
+  transition: all 0.25s ease;
+}
+.btn.primary:hover {
+  transform: translateY(-2px) scale(1.03);
+
+  box-shadow:
+    0 18px 40px rgba(212, 140, 112, 0.35),
+    0 6px 14px rgba(0,0,0,0.08);
+
+  background: #cf7f61; /* slightly deeper accent */
+}
+.btn.primary::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle,
+    rgba(212,140,112,0.25),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1; /* sits behind button */
+}
+.btn.primary:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+.btn.primary:hover::after {
+  opacity: 1;
+}
 /* ============================================================
    LIQUID GLASS SWITCHER (SCALED DOWN FOR NAV)
    ============================================================ */
@@ -236,6 +285,8 @@ blockquote {
     0px 3px 8px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 8%), transparent);
     
   transition: background-color 400ms ease, box-shadow 400ms ease;
+  backdrop-filter: blur(10px) saturate(140%);
+-webkit-backdrop-filter: blur(10px) saturate(140%);
 }
 
 .switcher__legend, .switcher__input {
@@ -252,31 +303,55 @@ blockquote {
 
 .switcher__icon {
   display: block; width: 16px; height: 16px;
-  transition: scale 250ms cubic-bezier(0.34, 1.2, 0.64, 1),
-              opacity 200ms ease;
+  transition:
+  transform 250ms cubic-bezier(0.34, 1.2, 0.64, 1),
+  opacity 200ms ease,
+  color 200ms ease;
+opacity: 0.72;
+color: var(--c);
 }
 
 .switcher__option:hover { --c: var(--accent); }
 .switcher__option:hover .switcher__icon { scale: 1.15; }
 
-.switcher__option:has(input:checked) { --c: var(--bg); cursor: auto; }
-.switcher__option:has(input:checked) .switcher__icon { scale: 1; }
-
-/* The Liquid Bubble */
-.switcher::after {
-  content: ''; position: absolute; left: 4px; top: 4px; display: block;
-  width: 41px; height: 30px; border-radius: 99px;
-  background-color: var(--accent); z-index: -1;
-  box-shadow: 
-    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
-    inset 1px 1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent), 
-    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent), 
-    inset -1px -3px 1px -2px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 60%), transparent), 
-    inset -1px 1px 2px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 20%), transparent), 
-    inset 0px -2px 1px -1px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent), 
-    0px 2px 4px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 8%), transparent);
+.switcher__option:has(input:checked) {
+  --c: #fff;
+  cursor: auto;
 }
 
+[data-theme="dark"] .switcher__option:has(input[value="dark"]) {
+  --c: #fff;
+}
+.switcher__option:has(input:checked) .switcher__icon { scale: 1; }
+
+.switcher::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 41px;
+  height: 30px;
+  border-radius: 99px;
+  z-index: -1;
+
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, #fff 18%, var(--accent)),
+      var(--accent)
+    );
+
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,0.35),
+    inset 0 -1px 2px rgba(0,0,0,0.08),
+    0 4px 10px rgba(212,140,112,0.28),
+    0 1px 2px rgba(0,0,0,0.06);
+
+  transition:
+    translate 500ms cubic-bezier(0.34, 1.2, 0.64, 1),
+    width 500ms cubic-bezier(0.34, 1.2, 0.64, 1),
+    box-shadow 300ms ease;
+}
 /* Animation triggers */
 .switcher:has(input[value="light"]:checked)::after {
   translate: 0 0;
@@ -387,9 +462,9 @@ footer {
 
 .main-header {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 2rem; padding: 2rem 0 3rem; animation: fadeUp 0.9s ease both;
+  gap: 2rem; padding: 2rem 0 1rem; animation: fadeUp 0.9s ease both;
 }
-.header-content { flex: 1; padding-bottom: 20px; }
+.header-content { flex: 1; padding-bottom: 0px; }
 
 .chapter-label {
   font-size: 0.85rem; font-weight: 600;
@@ -537,8 +612,19 @@ footer {
   nav > a.nav-desktop-only { display: none !important; }
 
   h1 { font-size: 2.5rem; margin-bottom: 0.4rem; }
-  .subtitle { font-size: 1rem; margin-top: 0.4rem; line-height: 1.5; }
-  .chapter-label { font-size: 0.7rem; margin-bottom: 0.3rem; }
+  .subtitle {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    margin-top: 0.5rem;
+    opacity: 0.9;
+  }
+  .chapter-label { 
+    font-size: 0.65rem;      /* slightly bigger than 0.6 */
+    letter-spacing: 0.14em;  /* tighter = more readable */
+    opacity: 0.9;            /* bring back presence */
+    margin-bottom: 0.6rem;   /* reduce gap to title */
+    color: color-mix(in srgb, var(--accent) 85%, var(--muted));
+  }
   .main-header { padding-top: 0.5rem; }
 }
 
@@ -809,7 +895,7 @@ footer {
     border-bottom: none; /* border lives on the row itself */
     margin-left: -1rem;
     margin-right: -1rem;
-    width: calc(100% + 2rem);
+    width: calc(100%+2rem);
   }
 
   /* 3-col grid: ham | logo | pill */
@@ -819,6 +905,8 @@ footer {
     align-items: center;
     width: 100%;
     padding: 8px 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
     border-bottom: 1px solid var(--border);
   }
 
@@ -915,7 +1003,7 @@ footer {
     padding: 8px 1.5rem 12px;
     margin: 0;
     overflow: hidden;
-    text-align: left;
+    text-align: center;
   }
   .top-drawer-links a {
     display: block;
@@ -965,4 +1053,58 @@ footer {
     opacity 0.3s ease-in, 
     transform 0.3s cubic-bezier(0.4, 0, 1, 1), 
     filter 0.3s ease-in !important;
+}
+
+/* ── Articles Page ── */
+.articles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.article-search {
+  margin-bottom: 0.8rem;
+}
+
+.nav-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-search input {
+  width: 0;
+  opacity: 0;
+  padding: 0.45rem 0;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.85rem;
+  color: var(--text);
+  outline: none;
+  transition: width 0.28s ease, opacity 0.2s ease;
+}
+
+.nav-search button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.nav-search button:hover {
+  color: var(--accent);
+}
+
+.nav-search:focus-within input {
+  width: 180px;
+  opacity: 1;
+  margin-left: 0.6rem;
+  border-color: var(--border);
 }

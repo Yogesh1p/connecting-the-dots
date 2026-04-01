@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const NAV_LINKS = [
     { href: rootUrl + 'index.html', icon: 'home', label: 'Home' },
     { href: rootUrl + 'index.html#chapters', icon: 'chapters', label: 'Chapters' },
-    { href: rootUrl + 'experiments/hub.html', icon: 'exp', label: 'Experiments' },
+    { href: rootUrl + 'articles/index.html', icon: 'chapters', label: 'Articles' },
+    { href: rootUrl + 'experiments/index.html', icon: 'exp', label: 'Experiments' }, 
     { href: rootUrl + 'index.html#contribute', icon: 'contrib', label: 'Contribute' },
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', icon: 'github', label: 'GitHub', target: '_blank' },
   ];
@@ -36,9 +37,23 @@ document.addEventListener('DOMContentLoaded', function () {
   (function injectFloatingNav() {
     if (document.getElementById('glassBtn')) return;
 
-    const linksHTML = NAV_LINKS.map(l =>
-      `<li><a href="${l.href}"${l.target ? ` target="${l.target}" rel="noopener"` : ''}>${ICONS[l.icon]} ${l.label}</a></li>`
-    ).join('');
+    // Determine current path for highlighting mobile menu items
+    const currentPath = window.location.pathname.toLowerCase();
+    const isArticles = currentPath.includes('/articles/');
+    const isExperiments = currentPath.includes('/experiments/');
+    // Treat as home if we are at root, or end in index.html, but NOT inside a subfolder
+    const isHome = (currentPath.endsWith('/') || currentPath.endsWith('index.html')) && !isArticles && !isExperiments;
+
+    const linksHTML = NAV_LINKS.map(l => {
+      let isActive = false;
+      if (l.label === 'Articles' && isArticles) isActive = true;
+      if (l.label === 'Experiments' && isExperiments) isActive = true;
+      if (l.label === 'Home' && isHome) isActive = true;
+
+      const activeStyle = isActive ? 'style="color: var(--accent);"' : '';
+
+      return `<li><a href="${l.href}" ${activeStyle} ${l.target ? ` target="${l.target}" rel="noopener"` : ''}>${ICONS[l.icon]} ${l.label}</a></li>`;
+    }).join('');
 
     const pillSVGs = {
       light: `<svg class="mob-pill__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36"><path fill="currentColor" fill-rule="evenodd" d="M18 12a6 6 0 1 1 0 12 6 6 0 0 1 0-12Zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" clip-rule="evenodd"/><path fill="currentColor" d="M17 6.038a1 1 0 1 1 2 0v3a1 1 0 0 1-2 0v-3ZM24.244 7.742a1 1 0 1 1 1.618 1.176L24.1 11.345a1 1 0 1 1-1.618-1.176l1.763-2.427ZM29.104 13.379a1 1 0 0 1 .618 1.902l-2.854.927a1 1 0 1 1-.618-1.902l2.854-.927ZM29.722 20.795a1 1 0 0 1-.619 1.902l-2.853-.927a1 1 0 1 1 .618-1.902l2.854.927ZM25.862 27.159a1 1 0 0 1-1.618 1.175l-1.763-2.427a1 1 0 1 1 1.618-1.175l1.763 2.427ZM19 30.038a1 1 0 0 1-2 0v-3a1 1 0 1 1 2 0v3ZM11.755 28.334a1 1 0 0 0-1.618-1.175l1.764-2.427a1 1 0 1 1 1.618 1.175l-1.764 2.427ZM6.896 22.697a1 1 0 1 1-.618-1.902l2.853-.927a1 1 0 1 1 .618 1.902l-2.853.927ZM6.278 15.28a1 1 0 1 1 .618-1.901l2.853.927a1 1 0 1 1-.618 1.902l-2.853-.927ZM10.137 8.918a1 1 0 0 1 1.618-1.176l1.764 2.427a1 1 0 0 1-1.618 1.176l-1.764-2.427Z"/></svg>`,
@@ -117,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── THEME — instant snap ── */
   window.applyTheme = function(theme) {
-    // Trigger smooth transition on all elements
     document.documentElement.classList.add('theme-transitioning');
     clearTimeout(window._themeTransTimer);
     window._themeTransTimer = setTimeout(() => {
@@ -230,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
                        cleanPath(linkObj.pathname) === cleanPath(currentObj.pathname);
 
     if (isSamePage) {
-      e.preventDefault(); 
+      e.preventDefault(); // This is the line that prevents the URL from changing
 
       if (hash === '#') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
