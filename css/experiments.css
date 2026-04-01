@@ -255,36 +255,7 @@ h1.hub-title {
 .comments-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); }
 .comments-body   { padding: 1.5rem; background: var(--bg); }
 
-/* ════════════════════════════════════════════════════════════
-   MOBILE FIXES (Unified)
-   ════════════════════════════════════════════════════════════ */
-@media (max-width: 768px) {
-  
-  /* 1. Nav Bar Fixes (Stops the wrapping on Android) */
-  nav > a:not(:first-child) {
-    display: none; /* Hides "Home" and "Chapters" text on mobile */
-  }
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.8rem 0; /* Remove side padding if page-wrap handles it */
-    gap: 0;
-  }
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-shrink: 0;
-  }
-  nav img[alt="Home"] {
-    width: 24px !important;
-    height: 24px !important;
-  }
-  .github-icon {
-    width: 20px;
-    height: 20px;
-  }
+
 
   /* 2. Grid Collapsing (Catches both 2 and 3 columns) */
   .data-grid,
