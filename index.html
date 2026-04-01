@@ -19,7 +19,7 @@
     (function(){var t=localStorage.getItem('theme')||'light';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();
   </script>
   <script src="js/base.js" defer></script>
-  
+  <script src="js/components.js" defer></script>
   <meta property="og:type"         content="website">
   <meta property="og:site_name"    content="Connecting the Dots">
   <meta property="og:title"        content="Connecting the Dots — Yogesh">
@@ -38,78 +38,9 @@
 
 <div class="reading-progress"></div>
 
+<div id="global-nav" data-root=""></div>
 
-
-
-
-  <nav>
-    <!-- ── Mobile: 3-col row [ham | logo | pill] — only visible on mobile ── -->
-    <div class="mobile-top-controls" id="mobileTopControls">
-
-      <!-- Left: hamburger -->
-      <div class="top-ham" id="topHamBtn" role="button" tabindex="0" aria-label="Open navigation">
-        <span></span><span></span><span></span>
-      </div>
-
-      <!-- Centre: logo -->
-      <a href="./" class="top-logo" style="display:flex;align-items:center;line-height:1;">
-        <img src="assets/favicon.svg" alt="Home" style="width:28px;height:28px;display:block;">
-      </a>
-
-      <!-- Right: theme pill -->
-      <div class="top-pill">
-        <label class="top-pill__opt" title="Light">
-          <input class="top-pill__radio" type="radio" name="top-theme" value="light" />
-          <svg class="top-pill__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36"><path fill="currentColor" fill-rule="evenodd" d="M18 12a6 6 0 1 1 0 12 6 6 0 0 1 0-12Zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" clip-rule="evenodd"/><path fill="currentColor" d="M17 6.038a1 1 0 1 1 2 0v3a1 1 0 0 1-2 0v-3ZM24.244 7.742a1 1 0 1 1 1.618 1.176L24.1 11.345a1 1 0 1 1-1.618-1.176l1.763-2.427ZM29.104 13.379a1 1 0 0 1 .618 1.902l-2.854.927a1 1 0 1 1-.618-1.902l2.854-.927ZM29.722 20.795a1 1 0 0 1-.619 1.902l-2.853-.927a1 1 0 1 1 .618-1.902l2.854.927ZM25.862 27.159a1 1 0 0 1-1.618 1.175l-1.763-2.427a1 1 0 1 1 1.618-1.175l1.763 2.427ZM19 30.038a1 1 0 0 1-2 0v-3a1 1 0 1 1 2 0v3ZM11.755 28.334a1 1 0 0 0-1.618-1.175l1.764-2.427a1 1 0 1 1 1.618 1.175l-1.764 2.427ZM6.896 22.697a1 1 0 1 1-.618-1.902l2.853-.927a1 1 0 1 1 .618 1.902l-2.853.927ZM6.278 15.28a1 1 0 1 1 .618-1.901l2.853.927a1 1 0 1 1-.618 1.902l-2.853-.927ZM10.137 8.918a1 1 0 0 1 1.618-1.176l1.764 2.427a1 1 0 0 1-1.618 1.176l-1.764-2.427Z"/></svg>
-        </label>
-        <label class="top-pill__opt" title="Dark">
-          <input class="top-pill__radio" type="radio" name="top-theme" value="dark" />
-          <svg class="top-pill__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36"><path fill="currentColor" d="M12.5 8.473a10.968 10.968 0 0 1 8.785-.97 7.435 7.435 0 0 0-3.737 4.672l-.09.373A7.454 7.454 0 0 0 28.732 20.4a10.97 10.97 0 0 1-5.232 7.125l-.497.27c-5.014 2.566-11.175.916-14.234-3.813l-.295-.483C5.53 18.403 7.13 11.93 12.017 8.77l.483-.297Zm4.234.616a8.946 8.946 0 0 0-2.805.883l-.429.234A9 9 0 0 0 10.206 22.5l.241.395A9 9 0 0 0 22.5 25.794l.416-.255a8.94 8.94 0 0 0 2.167-1.99 9.433 9.433 0 0 1-2.782-.313c-5.043-1.352-8.036-6.535-6.686-11.578l.147-.491c.242-.745.573-1.44.972-2.078Z"/></svg>
-        </label>
-      </div>
-
-    </div>
-
-    <!-- ── Top drawer menu — slides down from nav on mobile ── -->
-    <!-- Links are injected by components.js -->
-    <div class="top-drawer" id="topDrawer">
-      <ul class="top-drawer-links" id="topDrawerLinks" style="text-align:left"></ul>
-    </div>
-
-    <!-- Desktop-only logo (hidden on mobile, shown on desktop) -->
-    <a href="./" class="nav-desktop-only" style="display:flex;align-items:center;line-height:1;">
-      <img src="assets/favicon.svg" alt="Home" style="width:28px;height:28px;display:block;">
-    </a>
-
-    <a href="#chapters" class="nav-desktop-only">Chapters</a>
-    <a href="#taxonomy" class="nav-desktop-only">Taxonomy</a>
-    <a href="articles/" class="nav-desktop-only">Articles</a>
-
-    <a href="experiments/" class="exp-nav nav-desktop-only">
-
-      <img src="assets/exp.svg" alt="Experiments" class="exp-icon">
-      <span>Experiments</span>
-    </a>
-    <div class="nav-right">
-      <fieldset class="switcher nav-desktop-only" aria-label="Theme switcher">
-        <legend class="switcher__legend">Choose theme</legend>
-        <label class="switcher__option">
-          <input class="switcher__input" type="radio" name="theme" value="light" c-option="1" />
-          <svg class="switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36"><path fill="var(--c)" fill-rule="evenodd" d="M18 12a6 6 0 1 1 0 12 6 6 0 0 1 0-12Zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" clip-rule="evenodd"/><path fill="var(--c)" d="M17 6.038a1 1 0 1 1 2 0v3a1 1 0 0 1-2 0v-3ZM24.244 7.742a1 1 0 1 1 1.618 1.176L24.1 11.345a1 1 0 1 1-1.618-1.176l1.763-2.427ZM29.104 13.379a1 1 0 0 1 .618 1.902l-2.854.927a1 1 0 1 1-.618-1.902l2.854-.927ZM29.722 20.795a1 1 0 0 1-.619 1.902l-2.853-.927a1 1 0 1 1 .618-1.902l2.854.927ZM25.862 27.159a1 1 0 0 1-1.618 1.175l-1.763-2.427a1 1 0 1 1 1.618-1.175l1.763 2.427ZM19 30.038a1 1 0 0 1-2 0v-3a1 1 0 1 1 2 0v3ZM11.755 28.334a1 1 0 0 1-1.618-1.175l1.764-2.427a1 1 0 1 1 1.618 1.175l-1.764 2.427ZM6.896 22.697a1 1 0 1 1-.618-1.902l2.853-.927a1 1 0 1 1 .618 1.902l-2.853.927ZM6.278 15.28a1 1 0 1 1 .618-1.901l2.853.927a1 1 0 1 1-.618 1.902l-2.853-.927ZM10.137 8.918a1 1 0 0 1 1.618-1.176l1.764 2.427a1 1 0 0 1-1.618 1.176l-1.764-2.427Z"/></svg>
-        </label>
-        <label class="switcher__option">
-          <input class="switcher__input" type="radio" name="theme" value="dark" c-option="2" />
-          <svg class="switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36"><path fill="var(--c)" d="M12.5 8.473a10.968 10.968 0 0 1 8.785-.97 7.435 7.435 0 0 0-3.737 4.672l-.09.373A7.454 7.454 0 0 0 28.732 20.4a10.97 10.97 0 0 1-5.232 7.125l-.497.27c-5.014 2.566-11.175.916-14.234-3.813l-.295-.483C5.53 18.403 7.13 11.93 12.017 8.77l.483-.297Zm4.234.616a8.946 8.946 0 0 0-2.805.883l-.429.234A9 9 0 0 0 10.206 22.5l.241.395A9 9 0 0 0 22.5 25.794l.416-.255a8.94 8.94 0 0 0 2.167-1.99 9.433 9.433 0 0 1-2.782-.313c-5.043-1.352-8.036-6.535-6.686-11.578l.147-.491c.242-.745.573-1.44.972-2.078Z"/></svg>
-        </label>
-      </fieldset>
-      <a href="#contribute" class="nav-desktop-only">Contribute</a>
-      <a href="https://github.com/Yogesh1p/connecting-the-dots" target="_blank" class="github-link">
-        <img src="assets/github.svg" class="github-icon" alt="GitHub">
-      </a>
-    </div>
-
-
-  </nav>
+  
 <main class="page-wrap">
   <header class="main-header">
     <div class="header-content">
@@ -139,7 +70,9 @@
         class="book-widget-frame"
         scrolling="no"
         allowtransparency="true"
-        title="Book widget">
+        title="Book widget"
+        style="opacity:0;transition:opacity 0.4s ease;"
+        onload="this.style.opacity='1'">
       </iframe>
       <div class="iframe-shield"></div>
     </div>
@@ -394,7 +327,7 @@
     <div class="rule" id="medium"><span>The Medium: Beyond the PDF</span></div>
 
     <div class="prose">
-      <p>Right now, I am drafting this manu in Overleaf. I love the typographic rigor of LaTeX—it feels clean, serious, and easy to read. But a static PDF is fundamentally the wrong container for a field that moves this fast.</p>
+      <p>Right now, I am drafting this manuscript in Overleaf. I love the typographic rigor of LaTeX—it feels clean, serious, and easy to read. But a static PDF is fundamentally the wrong container for a field that moves this fast.</p>
       <p>I want to build something that preserves that typographic elegance but evolves alongside my thoughts. A dynamic digital space where intuition is guided by interactive animations, where new research naturally triggers new conceptual branches, and where the text is a living artifact rather than a frozen export. If you are someone who is excited by building interactive technical publications, I would love to build this together.</p>
     </div>
 
@@ -423,17 +356,12 @@
       <h2>Interested in collaborating?</h2>
       <p>If something in <em>Connecting the Dots</em> sparked an idea or raised a question, I'd love to hear from you. Feel free to reach out — whether it's feedback, discussion, or exploring an experiment together.</p>
     <a class="btn primary" 
-   href="mailto:3pyogesh@gmail.com?subject=Collaboration on Connecting the Dots">
-  Send Email
+     href="mailto:3pyogesh@gmail.com?subject=Collaboration on Connecting the Dots">
+     Send Email
 </a>     
     </div>
   </section>
 
 
   <footer>
-    Connecting the Dots  · An open research documentation project · 
-  </footer> 
-</main>
-<script src="js/components.js"></script>
-</body>
-</html>
+    Connecting the Dots  · An open research documentation project
