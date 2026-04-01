@@ -297,7 +297,7 @@ h1.hub-title {
     padding: 1.5rem 1.2rem;      /* Adds a little extra vertical breathing room */
     line-height: 1.8;            /* Slightly taller line height for mobile reading */
   }
-}
+
     /* ── Chapter 1 only — everything else lives in base.css / experiments.css ── */
 
     a { color: var(--accent); text-decoration: none; }
