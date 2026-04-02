@@ -138,6 +138,16 @@ nav {
   -webkit-backdrop-filter: blur(12px);
 }
 
+nav.nav-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+nav.nav-static {
+  position: relative;
+}
+
 nav a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
 nav a:hover, nav a.active { color: var(--accent); }
 

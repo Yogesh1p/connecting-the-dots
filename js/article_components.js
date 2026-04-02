@@ -2,11 +2,17 @@
    article_components.js
    Handles:
    - Floating minimap TOC
+   - Persistent reading progress
    - Article header injection
    ============================================================ */
 
 document.addEventListener("DOMContentLoaded", () => {
   let tocItems = [];
+  const progressKey = `article-progress:${window.location.pathname}`;
+
+  /* ============================================================
+     TOC HELPERS
+     ============================================================ */
 
   function getAllHeaders() {
     return Array.from(
@@ -99,45 +105,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function tocGoTo(index) {
-  const item = tocItems[index];
-  if (!item) return;
+    const item = tocItems[index];
+    if (!item) return;
 
-  const navOffset = 96; // sticky nav + breathing room
-  const y =
-    item.element.getBoundingClientRect().top +
-    window.scrollY -
-    navOffset;
+    const navOffset = 96;
+    const y =
+      item.element.getBoundingClientRect().top +
+      window.scrollY -
+      navOffset;
 
-  window.scrollTo({
-    top: y,
-    behavior: "smooth",
-  });
-
-  history.replaceState(null, "", `#${item.element.id}`);
-  highlightElement(item.element);
-
-  setTimeout(() => {
-    showSelectedTocItem(index);
-  }, 200);
-}
-
-  function updateClosestToc() {
-    if (!tocItems.length) return;
-
-    let closestIdx = 0;
-    let minDistance = Infinity;
-
-    tocItems.forEach((item, i) => {
-      const rect = item.element.getBoundingClientRect();
-      const distance = Math.abs(rect.top - 120);
-
-      if (rect.top < window.innerHeight && distance < minDistance) {
-        minDistance = distance;
-        closestIdx = i;
-      }
+    window.scrollTo({
+      top: y,
+      behavior: "smooth",
     });
 
-    showSelectedTocItem(closestIdx);
+    history.replaceState(null, "", `#${item.element.id}`);
+    highlightElement(item.element);
+
+    setTimeout(() => {
+      showSelectedTocItem(index);
+      saveReadingProgress(index);
+    }, 200);
   }
 
   function genToc() {
@@ -160,8 +148,97 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /* ============================================================
+     READING PROGRESS
+     ============================================================ */
+
+  function saveReadingProgress(index) {
+    const item = tocItems[index];
+    if (!item) return;
+
+    localStorage.setItem(
+      progressKey,
+      JSON.stringify({
+        headingId: item.element.id,
+        scrollY: window.scrollY,
+        updatedAt: Date.now(),
+      })
+    );
+  }
+
+  function restoreReadingProgress() {
+    const saved = localStorage.getItem(progressKey);
+    if (!saved) return;
+
+    try {
+      const progress = JSON.parse(saved);
+
+      const heading = document.getElementById(progress.headingId);
+      if (heading) {
+        setTimeout(() => {
+          const navOffset = 96;
+          const y =
+            heading.getBoundingClientRect().top +
+            window.scrollY -
+            navOffset;
+
+          window.scrollTo({
+            top: y,
+            behavior: "instant",
+          });
+
+          const idx = tocItems.findIndex(
+            (item) => item.element.id === progress.headingId
+          );
+
+          if (idx !== -1) {
+            showSelectedTocItem(idx);
+          }
+        }, 100);
+        return;
+      }
+
+      if (typeof progress.scrollY === "number") {
+        window.scrollTo({
+          top: progress.scrollY,
+          behavior: "instant",
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to restore reading progress", err);
+    }
+  }
+
+  function updateClosestToc() {
+    if (!tocItems.length) return;
+
+    let closestIdx = 0;
+    let minDistance = Infinity;
+
+    tocItems.forEach((item, i) => {
+      const rect = item.element.getBoundingClientRect();
+      const distance = Math.abs(rect.top - 120);
+
+      if (rect.top < window.innerHeight && distance < minDistance) {
+        minDistance = distance;
+        closestIdx = i;
+      }
+    });
+
+    showSelectedTocItem(closestIdx);
+    saveReadingProgress(closestIdx);
+  }
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+
   genToc();
-  updateClosestToc();
+  restoreReadingProgress();
+
+  setTimeout(() => {
+    updateClosestToc();
+  }, 150);
 
   let ticking = false;
   window.addEventListener("scroll", () => {

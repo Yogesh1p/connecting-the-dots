@@ -45,7 +45,7 @@
 </head>
 <body>
 
-    <div id="global-nav" data-root="../"></div>
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
 
     <main class="page-wrap">
         <div class="article-layout">
@@ -62,12 +62,11 @@
 <h2>The Transformer: The Problem with Sequential Thinking</h2>
 <p>Before the Transformer existed, sequence modeling meant recurrence. An RNN processes tokens one at a time, left to right, threading a hidden state forward. To understand token 500, the model must have correctly compressed all information from tokens 1 through 499 into a fixed-size vector. This is a bottleneck that is not merely computational — it is structural. The past is filtered through a narrow corridor, and distant information decays or vanishes.</p>
 
-<p>LSTMs helped with gating mechanisms, but the problem remained: you cannot parallelize a recurrence. Training on long sequences was slow, and long-range dependencies were unreliable. The field needed a different inductive bias.</p>
+<p>LSTMs improved gradient flow through gating, but recurrence still imposed a sequential bottleneck: hidden states had to be updated one step at a time, limiting parallelism and making long-context learning slow.</p>
 
-<p>Vaswani et al. (2017) asked a simple question: what if every token could directly talk to every other token, simultaneously, without any sequential bottleneck? The answer was the attention mechanism formalized into a full architecture.</p>
+<p>Attention mechanisms had already shown that models could access distant context directly, especially in encoder–decoder architectures. Vaswani et al. (2017) pushed this idea to its logical conclusion: what if sequence modeling relied entirely on self-attention, so every token could interact with every other token in parallel, without any recurrent state transition? The result was the Transformer.</p>
 
-<p>For a sequence of tokens, each token is projected into three vectors: a query $\mathbf{q}$, a key $\mathbf{k}$, and a value $\mathbf{v}$. The output for each token is a weighted sum of all value vectors, where the weight between token $i$ and token $j$ is determined by the compatibility of $\mathbf{q}_i$ and $\mathbf{k}_j$:</p>
-
+<p>For a sequence of tokens, each token is projected into three vectors: a query <span class="math inline">\(\mathbf{q}\)</span>, a key <span class="math inline">\(\mathbf{k}\)</span>, and a value <span class="math inline">\(\mathbf{v}\)</span>. The output for each token is a weighted sum of all value vectors, where the weight between token <span class="math inline">\(i\)</span> and token <span class="math inline">\(j\)</span> is determined by the compatibility of <span class="math inline">\(\mathbf{q}_i\)</span> and <span class="math inline">\(\mathbf{k}_j\)</span>:</p>
 $$
 \text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}
 $$
@@ -137,22 +136,37 @@ $$
 
 <p>At inference, this creates the "context fragmentation" problem. When generating the first token of chunk 2, the model has no access to chunk 1 at all. Every chunk boundary resets the model's memory to zero.</p>
 
-<p>Dai et al. (2019) noticed that you cannot solve this by simply making the context window larger — cost scales as $O(n^2)$, so doubling the window quadruples training time. The solution had to reuse computation already done for previous segments without recomputing it.</p>
+<p>Dai et al. (2019) observed that simply enlarging the Transformer context window is not a complete solution: self-attention cost grows quadratically with sequence length, so longer contexts quickly become expensive. More importantly, splitting long text into independent segments prevents the model from learning dependencies that cross segment boundaries. The key idea was therefore to reuse hidden states computed for previous segments instead of recomputing them.</p>
 
-<p>The idea: cache the hidden states from the previous segment and allow the current segment to attend to them — but treat those cached states as fixed, not as part of the current computation graph. This is the recurrence mechanism.</p>
+<p>The mechanism is segment-level recurrence. When processing segment <span class="math inline">\(\tau+1\)</span>, the model caches the hidden states from segment <span class="math inline">\(\tau\)</span> and prepends them as a fixed memory to the current layer input. These cached states are treated with stop-gradient, so they provide context without extending the current computation graph.</p>
 
-<p>Formally, let $\mathbf{H}_\tau^n$ denote the hidden states at layer $n$ for segment $\tau$. When processing segment $\tau + 1$, the keys and values at each layer are computed from the concatenation of cached and new states:</p>
-
-$$
-\tilde{\mathbf{H}}_{\tau+1}^{n-1} = \left[\text{SG}(\mathbf{H}_{\tau}^{n-1}) \circ \mathbf{H}_{\tau+1}^{n-1}\right]
-$$
+<p>Formally, let <span class="math inline">\(\mathbf{H}_\tau^n\)</span> denote the hidden states at layer <span class="math inline">\(n\)</span> for segment <span class="math inline">\(\tau\)</span>. The extended context for the next segment is</p>
 
 $$
-\mathbf{k}_{\tau+1}^n = \tilde{\mathbf{H}}_{\tau+1}^{n-1} \mathbf{W}_k^n, \qquad \mathbf{v}_{\tau+1}^n = \tilde{\mathbf{H}}_{\tau+1}^{n-1} \mathbf{W}_v^n
+\tilde{\mathbf{H}}_{\tau+1}^{n-1}
+=
+\left[
+\text{SG}(\mathbf{H}_{\tau}^{n-1});
+\mathbf{H}_{\tau+1}^{n-1}
+\right]
+$$
+
+<p>and the attention projections become</p>
+
+$$
+\mathbf{k}_{\tau+1}^n
+=
+\tilde{\mathbf{H}}_{\tau+1}^{n-1}\mathbf{W}_k^n,
+\qquad
+\mathbf{v}_{\tau+1}^n
+=
+\tilde{\mathbf{H}}_{\tau+1}^{n-1}\mathbf{W}_v^n
 $$
 
 $$
-\mathbf{q}_{\tau+1}^n = \mathbf{H}_{\tau+1}^{n-1} \mathbf{W}_q^n
+\mathbf{q}_{\tau+1}^n
+=
+\mathbf{H}_{\tau+1}^{n-1}\mathbf{W}_q^n
 $$
 
 <p>The notation $\text{SG}(\cdot)$ means stop-gradient — the cached states are used for attention but do not participate in backpropagation. This means the recurrence does not create vanishing gradient problems across segments.</p>
