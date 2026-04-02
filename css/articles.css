@@ -1,0 +1,253 @@
+/* Custom Reading Styles adapted for your Dark Mode system */
+        .reading-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            padding-bottom: 4rem;
+        }
+
+        .reading-content p {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            font-size: 1.15rem; 
+        }
+
+        .reading-content h1 {
+            font-family: inherit;
+            margin-top: 2rem;
+            margin-bottom: 1.5rem;
+            font-size: 2.25rem;
+            line-height: 1.2;
+            color: var(--dark); /* Dynamically changes in dark mode */
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .reading-content h2 {
+            font-family: inherit;
+            margin-top: 3.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            line-height: 1.3;
+            color: var(--dark);
+        }
+
+        /* Math block spacing */
+        .reading-content mjx-container[display="true"] {
+            margin-top: 2.5rem !important;
+            margin-bottom: 2.5rem !important;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0.5em 0;
+        }
+        
+        /* Forces MathJax SVGs to invert their color in Dark Mode */
+        mjx-container svg {
+            fill: var(--text);
+            color: var(--text);
+        }
+
+        /* â”€â”€ Article Header (injected via injectArticleHeader) â”€â”€ */
+        .article-header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .article-header__title {
+            font-size: 2.25rem;
+            line-height: 1.2;
+            margin: 0 0 0.75rem;
+            color: var(--dark);
+        }
+        .article-header__subtitle {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--muted);
+            margin: 0 0 1rem;
+        }
+        .article-header__meta {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin: 0 0 1rem;
+            font-family: var(--font-sans, system-ui, sans-serif);
+        }
+        .article-header__tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .article-tag {
+            font-size: 0.75rem;
+            font-family: var(--font-sans, system-ui, sans-serif);
+            padding: 0.2rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+/* =========================================================
+   Floating Article TOC
+   - Right-side minimap rails
+   - Hover-safe popup panel
+   - Two-line wrapped headings
+   - Viewport-safe scrolling
+   ========================================================= */
+
+/* =========================================================
+   Floating Article TOC — Final Production Version
+   ========================================================= */
+
+/* ─────────────────────────────────────────
+   Floating right minimap rail
+   ───────────────────────────────────────── */
+.toc-wrapper {
+  position: fixed;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  z-index: 100;
+  width: fit-content;
+}
+
+/* invisible hover bridge */
+.toc-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 14px;
+  height: 420px;
+  transform: translateY(-50%);
+}
+
+/* ─────────────────────────────────────────
+   Minimap rail
+   ───────────────────────────────────────── */
+.toc-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+  cursor: pointer;
+}
+
+.toc-item-mini {
+  width: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 65%, transparent);
+  transition: all 0.2s ease;
+}
+
+.toc-item-mini.toc-light {
+  opacity: 0.35;
+}
+
+.toc-item-mini:not(.toc-light) {
+  width: 16px;
+  opacity: 1;
+  background: var(--text);
+}
+
+/* ─────────────────────────────────────────
+   TOC popup card
+   ───────────────────────────────────────── */
+.toc-list {
+  display: none;
+  flex-direction: column;
+
+  width: 320px;
+  max-width: 320px;
+  max-height: calc(100vh - 140px);
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  position: absolute;
+  right: 12px;
+
+  /* slightly lower than true center */
+  top: calc(50% + 24px);
+  transform: translateY(-50%);
+
+  padding: 14px 18px;
+
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+
+  /* subtle shadow only */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
+/* keep open when rail or panel hovered */
+.toc-wrapper:hover .toc-list {
+  display: flex;
+}
+
+/* ─────────────────────────────────────────
+   Scrollbar
+   ───────────────────────────────────────── */
+.toc-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.toc-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.toc-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ─────────────────────────────────────────
+   TOC entries
+   ───────────────────────────────────────── */
+.toc-item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+
+  padding: 6px 0;
+
+  font-size: 0.96rem;
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.85;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.toc-item:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* active heading */
+.toc-bold {
+  font-weight: inherit;
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* nested levels */
+.toc-ind-1 { padding-left: 10px; }
+.toc-ind-2 { padding-left: 18px; }
+.toc-ind-3 { padding-left: 26px; }
+
+/* clicked heading flash */
+.toc-highlight-target {
+  background: var(--highlight);
+  transition: background 0.4s ease;
+}

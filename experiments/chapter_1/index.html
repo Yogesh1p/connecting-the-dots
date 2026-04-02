@@ -291,8 +291,9 @@ candidates = ["John", "Michael", "Sarah"]</pre>
 
   <div class="discussion-wrap">
     <p class="exp-desc">Have a variation on one of these setups? A different model, a different prompt, or a question the data didn't answer? Drop it below.</p>
-    <div class="giscus-box">
-      <div id="giscus-container"></div>
+
+     
+      <div id="article-comments"></div>
     </div>
   </div>
 
@@ -305,56 +306,13 @@ candidates = ["John", "Michael", "Sarah"]</pre>
 <script src="../../js/base.js"></script>
 
 <script>
-  // Point to your live, hosted custom CSS files
-  function getGiscusTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-    
-    // Giscus requires absolute URLs to load custom CSS
-    return isDark 
-      ? 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-dark.css' 
-      : 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-light.css'; 
-  }
-
-  function loadGiscus() {
-    const s = document.createElement('script');
-    s.src = 'https://giscus.app/client.js';
-    s.setAttribute('data-repo',            'Yogesh1p/connecting-the-dots');
-    s.setAttribute('data-repo-id',         'R_kgDORe41-g');
-    s.setAttribute('data-category',        'General');
-    s.setAttribute('data-category-id',     'DIC_kwDORe41-s4C4NaQ');
-    s.setAttribute('data-mapping',         'pathname');
-    s.setAttribute('data-strict',          '0');
-    s.setAttribute('data-reactions-enabled','1');
-    s.setAttribute('data-emit-metadata',   '0');
-    s.setAttribute('data-input-position',  'top');
-    s.setAttribute('data-theme',           getGiscusTheme());
-    s.setAttribute('data-lang',            'en');
-    s.setAttribute('crossorigin',          'anonymous');
-    s.async = true;
-    document.getElementById('giscus-container').appendChild(s);
-  }
-
-  function updateGiscusTheme() {
-    const iframe = document.querySelector('iframe.giscus-frame');
-    if (!iframe) return;
-    iframe.contentWindow.postMessage(
-      { giscus: { setConfig: { theme: getGiscusTheme() } } },
-      'https://giscus.app'
-    );
-  }
-
-  loadGiscus();
-
-  // Update theme dynamically when the radio toggle changes
-  document.addEventListener('change', (e) => {
-    if (e.target.name === 'theme') {
-      // Small timeout allows the main theme script to update localStorage first
-      setTimeout(updateGiscusTheme, 50);
-    }
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
   });
 </script>
+
+
 <script src="../../js/components.js"></script>
 </body>
 </html>

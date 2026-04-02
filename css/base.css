@@ -539,11 +539,3 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 .iframe-shield { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 
-/* ── Articles Page ── */
-.articles-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-bottom: 3rem; }
-.article-search { margin-bottom: 0.8rem; }
-.nav-search { position: relative; display: flex; align-items: center; }
-.nav-search input { width: 0; opacity: 0; padding: 0.45rem 0; border: none; border-bottom: 1px solid transparent; background: transparent; font-family: -apple-system, sans-serif; font-size: 0.85rem; color: var(--text); outline: none; transition: width 0.28s ease, opacity 0.2s ease; }
-.nav-search button { background: none; border: none; cursor: pointer; color: var(--muted); display: flex; align-items: center; padding: 0; }
-.nav-search button:hover { color: var(--accent); }
-.nav-search:focus-within input { width: 180px; opacity: 1; margin-left: 0.6rem; border-color: var(--border); }

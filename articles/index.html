@@ -64,12 +64,20 @@
       margin: 0;
     }
 
+    /* 2. Controls (Search & Sort) */
+    .archive-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
     .archive-search {
       font-family: inherit;
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      width: 300px;
+      width: 250px;
       padding: 0.75rem 1rem;
       border: 1px solid var(--border);
       border-radius: 99px;
@@ -105,7 +113,31 @@
       color: var(--muted);
     }
 
-    /* 2. Tactile Article Cards */
+    .archive-sort {
+      font-family: inherit;
+      padding: 0.75rem 1rem;
+      padding-right: 2.5rem;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      appearance: none; 
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23999%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+    }
+
+    .archive-sort:hover,
+    .archive-sort:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+
+    /* 3. Tactile Article Cards */
     .articles-list {
       max-width: 900px;
       margin: 0 auto;
@@ -123,7 +155,8 @@
       box-shadow: var(--shadow-sm);
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
                   box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
-                  border-color 0.2s ease;
+                  border-color 0.2s ease,
+                  opacity 0.3s ease;
     }
 
     .post-item:hover {
@@ -132,11 +165,24 @@
       border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
     }
 
+    /* Date Styling */
+    .article-date {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      font-family: inherit;
+      font-style: italic;
+    }
+
     .post-item h3 {
-      margin: 0 0 0.75rem 0;
-      font-size: 1.4rem;
-      font-family: 'Lora', Georgia, serif;
-      text-transform: none; /* <--- Overrides any ALL CAPS styling from base.css */
+      margin: 0 0 0.5rem 0; 
+      font-size: 1.2rem; 
+      font-weight: 600; 
+      font-family: inherit;
+      text-transform: none; 
+      letter-spacing: -0.01em; 
+      line-height: 1.3;
     }
 
     .post-item h3 a {
@@ -183,26 +229,53 @@
       </header>
 
       <div class="articles-toolbar">
-        <div class="archive-search" id="searchContainer">
-          <svg class="archive-search-icon" viewBox="0 0 24 24" fill="none">
-            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M20 20L17 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          <input
-            id="articleSearch"
-            type="text"
-            placeholder="Search archive"
-            aria-label="Search articles"
-          />
+        <div class="archive-controls">
+          <div class="archive-search" id="searchContainer">
+            <svg class="archive-search-icon" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M20 20L17 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <input
+              id="articleSearch"
+              type="text"
+              placeholder="Search archive"
+              aria-label="Search articles"
+            />
+          </div>
+          
+          <select id="sortSelect" class="archive-sort" aria-label="Sort articles">
+            <option value="desc">Newest to Oldest</option>
+            <option value="asc">Oldest to Newest</option>
+          </select>
         </div>
       </div>
     </div>
 
     <section class="articles-list" id="articlesList">
+      
       <article
         class="post-item"
+        data-date="2026-04-01" 
+        data-title="The Architecture of Scale: How We Built the Modern LLM"
+        data-tags="llm transformer attention flashattention moe gqa speculative decoding architecture">
+        <time class="article-date" datetime="2026-04-01">April 1, 2026</time>
+        <h3>
+          <a href="Architecture_of_scale.html">
+            The Architecture of Scale: How We Built the Modern LLM
+          </a>
+        </h3>
+        <p>
+          Tracing the evolution of the modern LLM stack: from the original Transformer and GPT-1 to FlashAttention, MoE, and Speculative Decoding.
+        </p>
+        <span class="pill-tag">Chapter 2</span>
+      </article>
+      
+      <article
+        class="post-item"
+        data-date="2026-03-31"
         data-title="AI Timeline: From Perceptron to World Models"
         data-tags="ai history timeline deep-learning llm cnn transformer">
+        <time class="article-date" datetime="2026-03-31">March 31, 2026</time>
         <h3>
           <a href="ai-timeline.html">
             AI Timeline: From Perceptron to World Models
@@ -213,6 +286,7 @@
         </p>
         <span class="pill-tag">Timeline</span>
       </article>
+
     </section>
   </main>
 
@@ -220,12 +294,47 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      const articlesList = document.getElementById("articlesList");
+      let posts = Array.from(document.querySelectorAll(".post-item"));
+      const sortSelect = document.getElementById("sortSelect");
+
+      // --- SORTING LOGIC ---
+      function sortPosts(order) {
+        posts.sort((a, b) => {
+          const dateA = new Date(a.dataset.date || 0);
+          const dateB = new Date(b.dataset.date || 0);
+          
+          if (order === 'desc') {
+            return dateB - dateA; // Newest first
+          } else {
+            return dateA - dateB; // Oldest first
+          }
+        });
+
+        // Re-append sorted elements with a tiny fade effect
+        posts.forEach(post => {
+          post.style.opacity = '0';
+          articlesList.appendChild(post);
+          // Trigger reflow to restart animation
+          void post.offsetWidth;
+          post.style.opacity = '1';
+        });
+      }
+
+      // Initial sort on page load (Newest to Oldest)
+      sortPosts(sortSelect.value);
+
+      // Listen for sort dropdown changes
+      sortSelect.addEventListener("change", (e) => {
+        sortPosts(e.target.value);
+      });
+
+      // --- SEARCH LOGIC ---
       const params = new URLSearchParams(window.location.search);
       const query = params.get("q")?.toLowerCase();
 
       const input = document.getElementById("articleSearch");
       const searchContainer = document.getElementById("searchContainer");
-      const posts = document.querySelectorAll(".post-item");
       const header = document.getElementById("mainHeading");
       const headerContainer = document.getElementById("headerContainer");
 

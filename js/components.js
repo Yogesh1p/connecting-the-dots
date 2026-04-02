@@ -1,6 +1,7 @@
 /* ============================================================
    components.js — Loads global UI elements
-   Handles both Desktop and Mobile Navigation injection
+   Handles both Desktop and Mobile Navigation injection,
+   Table of Contents, and Injectable Components (Giscus, Headers)
    ============================================================ */
 
 // 1. AUTO-CLEAN URLs: Instantly strip 'index.html' from the URL bar on load
@@ -85,14 +86,6 @@ function initGlobalNavigation() {
         </div>
         
         <div class="nav-right nav-desktop-only">
-          <div class="nav-search" style="margin-right: 1.5rem; display: flex; align-items: center;">
-            <input type="text" id="globalSearch" placeholder="Search articles..." 
-                   style="padding: 0.35rem 0.8rem; border-radius: 20px; border: 1px solid var(--text-dim); background: transparent; color: inherit; font-family: inherit; font-size: 0.85rem; outline: none; transition: border-color 0.2s ease;"
-                   onfocus="this.style.borderColor='var(--text-main)';"
-                   onblur="this.style.borderColor='var(--text-dim)';"
-                   onkeypress="if(event.key === 'Enter' && this.value.trim() !== '') window.location.href='${root}articles/?q=' + encodeURIComponent(this.value.trim());">
-          </div>
-
           ${themeToggleHTML}
 
           <a href="${anchorPrefix}#contribute" class="nav-desktop-only">Contribute</a>
@@ -117,32 +110,46 @@ initGlobalNavigation();
 document.addEventListener('DOMContentLoaded', () => {
   
   // 1. INCOMING HASH CLEANUP
-  // If we arrive from another page with a hash (e.g., /articles/ -> /#chapters)
   if (window.location.hash) {
     const targetId = window.location.hash.substring(1);
     const targetEl = document.getElementById(targetId);
     if (targetEl) {
-      // Scroll to the element after a tiny delay so the DOM finishes painting
       setTimeout(() => targetEl.scrollIntoView({ behavior: 'smooth' }), 50);
     }
-    // Instantly wipe the hash from the URL bar without reloading
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 
-  // 2. THEME LOGIC
+  // 2. THEME LOGIC (Including Giscus Live Update)
   const htmlEl = document.documentElement;
   
   const applyTheme = (theme) => {
     htmlEl.setAttribute('data-theme', theme);
     try { localStorage.setItem('theme', theme); } catch (e) {}
+    
+    // Sync mobile notch color
     const metaThemeColor = document.getElementById('theme-color-meta');
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', theme === 'dark' ? '#16100C' : '#FDFBF7');
     }
-    document.querySelectorAll('iframe').forEach(iframe => {
+
+    // Update Giscus theme dynamically via postMessage if it exists on the page
+    const giscusThemeUrl = theme === 'dark' 
+      ? 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-dark.css' 
+      : 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-light.css';
+      
+    const iframe = document.querySelector('iframe.giscus-frame');
+    if (iframe) {
+      iframe.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: giscusThemeUrl } } },
+        'https://giscus.app'
+      );
+    }
+
+    // Update any other iframes if necessary
+    document.querySelectorAll('iframe:not(.giscus-frame)').forEach(otherIframe => {
       try {
-        if (iframe.contentDocument) {
-          iframe.contentDocument.documentElement.setAttribute('data-theme', theme);
+        if (otherIframe.contentDocument) {
+          otherIframe.contentDocument.documentElement.setAttribute('data-theme', theme);
         }
       } catch (err) {}
     });
@@ -185,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
   }
 
-  // 4. SMOOTH SCROLL INTERCEPTOR (No URL updates)
+  // 4. SMOOTH SCROLL INTERCEPTOR
   document.querySelectorAll('a').forEach(anchor => {
     const href = anchor.getAttribute('href') || '';
     if (href.includes('#')) {
@@ -194,15 +201,88 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetId = parts[1];
         const targetEl = document.getElementById(targetId);
         
-        // If the element exists on the CURRENT page, smoothly scroll there
-        // and do NOT update the browser URL at all.
         if (targetEl) {
           e.preventDefault();
           targetEl.scrollIntoView({ behavior: 'smooth' });
         }
-        // If the element is on a different page, the browser handles it normally
-        // and our "Incoming Hash Cleanup" block above will handle it on arrival.
       });
     }
   });
+
 });
+
+/* ============================================================
+   INJECTABLE COMPONENTS
+   Use these anywhere with a single function call.
+   Note: injectArticleHeader lives in article_components.js
+   ============================================================ */
+
+/**
+ * Injects a Giscus comment section into a container.
+ * Works on both article pages and experiment pages.
+ * @param {string} containerId — ID of the element to inject into
+ */
+window.injectGiscusComments = function(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  // Styles are injected once, idempotently
+  if (!document.getElementById('giscus-inject-styles')) {
+    const style = document.createElement('style');
+    style.id = 'giscus-inject-styles';
+    style.textContent = `
+      .article-discussion-wrap {
+        max-width: 720px;
+        margin: 4rem auto 2rem auto;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+      }
+      .article-discussion-wrap > p {
+        text-align: center;
+        color: var(--muted);
+        font-family: var(--font-sans, system-ui, sans-serif);
+        margin-bottom: 2rem;
+      }
+      .giscus-box {
+        width: 100%;
+        min-height: 300px;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Determine correct initial URL based on user preference or local storage
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+  
+  const giscusThemeUrl = isDark 
+    ? 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-dark.css' 
+    : 'https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-light.css';
+
+  // Set up the container structure
+  el.className = 'article-discussion-wrap';
+  el.innerHTML = `
+    <p>Discussion & Questions</p>
+    <div class="giscus-box" id="giscus-script-container"></div>
+  `;
+
+  // Dynamically create and append the script so the browser actually runs it
+  const script = document.createElement('script');
+  script.src = "https://giscus.app/client.js";
+  script.setAttribute("data-repo", "Yogesh1p/connecting-the-dots");
+  script.setAttribute("data-repo-id", "R_kgDOOzAMXw");
+  script.setAttribute("data-category", "General");
+  script.setAttribute("data-category-id", "DIC_kwDOOzAMXs4CqkRZ");
+  script.setAttribute("data-mapping", "pathname");
+  script.setAttribute("data-strict", "0");
+  script.setAttribute("data-reactions-enabled", "1");
+  script.setAttribute("data-emit-metadata", "0");
+  script.setAttribute("data-input-position", "top");
+  script.setAttribute("data-theme", giscusThemeUrl); // Using your custom CSS URLs
+  script.setAttribute("data-lang", "en");
+  script.setAttribute("crossorigin", "anonymous");
+  script.async = true;
+
+  document.getElementById('giscus-script-container').appendChild(script);
+};
