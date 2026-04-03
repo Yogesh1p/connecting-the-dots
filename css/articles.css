@@ -236,32 +236,36 @@
 /* ─────────────────────────────────────────
    TOC popup card
    ───────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   Enhanced Scrollable Container
+   ───────────────────────────────────────── */
 .toc-list {
   display: none;
   flex-direction: column;
 
   width: 320px;
-  max-width: 320px;
-  max-height: calc(100vh - 140px);
+  /* Ensures it stays within the screen height */
+  max-height: 75vh; 
 
   overflow-y: auto;
   overscroll-behavior: contain;
 
   position: absolute;
-  right: 12px;
-
-  /* slightly lower than true center */
-  top: calc(50% + 24px);
+  right: 15px;
+  top: 50%;
   transform: translateY(-50%);
 
-  padding: 14px 18px;
-
+  padding: 20px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
 
-  /* subtle shadow only */
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+/* Add a little bit of bottom padding to the last item 
+   so it doesn't hug the edge of the scroll area */
+.toc-item:last-child {
+  margin-bottom: 10px;
 }
 
 /* keep open when rail or panel hovered */
@@ -273,55 +277,63 @@
    Scrollbar
    ───────────────────────────────────────── */
 .toc-list::-webkit-scrollbar {
-  width: 6px;
+  width: 4px; /* Slimmer is usually cleaner for TOCs */
 }
 
 .toc-list::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 999px;
+  background: var(--accent); /* Use accent color so users see the scroll progress */
+  border-radius: 10px;
 }
 
 .toc-list::-webkit-scrollbar-track {
-  background: transparent;
+  background: color-mix(in srgb, var(--border) 20%, transparent);
 }
 
 /* ─────────────────────────────────────────
    TOC entries
+   ───────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   Updated TOC entries (No Clamping)
    ───────────────────────────────────────── */
 .toc-item {
   border: none;
   background: transparent;
   text-align: left;
   cursor: pointer;
-
-  padding: 6px 0;
-
+  padding: 10px 0; 
   font-size: 0.96rem;
-  line-height: 1;
+  line-height: 1.5;
   color: var(--text);
-  opacity: 0.85;
+  opacity: 0.8;
+  display: block; 
+  width: 100%;
+  white-space: normal; 
+  word-wrap: break-word;
 
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
-
-  transition: color 0.2s ease, opacity 0.2s ease;
+  /* Change: Use a faster timing (0.15s) and 
+     ensure we target specific properties to prevent layout jumping 
+  */
+  transition: transform 0.15s ease-out, color 0.15s ease-out, opacity 0.15s ease-out;
+  
+  /* Critical: prevents 'jitter' by telling the browser this will move */
+  will-change: transform; 
 }
 
 .toc-item:hover {
   color: var(--accent);
   opacity: 1;
+  
+  /* Better than padding: translateX moves the visual 
+     layer without recalculating the width of the text block.
+  */
+  transform: translateX(6px);
 }
 
-/* active heading */
+/* Ensure the active heading also stays crisp */
 .toc-bold {
-  font-weight: inherit;
   color: var(--accent);
   opacity: 1;
+  font-weight: 600;
 }
 
 /* nested levels */
