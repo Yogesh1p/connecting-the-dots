@@ -30,16 +30,14 @@ function initGlobalNavigation(options = {}) {
 
   const currentPath = window.location.pathname.toLowerCase();
   const isArticles = currentPath.includes('/articles/');
-  const isExperiments = currentPath.includes('/experiments/');
 
   const homePath = root === '' ? './' : root;
   const anchorPrefix = root === '' ? '' : root;
 
   const NAV_LINKS = [
     { href: homePath, label: 'Home' },
-    { href: anchorPrefix + '#chapters', label: 'Chapters' },
+    { href: root + 'Library/', label: 'Library' },
     { href: root + 'articles/', label: 'Articles' },
-    { href: root + 'experiments/', label: 'Experiments' },
     { href: anchorPrefix + '#contribute', label: 'Contribute' },
     {
       href: 'https://github.com/Yogesh1p/connecting-the-dots',
@@ -49,9 +47,7 @@ function initGlobalNavigation(options = {}) {
   ];
 
   const drawerLinksHTML = NAV_LINKS.map(l => {
-    const isActive =
-      (l.label === 'Articles' && isArticles) ||
-      (l.label === 'Experiments' && isExperiments);
+    const isActive = (l.label === 'Articles' && isArticles);
 
     return `
       <li>
@@ -126,10 +122,9 @@ function initGlobalNavigation(options = {}) {
         </a>
 
         <div class="nav-center nav-desktop-only">
-          <a href="${anchorPrefix}#chapters">Chapters</a>
+          <a href="${root}Library/">Library</a>
           <a href="${anchorPrefix}#taxonomy">Taxonomy</a>
           <a href="${root}articles/" ${isArticles ? 'style="color: var(--accent);"' : ''}>Articles</a>
-          <a href="${root}experiments/" ${isExperiments ? 'style="color: var(--accent);"' : ''}>Experiments</a>
         </div>
 
         <div class="nav-right nav-desktop-only">

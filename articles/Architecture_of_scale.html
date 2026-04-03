@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Architecture of Scale — Connecting the Dots</title>
+    <title>The Architecture of Scale</title>
+    <meta name="description" content="How We Built the Modern LLM">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-01">
+    <meta name="keywords" content="llm transformer attention">
+    <meta name="chapter" content="Chapter 2">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,11 +58,11 @@
 
                     <!-- injected hero/title -->
                     <div id="article-header"></div>
+                    
 
                     <!-- actual article content starts here -->
                     <section class="article-body">
-                        <h1>The Architecture of Scale — How We Built the Modern LLM</h1>
-
+                        
 <h2>The Transformer: The Problem with Sequential Thinking</h2>
 <p>Before the Transformer existed, sequence modeling meant recurrence. An RNN processes tokens one at a time, left to right, threading a hidden state forward. To understand token 500, the model must have correctly compressed all information from tokens 1 through 499 into a fixed-size vector. This is a bottleneck that is not merely computational — it is structural. The past is filtered through a narrow corridor, and distant information decays or vanishes.</p>
 

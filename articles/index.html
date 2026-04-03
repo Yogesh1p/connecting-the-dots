@@ -157,6 +157,12 @@
                   box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
                   border-color 0.2s ease,
                   opacity 0.3s ease;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .post-item:hover {
@@ -165,7 +171,6 @@
       border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
     }
 
-    /* Date Styling */
     .article-date {
       display: block;
       font-size: 0.85rem;
@@ -212,6 +217,16 @@
       border-radius: 99px;
       font-family: inherit;
     }
+
+    /* System States */
+    .system-message {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-style: italic;
+      border: 1px dashed var(--border);
+      border-radius: 16px;
+    }
   </style>
 </head>
 
@@ -252,137 +267,163 @@
     </div>
 
     <section class="articles-list" id="articlesList">
-      
-      <article
-        class="post-item"
-        data-date="2026-04-01" 
-        data-title="The Architecture of Scale: How We Built the Modern LLM"
-        data-tags="llm transformer attention flashattention moe gqa speculative decoding architecture">
-        <time class="article-date" datetime="2026-04-01">April 1, 2026</time>
-        <h3>
-          <a href="Architecture_of_scale.html">
-            The Architecture of Scale: How We Built the Modern LLM
-          </a>
-        </h3>
-        <p>
-          Tracing the evolution of the modern LLM stack: from the original Transformer and GPT-1 to FlashAttention, MoE, and Speculative Decoding.
-        </p>
-        <span class="pill-tag">Chapter 2</span>
-      </article>
-      
-      <article
-        class="post-item"
-        data-date="2026-03-31"
-        data-title="AI Timeline: From Perceptron to World Models"
-        data-tags="ai history timeline deep-learning llm cnn transformer">
-        <time class="article-date" datetime="2026-03-31">March 31, 2026</time>
-        <h3>
-          <a href="ai-timeline.html">
-            AI Timeline: From Perceptron to World Models
-          </a>
-        </h3>
-        <p>
-          A historical reconstruction of modern AI as a chain of architectural responses.
-        </p>
-        <span class="pill-tag">Timeline</span>
-      </article>
-
+      <div class="system-message" id="loadingIndicator">Gathering archive...</div>
     </section>
+
   </main>
 
   <script src="../js/components.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. DOM Elements
       const articlesList = document.getElementById("articlesList");
-      let posts = Array.from(document.querySelectorAll(".post-item"));
       const sortSelect = document.getElementById("sortSelect");
-
-      // --- SORTING LOGIC ---
-      function sortPosts(order) {
-        posts.sort((a, b) => {
-          const dateA = new Date(a.dataset.date || 0);
-          const dateB = new Date(b.dataset.date || 0);
-          
-          if (order === 'desc') {
-            return dateB - dateA; // Newest first
-          } else {
-            return dateA - dateB; // Oldest first
-          }
-        });
-
-        // Re-append sorted elements with a tiny fade effect
-        posts.forEach(post => {
-          post.style.opacity = '0';
-          articlesList.appendChild(post);
-          // Trigger reflow to restart animation
-          void post.offsetWidth;
-          post.style.opacity = '1';
-        });
-      }
-
-      // Initial sort on page load (Newest to Oldest)
-      sortPosts(sortSelect.value);
-
-      // Listen for sort dropdown changes
-      sortSelect.addEventListener("change", (e) => {
-        sortPosts(e.target.value);
-      });
-
-      // --- SEARCH LOGIC ---
-      const params = new URLSearchParams(window.location.search);
-      const query = params.get("q")?.toLowerCase();
-
-      const input = document.getElementById("articleSearch");
+      const searchInput = document.getElementById("articleSearch");
       const searchContainer = document.getElementById("searchContainer");
-      const header = document.getElementById("mainHeading");
+      const mainHeading = document.getElementById("mainHeading");
       const headerContainer = document.getElementById("headerContainer");
 
-      searchContainer.addEventListener("click", () => input.focus());
+      // 2. Global State
+      let allArticlesData = [];
 
-      function filterPosts(value) {
-        const q = value.trim().toLowerCase();
-        let count = 0;
+      // ==========================================
+      // MANAGE YOUR ARTICLES HERE
+      // ==========================================
+      const articleLinks = [
+        "Architecture_of_scale.html",
+        "ai-timeline.html",
+        "word_rep.html"
+      ];
 
-        posts.forEach(post => {
-          const title = post.dataset.title.toLowerCase();
-          const tags = post.dataset.tags.toLowerCase();
+      // 3. Focus UX Helper
+      searchContainer.addEventListener("click", () => searchInput.focus());
 
-          const match = !q || title.includes(q) || tags.includes(q);
-          post.style.display = match ? "block" : "none";
+      // 4. Initialization (Fetch & Render)
+      async function initializeArchive() {
+        try {
+          const fetchPromises = articleLinks.map(async (link) => {
+            const response = await fetch(link);
+            if (!response.ok) return null;
+            
+            const htmlText = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, "text/html");
 
-          if (match) count++;
+            // Extract metadata from the fetched HTML
+            const title = doc.querySelector("title")?.innerText || "Untitled Article";
+            const subtitle = doc.querySelector('meta[name="description"]')?.content || "";
+            const author = doc.querySelector('meta[name="author"]')?.content || "Unknown";
+            const dateStr = doc.querySelector('meta[name="date"]')?.content || "1970-01-01";
+            const tags = doc.querySelector('meta[name="keywords"]')?.content || "";
+            const chapter = doc.querySelector('meta[name="chapter"]')?.content || "Article";
+
+            return {
+              link,
+              title,
+              subtitle,
+              author,
+              dateStr,
+              dateObj: new Date(dateStr),
+              formattedDate: new Date(dateStr).toLocaleDateString("en-US", {
+                year: "numeric", month: "long", day: "numeric", timeZone: "UTC"
+              }),
+              tags: tags.toLowerCase(),
+              chapter
+            };
+          });
+
+          // Wait for all fetches, filter out failures
+          const results = await Promise.all(fetchPromises);
+          allArticlesData = results.filter(post => post !== null);
+
+          // Apply initial search params if present in URL
+          const params = new URLSearchParams(window.location.search);
+          const initialQuery = params.get("q") || "";
+          if (initialQuery) searchInput.value = initialQuery;
+
+          // Run the UI update loop
+          updateUI();
+
+        } catch (error) {
+          console.error("Failed to load articles:", error);
+          articlesList.innerHTML = `<div class="system-message">Error loading archive. Please try refreshing.</div>`;
+        }
+      }
+
+      // 5. The Main Logic Loop (Filters, Sorts, and Draws)
+      function updateUI() {
+        const query = searchInput.value.trim().toLowerCase();
+        const sortOrder = sortSelect.value;
+
+        // A. Filter
+        let filteredArticles = allArticlesData.filter(article => {
+          const titleMatch = article.title.toLowerCase().includes(query);
+          const tagMatch = article.tags.includes(query);
+          return !query || titleMatch || tagMatch;
         });
 
-        if (q) {
-          header.innerHTML = `Search results for: <em>"${q}"</em> (${count})`;
-          header.classList.add("search-active");
+        // B. Sort
+        filteredArticles.sort((a, b) => {
+          return sortOrder === 'desc' 
+            ? b.dateObj - a.dateObj  // Newest
+            : a.dateObj - b.dateObj; // Oldest
+        });
+
+        // C. Update Header State
+        if (query) {
+          mainHeading.innerHTML = `Search results for: <em>"${query}"</em> (${filteredArticles.length})`;
+          mainHeading.classList.add("search-active");
           headerContainer.classList.add("search-active");
+          
+          // Update URL silently
+          const url = new URL(window.location);
+          url.searchParams.set("q", query);
+          window.history.replaceState({}, "", url);
         } else {
-          header.innerHTML = "Articles & Essays";
-          header.classList.remove("search-active");
+          mainHeading.innerHTML = "Articles & Essays";
+          mainHeading.classList.remove("search-active");
           headerContainer.classList.remove("search-active");
-        }
-      }
-
-      if (query) {
-        input.value = query;
-        filterPosts(query);
-      }
-
-      input.addEventListener("input", e => {
-        const q = e.target.value.trim();
-        const url = new URL(window.location);
-
-        if (q) {
-            url.searchParams.set("q", q);
-        } else {
-            url.searchParams.delete("q");
+          
+          // Clean URL
+          const url = new URL(window.location);
+          url.searchParams.delete("q");
+          window.history.replaceState({}, "", url);
         }
 
-        window.history.replaceState({}, "", url);
-        filterPosts(q);
-      });
+        // D. Render DOM
+        articlesList.innerHTML = ""; // Clear list
+
+        if (filteredArticles.length === 0) {
+          articlesList.innerHTML = `<div class="system-message">No articles found matching "${query}".</div>`;
+          return;
+        }
+
+        filteredArticles.forEach(article => {
+          const articleEl = document.createElement("article");
+          articleEl.className = "post-item";
+          
+          articleEl.innerHTML = `
+            <time class="article-date" datetime="${article.dateStr}">
+              ${article.formattedDate} • By ${article.author}
+            </time>
+            <h3>
+              <a href="${article.link}">${article.title}</a>
+            </h3>
+            <p>${article.subtitle}</p>
+            <span class="pill-tag">${article.chapter}</span>
+          `;
+
+          articlesList.appendChild(articleEl);
+        });
+      }
+
+      // 6. Event Listeners
+      searchInput.addEventListener("input", updateUI);
+      sortSelect.addEventListener("change", updateUI);
+
+      // Kick off the script
+      initializeArchive();
     });
   </script>
 </body>
