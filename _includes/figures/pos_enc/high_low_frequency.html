@@ -1,0 +1,220 @@
+<div class="anim-wrap">
+  <div class="anim-title">Visualization · High vs Low Frequency</div>
+  <canvas id="pe-high-low-frequency" width="600" height="400"></canvas>
+
+  <div class="anim-caption">
+    A high-frequency circle resolves nearby positions precisely but wraps around quickly.
+    A low-frequency circle preserves long-range identity but blurs local differences.
+  </div>
+</div>
+
+<style>
+.anim-wrap {
+    margin: 2.4em auto;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
+    box-shadow: 0 3px 18px rgba(0,0,0,0.06);
+    position: relative;
+    font-family: 'Lora', serif;
+}
+.anim-title {
+    /* Explicitly block-level to push the canvas down */
+    display: block;
+    position: relative;
+    padding: 20px 20px 0 20px; 
+    font-size: 0.75rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--muted, #64748b);
+    pointer-events: none;
+}
+.anim-wrap canvas {
+    display: block;
+    width: 100%;
+}
+.anim-caption {
+    padding: 16px 20px 20px;
+    font-size: 0.85rem;
+    color: var(--muted, #64748b);
+    text-align: center;
+    font-style: italic;
+    border-top: 1px solid var(--border, #e2e8f0);
+}
+</style>
+
+<script>
+(function () {
+    const canvas = document.getElementById("pe-high-low-frequency");
+    if (!canvas) return;
+
+    let tick = 0;
+    const N = 24;
+
+    function T() {
+        const s = getComputedStyle(document.documentElement);
+        const get = v => s.getPropertyValue(v).trim();
+
+        return {
+            text: get("--text") || "#1e293b",
+            muted: get("--muted") || "#64748b",
+            accent: get("--accent") || "#D08770", /* Matched to your screenshot */
+            slate: "#81A1C1", /* Matched to your screenshot */
+            border: get("--border") || "#e5e7eb"
+        };
+    }
+
+    function fit() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.parentElement.clientWidth;
+        const h = parseInt(canvas.getAttribute("height"), 10);
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        return { ctx, w, h };
+    }
+
+    function line(ctx, x1, y1, x2, y2, color, width = 1) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+    }
+
+    function circle(ctx, cx, cy, r, color, width = 1) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+    }
+
+    function dot(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function label(ctx, text, x, y, color, size = 12, align = "center", baseline = "middle") {
+        ctx.font = `${size}px Lora, serif`;
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.textBaseline = baseline;
+        ctx.fillText(text, x, y);
+    }
+
+    let { ctx, w, h } = fit();
+    window.addEventListener("resize", () => {
+        ({ ctx, w, h } = fit());
+    });
+
+    function drawPanel(cx, cy, R, omega, color, labelText, subText, panelWidth) {
+        const t = T();
+
+        // Increased font sizes and pushed down slightly
+        label(ctx, labelText, cx, 62, color, 14);
+        label(ctx, subText, cx, 80, t.muted, 12);
+
+        circle(ctx, cx, cy, R, t.border, 1);
+
+        // all token points
+        for (let i = 0; i < N; i++) {
+            const a = omega * i;
+            const px = cx + R * Math.cos(a);
+            const py = cy - R * Math.sin(a);
+            dot(ctx, px, py, 3, color);
+        }
+
+        // moving active token
+        const iF = Math.floor((tick * 0.65) % N);
+        const a = omega * iF;
+        const px = cx + R * Math.cos(a);
+        const py = cy - R * Math.sin(a);
+
+        line(ctx, cx, cy, px, py, color, 1.5);
+        dot(ctx, px, py, 6, color);
+
+        // Dynamic label positioning to push text outward from the circle
+        const labelRadius = R + 18; 
+        const lx = cx + labelRadius * Math.cos(a);
+        const ly = cy - labelRadius * Math.sin(a);
+        
+        const align = Math.cos(a) > 0 ? "left" : "right";
+        const baseline = Math.sin(a) > 0 ? "bottom" : "top";
+        
+        // Increased dynamic label font size
+        label(ctx, `pos ${iF}`, lx, ly, color, 13, align, baseline);
+
+        // sine strip below
+        const wY = h - 50;
+        const wH = 24;
+        const wX0 = cx - panelWidth * 0.35;
+        const wX1 = cx + panelWidth * 0.35;
+
+        ctx.beginPath();
+        for (let x = wX0; x <= wX1; x++) {
+            const pct = (x - wX0) / (wX1 - wX0);
+            const y = wY - Math.sin(omega * pct * N) * wH;
+            x === wX0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        const pct = iF / N;
+        const wx = wX0 + pct * (wX1 - wX0);
+        const wy = wY - Math.sin(omega * pct * N) * wH;
+        dot(ctx, wx, wy, 6, color);
+    }
+
+    function draw() {
+        const t = T();
+        ctx.clearRect(0, 0, w, h);
+
+        const colW = w / 2;
+        // Pushed the visualization down to center it in the taller canvas
+        const cy = h * 0.52; 
+        const R = Math.min(colW * 0.26, h * 0.22);
+
+        drawPanel(
+            colW * 0.5,
+            cy,
+            R,
+            1.1,
+            t.accent,
+            "High  ω = 1.1",
+            "resolves nearby positions",
+            colW
+        );
+
+        drawPanel(
+            colW * 1.5,
+            cy,
+            R,
+            0.14,
+            t.slate,
+            "Low  ω = 0.14",
+            "distinguishes distant positions",
+            colW
+        );
+
+        // divider
+        line(ctx, colW, 20, colW, h - 20, t.border, 1);
+
+        tick += 0.025;
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+})();
+</script>

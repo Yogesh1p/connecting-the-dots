@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connecting the Dots — 3D Book</title>
+<link href="https://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet">
+<style>
+
+html, body {
+    margin: 0; padding: 0;
+    width: 280px; height: 340px;
+    overflow: hidden;
+    background: transparent;
+}
+body {
+    font-family: 'Lato', Calibri, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ─────────────────────────────────────────────────────────
+   COMPONENT CSS — exact copy from original Tympanus CodePen.
+   Only the COLOR VALUES below are changed to oat palette.
+───────────────────────────────────────────────────────── */
+/* Scaling wrapper: book is 300×400 native, scaled to 180×240.
+   iframe is 280×340 — extra space gives room for shadows and hover rotation. */
+.bk-list {
+    list-style: none;
+    padding: 0; margin: 0;
+    width: 180px; height: 240px;
+    position: relative;
+    perspective: 1800px;
+}
+.bk-list li {
+    position: relative;
+    width: 300px; height: 400px;
+    transform: scale(0.6);
+    transform-origin: top left;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    z-index: 1;
+}
+
+
+
+.bk-list li .bk-book {
+    position: absolute;
+    width: 100%;
+    height: 400px;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-transition: -webkit-transform .5s;
+    transition: transform .5s;
+}
+.bk-list li .bk-book.bk-hovered {
+    -webkit-transform: rotate3d(0,1,0,35deg);
+    transform: rotate3d(0,1,0,35deg);
+}
+.bk-list li .bk-book > div,
+.bk-list li .bk-front > div {
+    display: block;
+    position: absolute;
+}
+.bk-list li .bk-front {
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-transform-origin: 0% 50%;
+    transform-origin: 0% 50%;
+    -webkit-transition: -webkit-transform .5s;
+    transition: transform .5s;
+    -webkit-transform: translate3d(0,0,20px);
+    transform: translate3d(0,0,20px);
+    z-index: 10;
+}
+.bk-list li .bk-front > div {
+    z-index: 1;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+}
+.bk-list li .bk-page {
+    -webkit-transform: translate3d(0,0,19px);
+    transform: translate3d(0,0,19px);
+    display: none;
+    width: 295px;
+    height: 390px;
+    top: 5px;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    z-index: 9;
+}
+.bk-list li .bk-front,
+.bk-list li .bk-back,
+.bk-list li .bk-front > div { width: 300px; height: 400px; }
+.bk-list li .bk-left,
+.bk-list li .bk-right { width: 40px; left: -20px; }
+.bk-list li .bk-top,
+.bk-list li .bk-bottom {
+    width: 295px; height: 40px; top: -15px;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+.bk-list li .bk-back {
+    -webkit-transform: rotate3d(0,1,0,-180deg) translate3d(0,0,20px);
+    transform: rotate3d(0,1,0,-180deg) translate3d(0,0,20px);
+    box-shadow: 10px 10px 30px rgba(0,0,0,0.3);
+    border-radius: 3px 0 0 3px;
+}
+.bk-list li .bk-cover-back {
+    -webkit-transform: rotate3d(0,1,0,-179deg);
+    transform: rotate3d(0,1,0,-179deg);
+}
+.bk-list li .bk-right {
+    height: 390px; top: 5px;
+    -webkit-transform: rotate3d(0,1,0,90deg) translate3d(0,0,295px);
+    -moz-transform: rotate3d(0,1,0,90deg) translate3d(0,0,295px);
+    transform: rotate3d(0,1,0,90deg) translate3d(0,0,295px);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+.bk-list li .bk-left {
+    height: 400px;
+    -webkit-transform: rotate3d(0,1,0,-90deg);
+    transform: rotate3d(0,1,0,-90deg);
+}
+.bk-list li .bk-top {
+    -webkit-transform: rotate3d(1,0,0,90deg);
+    transform: rotate3d(1,0,0,90deg);
+}
+.bk-list li .bk-bottom {
+    -webkit-transform: rotate3d(1,0,0,-90deg) translate3d(0,0,390px);
+    transform: rotate3d(1,0,0,-90deg) translate3d(0,0,390px);
+}
+
+/* Transform states — verbatim */
+.bk-list li .bk-viewinside .bk-front {
+    -webkit-transform: translate3d(0,0,20px) rotate3d(0,1,0,-160deg);
+    transform: translate3d(0,0,20px) rotate3d(0,1,0,-160deg);
+}
+.bk-list li .bk-book.bk-viewinside {
+    -webkit-transform: translate3d(0,0,150px) rotate3d(0,1,0,0deg);
+    transform: translate3d(0,0,150px) rotate3d(0,1,0,0deg);
+}
+.bk-list li .bk-book.bk-viewback {
+    -webkit-transform: translate3d(0,0,0px) rotate3d(0,1,0,180deg);
+    transform: translate3d(0,0,0px) rotate3d(0,1,0,180deg);
+}
+
+/* Page / edge backgrounds — verbatim structure, oat colors */
+.bk-list li .bk-page,
+.bk-list li .bk-right,
+.bk-list li .bk-top,
+.bk-list li .bk-bottom {
+    background-color: #FDFBF7;
+}
+
+.bk-list li .bk-front > div {
+    border-radius: 0 3px 3px 0;
+    box-shadow: inset 4px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Binding crease line — verbatim position, oat-tinted color */
+.bk-list li .bk-front:after {
+    content: '';
+    position: absolute;
+    top: 1px; bottom: 1px; left: -1px;
+    width: 1px;
+    background-color: #a89a8a;
+}
+
+/* Gutter groove on cover and back — verbatim */
+.bk-list li .bk-cover:after,
+.bk-list li .bk-back:after {
+    content: '';
+    position: absolute;
+    top: 0; left: 10px; bottom: 0;
+    width: 3px;
+    background: rgba(0,0,0,0.06);
+    box-shadow: 1px 0 3px rgba(255,255,255,0.1);
+}
+.bk-list li .bk-back:after {
+    left: auto; right: 10px;
+}
+
+/* Spine text transform — verbatim */
+.bk-left h2 {
+    width: 400px; height: 40px;
+    -webkit-transform-origin: 0 0;
+    transform-origin: 0 0;
+    -webkit-transform: rotate(90deg) translateY(-40px);
+    transform: rotate(90deg) translateY(-40px);
+}
+
+/* Page content — verbatim structure */
+.bk-content {
+    position: absolute;
+    top: 30px; left: 20px; bottom: 20px; right: 20px;
+    padding: 30px;
+    overflow: hidden;
+    background: #FDFBF7;
+    opacity: 0;
+    pointer-events: none;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.3s ease-in-out;
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.bk-content-current { opacity: 1; pointer-events: auto; }
+.bk-content p {
+    padding: 0 0 10px;
+    -webkit-font-smoothing: antialiased;
+    color: #2a2218;
+    font-size: 13px;
+    line-height: 20px;
+    text-align: justify;
+    font-family: Georgia, serif;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Nav arrows — verbatim */
+.bk-page nav {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    position: relative;
+    z-index: 100;
+    cursor: pointer;
+}
+.bk-page nav span {
+    display: inline-block;
+    width: 20px; height: 20px;
+    line-height: 20px;
+    color: #aaa;
+    background: #f0f0f0;
+    border-radius: 50%;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ─────────────────────────────────────────────────────────
+   OAT BOOK SKIN — only these rules change from the original
+───────────────────────────────────────────────────────── */
+
+/* Front cover face + back cover + spine: all oat */
+.bk-list li .bk-front > div,
+.bk-list li .bk-back,
+.bk-list li .bk-left,
+.bk-list li .bk-front:after {
+    background-color: #EDE8DF;
+}
+
+/* Cover face gradient */
+.bk-list li .bk-cover {
+    background: linear-gradient(to right, #EDE8DF 0%, #F5F2EB 100%);
+}
+
+/* Back face */
+.bk-list li .bk-back {
+    background: linear-gradient(to left, #EDE8DF 0%, #E6E1D7 100%) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bk-list li .bk-back p {
+    color: #6b5c4d;
+    font-size: 13px;
+    font-family: Georgia, serif;
+    font-style: italic;
+    padding: 40px;
+    text-align: center;
+    line-height: 1.7;
+}
+
+/* Back-of-front-cover (visible when book is open) */
+.bk-list li .bk-cover-back {
+    background-color: #E8E3D9;
+}
+
+/* Spine */
+.bk-list li .bk-left {
+    background-color: #C8BFB0 !important;
+}
+.bk-list li .bk-left h2 {
+    color: #5a4e43;
+    font-size: 13px;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 40px;
+    text-align: center;
+}
+
+/* Cover content */
+.cover-design {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    /* These four lines force it to fill the exact center of the parent */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+.book-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 21px;
+    color: #4A3F35;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 1.35;
+}
+.divider-line {
+    width: 65%;
+    height: 1px;
+    background: #C8BFB0;
+    margin: 16px 0;
+}
+.cover-network {
+    width: 78px;
+    height: 78px;
+}
+.book-author {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 11px;
+    color: #847769;
+    font-style: italic;
+}
+
+/* ── DARK MODE ── */
+[data-theme="dark"] body { background: transparent; }
+
+[data-theme="dark"] .bk-list li .bk-front > div,
+[data-theme="dark"] .bk-list li .bk-back,
+[data-theme="dark"] .bk-list li .bk-left,
+[data-theme="dark"] .bk-list li .bk-front:after {
+    background-color: #2E2820;
+}
+[data-theme="dark"] .bk-list li .bk-cover {
+    background: linear-gradient(to right, #1a1510 0%, #26201a 100%);
+}
+[data-theme="dark"] .bk-list li .bk-back {
+    background: linear-gradient(to left, #2E2820 0%, #26211A 100%) !important;
+    box-shadow: 10px 10px 45px rgba(212, 140, 112, 0.2) !important;
+}
+[data-theme="dark"] .bk-list li .bk-back p { color: #B0A088; }
+[data-theme="dark"] .bk-list li .bk-cover-back { background-color: #28231C; }
+[data-theme="dark"] .bk-list li .bk-left { background-color: #1E1A14 !important; }
+[data-theme="dark"] .bk-list li .bk-left h2 { color: #B0A088; }
+[data-theme="dark"] .bk-list li .bk-page,
+[data-theme="dark"] .bk-list li .bk-right,
+[data-theme="dark"] .bk-list li .bk-top,
+[data-theme="dark"] .bk-list li .bk-bottom { background-color: #1C1208; }
+[data-theme="dark"] .bk-content { background: #1C1208; }
+[data-theme="dark"] .bk-content p { color: #B0A088; }
+[data-theme="dark"] .book-title { color: #D4C8B8; }
+[data-theme="dark"] .book-author { color: #A09080; }
+[data-theme="dark"] .divider-line { background: #5a5048; }
+
+/* ── THEME TRANSITION SYNC ── */
+.theme-transitioning body,
+.theme-transitioning .bk-list li .bk-front > div,
+.theme-transitioning .bk-list li .bk-back,
+.theme-transitioning .bk-list li .bk-left,
+.theme-transitioning .bk-list li .bk-front:after,
+.theme-transitioning .bk-list li .bk-cover-back,
+.theme-transitioning .bk-list li .bk-page,
+.theme-transitioning .bk-list li .bk-right,
+.theme-transitioning .bk-list li .bk-top,
+.theme-transitioning .bk-list li .bk-bottom,
+.theme-transitioning .bk-content,
+.theme-transitioning .divider-line {
+    transition: 
+        background-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.theme-transitioning .bk-content p,
+.theme-transitioning .book-title,
+.theme-transitioning .book-author,
+.theme-transitioning .bk-list li .bk-left h2,
+.theme-transitioning .bk-list li .bk-back p {
+    transition: color 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Note: CSS cannot smoothly animate background linear-gradients. 
+   To make the cover transition smoothly, we transition a pseudo-element's opacity instead, 
+   or just let the gradients snap while the rest of the book glides. */
+.theme-transitioning .bk-list li .bk-cover,
+.theme-transitioning .bk-list li .bk-back {
+    transition: box-shadow 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+</style>
+</head>
+<body>
+
+<div style="width:280px; height:340px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+  <ul id="bk-list" class="bk-list">
+    <li>
+      <div class="bk-book bk-bookdefault">
+
+        <div class="bk-front">
+          <div class="bk-cover-back"></div>
+          <div class="bk-cover">
+            <div class="cover-design">
+              <h2 class="book-title">Connecting<br>the Dots</h2>
+              <div class="divider-line"></div>
+
+              <!-- Favicon: exact node geometry, exact copper colors -->
+              <svg class="cover-network" viewBox="3 5 24 22" xmlns="http://www.w3.org/2000/svg">
+                <line x1="7"  y1="10" x2="16" y2="7"  stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="7"  y1="10" x2="16" y2="16" stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="7"  y1="10" x2="16" y2="25" stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="7"  y1="22" x2="16" y2="7"  stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="7"  y1="22" x2="16" y2="16" stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="7"  y1="22" x2="16" y2="25" stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="16" y1="7"  x2="25" y2="16" stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="16" y1="16" x2="25" y2="16" stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <line x1="16" y1="25" x2="25" y2="16" stroke="#C4795E" stroke-width="1.3" stroke-linecap="round"/>
+                <circle cx="7"  cy="10" r="2.2" fill="#D48C70"/>
+                <circle cx="7"  cy="22" r="2.2" fill="#D48C70"/>
+                <circle cx="16" cy="7"  r="1.9" fill="#C4795E"/>
+                <circle cx="16" cy="16" r="1.9" fill="#C4795E"/>
+                <circle cx="16" cy="25" r="1.9" fill="#C4795E"/>
+                <circle cx="25" cy="16" r="2.2" fill="#D48C70"/>
+              </svg>
+
+              <div class="divider-line"></div>
+              <span class="book-author">Yogesh</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bk-page">
+          <div class="bk-content bk-content-current">
+            <p>Welcome to <em>Connecting the Dots</em> — an intuition-first introduction to modern AI, focused on understanding.</p>
+            <p>Starting from one question: how can we model a joint distribution over many variables without an exponential number of parameters?</p>
+          </div>
+          <div class="bk-content">
+            <p>From the chain rule and Bayesian networks through NADE, MADE, and the Transformer — each idea appears as a response to a limitation in the previous one.</p>
+          </div>
+          <div class="bk-content">
+            <p>Neither ResNets nor Transformers overwrite their representations — they accumulate them.</p>
+            <p><em>Depth is accumulation — not replacement.</em></p>
+          </div>
+        </div>
+
+        <div class="bk-back">
+          <p>"Connecting the Dots traces the architecture of ideas that make modern AI work — one honest derivation at a time."</p>
+        </div>
+
+        <div class="bk-right"></div>
+        <div class="bk-left">
+          <h2><span>Connecting the Dots · Yogesh</span></h2>
+        </div>
+        <div class="bk-top"></div>
+        <div class="bk-bottom"></div>
+      </div>
+
+
+    </li>
+  </ul>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+var Books = (function() {
+    var $books = $('#bk-list > li > div.bk-book'), booksCount = $books.length;
+
+    function init() {
+        $books.each(function() {
+            var $book     = $(this),
+                $other    = $books.not($book),
+                $parent   = $book.parent(),
+                $page     = $book.children('div.bk-page'),
+                $bookview = $parent.find('button.bk-bookview'),
+                $content  = $page.children('div.bk-content'),
+                current   = 0;
+
+            $parent.find('button.bk-bookback').on('click', function() {
+                $bookview.removeClass('bk-active');
+                if ($book.data('flip')) {
+                    $book.data({ opened: false, flip: false })
+                         .removeClass('bk-viewback').addClass('bk-bookdefault');
+                } else {
+                    $book.data({ opened: false, flip: true })
+                         .removeClass('bk-viewinside bk-bookdefault').addClass('bk-viewback');
+                }
+            });
+
+            $bookview.on('click', function() {
+                var $this = $(this);
+                $other.data('opened', false).removeClass('bk-viewinside')
+                      .parent().css('z-index', 0)
+                      .find('button.bk-bookview').removeClass('bk-active');
+                if (!$other.hasClass('bk-viewback')) { $other.addClass('bk-bookdefault'); }
+
+                if ($book.data('opened')) {
+                    $this.removeClass('bk-active');
+                    $book.data({ opened: false, flip: false })
+                         .removeClass('bk-viewinside').addClass('bk-bookdefault');
+                } else {
+                    $this.addClass('bk-active');
+                    $book.data({ opened: true, flip: false })
+                         .removeClass('bk-viewback bk-bookdefault').addClass('bk-viewinside');
+                    $parent.css('z-index', booksCount);
+                    current = 0;
+                    $content.removeClass('bk-content-current').eq(current).addClass('bk-content-current');
+                }
+            });
+
+            if ($content.length > 1) {
+                var $navPrev = $('<span class="bk-page-prev">&lt;</span>'),
+                    $navNext = $('<span class="bk-page-next">&gt;</span>');
+                $page.append($('<nav></nav>').append($navPrev, $navNext));
+
+                $navPrev.on('click', function() {
+                    if (current > 0) { --current; $content.removeClass('bk-content-current').eq(current).addClass('bk-content-current'); }
+                    return false;
+                });
+                $navNext.on('click', function() {
+                    if (current < $content.length - 1) { ++current; $content.removeClass('bk-content-current').eq(current).addClass('bk-content-current'); }
+                    return false;
+                });
+            }
+        });
+    }
+    return { init: init };
+})();
+
+$(function() { Books.init(); });
+
+var book = document.querySelector('.bk-book');
+var hoverTarget = document.querySelector('.bk-list');
+var hoverTimer = null;
+if (book && hoverTarget) {
+    hoverTarget.addEventListener('mouseenter', function() {
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(function() {
+            if (!book.classList.contains('bk-viewinside') && !book.classList.contains('bk-viewback')) {
+                book.classList.add('bk-hovered');
+            }
+        }, 200);
+    });
+    hoverTarget.addEventListener('mouseleave', function() {
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(function() {
+            book.classList.remove('bk-hovered');
+        }, 200);
+    });
+}
+
+// Dark mode — listens for theme changes and syncs the transition
+let themeTransTimer;
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.theme) {
+        
+        // 1. Add the transitioning class
+        document.documentElement.classList.add('theme-transitioning');
+        
+        // 2. Clear any old timers and set a new one to remove the class after 400ms
+        clearTimeout(themeTransTimer);
+        themeTransTimer = setTimeout(function() {
+            document.documentElement.classList.remove('theme-transitioning');
+        }, 400);
+
+        // 3. Apply the actual theme data attribute
+        if (event.data.theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    }
+});
+</script>
+
+</body>
+</html>

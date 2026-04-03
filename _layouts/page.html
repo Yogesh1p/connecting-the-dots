@@ -15,7 +15,7 @@
 
     <link rel="stylesheet" href="{{ '/css/base.css' | relative_url }}">
     <link rel="stylesheet" href="{{ '/css/articles.css' | relative_url }}">
-
+<link rel="stylesheet" href="{{ '/css/interactives/figures.css' | relative_url }}">
     <script>
         (() => {
             const theme = localStorage.getItem("theme") || "light";
@@ -36,16 +36,10 @@
                 displayMath: [['$$', '$$'], ['\\[', '\\]']],
                 processEscapes: true
             },
-            svg: {
-                fontCache: "global"
-            }
+            svg: { fontCache: "global" }
         };
     </script>
-    <script
-        id="MathJax-script"
-        async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
-    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 <body>
 
@@ -55,25 +49,25 @@
         <div class="article-layout">
             <div class="reading-container">
                 <article class="reading-content">
-
                     <div id="article-header"></div>
 
                     <section class="article-body">
                         {{ content }}
                     </section>
-
                 </article>
             </div>
         </div>
 
         <div id="article-comments"></div>
-
-        <script>
-          document.addEventListener("DOMContentLoaded", () => {
-            injectGiscusComments('article-comments');
-          });
-        </script>
     </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof injectGiscusComments === "function") {
+          injectGiscusComments("article-comments");
+        }
+      });
+    </script>
 
 </body>
 </html>

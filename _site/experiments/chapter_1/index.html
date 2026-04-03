@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FDFBF7" id="theme-color-meta">
+  <title>Ch 1 · Experiments · Connecting the Dots</title>
+
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../css/base.css">
+  <link rel="stylesheet" href="../../css/experiments.css">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script>
+
+</head>
+
+<body>
+
+<div class="reading-progress"></div>
+
+  <div id="global-nav" data-root="../../"></div>
+  
+<main class="page-wrap">
+
+
+  <header class="chapter-meta">
+    <span class="section-label">Chapter 01 · Autoregressive Models</span>
+  </header>
+  <article class="experiment-entry">
+    <div class="exp-header">
+      <span class="section-label">Experiment 01</span>
+      <h2 class="exp-title">Word Sense Disambiguation</h2>
+      <p class="exp-desc">Probing whether self-attention scores create new signals out of thin air, or simply amplify existing geometric patterns in the GloVe embedding space.</p>
+      <p class="exp-desc">The setup is minimal by design. Two sentences end at <em>"bank to get"</em>. The only signal distinguishing a financial bank from a riverbank is the surrounding context. A small model is trained on GloVe embeddings to predict the correct candidate: <strong>money</strong> for sentence 1, <strong>water</strong> for sentence 2. Through backprop, the embedding of "bank" itself gets updated.</p>
+    </div>
+
+    <pre class="exp-code-block"><span class="exp-code-comment"># The two input sentences</span>
+sentences = [
+    ["new","atm","opened","near","my","home","i","am","going","to","bank","to","get"],
+    ["there","is","a","river","at","my","home","i","am","going","to","bank","to","get"]
+]
+
+<span class="exp-code-comment"># The two candidates the model must choose between</span>
+candidates = ["money", "water"]</pre>
+
+    <p class="exp-question">Does the raw static vector of "bank" carry enough signal to differentiate contexts, or does separation only emerge post-training?</p>
+
+    <div class="data-grid grid-3">
+      <div>
+        <div class="data-label">GloVe Dot Products <span class="data-sublabel">(Static)</span></div>
+        <div class="dot-row highlight"><span class="dot-word">bank</span><div class="bar-bg"><div class="bar-fill active" style="width:100%"></div></div><span class="dot-val">36.3</span></div>
+        <div class="dot-row"><span class="dot-word">to</span><div class="bar-bg"><div class="bar-fill" style="width:53%"></div></div><span class="dot-val">19.2</span></div>
+        <div class="dot-row"><span class="dot-word">near</span><div class="bar-bg"><div class="bar-fill" style="width:47%"></div></div><span class="dot-val">17.0</span></div>
+        <div class="dot-row"><span class="dot-word">atm</span><div class="bar-bg"><div class="bar-fill" style="width:31%"></div></div><span class="dot-val">11.4</span></div>
+        <div class="dot-row"><span class="dot-word">river</span><div class="bar-bg"><div class="bar-fill" style="width:28%"></div></div><span class="dot-val">10.1</span></div>
+      </div>
+
+      <div>
+        <div class="data-label">Trained Vector Drift <span class="data-sublabel">(Financial)</span></div>
+        <div class="dot-row highlight"><span class="dot-word">atm</span><div class="bar-bg"><div class="bar-fill active" style="width:100%"></div></div><span class="dot-val">6.75</span></div>
+        <div class="dot-row"><span class="dot-word">bank</span><div class="bar-bg"><div class="bar-fill" style="width:74%"></div></div><span class="dot-val">4.98</span></div>
+        <div class="dot-row"><span class="dot-word">vault</span><div class="bar-bg"><div class="bar-fill" style="width:41%"></div></div><span class="dot-val">2.80</span></div>
+        <div class="dot-row"><span class="dot-word">near</span><div class="bar-bg"><div class="bar-fill neg" style="width:25%"></div></div><span class="dot-val">-1.5</span></div>
+        <div class="dot-row"><span class="dot-word">river</span><div class="bar-bg"><div class="bar-fill neg" style="width:85%"></div></div><span class="dot-val">-5.6</span></div>
+      </div>
+
+      <div>
+        <div class="data-label">Final Attention Wts <span class="data-sublabel">(Softmax)</span></div>
+        <div class="dot-row highlight"><span class="dot-word">bank</span><div class="bar-bg"><div class="bar-fill active" style="width:100%"></div></div><span class="dot-val">0.99</span></div>
+        <div class="dot-row"><span class="dot-word">atm</span><div class="bar-bg"><div class="bar-fill" style="width:1%"></div></div><span class="dot-val">0.01</span></div>
+        <div class="dot-row"><span class="dot-word">near</span><div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div><span class="dot-val">0.00</span></div>
+        <div class="dot-row"><span class="dot-word">to</span><div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div><span class="dot-val">0.00</span></div>
+        <div class="dot-row"><span class="dot-word">river</span><div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div><span class="dot-val">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="exp-observation">
+      <strong>Observation:</strong> Before training, both sentences rank identically—GloVe is blind to context, burying "atm" and "river". Post-training, the "bank" embedding geometrically drifts toward the financial sense and pushes "river" into negative space. The softmax then ruthlessly collapses all weight onto the most discriminative token to predict "money".
+    </div>
+
+    <div class="exp-footer">
+      <span class="section-label">GloVe · Q/K/V Projections</span>
+      <a href="https://colab.research.google.com/drive/15SNRkyz1pjdbm3Ac0-9jakMCNyCERXBF" target="_blank" class="btn-colab">NOTEBOOK ↗</a>
+    </div>
+  </article>
+
+  <article class="experiment-entry">
+    <div class="exp-header">
+      <span class="section-label">Experiment 02</span>
+      <h2 class="exp-title">The Murderer's Trace</h2>
+      <p class="exp-desc">Measuring the alignment between the residual stream \(x^{(l)}\) and suspect embeddings across 36 layers of Qwen 2.5 3B.</p>
+      <p class="exp-desc">A murder mystery with exactly one possible answer. John and Sarah are explicitly ruled out. Michael is explicitly placed at the scene. At every layer, the attention and FFN sublayers write a small update (\(\Delta_\text{attn}\) and \(\Delta_\text{ffn}\)) into the residual stream at the position of "was". We measure \(\cos(x^{(l)},\, e_\text{name})\) at each layer to see when the network commits.</p>
+    </div>
+
+    <pre class="exp-code-block">STORY = (
+    "Three people lived together in a small house: John, Michael, and Sarah. "
+    "One night a terrible crime happened in the house. "
+    "The police knew that one of the three people living there must be the murderer. "
+    "John was visiting his parents in another city that entire day. "
+    "Sarah was attending a conference far away and had travel records proving it. "
+    "Michael was the only one who remained in the house that night, "
+    "if anyone was the killer that must be him. "
+    "After reviewing the evidence, the police concluded that the murderer was"
+)</pre>
+
+    <div class="data-grid grid-2">
+      <div>
+        <div class="data-label">Layer-wise Cosine Similarity <span class="data-sublabel">\(\cos(x^{(l)}, e_\text{name})\)</span></div>
+        <table class="layer-table">
+          <thead><tr><th>Layer</th><th>John</th><th>Sarah</th><th>Michael</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>0.022</td><td class="neg-val">-0.048</td><td class="neg-val">-0.023</td></tr>
+            <tr><td>10</td><td>0.001</td><td>0.011</td><td class="neg-val">-0.008</td></tr>
+            <tr><td>20</td><td>0.015</td><td>0.017</td><td class="neg-val">-0.001</td></tr>
+            <tr><td>28</td><td>0.041</td><td>0.020</td><td>0.019</td></tr>
+            <tr><td>32</td><td>0.037</td><td>0.016</td><td>0.051</td></tr>
+            <tr><td>34</td><td>0.085</td><td>0.048</td><td class="peak-val">0.129</td></tr>
+            <tr><td>36</td><td>0.092</td><td>0.081</td><td>0.127</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="data-label">Trajectory Visualization</div>
+        <img src="https://raw.githubusercontent.com/Yogesh1p/connecting-the-dots/main/chapter_assets/AR/fig1_cosine_similarity-3.png" alt="Layer Logits" class="exp-img">
+      </div>
+    </div>
+
+    <div class="exp-observation">
+      <strong>Observation:</strong> Michael stays near zero or negative through layers 0–30. Then between layers 32 and 34 his alignment surges to 0.129 — the highest of all three suspects. The answer wasn't being built gradually; it arrived late and sharply in the retrieval zone. The vector \(x^{(l)}\) is the accumulated sum of every \(\Delta_\text{attn}\) and \(\Delta_\text{ffn}\) written across the 36 layers, ultimately ending closest to \(e_\text{Michael}\).
+    </div>
+
+    <div class="exp-footer">
+      <span class="section-label">Residual Stream · Probing</span>
+      <a href="https://colab.research.google.com/drive/1qSMkqJA9Vxa6UEF-2bBU-3aws2uDCp_c" target="_blank" class="btn-colab">NOTEBOOK ↗</a>
+    </div>
+  </article>
+
+  <article class="experiment-entry">
+    <div class="exp-header">
+      <span class="section-label">Experiment 03</span>
+      <h2 class="exp-title">Dynamic Suspicion Tracking</h2>
+      <p class="exp-desc">Does the model update its logic as evidence arrives incrementally? Tracking alignment with the "murderer" token at 7 narrative checkpoints.</p>
+      <p class="exp-desc">The same murder story is fed in seven incremental chunks. At each checkpoint, we read the final-layer vector of the last token and measure \(\cos(x^{(L)},\, e_\text{murderer})\) against each candidate to see if suspicion moves in step with the narrative.</p>
+    </div>
+
+    <div class="data-grid grid-2">
+      <div>
+        <pre class="exp-code-block" style="margin-top:0;"><span class="exp-code-comment"># The 7 Narrative Checkpoints</span>
+[1] Intro         <span class="exp-code-comment"># three people, one house</span>
+[2] Crime         <span class="exp-code-comment"># something terrible happened</span>
+[3] John's alibi  <span class="exp-code-comment"># John was out of town</span>
+[4] Sarah's alibi <span class="exp-code-comment"># Sarah at a conference</span>
+[5] Evidence      <span class="exp-code-comment"># evidence points inward</span>
+[6] Michael seen  <span class="exp-code-comment"># Michael alone in house</span>
+[7] Conclusion    <span class="exp-code-comment"># "the murderer was"</span>
+
+candidates = ["John", "Michael", "Sarah"]</pre>
+      </div>
+      <div>
+        <div class="data-label">Final Layer Alignment <span class="data-sublabel">Checkpoint Tracking</span></div>
+        <table class="layer-table">
+          <thead><tr><th>Checkpoint</th><th>John</th><th>Sarah</th><th>Michael</th></tr></thead>
+          <tbody>
+            <tr><td>[1] Intro</td><td>0.010</td><td>0.012</td><td>0.010</td></tr>
+            <tr><td>[2] Crime</td><td>0.051</td><td>0.048</td><td>0.052</td></tr>
+            <tr><td>[3] John Alibi</td><td class="neg-val">-0.021</td><td>0.065</td><td>0.081</td></tr>
+            <tr><td>[4] Sarah Alibi</td><td class="neg-val">-0.035</td><td class="neg-val">-0.052</td><td>0.125</td></tr>
+            <tr><td>[5] Evidence</td><td class="neg-val">-0.040</td><td class="neg-val">-0.061</td><td>0.188</td></tr>
+            <tr><td>[6] Michael Seen</td><td class="neg-val">-0.055</td><td class="neg-val">-0.070</td><td>0.245</td></tr>
+            <tr><td>[7] Conclusion</td><td class="neg-val">-0.082</td><td class="neg-val">-0.091</td><td class="peak-val">0.355</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="exp-observation">
+      <strong>Observation:</strong> Unlike the layer-wise probing which shifts late, the checkpoint tracking shows the model actively adjusting its internal state token-by-token. Notice how John's suspicion drops into the negative exactly at Checkpoint 3 when his alibi is given, and Sarah's plummets at Checkpoint 4. By the conclusion, Michael's score dominates.
+    </div>
+
+    <div class="exp-footer">
+      <span class="section-label">Context Updating · Narrative Reasoning</span>
+      <a href="https://colab.research.google.com/drive/1-PTtTK0privoxI2V85LV3QbCWJkDf1c8" target="_blank" class="btn-colab">NOTEBOOK ↗</a>
+    </div>
+  </article>
+
+  <article class="experiment-entry">
+    <div class="exp-header">
+      <span class="section-label">Experiment 04</span>
+      <h2 class="exp-title">Logical Chaining in the Stream</h2>
+      <p class="exp-desc">Resolving a multi-step Knight (truth) vs Knave (liar) constraint. Dueet claims both Candy and himself are knaves. Is Benny a Knight or Knave?</p>
+      <p class="exp-desc">Resolving this requires chaining through statements mid-sentence. We read \(x^{(l)}\) at the position of the final token "a" across every layer, measuring how the logical resolution logically forces the vector to shift layer by layer.</p>
+    </div>
+
+    <pre class="exp-code-block">STORY = (
+    "On the island of Wantuutrewan there are only knights who always tell "
+    "the truth and knaves who always lie. "
+    "You meet four islanders: Aiken, Benny, Candy and Dueet. "
+    "Aiken says: Benny never tells the truth. "
+    "Aiken says: Candy always lies. "
+    "Dueet says: Candy is a knave and I am a knave. "
+    "After careful logical reasoning, we can conclude that Benny is a"
+)</pre>
+
+    <div class="data-grid grid-2">
+      <div>
+        <div class="data-label">Target Token Resolution <span class="data-sublabel">"Benny is a..."</span></div>
+        <table class="layer-table">
+          <thead><tr><th>Layer</th><th>Knight</th><th>Knave</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>0.021</td><td>0.025</td></tr>
+            <tr><td>15</td><td>0.015</td><td>0.038</td></tr>
+            <tr><td>20</td><td>0.022</td><td>0.065</td></tr>
+            <tr><td>25</td><td>0.041</td><td class="peak-val">0.092</td></tr>
+            <tr><td>30</td><td>0.085</td><td>0.051</td></tr>
+            <tr><td>34</td><td class="peak-val">0.142</td><td>-0.015</td></tr>
+            <tr><td>36</td><td class="peak-val">0.158</td><td>-0.032</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p class="exp-desc" style="margin-top:0;">
+          <strong>The Logic Chain:</strong><br>
+          1. Dueet says "I am a knave." A true knave cannot say this (paradox), so Dueet is a knave.<br>
+          2. Since Dueet is a knave, his statement about Candy is false. Candy is a Knight.<br>
+          3. Aiken says "Candy always lies." Aiken is lying. Aiken is a knave.<br>
+          4. Aiken says "Benny never tells the truth." Since Aiken lies, Benny must be a <strong>Knight</strong>.
+        </p>
+        <div class="exp-observation" style="margin-top:1rem;">
+          <strong>Observation:</strong> The network exhibits a fascinating "hypothesis crossover." In the middle layers (15–25), the vector actually leans toward "Knave," likely anchored by the heavy naive presence of the word in context. Only in the final layers (30+) does the logic chain fully resolve, suppressing the statistical guess and surfacing the correct, logically forced answer.
+        </div>
+      </div>
+    </div>
+
+    <div class="exp-footer">
+      <span class="section-label">Logic Resolution · Hypothesis Crossover</span>
+      <a href="https://colab.research.google.com/drive/1qH88153xf7Mz4sNFPnZMWveLSU53Q_yh" target="_blank" class="btn-colab">NOTEBOOK ↗</a>
+    </div>
+  </article>
+
+  <article class="experiment-entry">
+    <div class="exp-header">
+      <span class="section-label">Experiment 05</span>
+      <h2 class="exp-title">In-Context Recall: The Induction Head</h2>
+      <p class="exp-desc">Identifying the specific attention heads responsible for "in-context learning" by feeding the model repeating random strings and watching where it looks.</p>
+    </div>
+
+    <pre class="exp-code-block"><span class="exp-code-comment"># Sequence designed to test exact recall rather than knowledge:</span>
+" Leonard gets 4, Amelia gets 7, Marcus gets 2 ... Leonard gets" <strong>[ 4 ]</strong></pre>
+
+    <div class="data-grid grid-2">
+      <div>
+        <div class="data-label">Standard Head <span class="data-sublabel">L2, H4</span></div>
+        <div class="dot-row"><span class="dot-word">gets</span><div class="bar-bg"><div class="bar-fill" style="width:45%"></div></div><span class="dot-val">0.45</span></div>
+        <div class="dot-row"><span class="dot-word">Leonard</span><div class="bar-bg"><div class="bar-fill" style="width:25%"></div></div><span class="dot-val">0.25</span></div>
+        <div class="dot-row"><span class="dot-word">,</span><div class="bar-bg"><div class="bar-fill" style="width:15%"></div></div><span class="dot-val">0.15</span></div>
+        <div class="dot-row highlight"><span class="dot-word">4</span><div class="bar-bg"><div class="bar-fill" style="width:2%"></div></div><span class="dot-val">0.02</span></div>
+      </div>
+      <div>
+        <div class="data-label">Induction Head <span class="data-sublabel">L11, H2</span></div>
+        <div class="dot-row highlight"><span class="dot-word">4</span><div class="bar-bg"><div class="bar-fill active" style="width:92%"></div></div><span class="dot-val">0.92</span></div>
+        <div class="dot-row"><span class="dot-word">Leonard</span><div class="bar-bg"><div class="bar-fill" style="width:4%"></div></div><span class="dot-val">0.04</span></div>
+        <div class="dot-row"><span class="dot-word">gets</span><div class="bar-bg"><div class="bar-fill" style="width:1%"></div></div><span class="dot-val">0.01</span></div>
+        <div class="dot-row"><span class="dot-word">Marcus</span><div class="bar-bg"><div class="bar-fill" style="width:0%"></div></div><span class="dot-val">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="exp-observation">
+      <strong>Observation:</strong> Head 2 in Layer 11 operates almost entirely as a copy-paste mechanism. When processing the final "gets", it looks back at the <em>previous</em> instance of "Leonard gets" and heavily attends to the token immediately following it ("4"). This is the mechanical heart of few-shot prompting.
+    </div>
+
+    <div class="exp-footer">
+      <span class="section-label">Mechanistic Interpretability · Induction</span>
+      <a href="#" class="btn-colab">NOTEBOOK ↗</a>
+    </div>
+  </article>
+
+  <div class="horizontal-rule"><span>Adding your own</span></div>
+
+  <div class="exp-header" style="margin: 0 auto; text-align: center;">
+    <p class="exp-desc">These experiments came out of specific moments in the writing where an assumption needed testing. If you read the chapter and find yourself thinking <em>"but what if..."</em> — that's the right instinct. The Colab notebooks are open; fork them and probe further.</p>
+  </div>
+
+  <div class="horizontal-rule"><span>Discussion</span></div>
+
+  <div class="discussion-wrap">
+    <p class="exp-desc">Have a variation on one of these setups? A different model, a different prompt, or a question the data didn't answer? Drop it below.</p>
+
+     
+      <div id="article-comments"></div>
+    </div>
+  </div>
+
+  <footer>
+    Connecting the Dots · Yogesh · Experiments · Chapter 1 · 2026–
+  </footer>
+
+</main>
+
+<script src="../../js/base.js"></script>
+
+<script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+
+<script src="../../js/components.js"></script>
+</body>
+</html>

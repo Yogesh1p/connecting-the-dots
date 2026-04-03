@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dots — Connecting the Dots</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/articles.css" />
+  <script src="/js/base.js" defer></script>
+
+  <style>
+    body { font-family: 'Lora', Georgia, serif; }
+
+    .page-header-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto 3rem auto;
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .articles-header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.25rem;
+      letter-spacing: -0.02em;
+      transition: font-size 0.2s ease, color 0.2s ease;
+    }
+
+    .articles-header h1.search-active {
+      font-size: 1.25rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .page-header-container.search-active .subtitle {
+      display: none;
+    }
+
+    .archive-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .archive-search {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 250px;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      background: var(--surface);
+      cursor: text;
+    }
+
+    .archive-search input,
+    .archive-sort {
+      font-family: inherit;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+    }
+
+    .archive-sort {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      background: var(--surface);
+    }
+
+    .articles-list {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .post-item {
+      position: relative;
+      padding: 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .post-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .article-date {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+      font-style: italic;
+    }
+
+    .post-item h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.2rem;
+    }
+
+    .post-item h3 a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .post-item p {
+      color: var(--muted);
+      margin: 0 0 1rem 0;
+      line-height: 1.6;
+    }
+
+    .pill-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      color: var(--accent);
+      border-radius: 99px;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="global-nav" data-root="/"></div>
+
+  <main class="page-wrap articles-page">
+    <div class="page-header-container" id="headerContainer">
+      <header class="articles-header">
+        <h1 id="mainHeading">Dots</h1>
+        <p class="subtitle">
+          Connected ideas across AI, optimization, systems, and mathematical intuition.
+        </p>
+      </header>
+
+      <div class="archive-controls">
+        <div class="archive-search" id="searchContainer">
+          <input id="articleSearch" type="text" placeholder="Search dots" />
+        </div>
+
+        <select id="sortSelect" class="archive-sort">
+          <option value="desc">Newest to Oldest</option>
+          <option value="asc">Oldest to Newest</option>
+        </select>
+      </div>
+    </div>
+
+    <section class="articles-list" id="articlesList">
+      
+      
+        
+        <article
+          class="post-item"
+          data-title="word representation"
+          data-tags=" skipgram, cbow"
+          data-date="2026-04-03"
+        >
+          <time class="article-date">
+            April 03, 2026 • By Yogesh
+          </time>
+
+          <h3>
+            <a href="/dots/word-rep/">Word representation</a>
+          </h3>
+
+          <p>How do we represent words as mathematical objects? The distributional hypothesis and the Word2Vec model.</p>
+
+          <span class="pill-tag">
+            Autoregressive Models
+          </span>
+        </article>
+        
+      
+        
+      
+        
+        <article
+          class="post-item"
+          data-title="fenchel conjugate"
+          data-tags="optimization convexity duality"
+          data-date="2026-04-03"
+        >
+          <time class="article-date">
+            April 03, 2026 • By Yogesh
+          </time>
+
+          <h3>
+            <a href="/dots/fenchel-conjugate/">Fenchel Conjugate</a>
+          </h3>
+
+          <p>Duality intuition from geometry and convex optimization</p>
+
+          <span class="pill-tag">
+            Convex Analysis
+          </span>
+        </article>
+        
+      
+        
+        <article
+          class="post-item"
+          data-title="positional encoding"
+          data-tags="sinusoidal, rope"
+          data-date="2026-04-03"
+        >
+          <time class="article-date">
+            April 03, 2026 • By Yogesh
+          </time>
+
+          <h3>
+            <a href="/dots/positional-encoding/">Positional encoding</a>
+          </h3>
+
+          <p>Why self-attention needs order, and how sinusoidal geometry evolves into RoPE.</p>
+
+          <span class="pill-tag">
+            Autoregressive Models
+          </span>
+        </article>
+        
+      
+    </section>
+  </main>
+
+  <script src="/js/components.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const articles = [...document.querySelectorAll(".post-item")];
+      const list = document.getElementById("articlesList");
+      const searchInput = document.getElementById("articleSearch");
+      const sortSelect = document.getElementById("sortSelect");
+      const mainHeading = document.getElementById("mainHeading");
+      const headerContainer = document.getElementById("headerContainer");
+
+      function updateUI() {
+        const query = searchInput.value.trim().toLowerCase();
+        const sortOrder = sortSelect.value;
+
+        let filtered = articles.filter(article => {
+          const title = article.dataset.title || "";
+          const tags = article.dataset.tags || "";
+          return !query || title.includes(query) || tags.includes(query);
+        });
+
+        filtered.sort((a, b) => {
+          const da = new Date(a.dataset.date);
+          const db = new Date(b.dataset.date);
+          return sortOrder === "desc" ? db - da : da - db;
+        });
+
+        if (query) {
+          mainHeading.innerHTML = `Search results for "${query}" (${filtered.length})`;
+          mainHeading.classList.add("search-active");
+          headerContainer.classList.add("search-active");
+        } else {
+          mainHeading.innerHTML = "Dots";
+          mainHeading.classList.remove("search-active");
+          headerContainer.classList.remove("search-active");
+        }
+
+        list.innerHTML = "";
+        filtered.forEach(el => list.appendChild(el));
+      }
+
+      searchInput.addEventListener("input", updateUI);
+      sortSelect.addEventListener("change", updateUI);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+/* ============================================================
+   Connecting the Dots — Obsidian Text Body Typography
+   Uses website reading feel for vault prose
+   ============================================================ */
+
+/* Light mode */
+.theme-light {
+  --background-primary: #FDFBF7;
+  --background-secondary: #F4EFE6;
+  --text-normal: #4A3F35;
+  --text-muted: #847769;
+  --interactive-accent: #D48C70;
+  --background-modifier-border: #E8DFD1;
+}
+
+/* Dark mode */
+.theme-dark {
+  --background-primary: #16100C;
+  --background-secondary: #1F1510;
+  --text-normal: #C5B49A;
+  --text-muted: #736050;
+  --interactive-accent: #D48C70;
+  --background-modifier-border: #2E2018;
+}
+
+/* Body text only */
+.markdown-rendered p,
+.markdown-rendered li,
+.markdown-rendered blockquote,
+.cm-line {
+  font-family: "Lora", Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--text-normal);
+}
+
+/* Beautiful blockquotes from your site */
+.markdown-rendered blockquote {
+  border-left: 3px solid var(--interactive-accent);
+  padding-left: 1rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Slightly softer note width for book reading */
+.markdown-reading-view .markdown-preview-view,
+.markdown-source-view.mod-cm6 .cm-content {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   Connecting the Dots — Editorial Heading Hierarchy
+   Adapted from articles.css
+   ============================================================ */
+

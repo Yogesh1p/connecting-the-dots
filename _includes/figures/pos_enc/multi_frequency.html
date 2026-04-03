@@ -1,0 +1,178 @@
+<div class="anim-wrap">
+  <span class="anim-title">Visualization · Multi-Frequency Encoding</span>
+  <canvas id="pe-multi-frequency" width="600" height="420"></canvas>
+
+  <div class="anim-caption">
+    Each adjacent pair of dimensions forms its own rotational plane.
+    Together they create a unique multi-scale positional fingerprint.
+  </div>
+</div>
+
+<style>
+.anim-wrap {
+    margin: 2.4em auto;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 3px 18px rgba(0,0,0,0.06);
+    position: relative;
+    font-family: 'Lora', serif;
+}
+.anim-title {
+    position: absolute;
+    top: 10px;
+    left: 16px;
+    font-size: 0.82rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.anim-wrap canvas {
+    display: block;
+    width: 100%;
+}
+.anim-caption {
+    padding: 10px 18px 14px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-align: center;
+    font-style: italic;
+    border-top: 1px solid var(--border);
+}
+</style>
+
+<script>
+(function () {
+    const canvas = document.getElementById("pe-multi-frequency");
+    if (!canvas) return;
+
+    let tick = 0;
+    const NT = 20;
+
+    const freqs = [
+        { omega: 1.000, color: "#D48C70", label: "ω₁" },
+        { omega: 0.464, color: "#7A9E8A", label: "ω₂" },
+        { omega: 0.215, color: "#6E8FA8", label: "ω₃" },
+        { omega: 0.100, color: "#A07890", label: "ω₄" },
+        { omega: 0.046, color: "#C4A060", label: "ω₅" }
+    ];
+
+    function T() {
+        const s = getComputedStyle(document.documentElement);
+        const get = v => s.getPropertyValue(v).trim();
+        return {
+            text: get("--text"),
+            muted: get("--muted"),
+            border: get("--border")
+        };
+    }
+
+    function fit() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.parentElement.clientWidth;
+        const h = parseInt(canvas.getAttribute("height"), 10);
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        return { ctx, w, h };
+    }
+
+    function circle(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+
+    function line(ctx, x1, y1, x2, y2, color) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+    }
+
+    function dot(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function label(ctx, txt, x, y, color, size = 12) {
+        ctx.font = `${size}px Lora, serif`;
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(txt, x, y);
+    }
+
+    let { ctx, w, h } = fit();
+    window.addEventListener("resize", () => {
+        ({ ctx, w, h } = fit());
+    });
+
+    function draw() {
+        const t = T();
+        ctx.clearRect(0, 0, w, h);
+
+        const topPad = 70;
+        const bottomPad = 20;
+        const usableH = h - topPad - bottomPad;
+
+        const colW = w / freqs.length;
+        const cy = topPad + usableH * 0.42;
+        const R = Math.min(colW * 0.33, usableH * 0.28);
+
+        const tokenI = Math.floor((tick * 0.45) % NT);
+
+        freqs.forEach((f, idx) => {
+            const cx = idx * colW + colW / 2;
+
+            // Larger separated top labels
+            label(ctx, f.label, cx, 88, f.color, 13);
+            label(ctx, f.omega.toFixed(3), cx, 108, t.muted, 11);
+
+            circle(ctx, cx, cy, R, t.border);
+
+            // background points
+            for (let i = 0; i < NT; i++) {
+                const a = f.omega * i;
+                dot(
+                    ctx,
+                    cx + R * Math.cos(a),
+                    cy - R * Math.sin(a),
+                    2.5,
+                    f.color
+                );
+            }
+
+            const a = f.omega * tokenI;
+            const px = cx + R * Math.cos(a);
+            const py = cy - R * Math.sin(a);
+
+            line(ctx, cx, cy, px, py, f.color);
+            dot(ctx, px, py, 7, f.color);
+
+            label(ctx, `sin ${Math.sin(a).toFixed(2)}`, cx, cy + R + 26, t.muted, 11);
+            label(ctx, `cos ${Math.cos(a).toFixed(2)}`, cx, cy + R + 44, t.muted, 11);
+        });
+
+        label(ctx, `Token position i = ${tokenI}`, w / 2, h - 28, t.text, 14);
+
+        tick += 0.025;
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+})();
+</script>

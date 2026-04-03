@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220" style="overflow: visible;">
+
+  <defs>
+    <linearGradient id="spineShade" x1="45.254" y1="100.04" x2="49.771" y2="100.04">
+      <stop offset="0" stop-color="#1A1208"/>
+      <stop offset="1" stop-color="#2A1E12"/>
+    </linearGradient>
+
+    <linearGradient id="coverGrad" x1="39" y1="100" x2="174" y2="100">
+      <stop offset="0%" stop-color="#2A1E12"/>
+      <stop offset="100%" stop-color="#4A3220"/>
+    </linearGradient>
+    
+    <clipPath id="page-clip">
+      <path d="M45.627,192.611 C45.627,192.611 173.894,192.544 172.604,192.607 C171.313,192.669 171.096,202.232 172.21,202.237 C172.753,202.239 45.627,202.236 45.627,202.236 C44.216,202.236 41.329,199.694 41.329,197.028 C41.329,194.362 44.216,192.611 45.627,192.611 z"/>
+    </clipPath>
+  </defs>
+
+  <path d="M106.5,192.04 L174,192.04 C174,192.04 174.263,15.8 174.231,12.8 C174.2,9.8 170.489,10.04 170.489,10.04 L44,10.04 C41,10.04 39,12.04 39,15.043 L39,197.043 C39,194.043 41,192.043 44,192.043 L106.5,192.043 z"
+        fill="url(#coverGrad)"/>
+
+  <rect x="50" y="20" width="115" height="162" rx="2"
+        fill="none" stroke="#6B513A" stroke-width="0.9"/>
+
+  <path d="M45.254,10.04 L49.771,10.04 L49.771,190.04 L45.254,190.04 z"
+        fill="url(#spineShade)" opacity="0.7"/>
+
+  <path d="M46.352,190.04 L173.874,190.08 L173.842,205.04 L46.352,205.04 
+           C42.477,205.04 39.116,202.461 39.116,198.583 
+           L39.116,197.026 
+           C39.116,193.148 42.477,190.04 46.352,190.04 z"
+        fill="#3A281A"/>
+
+  <path d="M45.627,192.611 
+           C45.627,192.611 173.894,192.544 172.604,192.607 
+           C171.313,192.669 171.096,202.232 172.21,202.237 
+           C172.753,202.239 45.627,202.236 45.627,202.236 
+           C44.216,202.236 41.329,199.694 41.329,197.028 
+           C41.329,194.362 44.216,192.611 45.627,192.611 z"
+        fill="#4A3624"/>
+
+  <g clip-path="url(#page-clip)">
+    <line x1="30" y1="194.5" x2="180" y2="194.5" stroke="#3A281A" stroke-width="0.5"/>
+    <line x1="30" y1="196.5" x2="180" y2="196.5" stroke="#3A281A" stroke-width="0.5"/>
+    <line x1="30" y1="198.5" x2="180" y2="198.5" stroke="#2A1E12" stroke-width="1.0"/> <line x1="30" y1="200.5" x2="180" y2="200.5" stroke="#3A281A" stroke-width="0.5"/>
+  </g>
+
+  <g id="bookmark">
+    <path d="M53 198.5
+             L59 198.5
+             L59 216
+             L56 211
+             L53 216
+             Z"
+          fill="#C4795E"/>
+    <path d="M53 198.5
+             L59 198.5
+             L59 200.5
+             C56 201.5, 54 201.5, 53 200.5
+             Z"
+          fill="#1A1208" opacity="0.4"/>
+  </g>
+
+  <path d="M171.393,190.04 L173.983,190.04 L173.993,192.023 C173.993,192.311 174.1,192.593 173.475,192.577 L171.717,192.593 C171.381,192.593 171.046,192.3 171.046,191.971 C171.046,191.642 171.056,190.04 171.393,190.04 z"
+        fill="#2A1E12"/>
+
+  <path d="M172.004,204.657 L172.005,202.222 L173.259,202.235 C173.415,202.235 173.993,202.093 173.993,202.655 C173.993,204.983 173.665,204.983 173.665,204.983 C173.409,204.983 172.004,204.973 172.004,204.657 z"
+        fill="#2A1E12"/>
+
+  <path d="M46.531,190.04 L48.495,190.04 C49.2,190.04 49.771,190.611 49.771,191.316 C49.771,192.021 49.2,192.593 48.495,192.593 L46.531,192.593 C45.826,192.593 45.254,192.021 45.254,191.316 C45.254,190.611 45.826,190.04 46.531,190.04 z"
+        fill="#1A1208"/>
+
+  <text x="107" y="54" text-anchor="middle"
+        font-family="Georgia, serif" font-size="11"
+        fill="#E6D3B5" font-style="italic">
+    Connecting
+  </text>
+
+  <text x="107" y="68" text-anchor="middle"
+        font-family="Georgia, serif" font-size="11"
+        fill="#E6D3B5" font-style="italic">
+    the Dots
+  </text>
+
+  <line x1="58" y1="76" x2="156" y2="76"
+        stroke="#5A4634" stroke-width="0.7"/>
+
+  <g transform="translate(82, 88) scale(1.7)">
+    <line x1="7" y1="10" x2="16" y2="7" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="7" y1="10" x2="16" y2="16" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="7" y1="10" x2="16" y2="25" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+
+    <line x1="7" y1="22" x2="16" y2="7" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="7" y1="22" x2="16" y2="16" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="7" y1="22" x2="16" y2="25" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+
+    <line x1="16" y1="7" x2="25" y2="16" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="16" y1="16" x2="25" y2="16" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="16" y1="25" x2="25" y2="16" stroke="#E8A882" stroke-width="1.2" stroke-linecap="round"/>
+
+    <circle cx="7" cy="10" r="2.3" fill="#FFB38A"/>
+    <circle cx="7" cy="22" r="2.3" fill="#FFB38A"/>
+    <circle cx="16" cy="7" r="2.0" fill="#E8A882"/>
+    <circle cx="16" cy="16" r="2.0" fill="#E8A882"/>
+    <circle cx="16" cy="25" r="2.0" fill="#E8A882"/>
+    <circle cx="25" cy="16" r="2.3" fill="#FFB38A"/>
+  </g>
+
+  <line x1="58" y1="162" x2="156" y2="162"
+        stroke="#5A4634" stroke-width="0.7"/>
+
+  <text x="107" y="176" text-anchor="middle"
+        font-family="Georgia, serif" font-size="9"
+        fill="#9A826B" font-style="italic">
+    Yogesh
+  </text>
+
+</svg>

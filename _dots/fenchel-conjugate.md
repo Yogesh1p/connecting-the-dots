@@ -1,13 +1,14 @@
 ---
 layout: page
 title: Fenchel Conjugate
-description: Fenchel duality intuition
-permalink: /dots/fenchel-conjugate/
+description: Duality intuition from geometry and convex optimization
+keywords: optimization convexity duality
+chapter: Convex Analysis
+date created: 2026-04-03
+last_modified_at: 2026-04-03
 ---
-# Fenchel Conjugate
 
 The Fenchel conjugate of a function is
-
 $$
 f^*(y)=\sup_x \{\langle x,y\rangle-f(x)\}
 $$
@@ -352,6 +353,6 @@ https://www.stat.cmu.edu/~siva/teaching/725/lec12.pdf
 <iframe
   src="https://www.desmos.com/calculator/ihjlyro7rx"
   width="100%"
-  height="400"
+  height="600"
   style="border:none; border-radius:12px;">
 </iframe>

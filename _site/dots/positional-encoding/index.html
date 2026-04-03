@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Positional encoding</title>
+    <meta name="description" content="Why self-attention needs order, and how sinusoidal geometry evolves into RoPE.">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-03">
+    <meta name="keywords" content="Sinusoidal, RoPE">
+    <meta name="chapter" content="Autoregressive Models">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/articles.css">
+<link rel="stylesheet" href="/css/interactives/figures.css">
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="/js/base.js" defer></script>
+    <script src="/js/components.js" defer></script>
+    <script src="/js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: { fontCache: "global" }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+
+    <div id="global-nav" data-root="/" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+                        <h2 id="transformer-based-models-and-practical-tricks">Transformer-Based Models and Practical Tricks</h2>
+
+<p>In Chapter 1, we developed the Transformer as the modern solution to variable-length autoregressive modeling. Self-attention gave us a scalable mechanism for relating all tokens in a sequence, replacing the recurrence bottleneck of RNNs.</p>
+
+<p>But the vanilla Transformer architecture is only the starting point.</p>
+
+<p>Turning this architecture into a practical large language model requires a series of design refinements: how to encode token order, how to reduce attention cost, how to structure query-key-value heads efficiently, and how to scale the decoder for inference.</p>
+
+<p>These refinements do not change the fundamental autoregressive factorization. Instead, they improve the geometry, efficiency, and systems behavior of the Transformer at scale.</p>
+
+<p>We begin with the first and most fundamental refinement: <em>how to inject positional structure into an otherwise permutation-invariant attention mechanism.</em></p>
+
+<p>Self-attention compares tokens through similarity in content space. Given token representations $x_1, x_2, \dots, x_n$, the attention score between positions $i$ and $j$ is</p>
+
+\[s_{ij} = q_i^\top k_j\]
+
+<p>This mechanism is remarkably powerful, but it comes with a fundamental limitation: <em>self-attention is permutation-invariant</em>. If the token embeddings are kept the same while their order is shuffled, the architecture itself has no built-in notion of which token came first.</p>
+
+<p>This is catastrophic for language, where order carries meaning.</p>
+
+<p>Consider the two sentences:</p>
+
+<blockquote>
+  <p>Avengers defeated Thanos<br />
+Thanos defeated Avengers</p>
+</blockquote>
+
+<p>The words are identical, yet the meanings are opposite. Language therefore depends not only on <em>which words appear</em>, but also on <em>the order in which they appear</em>.</p>
+
+<p>This gives us the first requirement:</p>
+
+<blockquote>
+  <p>The model must distinguish the same words appearing in different positions.</p>
+</blockquote>
+
+<p>A second requirement comes from linguistic locality. In phrases such as</p>
+
+\[\text{not happy}, \qquad \text{red car}, \qquad \text{very large}\]
+
+<p>nearby words interact most strongly. Positional structure should therefore make <em>small relative offsets easy to detect</em>.</p>
+
+<p><strong>Key Concept</strong> :
+Positional encoding should help attention heads do two things:</p>
+<ol>
+  <li>Infer word order in the sentence</li>
+  <li>Assign stronger attention to nearby words when needed</li>
+</ol>
+
+<h2 id="a-naive-positional-signal">A naive positional signal</h2>
+
+<p>A first idea might be to attach the token index directly to the embedding. If the token embedding is $e_i \in \mathbb{R}^d$, we could append the scalar position:</p>
+
+\[\tilde e_i =
+\begin{bmatrix}
+e_i \\
+i
+\end{bmatrix}\]
+
+<p>This certainly breaks permutation invariance: the same word appearing at different locations now produces different representations.</p>
+
+<p>However, this creates several problems.</p>
+
+<p>First, the raw position index is just a scalar, while the semantic embedding lives in a high-dimensional feature space. The appended coordinate does not naturally interact with the rest of the embedding dimensions.</p>
+
+<p>Second, raw integers impose an arbitrary notion of scale. Position $100$ is not meaningfully “ten times more positional” than position $10$, yet dot products would treat it that way.</p>
+
+<p>Most importantly, attention works through inner products in a shared vector space. To let position interact naturally with semantic similarity, it should live in the <em>same dimensional geometry</em> as the token embedding itself.</p>
+
+<h3 id="position-as-a-vector-in-embedding-space">Position as a vector in embedding space</h3>
+
+<p>Instead of a scalar index, we therefore assign each position its own vector</p>
+
+\[PE(i) \in \mathbb{R}^d\]
+
+<p>with the same dimensionality as the token embedding.</p>
+
+<p>The simplest integration is additive:</p>
+
+\[h_i = e_i + PE(i)\]
+
+<p>where $e_i$ denotes the token embedding.</p>
+
+<p>To isolate the geometric role of position, first consider the simplified case where the query and key projections act as identity maps:</p>
+
+\[W_Q = W_K = I\]
+
+<p>The attention score then becomes</p>
+
+\[s_{ij} = (e_i + PE(i))^\top (e_j + PE(j))\]
+
+<p>allowing similarity to depend on both semantic content and token position.</p>
+
+<h2 id="what-structure-should-positional-similarity-have">What structure should positional similarity have?</h2>
+
+<p>At this point, position influences attention through inner products. So the usefulness of a positional map depends on the geometry it induces under dot products.</p>
+
+<p>Expanding the score:</p>
+
+\[s_{ij}
+=
+e_i^\top e_j
++
+e_i^\top PE(j)
++
+PE(i)^\top e_j
++
+PE(i)^\top PE(j)\]
+
+<p>The first term captures semantic similarity. The middle terms mix content and position. But the last term is especially important: it describes how positional similarity alone contributes to attention.</p>
+
+<p>For locality-sensitive patterns, we would like this term to reveal how far apart two tokens are. Ideally,</p>
+
+\[PE(i)^\top PE(j)\]
+
+<p>should depend mainly on the relative offset $(i-j)$ rather than on the absolute positions themselves.</p>
+
+<h3 id="a-geometric-constraint">A geometric constraint</h3>
+
+<p>At this point, positional information enters attention through inner products. So if nearby positions should interact more strongly, we want</p>
+
+\[PE(i)^\top PE(j)\]
+
+<p>to be larger when $i$ and $j$ are close.</p>
+
+<p>A naive way to increase dot products would be to simply increase vector magnitudes. But that would make the positional signal depend on scale rather than structure, which is unstable and hard to interpret.</p>
+
+<p>A cleaner design is to keep all positional vectors at the same norm, so that similarity depends only on their relative orientation.</p>
+
+<p>With fixed magnitude, the only way for dot products to change is through the <em>angle</em> between vectors. Nearby positions should therefore correspond to nearby angles, while larger offsets create larger angular differences.</p>
+
+<p>In two dimensions, all unit vectors lie on the unit circle.</p>
+
+<p>So the simplest positional geometry is to place each position as a point moving smoothly around that circle:</p>
+
+\[PE_\omega(i)=
+\begin{bmatrix}
+\cos(\omega i) \\
+\sin(\omega i)
+\end{bmatrix}\]
+
+<div class="anim-wrap">
+  <span class="anim-title">Interactive · Unit Circle</span>
+
+  <canvas id="pe-unit-circle" width="600" height="310" style="display:block; width:100%;"></canvas>
+
+  <div class="anim-controls">
+    <label>ω (frequency)</label>
+    <input type="range" id="omega-slider" min="0.05" max="1.5" step="0.01" value="0.30" />
+    <span id="omega-value">0.30</span>
+  </div>
+
+  <div class="anim-caption">
+    Each token position <em>i</em> maps to a point on the unit circle via angle ω·i.
+    Drag ω to change the angular spacing between positions.
+  </div>
+</div>
+
+<script>
+(() => {
+    const canvas = document.getElementById("pe-unit-circle");
+    if (!canvas) return;
+
+    const slider = document.getElementById("omega-slider");
+    const value = document.getElementById("omega-value");
+    const ctx = canvas.getContext("2d");
+
+    let omega = parseFloat(slider.value);
+    let tick = 0;
+    const N = 16;
+
+    function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.parentElement.clientWidth;
+        const height = parseInt(canvas.getAttribute("height"), 10);
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + "px";
+        canvas.style.height = height + "px";
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        return { width, height };
+    }
+
+    let { width, height } = resize();
+
+    window.addEventListener("resize", () => {
+        ({ width, height } = resize());
+    });
+
+    slider.addEventListener("input", () => {
+        omega = parseFloat(slider.value);
+        value.textContent = omega.toFixed(2);
+    });
+
+    function drawCircle(x, y, r, color, lineWidth = 1.5) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.stroke();
+    }
+
+    function drawDot(x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function draw() {
+        const styles = getComputedStyle(document.documentElement);
+        const accent = styles.getPropertyValue("--accent").trim() || "#D48C70";
+        const border = styles.getPropertyValue("--border").trim() || "#cccccc";
+        const text = styles.getPropertyValue("--text").trim() || "#222222";
+
+        ctx.clearRect(0, 0, width, height);
+
+        const cx = width / 2;
+        const cy = height / 2;
+        const R = Math.min(width, height) * 0.32;
+
+        // axes
+        ctx.strokeStyle = border;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - R - 14, cy);
+        ctx.lineTo(cx + R + 14, cy);
+        ctx.moveTo(cx, cy - R - 14);
+        ctx.lineTo(cx, cy + R + 14);
+        ctx.stroke();
+
+        drawCircle(cx, cy, R, border);
+
+        // position points
+        for (let i = 0; i < N; i++) {
+            const a = omega * i;
+            const x = cx + R * Math.cos(a);
+            const y = cy - R * Math.sin(a);
+
+            drawDot(x, y, 3, accent);
+        }
+
+        // active animated point
+        const active = Math.floor((tick * 0.55) % N);
+        const angle = omega * active;
+
+        const px = cx + R * Math.cos(angle);
+        const py = cy - R * Math.sin(angle);
+
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(px, py);
+        ctx.strokeStyle = accent;
+        ctx.stroke();
+        ctx.restore();
+
+        drawDot(px, py, 6, accent);
+
+        ctx.font = "11px Lora, serif";
+        ctx.fillStyle = text;
+        ctx.textAlign = "center";
+        ctx.fillText(
+            `PE(${active}) = [${Math.cos(angle).toFixed(2)}, ${Math.sin(angle).toFixed(2)}]`,
+            cx,
+            height - 16
+        );
+
+        tick += 0.025;
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+})();
+</script>
+
+<p>Advancing one token changes the angle slightly. Advancing by $k$ tokens changes it by $\omega k$. Position shifts in token space therefore become angular shifts in feature space.</p>
+
+<h3 id="why-dot-products-recover-relative-position">Why dot products recover relative position</h3>
+
+<p>Now compare two positions $i$ and $j$:</p>
+
+\[PE_\omega(i)^\top PE_\omega(j)
+=
+\cos(\omega i)\cos(\omega j)
++
+\sin(\omega i)\sin(\omega j)\]
+
+<p>Using the trigonometric identity</p>
+
+\[\cos A \cos B + \sin A \sin B = \cos(A-B)\]
+
+<p>this simplifies to</p>
+
+\[PE_\omega(i)^\top PE_\omega(j)
+=
+\cos\bigl(\omega(i-j)\bigr)\]
+
+<p>This is exactly the structure we wanted. The absolute positions disappear, and the similarity depends only on the relative offset.</p>
+
+<div class="anim-wrap">
+  <span class="anim-title">Interactive · Relative Similarity</span>
+  <canvas id="pe-relative-similarity" width="600" height="290"></canvas>
+
+  <div class="anim-controls">
+    <label>position i</label>
+    <input type="range" id="pe-pos-i" min="0" max="20" step="1" value="3" />
+    <span id="pe-pos-i-value">3</span>
+
+    <label style="margin-left:10px">position j</label>
+    <input type="range" id="pe-pos-j" min="0" max="20" step="1" value="7" />
+    <span id="pe-pos-j-value">7</span>
+  </div>
+
+  <div class="anim-caption">
+    Two tokens sit at positions <em>i</em> and <em>j</em> on the unit circle. Their dot product equals cos(ω·|i−j|).
+  </div>
+</div>
+
+<style>
+.anim-wrap {
+    margin: 2.4em auto;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 3px 18px rgba(0,0,0,0.06);
+    position: relative;
+    font-family: 'Lora', serif;
+    padding-top: 35px; /* creates title strip */
+}
+.anim-title {
+    position: absolute;
+    top: 1px;
+    left: 10px;
+    font-size: 0.67rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--muted);
+    pointer-events: none;
+}
+.anim-wrap canvas {
+    display: block;
+    width: 100%;
+}
+.anim-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 18px 12px;
+    flex-wrap: wrap;
+}
+.anim-controls label {
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+.anim-controls input[type=range] {
+    flex: 1;
+    min-width: 80px;
+    accent-color: var(--accent);
+}
+.anim-controls span {
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-family: monospace;
+    min-width: 30px;
+}
+.anim-caption {
+    padding: 8px 18px 13px;
+    font-size: 0.79rem;
+    color: var(--muted);
+    text-align: center;
+    font-style: italic;
+    border-top: 1px solid var(--border);
+}
+</style>
+
+<script>
+(function () {
+    const canvas = document.getElementById("pe-relative-similarity");
+    if (!canvas) return;
+
+    const sI = document.getElementById("pe-pos-i");
+    const sJ = document.getElementById("pe-pos-j");
+    const vI = document.getElementById("pe-pos-i-value");
+    const vJ = document.getElementById("pe-pos-j-value");
+
+    let posI = parseInt(sI.value, 10);
+    let posJ = parseInt(sJ.value, 10);
+    const OMEGA = 0.35;
+
+    function T() {
+        const s = getComputedStyle(document.documentElement);
+        const get = v => s.getPropertyValue(v).trim();
+        return {
+            text: get("--text"),
+            muted: get("--muted"),
+            accent: get("--accent"),
+            border: get("--border"),
+            slate: "#6E8FA8",
+            sage: "#7A9E8A",
+            sand: "#C4A060"
+        };
+    }
+
+    function fit() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.parentElement.clientWidth;
+        const h = parseInt(canvas.getAttribute("height"), 10);
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        return { ctx, w, h };
+    }
+
+    function line(ctx, x1, y1, x2, y2, color, width = 1, dash = []) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash(dash);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function circle(ctx, cx, cy, r, color, width = 1) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+    }
+
+    function dot(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function label(ctx, text, x, y, color, size = 11, align = "center") {
+        ctx.font = `${size}px Lora, serif`;
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, x, y);
+    }
+
+    let { ctx, w, h } = fit();
+    window.addEventListener("resize", () => {
+        ({ ctx, w, h } = fit());
+    });
+
+    sI.addEventListener("input", () => {
+        posI = parseInt(sI.value, 10);
+        vI.textContent = posI;
+    });
+
+    sJ.addEventListener("input", () => {
+        posJ = parseInt(sJ.value, 10);
+        vJ.textContent = posJ;
+    });
+
+    function draw() {
+        const t = T();
+        ctx.clearRect(0, 0, w, h);
+
+        // LEFT PANEL
+        const cx = w * 0.29;
+        const cy = h / 2;
+        const R = Math.min(w * 0.22, h * 0.38);
+
+        circle(ctx, cx, cy, R, t.border, 1);
+
+        const ai = OMEGA * posI;
+        const aj = OMEGA * posJ;
+
+        const pIx = cx + R * Math.cos(ai);
+        const pIy = cy - R * Math.sin(ai);
+
+        const pJx = cx + R * Math.cos(aj);
+        const pJy = cy - R * Math.sin(aj);
+
+        line(ctx, cx, cy, pIx, pIy, t.accent, 2);
+        line(ctx, cx, cy, pJx, pJy, t.slate, 2);
+
+        dot(ctx, pIx, pIy, 5.5, t.accent);
+        dot(ctx, pJx, pJy, 5.5, t.slate);
+
+        label(ctx, `i=${posI}`, pIx, pIy - 14, t.accent, 10);
+        label(ctx, `j=${posJ}`, pJx, pJy - 14, t.slate, 10);
+
+        // RIGHT PANEL
+        const pX = w * 0.56;
+        const pY = cy;
+        const pW = w * 0.38;
+        const pH = h * 0.44;
+        const maxD = 20;
+
+        line(ctx, pX, pY - pH / 2, pX, pY + pH / 2, t.border, 1);
+        line(ctx, pX, pY, pX + pW, pY, t.border, 1);
+
+        ctx.beginPath();
+        for (let d = 0; d <= maxD; d += 0.08) {
+            const x = pX + (d / maxD) * pW;
+            const y = pY - Math.cos(OMEGA * d) * (pH / 2 - 6);
+            d === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = t.sage;
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        const delta = Math.abs(posI - posJ);
+        const dotV = Math.cos(OMEGA * delta);
+
+        const mx = pX + (delta / maxD) * pW;
+        const my = pY - dotV * (pH / 2 - 6);
+
+        line(ctx, mx, pY, mx, my, t.muted, 1, [3, 3]);
+        dot(ctx, mx, my, 6, t.sage);
+
+        label(ctx, `|i-j| = ${delta}`, pX + pW / 2, pY + pH / 2 + 14, t.muted, 10);
+        label(ctx, `dot = ${dotV.toFixed(3)}`, pX + pW / 2, pY - pH / 2 - 14, t.sage, 11);
+
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+})();
+</script>
+
+<p>So the angle between two positional vectors directly encodes how far apart the tokens are in the sequence.</p>
+
+<h2 id="why-one-frequency-is-not-enough">Why one frequency is not enough</h2>
+
+<p>A single circle captures positional offsets only at one scale.</p>
+
+<p>If $\omega$ is large, even small shifts in token index produce large angular changes. This makes nearby positions highly distinguishable, which is useful for local syntax. But the representation wraps around quickly.</p>
+
+<p>If $\omega$ is small, the angle changes slowly. This preserves distinguishability over long ranges, but nearby positions become too similar.</p>
+
+<div class="anim-wrap">
+  <div class="anim-title">Visualization · High vs Low Frequency</div>
+  <canvas id="pe-high-low-frequency" width="600" height="400"></canvas>
+
+  <div class="anim-caption">
+    A high-frequency circle resolves nearby positions precisely but wraps around quickly.
+    A low-frequency circle preserves long-range identity but blurs local differences.
+  </div>
+</div>
+
+<style>
+.anim-wrap {
+    margin: 2.4em auto;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
+    box-shadow: 0 3px 18px rgba(0,0,0,0.06);
+    position: relative;
+    font-family: 'Lora', serif;
+}
+.anim-title {
+    /* Explicitly block-level to push the canvas down */
+    display: block;
+    position: relative;
+    padding: 20px 20px 0 20px; 
+    font-size: 0.75rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--muted, #64748b);
+    pointer-events: none;
+}
+.anim-wrap canvas {
+    display: block;
+    width: 100%;
+}
+.anim-caption {
+    padding: 16px 20px 20px;
+    font-size: 0.85rem;
+    color: var(--muted, #64748b);
+    text-align: center;
+    font-style: italic;
+    border-top: 1px solid var(--border, #e2e8f0);
+}
+</style>
+
+<script>
+(function () {
+    const canvas = document.getElementById("pe-high-low-frequency");
+    if (!canvas) return;
+
+    let tick = 0;
+    const N = 24;
+
+    function T() {
+        const s = getComputedStyle(document.documentElement);
+        const get = v => s.getPropertyValue(v).trim();
+
+        return {
+            text: get("--text") || "#1e293b",
+            muted: get("--muted") || "#64748b",
+            accent: get("--accent") || "#D08770", /* Matched to your screenshot */
+            slate: "#81A1C1", /* Matched to your screenshot */
+            border: get("--border") || "#e5e7eb"
+        };
+    }
+
+    function fit() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.parentElement.clientWidth;
+        const h = parseInt(canvas.getAttribute("height"), 10);
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        return { ctx, w, h };
+    }
+
+    function line(ctx, x1, y1, x2, y2, color, width = 1) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+    }
+
+    function circle(ctx, cx, cy, r, color, width = 1) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+    }
+
+    function dot(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function label(ctx, text, x, y, color, size = 12, align = "center", baseline = "middle") {
+        ctx.font = `${size}px Lora, serif`;
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.textBaseline = baseline;
+        ctx.fillText(text, x, y);
+    }
+
+    let { ctx, w, h } = fit();
+    window.addEventListener("resize", () => {
+        ({ ctx, w, h } = fit());
+    });
+
+    function drawPanel(cx, cy, R, omega, color, labelText, subText, panelWidth) {
+        const t = T();
+
+        // Increased font sizes and pushed down slightly
+        label(ctx, labelText, cx, 62, color, 14);
+        label(ctx, subText, cx, 80, t.muted, 12);
+
+        circle(ctx, cx, cy, R, t.border, 1);
+
+        // all token points
+        for (let i = 0; i < N; i++) {
+            const a = omega * i;
+            const px = cx + R * Math.cos(a);
+            const py = cy - R * Math.sin(a);
+            dot(ctx, px, py, 3, color);
+        }
+
+        // moving active token
+        const iF = Math.floor((tick * 0.65) % N);
+        const a = omega * iF;
+        const px = cx + R * Math.cos(a);
+        const py = cy - R * Math.sin(a);
+
+        line(ctx, cx, cy, px, py, color, 1.5);
+        dot(ctx, px, py, 6, color);
+
+        // Dynamic label positioning to push text outward from the circle
+        const labelRadius = R + 18; 
+        const lx = cx + labelRadius * Math.cos(a);
+        const ly = cy - labelRadius * Math.sin(a);
+        
+        const align = Math.cos(a) > 0 ? "left" : "right";
+        const baseline = Math.sin(a) > 0 ? "bottom" : "top";
+        
+        // Increased dynamic label font size
+        label(ctx, `pos ${iF}`, lx, ly, color, 13, align, baseline);
+
+        // sine strip below
+        const wY = h - 50;
+        const wH = 24;
+        const wX0 = cx - panelWidth * 0.35;
+        const wX1 = cx + panelWidth * 0.35;
+
+        ctx.beginPath();
+        for (let x = wX0; x <= wX1; x++) {
+            const pct = (x - wX0) / (wX1 - wX0);
+            const y = wY - Math.sin(omega * pct * N) * wH;
+            x === wX0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        const pct = iF / N;
+        const wx = wX0 + pct * (wX1 - wX0);
+        const wy = wY - Math.sin(omega * pct * N) * wH;
+        dot(ctx, wx, wy, 6, color);
+    }
+
+    function draw() {
+        const t = T();
+        ctx.clearRect(0, 0, w, h);
+
+        const colW = w / 2;
+        // Pushed the visualization down to center it in the taller canvas
+        const cy = h * 0.52; 
+        const R = Math.min(colW * 0.26, h * 0.22);
+
+        drawPanel(
+            colW * 0.5,
+            cy,
+            R,
+            1.1,
+            t.accent,
+            "High  ω = 1.1",
+            "resolves nearby positions",
+            colW
+        );
+
+        drawPanel(
+            colW * 1.5,
+            cy,
+            R,
+            0.14,
+            t.slate,
+            "Low  ω = 0.14",
+            "distinguishes distant positions",
+            colW
+        );
+
+        // divider
+        line(ctx, colW, 20, colW, h - 20, t.border, 1);
+
+        tick += 0.025;
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+})();
+</script>
+
+<p>So a single frequency forces a trade-off:</p>
+
+<ul>
+  <li>high frequency gives precise local resolution</li>
+  <li>low frequency preserves long-range identity</li>
+</ul>
+
+<p>Language needs both.</p>
+
+<h2 id="many-frequencies-many-circles">Many frequencies, many circles</h2>
+
+<p>The solution is to use multiple angular frequencies</p>
+
+\[\omega_1, \omega_2, \dots, \omega_m\]
+
+<p>Each frequency contributes one rotating circle, and the final positional representation concatenates all of them:</p>
+
+\[PE(i)=
+\begin{bmatrix}
+\sin(\omega_1 i) \\
+\cos(\omega_1 i) \\
+\sin(\omega_2 i) \\
+\cos(\omega_2 i) \\
+\vdots \\
+\sin(\omega_m i) \\
+\cos(\omega_m i)
+\end{bmatrix}\]
+
+<p>Each adjacent pair forms one rotational plane evolving at its own speed.</p>
+
+<div class="anim-wrap">
+  <span class="anim-title">Visualization · Multi-Frequency Encoding</span>
+  <canvas id="pe-multi-frequency" width="600" height="420"></canvas>
+
+  <div class="anim-caption">
+    Each adjacent pair of dimensions forms its own rotational plane.
+    Together they create a unique multi-scale positional fingerprint.
+  </div>
+</div>
+
+<style>
+.anim-wrap {
+    margin: 2.4em auto;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 3px 18px rgba(0,0,0,0.06);
+    position: relative;
+    font-family: 'Lora', serif;
+}
+.anim-title {
+    position: absolute;
+    top: 10px;
+    left: 16px;
+    font-size: 0.82rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.anim-wrap canvas {
+    display: block;
+    width: 100%;
+}
+.anim-caption {
+    padding: 10px 18px 14px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-align: center;
+    font-style: italic;
+    border-top: 1px solid var(--border);
+}
+</style>
+
+<script>
+(function () {
+    const canvas = document.getElementById("pe-multi-frequency");
+    if (!canvas) return;
+
+    let tick = 0;
+    const NT = 20;
+
+    const freqs = [
+        { omega: 1.000, color: "#D48C70", label: "ω₁" },
+        { omega: 0.464, color: "#7A9E8A", label: "ω₂" },
+        { omega: 0.215, color: "#6E8FA8", label: "ω₃" },
+        { omega: 0.100, color: "#A07890", label: "ω₄" },
+        { omega: 0.046, color: "#C4A060", label: "ω₅" }
+    ];
+
+    function T() {
+        const s = getComputedStyle(document.documentElement);
+        const get = v => s.getPropertyValue(v).trim();
+        return {
+            text: get("--text"),
+            muted: get("--muted"),
+            border: get("--border")
+        };
+    }
+
+    function fit() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.parentElement.clientWidth;
+        const h = parseInt(canvas.getAttribute("height"), 10);
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + "px";
+        canvas.style.height = h + "px";
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        return { ctx, w, h };
+    }
+
+    function circle(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+
+    function line(ctx, x1, y1, x2, y2, color) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+    }
+
+    function dot(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function label(ctx, txt, x, y, color, size = 12) {
+        ctx.font = `${size}px Lora, serif`;
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(txt, x, y);
+    }
+
+    let { ctx, w, h } = fit();
+    window.addEventListener("resize", () => {
+        ({ ctx, w, h } = fit());
+    });
+
+    function draw() {
+        const t = T();
+        ctx.clearRect(0, 0, w, h);
+
+        const topPad = 70;
+        const bottomPad = 20;
+        const usableH = h - topPad - bottomPad;
+
+        const colW = w / freqs.length;
+        const cy = topPad + usableH * 0.42;
+        const R = Math.min(colW * 0.33, usableH * 0.28);
+
+        const tokenI = Math.floor((tick * 0.45) % NT);
+
+        freqs.forEach((f, idx) => {
+            const cx = idx * colW + colW / 2;
+
+            // Larger separated top labels
+            label(ctx, f.label, cx, 88, f.color, 13);
+            label(ctx, f.omega.toFixed(3), cx, 108, t.muted, 11);
+
+            circle(ctx, cx, cy, R, t.border);
+
+            // background points
+            for (let i = 0; i < NT; i++) {
+                const a = f.omega * i;
+                dot(
+                    ctx,
+                    cx + R * Math.cos(a),
+                    cy - R * Math.sin(a),
+                    2.5,
+                    f.color
+                );
+            }
+
+            const a = f.omega * tokenI;
+            const px = cx + R * Math.cos(a);
+            const py = cy - R * Math.sin(a);
+
+            line(ctx, cx, cy, px, py, f.color);
+            dot(ctx, px, py, 7, f.color);
+
+            label(ctx, `sin ${Math.sin(a).toFixed(2)}`, cx, cy + R + 26, t.muted, 11);
+            label(ctx, `cos ${Math.cos(a).toFixed(2)}`, cx, cy + R + 44, t.muted, 11);
+        });
+
+        label(ctx, `Token position i = ${tokenI}`, w / 2, h - 28, t.text, 14);
+
+        tick += 0.025;
+        requestAnimationFrame(draw);
+    }
+
+    draw();
+})();
+</script>
+
+<p>Fast frequencies behave like fine-grained local clocks, while slow frequencies preserve identity over long contexts.</p>
+
+<h2 id="the-transformer-sinusoidal-encoding">The Transformer sinusoidal encoding</h2>
+
+<p>The Transformer chooses these frequencies geometrically:</p>
+
+\[\omega_k = \frac{1}{10000^{2k/d}}\]
+
+<p>This creates a spectrum ranging from rapid local oscillations to extremely slow global rotations.</p>
+
+<p>The result is a deterministic, parameter-free Fourier feature map over token index.</p>
+
+<h2 id="the-limitation-of-absolute-encoding">The limitation of absolute encoding</h2>
+
+<p>With absolute sinusoidal encoding, the positional vector is first added to the token embedding:</p>
+
+\[h_i = e_i + PE(i)\]
+
+<p>The query and key are then formed as</p>
+
+\[q_i = W_Q h_i = W_Q(e_i + PE(i))\]
+
+\[k_j = W_K h_j = W_K(e_j + PE(j))\]
+
+<p>So the attention score becomes</p>
+
+\[q_i^\top k_j
+=
+(W_Q(e_i+PE(i)))^\top
+(W_K(e_j+PE(j)))\]
+
+<p>The relative phase structure is therefore only <em>implicitly preserved</em>.</p>
+
+<p>A more natural design is to place the positional rotation directly on the query and key vectors themselves.</p>
+
+<p>This leads to Rotary Positional Embeddings (RoPE).</p>
+
+<h2 id="rotary-positional-embeddings-rope">Rotary Positional Embeddings (RoPE)</h2>
+
+<p>RoPE applies the positional phase directly to projected query and key vectors.</p>
+
+<p>For a two-dimensional subspace, define the position-dependent rotation</p>
+
+\[R(i)=
+\begin{bmatrix}
+\cos\theta_i &amp; -\sin\theta_i \\
+\sin\theta_i &amp; \cos\theta_i
+\end{bmatrix},
+\qquad
+\theta_i = \omega i\]
+
+<p>The rotated query and key are</p>
+
+\[q_i' = R(i)\,W_Q e_i\]
+
+\[k_j' = R(j)\,W_K e_j\]
+
+<p>Their attention score is</p>
+
+\[(q_i')^\top k_j'
+=
+(W_Q e_i)^\top R(i)^\top R(j)(W_K e_j)\]
+
+<p>Now use the fact that the transpose of a rotation is its inverse:</p>
+
+\[R(i)^\top = R(-i)\]
+
+<p>So</p>
+
+\[R(i)^\top R(j)=R(-i)R(j)\]
+
+<p>Rotations compose by adding angles:</p>
+
+\[R(a)R(b)=R(a+b)\]
+
+<p>Therefore</p>
+
+\[R(-i)R(j)=R(j-i)\]
+
+<p>Substituting back:</p>
+
+\[(q_i')^\top k_j'
+=
+(W_Q e_i)^\top R(j-i)(W_K e_j)\]
+
+<p>So the absolute positions collapse into a single relative rotation.</p>
+
+<h2 id="learned-positional-embeddings">Learned positional embeddings</h2>
+
+<p>An alternative is to make $PE(i)$ a trainable parameter vector for each position.</p>
+
+<p>In practice, learned embeddings often work well within the context lengths seen during training. However, they extrapolate poorly beyond training length.</p>
+
+<h2 id="relative-bias-and-alibi">Relative bias and ALiBi</h2>
+
+<p>A different philosophy is to encode position directly as a bias on the attention score.</p>
+
+<p>For example, ALiBi adds a learned linear penalty proportional to token distance:</p>
+
+\[s_{ij}=q_i^\top k_j - m_h|i-j|\]
+
+<p>where $m_h$ is a head-specific slope.</p>
+
+<p>This directly encourages locality while extrapolating naturally to long contexts.</p>
+
+<h2 id="why-rope-became-dominant">Why RoPE became dominant</h2>
+
+<p>RoPE is especially attractive for decoder-only LLMs because relative offsets are encoded directly in attention geometry.</p>
+
+<p>This is why most modern frontier LLMs use RoPE or scaled variants.</p>
+
+<blockquote>
+  <p><strong>Key Takeaway</strong></p>
+
+  <ul>
+    <li>Absolute PE injects position before projection</li>
+    <li>RoPE injects position directly into query–key geometry</li>
+    <li>ALiBi injects position as an attention-score bias</li>
+  </ul>
+
+  <p>The real design choice is <strong>where position enters similarity computation</strong>.</p>
+</blockquote>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof injectGiscusComments === "function") {
+          injectGiscusComments("article-comments");
+        }
+      });
+    </script>
+
+</body>
+</html>
