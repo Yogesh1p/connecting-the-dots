@@ -1,29 +1,51 @@
 /* ============================================================
-   Connecting the Dots — Obsidian Text Body Typography
-   Uses website reading feel for vault prose
+   Connecting the Dots — Obsidian Editorial Theme
+   Website-like reading + warm UI system
    ============================================================ */
 
-/* Light mode */
+/* =========================
+   Light mode
+   ========================= */
 .theme-light {
   --background-primary: #FDFBF7;
   --background-secondary: #F4EFE6;
+  --background-primary-alt: #F7F2EA;
+  --background-secondary-alt: #EFE7DC;
+
   --text-normal: #4A3F35;
   --text-muted: #847769;
+
   --interactive-accent: #D48C70;
+
   --background-modifier-border: #E8DFD1;
+  --background-modifier-hover: #F1E8DD;
+  --background-modifier-active-hover: #E9DED1;
+  --background-modifier-form-field: #F8F3EC;
 }
 
-/* Dark mode */
+/* =========================
+   Dark mode
+   ========================= */
 .theme-dark {
   --background-primary: #16100C;
   --background-secondary: #1F1510;
+  --background-primary-alt: #1A130F;
+  --background-secondary-alt: #241A14;
+
   --text-normal: #C5B49A;
   --text-muted: #736050;
+
   --interactive-accent: #D48C70;
+
   --background-modifier-border: #2E2018;
+  --background-modifier-hover: #2A1D16;
+  --background-modifier-active-hover: #33231A;
+  --background-modifier-form-field: #211812;
 }
 
-/* Body text only */
+/* =========================
+   Editorial body typography
+   ========================= */
 .markdown-rendered p,
 .markdown-rendered li,
 .markdown-rendered blockquote,
@@ -34,7 +56,7 @@
   color: var(--text-normal);
 }
 
-/* Beautiful blockquotes from your site */
+/* Beautiful blockquotes */
 .markdown-rendered blockquote {
   border-left: 3px solid var(--interactive-accent);
   padding-left: 1rem;
@@ -42,15 +64,63 @@
   font-style: italic;
 }
 
-/* Slightly softer note width for book reading */
+/* Book-like note width */
 .markdown-reading-view .markdown-preview-view,
 .markdown-source-view.mod-cm6 .cm-content {
   max-width: 760px;
   margin: 0 auto;
 }
 
+/* =========================
+   Warm UI surfaces
+   ========================= */
+.vertical-tab-content-container,
+.setting-item,
+.community-theme,
+.modal,
+.menu {
+  background: var(--background-primary);
+}
+
+/* Inputs / dropdowns */
+.dropdown,
+.text-input,
+.search-input,
+.setting-item-control input,
+.setting-item-control select {
+  background: var(--background-modifier-form-field);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+}
+
 /* ============================================================
-   Connecting the Dots — Editorial Heading Hierarchy
-   Adapted from articles.css
+   Connecting the Dots — Custom Editorial Scrollbar
+   Accent-colored, thin, pinned to far right
    ============================================================ */
 
+/* Works in Obsidian desktop (Chromium / WebKit) */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 6px 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--interactive-accent);
+  border-radius: 999px;
+  border: 2px solid var(--background-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--interactive-accent) 85%, white);
+}
+
+/* Make the editor + reading pane scrollbar visually sit at far right */
+.workspace-leaf-content,
+.markdown-reading-view,
+.markdown-source-view.mod-cm6 {
+  scrollbar-gutter: stable;
+}

@@ -1,4 +1,6 @@
 {
   "cssTheme": "ctd",
-  "accentColor": "#cac2b9"
+  "accentColor": "#cac2b9",
+  "theme": "obsidian",
+  "translucency": false
 }

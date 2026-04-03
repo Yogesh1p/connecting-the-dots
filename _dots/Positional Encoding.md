@@ -8,7 +8,6 @@ interactive: pos_enc
 date created: 2026-04-03
 last_modified_at: 2026-04-03
 ---
-
 ## Transformer-Based Models and Practical Tricks
 
 In Chapter 1, we developed the Transformer as the modern solution to variable-length autoregressive modeling. Self-attention gave us a scalable mechanism for relating all tokens in a sequence, replacing the recurrence bottleneck of RNNs.
@@ -157,6 +156,7 @@ In two dimensions, all unit vectors lie on the unit circle.
 
 So the simplest positional geometry is to place each position as a point moving smoothly around that circle:
 
+
 $$
 PE_\omega(i)=
 \begin{bmatrix}
@@ -165,7 +165,7 @@ PE_\omega(i)=
 \end{bmatrix}
 $$
 
-{% include figures/pos_enc/unit_circle.html name="unit-circle" %}
+
 
 Advancing one token changes the angle slightly. Advancing by $k$ tokens changes it by $\omega k$. Position shifts in token space therefore become angular shifts in feature space.
 
@@ -197,7 +197,6 @@ $$
 
 This is exactly the structure we wanted. The absolute positions disappear, and the similarity depends only on the relative offset.
 
-{% include figures/pos_enc/relative_similarity.html %}
 
 So the angle between two positional vectors directly encodes how far apart the tokens are in the sequence.
 
@@ -209,7 +208,6 @@ If $\omega$ is large, even small shifts in token index produce large angular cha
 
 If $\omega$ is small, the angle changes slowly. This preserves distinguishability over long ranges, but nearby positions become too similar.
 
-{% include figures/pos_enc/high_low_frequency.html %}
 
 So a single frequency forces a trade-off:
 
@@ -243,7 +241,7 @@ $$
 
 Each adjacent pair forms one rotational plane evolving at its own speed.
 
-{% include figures/pos_enc/multi_frequency.html %}
+
 
 Fast frequencies behave like fine-grained local clocks, while slow frequencies preserve identity over long contexts.
 
