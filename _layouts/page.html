@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page.title }}</title>
+    <meta name="description" content="{{ page.description | default: '' }}">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="{{ page.date | default: site.time | date: '%Y-%m-%d' }}">
+    <meta name="keywords" content="{{ page.keywords | default: '' }}">
+    <meta name="chapter" content="{{ page.chapter | default: '' }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ '/css/base.css' | relative_url }}">
+    <link rel="stylesheet" href="{{ '/css/articles.css' | relative_url }}">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="{{ '/js/base.js' | relative_url }}" defer></script>
+    <script src="{{ '/js/components.js' | relative_url }}" defer></script>
+    <script src="{{ '/js/article_components.js' | relative_url }}" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+</head>
+<body>
+
+    <div id="global-nav" data-root="{{ '/' | relative_url }}" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+                        {{ content }}
+                    </section>
+
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            injectGiscusComments('article-comments');
+          });
+        </script>
+    </main>
+
+</body>
+</html>

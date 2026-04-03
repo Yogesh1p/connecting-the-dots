@@ -1,9 +1,9 @@
 ---
 layout: page
-title: "Fenchel Conjugate"
+title: Fenchel Conjugate
+description: Fenchel duality intuition
 permalink: /dots/fenchel-conjugate/
 ---
-
 # Fenchel Conjugate
 
 The Fenchel conjugate of a function is
