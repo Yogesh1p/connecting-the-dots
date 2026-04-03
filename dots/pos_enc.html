@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Position Embeddings </title>
+    <meta charset="UTF-8">
+    <title>Position representation</title>
+    <meta name="description" content="How do we represent positions as vectors in the same space as word embeddings? Why does the Transformer use sinusoidal functions to encode position, and how do Rotary Positional Embeddings (RoPE) improve on this design?">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-03">
+    <meta name="keywords" content="positional encoding, RoPE, sinusoidal embeddings, attention, Transformer">
+    <meta name="parent" content="Vector representations">
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="../../../css/base.css" />
-    <link rel="stylesheet" href="../../../css/articles.css" />
+    <link rel="stylesheet" href="../css/base.css" />
+    <link rel="stylesheet" href="../css/articles.css" />
 
     <script>
         (() => {
@@ -19,9 +23,9 @@
         })();
     </script>
 
-    <script src="../../../js/base.js" defer></script>
-    <script src="../../../js/components.js" defer></script>
-    <script src="../../../js/article_components.js" defer></script>
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
 
     <script>
         window.MathJax = {
@@ -94,7 +98,7 @@
 </head>
 <body>
 
-<div id="global-nav" data-root="../../../" data-sticky="false"></div>
+<div id="global-nav" data-root="../" data-sticky="false"></div>
 
 <main class="page-wrap">
     <div class="article-layout">

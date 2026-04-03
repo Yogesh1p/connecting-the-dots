@@ -212,8 +212,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const author = document.querySelector('meta[name="author"]')?.content || "";
     const dateStr = document.querySelector('meta[name="date"]')?.content || "";
     
-    // NEW: Extract chapter and keywords
-    const chapter = document.querySelector('meta[name="chapter"]')?.content || "";
+    // NEW: Extract parent and keywords
+    const parent = document.querySelector('meta[name="parent"]')?.content || "";
     const keywordsStr = document.querySelector('meta[name="keywords"]')?.content || "";
 
     // Format Date
@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Inject compiled HTML
     headerContainer.innerHTML = `
       <header class="article-header">
-        ${chapter ? `<div class="article-header__chapter">${chapter}</div>` : ''}
+        ${parent ? `<div class="article-header__parent">${parent}</div>` : ''}
         
         <h1 class="article-header__title">${title}</h1>
         ${subtitle ? `<div class="article-header__subtitle">${subtitle}</div>` : ''}

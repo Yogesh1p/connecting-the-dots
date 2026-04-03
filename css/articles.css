@@ -79,7 +79,7 @@
 }
 
 /* Chapter Label */
-.article-header__chapter {
+.article-header__parent {
     font-family: var(--font-sans, system-ui, sans-serif);
     font-size: 0.875rem;
     font-weight: 600;
@@ -103,7 +103,7 @@
 /* Subtitle */
 .article-header__subtitle {
     font-family: 'Lora', Georgia, serif;
-    font-size: clamp(0.6rem, 2vw, 1.2rem);
+    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
     font-weight: 400 !important; /* Forces it to be lighter than the title */
     line-height: 1.4;
     color: var(--muted, #9ca3af);
