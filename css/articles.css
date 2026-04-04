@@ -169,6 +169,14 @@
     color: var(--text, #ffffff);
     transform: translateY(-1px);
 }
+.article-header__reading-time {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.article-header__sep {
+  color: var(--muted);
+  margin: 0 0.35rem;
+}
 /* =========================================================
    Floating Article TOC
    - Right-side minimap rails

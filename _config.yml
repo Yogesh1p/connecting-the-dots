@@ -1,4 +1,0 @@
-collections:
-  dots:
-    output: true
-    permalink: /dots/:name/

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dots — Connecting the Dots</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/base.css" />
+  <script src="../js/base.js" defer></script>
+
+  <style>
+    body {
+      font-family: 'Lora', Georgia, serif;
+    }
+
+    .page-header-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  max-width: 1000px;
+  margin: -0.75rem auto 2.5rem;
+  padding: 0.5rem 0 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+    .articles-header h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2.25rem;
+      letter-spacing: -0.02em;
+      transition: all 0.2s ease;
+    }
+
+    .articles-header h1.search-active {
+      font-size: 1.25rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .page-header-container.search-active .subtitle {
+      display: none;
+    }
+
+    .archive-controls {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+.control-chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.8rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+    .archive-search,
+    .archive-sort {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      font-family: inherit;
+      color: var(--text);
+    }
+
+    .archive-search {
+      width: 260px;
+      outline: none;
+    }
+    .archive-search::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+    .articles-list {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+.read-time-pill {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+  border-bottom: 1px dotted var(--border);
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+.meta-separator {
+  margin: 0 0.45rem;
+  opacity: 0.45;
+}
+
+    .post-item {
+      padding: 1.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .post-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .article-date {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.45rem;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+    .post-item h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    .post-item h3 a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .post-item p {
+      color: var(--muted);
+      margin: 0 0 1rem;
+      line-height: 1.6;
+    }
+
+    .pill-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      color: var(--accent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="global-nav" data-root="../"></div>
+
+  <main class="page-wrap articles-page">
+    <div class="page-header-container" id="headerContainer">
+      <header class="articles-header">
+        <h1 id="mainHeading">Dots</h1>
+        <p class="subtitle">
+          Connected ideas across AI, optimization, systems, and mathematical intuition.
+        </p>
+      </header>
+
+      <div class="archive-controls">
+  <input
+    id="articleSearch"
+    class="archive-search"
+    type="text"
+    placeholder="Search dots, topics, or chapters"
+  />
+
+<button id="filterBtn" class="control-chip">⎇ Filter</button>
+<button id="sortBtn" class="control-chip">⇅ Sort</button>
+</div>
+</div>
+
+    <section class="articles-list" id="articlesList"></section>
+  </main>
+
+  <script src="../js/components.js"></script>
+  <script src="../builder/dots-data.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const list = document.getElementById("articlesList");
+  const searchInput = document.getElementById("articleSearch");
+  const filterBtn = document.getElementById("filterBtn");
+  const sortBtn = document.getElementById("sortBtn");
+  const mainHeading = document.getElementById("mainHeading");
+  const headerContainer = document.getElementById("headerContainer");
+
+  const articles = [...window.rawPages];
+
+  const chapters = ["all", ...new Set(
+    articles.map(a => a.chapter).filter(Boolean)
+  ).values()];
+
+  const sortModes = ["recent", "oldest", "az", "za", "chapter"];
+
+  let currentChapterIndex = 0;
+  let currentSortIndex = 0;
+
+  function getCurrentChapter() {
+    return chapters[currentChapterIndex];
+  }
+
+  function getCurrentSort() {
+    return sortModes[currentSortIndex];
+  }
+
+  function updateButtonLabels() {
+    const chapter = getCurrentChapter();
+    const sort = getCurrentSort();
+
+    filterBtn.textContent =
+      chapter === "all" ? "⎇ All chapters" : `⎇ ${chapter}`;
+
+    const sortLabels = {
+      recent: "⇅ Recent",
+      oldest: "⇅ Oldest",
+      az: "⇅ A–Z",
+      za: "⇅ Z–A",
+      chapter: "⇅ Chapter"
+    };
+
+    sortBtn.textContent = sortLabels[sort];
+  }
+function formatReadableDate(dateStr) {
+  const date = new Date(dateStr);
+
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC"
+  });
+}
+function render(items) {
+  if (!items.length) {
+    list.innerHTML = `
+      <div class="post-item">
+        <h3>No matching dots</h3>
+        <p>Try another search term or filter.</p>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = items.map(article => `
+    <article class="post-item">
+      <time class="article-date">
+        ${formatReadableDate(article.date)}
+        <span class="meta-separator">·</span>
+        <span class="read-time-pill">${article.readingTime} min read</span>
+       </time>
+
+      <h3>
+        <a href="${article.url}">${article.title}</a>
+      </h3>
+
+      <p>${article.description}</p>
+
+      <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+        ${article.chapter ? `<span class="pill-tag">${article.chapter}</span>` : ""}
+      </div>
+    </article>
+  `).join("");
+}
+
+  function scoreArticle(article, query) {
+    if (!query) return 0;
+
+    let score = 0;
+    const title = article.title.toLowerCase();
+    const keywords = (article.keywords || "").toLowerCase();
+    const chapter = (article.chapter || "").toLowerCase();
+
+    if (title.includes(query)) score += 5;
+    if (keywords.includes(query)) score += 3;
+    if (chapter.includes(query)) score += 2;
+
+    return score;
+  }
+
+  function updateUI() {
+    const query = searchInput.value.trim().toLowerCase();
+    const chapterValue = getCurrentChapter();
+    const sortMode = getCurrentSort();
+
+    let filtered = articles.filter(article => {
+      const matchesQuery = !query || scoreArticle(article, query) > 0;
+      const matchesChapter =
+        chapterValue === "all" || article.chapter === chapterValue;
+
+      return matchesQuery && matchesChapter;
+    });
+
+    if (query) {
+      filtered.sort((a, b) => scoreArticle(b, query) - scoreArticle(a, query));
+    }
+
+    switch (sortMode) {
+      case "recent":
+        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+        break;
+      case "oldest":
+        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+        break;
+      case "az":
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "za":
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case "chapter":
+        filtered.sort((a, b) =>
+          (a.chapter || "").localeCompare(b.chapter || "") ||
+          a.title.localeCompare(b.title)
+        );
+        break;
+    }
+
+    if (query || chapterValue !== "all") {
+      mainHeading.textContent = `${filtered.length} matching dots`;
+      mainHeading.classList.add("search-active");
+      headerContainer.classList.add("search-active");
+    } else {
+      mainHeading.textContent = "Dots";
+      mainHeading.classList.remove("search-active");
+      headerContainer.classList.remove("search-active");
+    }
+
+    updateButtonLabels();
+    render(filtered);
+  }
+
+  filterBtn.addEventListener("click", () => {
+    currentChapterIndex = (currentChapterIndex + 1) % chapters.length;
+    updateUI();
+  });
+
+  sortBtn.addEventListener("click", () => {
+    currentSortIndex = (currentSortIndex + 1) % sortModes.length;
+    updateUI();
+  });
+
+  searchInput.addEventListener("input", updateUI);
+
+  updateUI();
+});
+</script>
+</body>
+</html>

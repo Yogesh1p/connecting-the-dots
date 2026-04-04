@@ -169,34 +169,45 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
   };
 
-  const restoreReadingProgress = () => {
-    const savedData = localStorage.getItem(CONFIG.progressKey);
-    if (!savedData) return;
+const restoreReadingProgress = () => {
+  const savedData = localStorage.getItem(CONFIG.progressKey);
+  if (!savedData) return;
 
-    try {
-      const progress = JSON.parse(savedData);
-      const heading = document.getElementById(progress.headingId);
+  try {
+    const progress = JSON.parse(savedData);
 
-      if (heading) {
-        // Wait slightly for layout paints before jumping
-        setTimeout(() => {
-          const yPosition = heading.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset;
-          window.scrollTo({ top: yPosition, behavior: "instant" });
+    // Restore exact previous scroll position
+    if (typeof progress.scrollY === "number") {
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: progress.scrollY,
+          behavior: "auto"
+        });
 
-          const idx = tocItems.findIndex(item => item.element.id === progress.headingId);
-          if (idx !== -1) updateActiveTocUI(idx);
-        }, 100);
-        return;
-      }
+        // Sync TOC highlight after restoring
+        setTimeout(() => handleScrollProgress(), 80);
+      });
 
-      // Fallback to absolute scroll position if the header ID is missing
-      if (typeof progress.scrollY === "number") {
-        window.scrollTo({ top: progress.scrollY, behavior: "instant" });
-      }
-    } catch (err) {
-      console.warn("Failed to restore reading progress", err);
+      return;
     }
-  };
+
+    // Fallback to heading if scrollY is unavailable
+    const heading = document.getElementById(progress.headingId);
+    if (heading) {
+      const yPosition =
+        heading.getBoundingClientRect().top +
+        window.scrollY -
+        CONFIG.navOffset;
+
+      window.scrollTo({
+        top: yPosition,
+        behavior: "auto"
+      });
+    }
+  } catch (err) {
+    console.warn("Failed to restore reading progress", err);
+  }
+};
 
   // ============================================================
   // 4. ARTICLE HEADER INJECTION
@@ -206,16 +217,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const headerContainer = document.getElementById("article-header");
     if (!headerContainer) return;
 
-    // Extract meta data safely
-    const title = document.querySelector("title")?.innerText || "Untitled Article";
-    const subtitle = document.querySelector('meta[name="description"]')?.content || "";
-    const author = document.querySelector('meta[name="author"]')?.content || "";
-    const dateStr = document.querySelector('meta[name="date"]')?.content || "";
-    
-    // NEW: Extract parent and keywords
-    const parent = document.querySelector('meta[name="parent"]')?.content || "";
-    const keywordsStr = document.querySelector('meta[name="keywords"]')?.content || "";
+// Extract metadata safely (meta-first architecture)
+const getMeta = (name) =>
+  document.querySelector(`meta[name="${name}"]`)?.content || "";
 
+const title =
+  getMeta("title") ||
+  document.querySelector("title")?.textContent ||
+  "Untitled Article";
+
+const subtitle = getMeta("description");
+const author = getMeta("author");
+const dateStr = getMeta("date");
+
+// chapter works as parent fallback
+const parent = getMeta("parent") || getMeta("chapter");
+
+const keywordsStr = getMeta("keywords");
     // Format Date
     let formattedDate = "";
     if (dateStr) {
@@ -224,6 +242,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+const articleBody = document.querySelector(".article-body");
+const text = articleBody
+  ? articleBody.innerText.replace(/\s+/g, " ").trim()
+  : "";
+
+const wordCount = text.split(" ").filter(Boolean).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 220));
     // Format Tags
     let tagsHtml = "";
     if (keywordsStr) {
@@ -247,6 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="article-header__meta">
           ${author ? `<span class="article-header__author">${author}</span>` : ''}
           ${formattedDate ? `<time class="article-header__date">${formattedDate}</time>` : ''}
+          <span class="article-header__sep">•</span>
+          <span class="article-header__reading-time">${readingTime} min read</span>
         </div>
         
         ${tagsHtml}
@@ -257,12 +284,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // 5. INITIALIZATION & LISTENERS
   // ============================================================
 
-  injectArticleHeader();
-  initializeToc();
-  restoreReadingProgress();
+injectArticleHeader();
+initializeToc();
 
-  // Run an initial TOC alignment check slightly after load
-  setTimeout(() => handleScrollProgress(), 150);
+requestAnimationFrame(() => {
+  restoreReadingProgress();
+});
+
+
 
   // Optimized scroll listener using requestAnimationFrame
   let ticking = false;
