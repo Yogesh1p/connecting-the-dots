@@ -16,7 +16,6 @@ function getMeta(content, name) {
 function syncReadingTime(content, minutes) {
   const metaTag = `  <meta name="reading_time" content="${minutes}">`;
 
-  // Case 1: update existing tag
   const existingRegex =
     /<meta\s+name=["']reading_time["']\s+content=["'][^"']*["']\s*\/?>/i;
 
@@ -24,17 +23,14 @@ function syncReadingTime(content, minutes) {
     return content.replace(existingRegex, metaTag.trim());
   }
 
-  // Case 2: insert new tag before </head>
   const headCloseRegex = /<\/head>/i;
 
   if (headCloseRegex.test(content)) {
     return content.replace(headCloseRegex, `${metaTag}\n</head>`);
   }
 
-  // Fallback safety: if malformed HTML somehow has no </head>
   return `${metaTag}\n${content}`;
 }
-
 
 function estimateReadingTime(content) {
   const bodyText = content
@@ -49,6 +45,21 @@ function estimateReadingTime(content) {
   return Math.max(1, Math.ceil(wordCount / 220));
 }
 
+function createPageObject(file, content, readingTime, isLibrary = false) {
+  return {
+    url: isLibrary ? `../dots/${file}` : `./${file}`,
+    book: getMeta(content, "book") || "",
+    title: getMeta(content, "title") || file.replace(".html", ""),
+    description: getMeta(content, "description") || "",
+    date: getMeta(content, "date") || "",
+    chapter: getMeta(content, "chapter") || "",
+    part: getMeta(content, "part") || "Main",
+    keywords: getMeta(content, "keywords") || "",
+    order: parseInt(getMeta(content, "order")) || 999,
+    readingTime
+  };
+}
+
 function build() {
   const files = fs.readdirSync(dotsDir);
   const dotsPages = [];
@@ -61,34 +72,20 @@ function build() {
     let content = fs.readFileSync(filePath, "utf8");
 
     const readingTime = estimateReadingTime(content);
-
     const updatedContent = syncReadingTime(content, readingTime);
 
     if (updatedContent !== content) {
       fs.writeFileSync(filePath, updatedContent, "utf8");
       content = updatedContent;
     }
+
     if (getMeta(content, "status") !== "live") return;
 
-    const page = {
-      url: `./${file}`,
-      title: getMeta(content, "title") || file.replace(".html", ""),
-      description: getMeta(content, "description") || "",
-      date: getMeta(content, "date") || "",
-      chapter: getMeta(content, "chapter") || "",
-      part: getMeta(content, "part") || "Main",
-      keywords: getMeta(content, "keywords") || "",
-      order: parseInt(getMeta(content, "order")) || 999,
-      readingTime
-    };
-
+    const page = createPageObject(file, content, readingTime);
     dotsPages.push(page);
 
     if (getMeta(content, "belongs_to") === "lib") {
-      libPages.push({
-        ...page,
-        url: `../dots/${file}`
-      });
+      libPages.push(createPageObject(file, content, readingTime, true));
     }
   });
 

@@ -12,7 +12,142 @@
             line-height: 1.8;
             font-size: 1.15rem; 
         }
+/* =========================
+   ARTICLE LISTS (outside boxes)
+   ========================= */
 
+.article-body > ul,
+.article-body > ol,
+.article-body section > ul,
+.article-body section > ol {
+  margin: 1rem 0;
+  margin-left: 0;
+  padding-left: 1.35rem;
+}
+
+.article-body li {
+  margin: 0.45rem 0;
+  line-height: 1.75;
+}
+/* =========================
+   THEOREM / MATH BOX SYSTEM
+   ========================= */
+
+.math-box {
+  margin: 1.4rem 0 1.8rem;
+  border: 1px solid var(--math-box-border);
+  border-radius: 14px;
+  background: var(--math-box-bg);
+  overflow: hidden;
+}
+
+.math-box-body {
+  padding: 1rem 1.2rem;
+}
+
+.math-box-body > :first-child {
+  margin-top: 0;
+}
+
+.math-box-body > :last-child {
+  margin-bottom: 0;
+}
+
+.math-box-body p {
+  margin: 0;
+}
+
+.math-box-body p + p,
+.math-box-body p + .math-display,
+.math-box-body .math-display + p,
+.math-box-body ul + p,
+.math-box-body ol + p {
+  margin-top: 0.8rem;
+}
+
+/* Box labels */
+.math-box-label {
+  background: var(--math-box-label-bg);
+  color: var(--math-box-label-text);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.75rem 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.proof-box .math-box-label {
+  background: var(--proof-box-label-bg);
+  color: var(--proof-box-label-text);
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* Box variants */
+.definition-box,
+.theorem-box,
+.key-box,
+.note-box,
+.proof-box {
+  border-color: var(--math-box-border);
+}
+
+.note-box {
+  background: var(--note-box-bg);
+}
+
+/* Display equations */
+.math-display,
+.math-block {
+  text-align: center;
+  margin: 0.7rem 0;
+}
+
+/* Tables */
+.math-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.math-table th,
+.math-table td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--table-rule);
+  text-align: left;
+}
+
+.math-table th {
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* Lists inside theorem boxes */
+.math-box-body ul,
+.math-box-body ol {
+  margin: 0.8rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.math-box-body li {
+  margin: 0.45rem 0;
+  padding-left: 0.1rem;
+  line-height: 1.7;
+}
+
+.math-box-body ul li::marker {
+  color: var(--accent);
+  font-size: 0.82em;
+}
+
+/* Compact definitions */
+.definition-box .math-box-body {
+  padding: 0.9rem 1.2rem;
+}
+
+.definition-box .math-display {
+  margin: 0.55rem 0 0;
+}
 /* ─────────────────────────────────────
    Article typography hierarchy
    ───────────────────────────────────── */

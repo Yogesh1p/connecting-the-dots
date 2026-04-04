@@ -43,8 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
     existingIds.add(slug);
     return slug;
   };
-
-  // ============================================================
+// ============================================================
   // 2. ARTICLE HEADER INJECTION
   // ============================================================
 
@@ -73,8 +72,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const wordCount = text.split(" ").filter(Boolean).length;
     const readingTime = Math.max(1, Math.ceil(wordCount / 220));
 
-    // Format Tags
-    const tagsArray = keywordsStr ? keywordsStr.split(/[,\s]+/).filter(Boolean) : [];
+    // Format Tags (Updated to split by comma only, trimming spaces)
+    const tagsArray = keywordsStr 
+      ? keywordsStr.split(',').map(tag => tag.trim()).filter(Boolean) 
+      : [];
+      
     const tagsHtml = tagsArray.length > 0 
       ? `<div class="article-header__tags">${tagsArray.map(tag => `<span class="article-tag">${tag}</span>`).join("")}</div>`
       : "";

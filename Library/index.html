@@ -73,58 +73,61 @@
   }
 
   .toc-book-title {
-  font-size: clamp(2.4rem, 5vw, 3rem);
-  font-weight: 400;
-  color: var(--dark);
-  margin: 0 0 0.5rem;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-  max-width: 760px;
-}
+    font-size: clamp(2.4rem, 5vw, 3rem);
+    font-weight: 400;
+    color: var(--dark);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    max-width: 760px;
+  }
 
   .toc-book-desc {
-  font-size: 1.15rem;
-  color: var(--muted);
-  font-style: italic;
-  line-height: 1.75;
-  max-width: 680px;
-  margin: 0;
-}
-.book-progress-hero {
-  display: inline-grid;
-  grid-template-columns: repeat(3, auto);
-  gap: 2rem;
-  margin-top: 2rem;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--surface) 96%, var(--accent) 1%);
-}
-.progress-stat:not(:last-child) {
-  padding-right: 2rem;
-  border-right: 1px solid var(--border);
-}
-.progress-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 90px;
-}
+    font-size: 1.15rem;
+    color: var(--muted);
+    font-style: italic;
+    line-height: 1.75;
+    max-width: 680px;
+    margin: 0;
+  }
 
-.progress-num {
-  font-size: 1.7rem;
-  font-weight: 500;
-  color: var(--dark);
-  line-height: 1;
-}
+  .book-progress-hero {
+    display: inline-grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 2rem;
+    margin-top: 2rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface) 96%, var(--accent) 1%);
+  }
 
-.progress-label {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
+  .progress-stat:not(:last-child) {
+    padding-right: 2rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .progress-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 90px;
+  }
+
+  .progress-num {
+    font-size: 1.7rem;
+    font-weight: 500;
+    color: var(--dark);
+    line-height: 1;
+  }
+
+  .progress-label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
 
   .toc-block {
     border: 1px solid var(--border);
@@ -259,59 +262,94 @@
 <div id="global-nav" data-root="../"></div>
 
 <main class="page-wrap">
-<section class="toc-page">
+  <section class="toc-page">
 
-  <nav class="book-switcher" aria-label="Book selection">
-    <button class="book-tab active">Deep Generative Models</button>
-    <button class="book-tab coming-soon">Linear Algebra · soon</button>
-    <button class="book-tab coming-soon">Probability · soon</button>
-  </nav>
+    <nav class="book-switcher" aria-label="Book selection">
+      <button class="book-tab" data-book="generative">
+        Deep Generative Models
+      </button>
+      <button class="book-tab" data-book="linear-algebra">
+        Linear Algebra
+      </button>
+      <button class="book-tab coming-soon">
+        Probability · soon
+      </button>
+    </nav>
 
-  <div class="toc-book-header">
-  <div class="toc-book-eyebrow">Connecting the Dots · Book I</div>
-  <h1 class="toc-book-title">Deep Generative Models</h1>
-  <p class="toc-book-desc">
-    Explicit likelihoods, latent variables, and modern generative architectures —
-    with interactive visualisations at every step.
-  </p>
+    <div class="toc-book-header">
+      <div class="toc-book-eyebrow">Connecting the Dots · Book I</div>
+      <h1 class="toc-book-title">Deep Generative Models</h1>
+      <p class="toc-book-desc">
+        Explicit likelihoods, latent variables, and modern generative architectures —
+        with interactive visualisations at every step.
+      </p>
 
-<div class="book-progress-hero" id="bookProgressHero">
-  <div class="progress-stat">
-    <span class="progress-num" id="lessonCount">—</span>
-    <span class="progress-label">Lessons</span>
-  </div>
-  <div class="progress-stat">
-    <span class="progress-num" id="chapterCount">—</span>
-    <span class="progress-label">Chapters</span>
-  </div>
-  <div class="progress-stat">
-    <span class="progress-num" id="readingPath">—</span>
-    <span class="progress-label">Reading Path</span>
-  </div>
-</div>
-</div>
+      <div class="book-progress-hero" id="bookProgressHero">
+        <div class="progress-stat">
+          <span class="progress-num" id="lessonCount">—</span>
+          <span class="progress-label">Lessons</span>
+        </div>
+        <div class="progress-stat">
+          <span class="progress-num" id="chapterCount">—</span>
+          <span class="progress-label">Chapters</span>
+        </div>
+        <div class="progress-stat">
+          <span class="progress-num" id="readingPath">—</span>
+          <span class="progress-label">Reading Path</span>
+        </div>
+      </div>
+    </div>
 
-    <div id="generative-content">
+    <div id="library-content">
       <div class="loading-state">Compiling Library...</div>
     </div>
-  </div>
 
-</section>
+  </section>
 </main>
 
 <footer>Connecting the Dots · Interactive Mathematical Textbooks</footer>
 
 <script src="../js/base.js"></script>
 <script src="../js/components.js"></script>
-
-<!-- Replace your current <script> block with this version -->
 <script src="../builder/lib-data.js"></script>
 
 <script>
+const BOOK_CONFIG = {
+  generative: {
+    eyebrow: "Connecting the Dots · Book I",
+    title: "Deep Generative Models",
+    description: "Explicit likelihoods, latent variables, and modern generative architectures — with interactive visualisations at every step."
+  },
+  "linear-algebra": {
+    eyebrow: "Connecting the Dots · Book II",
+    title: "Linear Algebra",
+    description: "Vectors, matrix transformations, eigenspaces, and the geometry behind modern machine learning."
+  }
+};
+
+let activeBook = "generative"; // Default book
+
+// Function to visually activate the correct tab
+function setActiveTabUI(book) {
+  document.querySelectorAll(".book-tab").forEach(t => t.classList.remove("active"));
+  const activeTab = document.querySelector(`.book-tab[data-book="${book}"]`);
+  if (activeTab) {
+    activeTab.classList.add("active");
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   
-  // Notice we don't define rawPages here anymore! 
-  // It is loaded automatically from toc-data.js
+  // 1. Check URL for existing book state on initial load
+  const params = new URLSearchParams(window.location.search);
+  const urlBook = params.get('book');
+  
+  if (urlBook && BOOK_CONFIG[urlBook]) {
+    activeBook = urlBook;
+  }
+  
+  // Visually set the correct tab before building
+  setActiveTabUI(activeBook);
 
   const partPriority = {
     "Transformer Foundations": 0,
@@ -319,28 +357,46 @@ document.addEventListener("DOMContentLoaded", () => {
     "Main": 2
   };
 
-  function buildLibrary() {
+  function buildLibrary(book = activeBook) {
     const library = {};
 
-    // Group the raw pages (which now comes from toc-data.js)
-    rawPages.forEach(page => {
+    // Filter pages based on active book
+    const filteredPages = rawPages.filter(page => page.book === book);
+
+    filteredPages.forEach(page => {
       if (!library[page.chapter]) {
         library[page.chapter] = {};
       }
-      if (!library[page.chapter][page.part]) {
-        library[page.chapter][page.part] = [];
+      
+      // 2. Handle missing parts (like in Linear Algebra) by defaulting to "Main"
+      const part = page.part?.trim() || "Main";
+      
+      if (!library[page.chapter][part]) {
+        library[page.chapter][part] = [];
       }
-      library[page.chapter][page.part].push(page);
+      library[page.chapter][part].push(page);
     });
 
     renderLibrary(library);
+    updateHero(book, filteredPages);
   }
 
   function renderLibrary(library) {
-    const container = document.getElementById("generative-content");
-    let html = "";
+  const container = document.getElementById("library-content");
+  let html = "";
 
-    Object.keys(library).forEach(chapter => {
+  Object.keys(library)
+    .sort((a, b) => {
+      const getMinOrder = chapter =>
+        Math.min(
+          ...Object.values(library[chapter])
+            .flat()
+            .map(page => page.order ?? 999)
+        );
+
+      return getMinOrder(a) - getMinOrder(b);
+    })
+    .forEach(chapter => {
       const parts = library[chapter];
       let rowsHtml = "";
       let totalSections = 0;
@@ -348,9 +404,8 @@ document.addEventListener("DOMContentLoaded", () => {
       Object.keys(parts)
         .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
         .forEach(part => {
-          
-          if (part !== "Main") {
-             rowsHtml += `<div class="toc-part">${part}</div>`;
+          if (part !== "Main" && part !== "undefined" && part.trim()) {
+            rowsHtml += `<div class="toc-part">${part}</div>`;
           }
 
           parts[part]
@@ -381,34 +436,60 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     });
 
-    container.innerHTML = html;
+  container.innerHTML = html;
+}
+
+  function updateHero(book, pages) {
+    const config = BOOK_CONFIG[book];
+
+    document.querySelector(".toc-book-eyebrow").textContent = config.eyebrow;
+    document.querySelector(".toc-book-title").textContent = config.title;
+    document.querySelector(".toc-book-desc").textContent = config.description;
+
+    document.getElementById("lessonCount").textContent = pages.length;
+
+    const chapters = new Set(pages.map(p => p.chapter)).size;
+    document.getElementById("chapterCount").textContent = chapters;
+
+    const totalMinutes = pages.reduce((sum, p) => sum + (p.readingTime || 0), 0);
+
+    document.getElementById("readingPath").textContent =
+      totalMinutes >= 60
+        ? `${(totalMinutes / 60).toFixed(1)}h`
+        : `${totalMinutes}m`;
   }
 
+  // 3. Activate tab switching and update URL state
+  document.querySelectorAll(".book-tab[data-book]").forEach(tab => {
+    tab.addEventListener("click", () => {
+      activeBook = tab.dataset.book;
+      
+      setActiveTabUI(activeBook);
+
+      // Update the URL without triggering a page reload
+      const url = new URL(window.location);
+      url.searchParams.set('book', activeBook);
+      window.history.pushState({}, '', url);
+
+      buildLibrary(activeBook);
+    });
+  });
+
+  // 4. Handle Browser Back/Forward buttons smoothly
+  window.addEventListener("popstate", () => {
+    const currentParams = new URLSearchParams(window.location.search);
+    const poppedBook = currentParams.get('book') || 'generative'; // Fallback to default
+    
+    if (BOOK_CONFIG[poppedBook]) {
+      activeBook = poppedBook;
+      setActiveTabUI(activeBook);
+      buildLibrary(activeBook);
+    }
+  });
+
+  // Initialize the first view
   buildLibrary();
 });
-
-function updateHeroStats() {
-  const lessons = rawPages.length;
-
-  const chapters = new Set(
-    rawPages.map(page => page.chapter).filter(Boolean)
-  ).size;
-
-  const totalMinutes = rawPages.reduce(
-    (sum, page) => sum + (page.readingTime || 0),
-    0
-  );
-
-  const hours =
-    totalMinutes >= 60
-      ? `${(totalMinutes / 60).toFixed(1)}h`
-      : `${totalMinutes}m`;
-
-  document.getElementById("lessonCount").textContent = lessons;
-  document.getElementById("chapterCount").textContent = chapters;
-  document.getElementById("readingPath").textContent = hours;
-}
-updateHeroStats();
 </script>
 
 </body>

@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Article Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:  #0c0c0e;
+  --s1:  #141416;
+  --s2:  #1b1b1f;
+  --s3:  #222228;
+  --b1:  #28282f;
+  --b2:  #38383f;
+  --tx:  #dddde6;
+  --tx2: #7e7e94;
+  --tx3: #46465a;
+  --ac:  #7c94ff;
+  --ac2: #3d56e0;
+  --gr:  #50c87c;
+  --am:  #f0a83c;
+  --rd:  #e05555;
+  --r:   7px;
+  --r2:  12px;
+  --mono:'JetBrains Mono', monospace;
+  --ui:  'DM Sans', sans-serif;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--ui); background: var(--bg); color: var(--tx); display: flex; flex-direction: column; font-size: 13px; }
+
+/* BAR */
+.bar {
+  height: 44px; display: flex; align-items: center;
+  padding: 0 12px; gap: 8px;
+  background: var(--s1); border-bottom: 1px solid var(--b1);
+  flex-shrink: 0;
+}
+.brand {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ac);
+  padding-right: 10px; border-right: 1px solid var(--b1);
+  white-space: nowrap; flex-shrink: 0;
+}
+.vr { width: 1px; height: 18px; background: var(--b1); flex-shrink: 0; }
+
+select {
+  font-family: var(--ui); font-size: 12px;
+  background: var(--s2); color: var(--tx);
+  border: 1px solid var(--b1); border-radius: var(--r);
+  padding: 0 8px; height: 28px; outline: none;
+  cursor: pointer; transition: border-color 0.15s;
+}
+select:focus { border-color: var(--ac); }
+select option { background: var(--s2); }
+
+.xbtn {
+  font-family: var(--ui); font-size: 11px; font-weight: 500;
+  height: 28px; padding: 0 11px; border-radius: var(--r);
+  border: 1px solid var(--b1); background: transparent;
+  color: var(--tx2); cursor: pointer; white-space: nowrap;
+  transition: all 0.13s; display: flex; align-items: center; gap: 5px;
+}
+.xbtn:hover { border-color: var(--b2); color: var(--tx); }
+.xbtn.pri { background: var(--ac2); color: #fff; border-color: transparent; }
+.xbtn.pri:hover { background: var(--ac); }
+.xbtn.grn { background: rgba(80,200,124,0.1); color: var(--gr); border-color: rgba(80,200,124,0.25); }
+.xbtn.grn:hover { background: rgba(80,200,124,0.2); }
+
+.bar-mid { display: flex; align-items: center; gap: 6px; }
+.bar-right { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+
+.spill {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+  padding: 2px 9px; border-radius: 100px; white-space: nowrap;
+}
+.spill.draft     { background: rgba(240,168,60,0.13); color: var(--am); }
+.spill.published { background: rgba(80,200,124,0.13); color: var(--gr); }
+
+.ibtn {
+  width: 28px; height: 28px;
+  background: var(--s2); border: 1px solid var(--b1); border-radius: var(--r);
+  cursor: pointer; font-size: 14px; color: var(--tx2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.13s; flex-shrink: 0;
+}
+.ibtn:hover { border-color: var(--b2); color: var(--tx); }
+.ibtn.on { border-color: var(--ac); color: var(--ac); background: rgba(124,148,255,0.1); }
+
+/* WORKSPACE */
+.ws { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+/* SIDEBAR */
+.sb {
+  width: 188px; flex-shrink: 0;
+  background: var(--s1); border-right: 1px solid var(--b1);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sb-head {
+  padding: 9px 11px 7px; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--tx3);
+  border-bottom: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sb-head span { font-family: var(--mono); font-size: 10px; }
+
+.pg-list { flex: 1; overflow-y: auto; padding: 4px; }
+
+.pg {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 8px; border-radius: 6px; cursor: pointer;
+  border: 1px solid transparent; transition: all 0.1s; min-width: 0;
+}
+.pg:hover { background: var(--s2); }
+.pg.on    { background: var(--s2); border-color: var(--b2); }
+
+.pg-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.pg-dot.draft     { background: var(--am); }
+.pg-dot.published { background: var(--gr); }
+
+.pg-info { flex: 1; min-width: 0; }
+.pg-name {
+  font-size: 12px; font-weight: 500; color: var(--tx);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pg.on .pg-name { color: var(--ac); }
+.pg-file {
+  font-family: var(--mono); font-size: 10px; color: var(--tx3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;
+}
+
+.pg-del {
+  opacity: 0; font-size: 11px; color: var(--tx3);
+  background: none; border: none; cursor: pointer;
+  padding: 2px 3px; border-radius: 3px; line-height: 1;
+  flex-shrink: 0; transition: all 0.1s;
+}
+.pg:hover .pg-del { opacity: 1; }
+.pg-del:hover { color: var(--rd); background: rgba(224,85,85,0.1); }
+
+.no-pg {
+  padding: 22px 12px; font-size: 11px; color: var(--tx3);
+  text-align: center; line-height: 1.8;
+}
+
+/* EDITOR */
+.ed-wrap {
+  display: flex; flex-direction: column;
+  flex: 1; min-width: 0; border-right: 1px solid var(--b1);
+}
+
+.pbar {
+  height: 34px; display: flex; align-items: center;
+  padding: 0 10px; gap: 3px;
+  background: var(--s2); border-bottom: 1px solid var(--b1); flex-shrink: 0;
+}
+.plbl {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--tx3); margin-right: 5px;
+}
+
+.tbtn {
+  font-family: var(--mono); font-size: 10px;
+  background: transparent; color: var(--tx3);
+  border: 1px solid transparent; border-radius: 4px;
+  padding: 2px 5px; cursor: pointer; transition: all 0.1s;
+  height: 20px; display: flex; align-items: center;
+}
+.tbtn:hover { background: var(--s3); border-color: var(--b1); color: var(--tx2); }
+.tbtn:active { transform: scale(0.93); }
+
+.save-row {
+  margin-left: auto; display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10px; color: var(--tx3);
+}
+.sdot { width: 5px; height: 5px; border-radius: 50%; background: var(--tx3); }
+.sdot.saving { background: var(--am); }
+.sdot.saved  { background: var(--gr); }
+
+.ed-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px; padding: 40px; text-align: center;
+}
+
+textarea#ed {
+  flex: 1; display: none;
+  background: var(--bg); color: var(--tx);
+  border: none; resize: none; outline: none;
+  font-family: var(--mono); font-size: 13px;
+  line-height: 1.82; padding: 20px 22px; tab-size: 2;
+}
+textarea#ed::placeholder { color: var(--tx3); }
+
+/* DIVIDER */
+.dvd {
+  width: 3px; background: var(--b1);
+  cursor: col-resize; flex-shrink: 0; transition: background 0.15s;
+}
+.dvd:hover, .dvd.drag { background: var(--ac2); }
+
+/* PREVIEW */
+.pv-wrap { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+
+.pv-bar {
+  height: 34px; display: flex; align-items: center;
+  padding: 0 10px; gap: 7px;
+  background: var(--s2); border-bottom: 1px solid var(--b1); flex-shrink: 0;
+}
+.pv-file {
+  font-family: var(--mono); font-size: 10px; color: var(--tx3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 180px; margin-right: auto;
+}
+
+iframe#pv { flex: 1; border: none; width: 100%; }
+
+/* MODALS */
+.ov {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.62);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.16s;
+}
+.ov.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--s1); border: 1px solid var(--b2);
+  border-radius: var(--r2); width: 500px; max-width: 94vw;
+  max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
+}
+.modal.sm { width: 340px; }
+
+.mh { padding: 16px 20px 12px; border-bottom: 1px solid var(--b1); }
+.mh h2 { font-size: 14px; font-weight: 600; }
+.mh p  { font-size: 11px; color: var(--tx3); margin-top: 3px; }
+
+.mb { padding: 16px 20px; overflow-y: auto; flex: 1; }
+
+.fg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.f  { display: flex; flex-direction: column; gap: 4px; }
+.f.full { grid-column: 1/-1; }
+.f label {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--tx3);
+}
+.f input, .f select, .f textarea {
+  font-family: var(--ui); font-size: 12px;
+  background: var(--s2); color: var(--tx);
+  border: 1px solid var(--b1); border-radius: var(--r);
+  padding: 6px 10px; outline: none; transition: border-color 0.13s; width: 100%;
+}
+.f input:focus, .f select:focus, .f textarea:focus { border-color: var(--ac); }
+.f textarea { resize: vertical; min-height: 52px; line-height: 1.5; }
+
+.mf {
+  padding: 12px 20px; border-top: 1px solid var(--b1);
+  display: flex; align-items: center; justify-content: flex-end; gap: 7px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 18px; right: 18px;
+  background: var(--s1); border: 1px solid var(--b2);
+  border-radius: var(--r); padding: 8px 14px;
+  font-size: 12px; color: var(--tx); z-index: 300;
+  opacity: 0; transform: translateY(5px);
+  transition: all 0.16s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: none; }
+.toast.ok  { border-color: rgba(80,200,124,0.4); color: var(--gr); }
+.toast.err { border-color: rgba(224,85,85,0.4);  color: var(--rd); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="bar">
+  <span class="brand">Studio</span>
+
+  <div class="bar-mid">
+    <select id="bookSel" style="max-width:138px;" title="Book"><option value="">— book —</option></select>
+    <select id="chapSel" style="max-width:158px;" title="Chapter"><option value="">— chapter —</option></select>
+    <button class="xbtn" id="addBCBtn">+ book / chapter</button>
+  </div>
+
+  <div class="vr"></div>
+
+  <div class="bar-right">
+    <span class="spill" id="statusPill" style="display:none"></span>
+    <button class="xbtn" id="newBtn">+ new page</button>
+    <button class="xbtn pri" id="pubBtn">Publish…</button>
+  </div>
+</div>
+
+<!-- WORKSPACE -->
+<div class="ws">
+
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sb-head">Pages <span id="pgCount">0</span></div>
+    <div class="pg-list" id="pgList">
+      <div class="no-pg">Create a new page<br>to get started.</div>
+    </div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="ed-wrap" id="edWrap">
+    <div class="pbar">
+      <span class="plbl">body</span>
+      <button class="tbtn" data-ins="<h2></h2>">h2</button>
+      <button class="tbtn" data-ins="<h3></h3>">h3</button>
+      <button class="tbtn" data-ins="<p></p>">p</button>
+      <button class="tbtn" data-ins="<strong></strong>">b</button>
+      <button class="tbtn" data-ins="<em></em>">i</button>
+      <button class="tbtn" data-ins="<code></code>">cd</button>
+      <button class="tbtn" data-ins="<pre><code>\n\n</code></pre>">pre</button>
+      <button class="tbtn" data-ins="<ul>\n  <li></li>\n</ul>">ul</button>
+      <button class="tbtn" data-ins="<ol>\n  <li></li>\n</ol>">ol</button>
+      <button class="tbtn" data-ins="<blockquote></blockquote>">bq</button>
+      <button class="tbtn" data-ins="$$  $$">$$</button>
+      <button class="tbtn" data-ins="$  $">$e</button>
+      <div class="save-row">
+        <div class="sdot" id="sdot"></div>
+        <span id="slbl">—</span>
+      </div>
+    </div>
+    <div class="ed-empty" id="edEmpty">
+      <div style="font-size:26px;opacity:0.22;">✦</div>
+      <div style="color:var(--tx3);font-size:12px;line-height:1.7;">Select a page or create a new one.</div>
+    </div>
+    <textarea id="ed" placeholder="Write article body HTML here…&#10;&#10;<p>In this section...</p>&#10;<h2>Key concept</h2>&#10;<p>Every token maps to a vector...</p>"></textarea>
+  </div>
+
+  <!-- DIVIDER -->
+  <div class="dvd" id="dvd"></div>
+
+  <!-- PREVIEW -->
+  <div class="pv-wrap">
+    <div class="pv-bar">
+      <span class="plbl">preview</span>
+      <span class="pv-file" id="pvFile">—</span>
+      <div class="ibtn" id="darkBtn" title="Toggle dark mode">◑</div>
+      <div class="ibtn" id="reloadBtn" title="Reload preview">↺</div>
+      <button class="xbtn grn" id="dlBtn">⤓ save to dots/</button>
+    </div>
+    <iframe id="pv" sandbox="allow-scripts allow-same-origin" title="Preview"></iframe>
+  </div>
+</div>
+
+<!-- PUBLISH MODAL -->
+<div class="ov" id="pubMod">
+  <div class="modal">
+    <div class="mh">
+      <h2>Publish page</h2>
+      <p>Set metadata → download → drop into your dots/ folder</p>
+    </div>
+    <div class="mb">
+      <div class="fg">
+        <div class="f"><label>Title</label><input id="m_title" placeholder="Word Representation"></div>
+        <div class="f"><label>Description</label><input id="m_desc" placeholder="How words become vectors"></div>
+        <div class="f"><label>Author</label><input id="m_author" value="Yogesh"></div>
+        <div class="f"><label>Date</label><input id="m_date"></div>
+        <div class="f"><label>Part</label><input id="m_part" placeholder="Transformer Foundations"></div>
+        <div class="f"><label>Order</label><input id="m_order" type="number" placeholder="4"></div>
+        <div class="f"><label>Reading time (min)</label><input id="m_rtime" type="number" placeholder="5"></div>
+        <div class="f"><label>Belongs to</label><input id="m_belongs" value="lib"></div>
+        <div class="f full"><label>Keywords</label><input id="m_kw" placeholder="embeddings, word2vec, skipgram"></div>
+        <div class="f full"><label>Status</label>
+          <select id="m_status">
+            <option value="draft">draft</option>
+            <option value="published">published</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="xbtn" id="pubClose">Cancel</button>
+      <button class="xbtn" id="pubSaveMeta">Save metadata</button>
+      <button class="xbtn grn" id="pubDlDraft">Download draft</button>
+      <button class="xbtn pri" id="pubDlPublished">Download published</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BOOK/CHAPTER MODAL -->
+<div class="ov" id="bcMod">
+  <div class="modal sm">
+    <div class="mh"><h2>Add book / chapter</h2></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="f full"><label>Book</label><input id="bc_book" placeholder="generative"></div>
+        <div class="f full"><label>Chapter (optional)</label><input id="bc_chap" placeholder="Autoregressive Models"></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="xbtn" id="bcClose">Cancel</button>
+      <button class="xbtn pri" id="bcSave">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW PAGE MODAL -->
+<div class="ov" id="newMod">
+  <div class="modal sm">
+    <div class="mh">
+      <h2>New page</h2>
+      <p>Saved in studio — download to dots/ when ready</p>
+    </div>
+    <div class="mb">
+      <div class="fg">
+        <div class="f full"><label>Title</label><input id="np_title" placeholder="Word Representation"></div>
+        <div class="f full"><label>Filename</label><input id="np_file" placeholder="word_representation.html" style="font-family:var(--mono);font-size:11px;"></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="xbtn" id="newClose">Cancel</button>
+      <button class="xbtn pri" id="newCreate">Create</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+const SK = 'studio_v4';
+function ls(){ try{ return JSON.parse(localStorage.getItem(SK))||{}; }catch{ return {}; } }
+function ss(d){ try{ localStorage.setItem(SK,JSON.stringify(d)); }catch{} }
+
+let S = ls();
+if(!S.books)  S.books  = { generative: ['Autoregressive Models','Attention Mechanism','Positional Encoding'] };
+if(!S.pages)  S.pages  = [];
+if(!S.active) S.active = null;
+if(!S.dark)   S.dark   = false;
+
+const persist = () => ss(S);
+const uid     = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const slug    = s => s.toLowerCase().trim().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+const ap      = () => S.pages.find(p => p.id === S.active) || null;
+
+// ══════════════════════════════════════════════════
+// BUILD HTML
+// ══════════════════════════════════════════════════
+function buildHTML(page, forPreview) {
+  const m = page.meta;
+  // studio.html is at project root
+  // preview iframe is served from project root → use ./css/
+  // downloaded file goes to dots/ → use ../css/
+  const root = forPreview ? './' : '../';
+
+  const themeInit = forPreview
+    ? `<script>document.documentElement.setAttribute("data-theme","${S.dark?'dark':'light'}");<\/script>`
+    : `<script>(() => { const t = localStorage.getItem("theme")||"light"; if(t==="dark") document.documentElement.setAttribute("data-theme","dark"); })();<\/script>`;
+
+  const overlay = forPreview ? `
+<div id="__sb" style="position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:99999;
+  background:rgba(10,10,14,0.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:6px 14px;
+  display:flex;align-items:center;gap:10px;min-width:200px;max-width:460px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.5);font-family:system-ui,sans-serif;">
+  <input id="__sbt" value="${(m.title||'').replace(/"/g,'&quot;')}" placeholder="Page title…"
+    style="font-size:13px;font-weight:500;color:#fff;background:transparent;border:none;outline:none;flex:1;min-width:0;"
+    spellcheck="false" title="Click to rename — press Enter or blur to save">
+  <span style="font-size:10px;font-weight:600;letter-spacing:0.07em;padding:2px 8px;border-radius:100px;
+    white-space:nowrap;flex-shrink:0;
+    ${m.status==='published'
+      ? 'background:rgba(80,200,124,0.18);color:#50c87c;border:1px solid rgba(80,200,124,0.3);'
+      : 'background:rgba(240,168,60,0.18);color:#f0a83c;border:1px solid rgba(240,168,60,0.3);'}"
+  >${m.status||'draft'}</span>
+  <span style="font-size:10px;color:rgba(255,255,255,0.28);">↵ to save</span>
+</div>
+<script>
+(function(){
+  var i=document.getElementById('__sbt');
+  function send(){ var v=i.value.trim(); if(v) window.parent.postMessage({type:'rename',title:v},'*'); }
+  i.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();send();i.blur();} });
+  i.addEventListener('blur', send);
+})();
+<\/script>` : '';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${m.title||'Untitled'}</title>
+    <meta name="book"         content="${m.book||''}">
+    <meta name="chapter"      content="${m.chapter||''}">
+    <meta name="part"         content="${m.part||''}">
+    <meta name="title"        content="${m.title||''}">
+    <meta name="description"  content="${m.description||''}">
+    <meta name="author"       content="${m.author||''}">
+    <meta name="date"         content="${m.date||''}">
+    <meta name="order"        content="${m.order||''}">
+    <meta name="status"       content="${m.status||'draft'}">
+    <meta name="belongs_to"   content="${m.belongs_to||'lib'}">
+    <meta name="keywords"     content="${m.keywords||''}">
+    <meta name="reading_time" content="${m.reading_time||''}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="${root}css/base.css">
+    <link rel="stylesheet" href="${root}css/articles.css">
+
+    ${themeInit}
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath:[['$','$'],['\\\\(','\\\\)']],
+                displayMath:[['$$','$$'],['\\\\[','\\\\]']],
+                processEscapes:true
+            },
+            svg:{ fontCache:'global' }
+        };
+    <\/script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>
+</head>
+<body>
+
+    ${overlay}
+
+    <div id="global-nav" data-root="${root}" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+${page.body||''}
+
+                    </section>
+                </article>
+            </div>
+        </div>
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener('DOMContentLoaded',()=>{ injectGiscusComments('article-comments'); });
+        <\/script>
+    </main>
+
+    <script src="${root}js/base.js" defer><\/script>
+
+    <script src="${root}js/article_components.js" defer><\/script>
+
+</body>
+</html>`;
+}
+
+// ══════════════════════════════════════════════════
+// DOWNLOAD
+// ══════════════════════════════════════════════════
+function download(page) {
+  const blob = new Blob([buildHTML(page,false)], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = page.filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('dlBtn').addEventListener('click', () => {
+  const page = ap();
+  if(!page){ toast('Select a page first','err'); return; }
+  download(page);
+  toast('Downloaded '+page.filename+' — drop into dots/', 'ok');
+});
+
+// ══════════════════════════════════════════════════
+// PREVIEW
+// ══════════════════════════════════════════════════
+let pvT;
+function refreshPreview() {
+  clearTimeout(pvT);
+  pvT = setTimeout(() => {
+    const pv = document.getElementById('pv');
+    const page = ap();
+    if(!page){
+      pv.srcdoc = `<html><body style="font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;color:#555;font-size:13px;">Select or create a page</body></html>`;
+      return;
+    }
+    pv.srcdoc = buildHTML(page, true);
+  }, 200);
+}
+
+// Rename from floating title
+window.addEventListener('message', e => {
+  if(!e.data || e.data.type !== 'rename') return;
+  const page = ap();
+  if(!page) return;
+  const t = e.data.title.trim();
+  if(!t || t === page.meta.title) return;
+  page.meta.title = t;
+  persist();
+  renderPages();
+  updatePill();
+  // patch just the input value in the iframe without full reload
+  try {
+    const iwin = document.getElementById('pv').contentWindow;
+    const inp = iwin.document.getElementById('__sbt');
+    if(inp && inp.value !== t) inp.value = t;
+  } catch{}
+  toast('Renamed to "'+t+'"', 'ok');
+});
+
+// Dark mode
+let dark = S.dark;
+function applyDark() {
+  document.getElementById('darkBtn').classList.toggle('on', dark);
+}
+document.getElementById('darkBtn').addEventListener('click', () => {
+  dark = !dark; S.dark = dark; persist();
+  applyDark(); refreshPreview();
+});
+applyDark();
+document.getElementById('reloadBtn').addEventListener('click', refreshPreview);
+
+// ══════════════════════════════════════════════════
+// PAGES LIST
+// ══════════════════════════════════════════════════
+function filtered() {
+  const bk = document.getElementById('bookSel').value;
+  const ch = document.getElementById('chapSel').value;
+  return S.pages.filter(p => {
+    if(bk && p.meta.book !== bk) return false;
+    if(ch && p.meta.chapter !== ch) return false;
+    return true;
+  });
+}
+
+function renderPages() {
+  const list = document.getElementById('pgList');
+  const fp = filtered();
+  document.getElementById('pgCount').textContent = fp.length;
+  if(!fp.length){
+    list.innerHTML = `<div class="no-pg">${S.pages.length ? 'No pages match filters.' : 'Create a new page<br>to get started.'}</div>`;
+    return;
+  }
+  list.innerHTML = '';
+  fp.forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'pg' + (p.id === S.active ? ' on' : '');
+    el.innerHTML = `
+      <div class="pg-dot ${p.meta.status==='published'?'published':'draft'}"></div>
+      <div class="pg-info">
+        <div class="pg-name">${p.meta.title||'Untitled'}</div>
+        <div class="pg-file">${p.filename}</div>
+      </div>
+      <button class="pg-del" title="Remove from studio">✕</button>`;
+    el.addEventListener('click', ev => {
+      if(ev.target.closest('.pg-del')) return;
+      loadPage(p.id);
+    });
+    el.querySelector('.pg-del').addEventListener('click', ev => {
+      ev.stopPropagation();
+      if(confirm(`Remove "${p.meta.title||p.filename}" from studio?\n\nThis does NOT delete the file from your dots/ folder.`)){
+        S.pages = S.pages.filter(x => x.id !== p.id);
+        if(S.active === p.id){
+          S.active = null;
+          document.getElementById('ed').style.display = 'none';
+          document.getElementById('edEmpty').style.display = '';
+          document.getElementById('pvFile').textContent = '—';
+          updatePill(); refreshPreview();
+        }
+        persist(); renderPages();
+        toast('Removed from studio');
+      }
+    });
+    list.appendChild(el);
+  });
+}
+
+function loadPage(id) {
+  S.active = id; persist();
+  const page = ap();
+  if(!page) return;
+  const ed = document.getElementById('ed');
+  ed.style.display = '';
+  document.getElementById('edEmpty').style.display = 'none';
+  ed.value = page.body;
+  document.getElementById('pvFile').textContent = 'dots/'+page.filename;
+  document.getElementById('bookSel').value = page.meta.book || '';
+  renderChapSel();
+  document.getElementById('chapSel').value = page.meta.chapter || '';
+  updatePill(); refreshPreview(); renderPages();
+}
+
+function updatePill() {
+  const pill = document.getElementById('statusPill');
+  const page = ap();
+  if(!page){ pill.style.display='none'; return; }
+  const st = page.meta.status||'draft';
+  pill.style.display='';
+  pill.className = 'spill ' + (st==='published'?'published':'draft');
+  pill.textContent = st;
+}
+
+// ══════════════════════════════════════════════════
+// EDITOR
+// ══════════════════════════════════════════════════
+function setSave(s){
+  const dot = document.getElementById('sdot');
+  const lbl = document.getElementById('slbl');
+  if(s==='saving'){ dot.className='sdot saving'; lbl.textContent='saving…'; }
+  else if(s==='saved'){ dot.className='sdot saved'; lbl.textContent='saved'; }
+  else { dot.className='sdot'; lbl.textContent='—'; }
+}
+
+let saveT;
+document.getElementById('ed').addEventListener('input', () => {
+  const page = ap(); if(!page) return;
+  page.body = document.getElementById('ed').value;
+  setSave('saving'); refreshPreview();
+  clearTimeout(saveT);
+  saveT = setTimeout(() => { persist(); setSave('saved'); }, 800);
+});
+
+document.getElementById('ed').addEventListener('keydown', e => {
+  if(e.key!=='Tab') return;
+  e.preventDefault();
+  const el=e.target, s=el.selectionStart, en=el.selectionEnd;
+  el.value = el.value.slice(0,s)+'  '+el.value.slice(en);
+  el.setSelectionRange(s+2,s+2);
+});
+
+document.querySelectorAll('.tbtn[data-ins]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const ed = document.getElementById('ed');
+    const ins = btn.dataset.ins;
+    const s = ed.selectionStart, en = ed.selectionEnd;
+    ed.value = ed.value.slice(0,s)+ins+ed.value.slice(en);
+    const cur = s + Math.round(ins.length/2);
+    ed.setSelectionRange(cur,cur);
+    ed.dispatchEvent(new Event('input'));
+    ed.focus();
+  });
+});
+
+// ══════════════════════════════════════════════════
+// NEW PAGE MODAL
+// ══════════════════════════════════════════════════
+document.getElementById('newBtn').addEventListener('click', () => {
+  document.getElementById('np_title').value = '';
+  document.getElementById('np_file').value = '';
+  document.getElementById('newMod').classList.add('open');
+  setTimeout(() => document.getElementById('np_title').focus(), 40);
+});
+
+document.getElementById('np_title').addEventListener('input', e => {
+  const s = slug(e.target.value);
+  document.getElementById('np_file').value = s ? s+'.html' : '';
+});
+
+function closeNew(){ document.getElementById('newMod').classList.remove('open'); }
+document.getElementById('newClose').addEventListener('click', closeNew);
+document.getElementById('newMod').addEventListener('click', e => { if(e.target===e.currentTarget) closeNew(); });
+
+document.getElementById('newCreate').addEventListener('click', () => {
+  const title    = document.getElementById('np_title').value.trim();
+  const filename = document.getElementById('np_file').value.trim() || slug(title)+'.html';
+  if(!title)    { toast('Enter a title','err'); return; }
+  if(!filename) { toast('Enter a filename','err'); return; }
+  if(S.pages.find(p => p.filename===filename)){ toast('Filename already exists','err'); return; }
+
+  const page = {
+    id: uid(), filename, body: '<p></p>',
+    meta: {
+      title, description:'', author:'Yogesh',
+      date: new Date().toISOString().slice(0,10),
+      part:'', order:'', reading_time:'5',
+      belongs_to:'lib', keywords:'', status:'draft',
+      book: document.getElementById('bookSel').value||'',
+      chapter: document.getElementById('chapSel').value||'',
+    }
+  };
+
+  S.pages.unshift(page);
+  S.active = page.id;
+  persist(); renderPages(); loadPage(page.id); closeNew();
+  toast('Created '+filename+' (draft in studio)', 'ok');
+  setTimeout(() => {
+    const ed = document.getElementById('ed');
+    ed.focus(); ed.setSelectionRange(3,3);
+  }, 60);
+});
+
+// ══════════════════════════════════════════════════
+// PUBLISH MODAL
+// ══════════════════════════════════════════════════
+function openPub() {
+  const page = ap();
+  if(!page){ toast('Select a page first','err'); return; }
+  const m = page.meta;
+  document.getElementById('m_title').value   = m.title||'';
+  document.getElementById('m_desc').value    = m.description||'';
+  document.getElementById('m_author').value  = m.author||'Yogesh';
+  document.getElementById('m_date').value    = m.date||new Date().toISOString().slice(0,10);
+  document.getElementById('m_part').value    = m.part||'';
+  document.getElementById('m_order').value   = m.order||'';
+  document.getElementById('m_rtime').value   = m.reading_time||'';
+  document.getElementById('m_belongs').value = m.belongs_to||'lib';
+  document.getElementById('m_kw').value      = m.keywords||'';
+  document.getElementById('m_status').value  = m.status||'draft';
+  document.getElementById('pubMod').classList.add('open');
+}
+
+function closePub(){ document.getElementById('pubMod').classList.remove('open'); }
+document.getElementById('pubBtn').addEventListener('click', openPub);
+document.getElementById('pubClose').addEventListener('click', closePub);
+document.getElementById('pubMod').addEventListener('click', e => { if(e.target===e.currentTarget) closePub(); });
+
+function collectMeta(page){
+  page.meta.title        = document.getElementById('m_title').value;
+  page.meta.description  = document.getElementById('m_desc').value;
+  page.meta.author       = document.getElementById('m_author').value;
+  page.meta.date         = document.getElementById('m_date').value;
+  page.meta.part         = document.getElementById('m_part').value;
+  page.meta.order        = document.getElementById('m_order').value;
+  page.meta.reading_time = document.getElementById('m_rtime').value;
+  page.meta.belongs_to   = document.getElementById('m_belongs').value;
+  page.meta.keywords     = document.getElementById('m_kw').value;
+  page.meta.status       = document.getElementById('m_status').value;
+}
+
+// Save metadata only — no download
+document.getElementById('pubSaveMeta').addEventListener('click', () => {
+  const page = ap(); if(!page) return;
+  collectMeta(page); persist();
+  renderPages(); updatePill(); refreshPreview(); closePub();
+  toast('Metadata saved ('+page.meta.status+')', 'ok');
+});
+
+// Download as draft (current status)
+document.getElementById('pubDlDraft').addEventListener('click', () => {
+  const page = ap(); if(!page) return;
+  collectMeta(page); page.meta.status = 'draft';
+  persist(); renderPages(); updatePill(); refreshPreview();
+  download(page); closePub();
+  toast('Downloaded '+page.filename+' (draft) — drop into dots/', 'ok');
+});
+
+// Download as published
+document.getElementById('pubDlPublished').addEventListener('click', () => {
+  const page = ap(); if(!page) return;
+  collectMeta(page); page.meta.status = 'published';
+  persist(); renderPages(); updatePill(); refreshPreview();
+  download(page); closePub();
+  toast('Downloaded '+page.filename+' (published) — drop into dots/', 'ok');
+});
+
+// ══════════════════════════════════════════════════
+// BOOK / CHAPTER MODAL
+// ══════════════════════════════════════════════════
+document.getElementById('addBCBtn').addEventListener('click', () => {
+  document.getElementById('bc_book').value = '';
+  document.getElementById('bc_chap').value = '';
+  document.getElementById('bcMod').classList.add('open');
+  setTimeout(() => document.getElementById('bc_book').focus(), 40);
+});
+function closeBc(){ document.getElementById('bcMod').classList.remove('open'); }
+document.getElementById('bcClose').addEventListener('click', closeBc);
+document.getElementById('bcMod').addEventListener('click', e => { if(e.target===e.currentTarget) closeBc(); });
+
+document.getElementById('bcSave').addEventListener('click', () => {
+  const book = document.getElementById('bc_book').value.trim();
+  const chap = document.getElementById('bc_chap').value.trim();
+  if(!book){ toast('Enter a book name','err'); return; }
+  if(!S.books[book]) S.books[book] = [];
+  if(chap && !S.books[book].includes(chap)) S.books[book].push(chap);
+  persist(); renderBookSel();
+  document.getElementById('bookSel').value = book;
+  renderChapSel();
+  if(chap) document.getElementById('chapSel').value = chap;
+  closeBc();
+  toast('Added: '+book+(chap?' › '+chap:''), 'ok');
+});
+
+// ══════════════════════════════════════════════════
+// SELECTS
+// ══════════════════════════════════════════════════
+function renderBookSel() {
+  const cur = document.getElementById('bookSel').value;
+  const sel = document.getElementById('bookSel');
+  sel.innerHTML = '<option value="">— book —</option>';
+  Object.keys(S.books).forEach(b => {
+    const o = document.createElement('option');
+    o.value = b; o.textContent = b; sel.appendChild(o);
+  });
+  if(cur) sel.value = cur;
+  renderChapSel();
+}
+
+function renderChapSel() {
+  const book = document.getElementById('bookSel').value;
+  const cur  = document.getElementById('chapSel').value;
+  const sel  = document.getElementById('chapSel');
+  sel.innerHTML = '<option value="">— chapter —</option>';
+  if(book && S.books[book]){
+    S.books[book].forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c; sel.appendChild(o);
+    });
+    if(cur && S.books[book].includes(cur)) sel.value = cur;
+  }
+}
+
+document.getElementById('bookSel').addEventListener('change', () => { renderChapSel(); renderPages(); });
+document.getElementById('chapSel').addEventListener('change', renderPages);
+
+// ══════════════════════════════════════════════════
+// DIVIDER RESIZE
+// ══════════════════════════════════════════════════
+const dvd = document.getElementById('dvd');
+const edWrap = document.getElementById('edWrap');
+let dragging=false, dragX=0, dragW=0, totW=0;
+
+dvd.addEventListener('mousedown', e => {
+  dragging=true; dragX=e.clientX; dragW=edWrap.offsetWidth;
+  const ws=document.querySelector('.ws'), sb=document.querySelector('.sb');
+  totW=ws.offsetWidth-sb.offsetWidth-3;
+  dvd.classList.add('drag');
+  document.body.style.userSelect='none';
+  document.body.style.cursor='col-resize';
+});
+document.addEventListener('mousemove', e => {
+  if(!dragging) return;
+  const nw = Math.max(200, Math.min(totW-200, dragW+e.clientX-dragX));
+  edWrap.style.flex='none';
+  edWrap.style.width=(nw/totW*100)+'%';
+});
+document.addEventListener('mouseup', () => {
+  if(!dragging) return;
+  dragging=false; dvd.classList.remove('drag');
+  document.body.style.userSelect='';
+  document.body.style.cursor='';
+});
+
+// ══════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════
+let toastT;
+function toast(msg, type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>{ el.className='toast'; }, 2600);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+renderBookSel();
+renderPages();
+
+if(S.active && ap()){
+  loadPage(S.active);
+} else {
+  refreshPreview();
+  updatePill();
+}
+</script>
+</body>
+</html>

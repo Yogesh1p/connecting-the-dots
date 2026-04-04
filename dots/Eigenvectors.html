@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="book" content="linear-algebra">
+    <meta name="chapter" content="Linear Algebra Foundations">
+    <meta name="part" content="  ">
+    <meta name="title" content="Eigenvectors and Diagonalisation">
+    <meta name="description" content="How to find eigenvectors and eigenvalues, and how to diagonalise matrices">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-04">
+    <meta name="order" content="4">
+    <meta name="status" content="live">
+        <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive-definite-matrices, cholesky factorisation">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="2">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+
+  <section id="definitions">
+    <h2>Definitions</h2>
+
+    <div class="math-box definition-box">
+      <div class="math-box-body">
+        <p>
+          Let \(A \in \mathbb{R}^{n\times n}\). A non-zero vector
+          \(\vec{x}\in\mathbb{R}^n\) is an <strong>eigenvector</strong>
+          of \(A\) with <strong>eigenvalue</strong>
+          \(\lambda\in\mathbb{R}\) if
+        </p>
+        <div class="math-display">
+          \[
+          A\vec{x}=\lambda\vec{x}
+          \]
+        </div>
+      </div>
+    </div>
+
+    <p>
+      Equivalently, \(\vec{x}\) spans a one-dimensional subspace
+      invariant under \(A\), i.e.
+      \(A\vec{x}\in\text{span}(\vec{x})\).
+    </p>
+  </section>
+
+  <section id="finding">
+    <h2>Finding Eigenvalues and Eigenvectors</h2>
+
+    <div class="math-box proof-box">
+      <div class="math-box-label">Proof</div>
+      <div class="math-box-body">
+        <p>
+          Starting from the eigenvalue equation
+          \(A\vec{x}=\lambda\vec{x}\) with \(\vec{x}\neq\vec{0}\),
+          move all terms to one side:
+        </p>
+        <div class="math-display">
+          \[
+          (A-\lambda I)\vec{x}=\vec{0}
+          \]
+        </div>
+        <p>
+          So \(\vec{x}\) is a nonzero solution of this homogeneous system.
+          That is possible only when \(A-\lambda I\) is singular, which is equivalent to
+        </p>
+        <div class="math-display">
+          \[
+          \det(A-\lambda I)=0
+          \]
+        </div>
+        <p>
+          Therefore the eigenvalues are exactly the values of \(\lambda\)
+          that make \(\det(A-\lambda I)\) equal to zero.
+        </p>
+      </div>
+    </div>
+
+    <div class="math-box key-box">
+      <div class="math-box-label">3-Step Algorithm</div>
+      <div class="math-box-body">
+        <ol>
+          <li>
+            Compute \(\det(A-\lambda I)\). This is a polynomial in
+            \(\lambda\) of degree \(n\) called the
+            <strong>characteristic polynomial</strong>.
+          </li>
+          <li>
+            Solve \(\det(A-\lambda I)=0\). Its \(n\) roots
+            (counting multiplicity) are the eigenvalues.
+          </li>
+          <li>
+            For each \(\lambda\), solve
+            \((A-\lambda I)\vec{x}=\vec{0}\)
+            to find the eigenvectors (the null space of \(A-\lambda I\)).
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <p><strong>Key checks.</strong></p>
+    <ul>
+      <li>\(\lambda_1+\cdots+\lambda_n=\operatorname{tr}(A)\)</li>
+      <li>\(\lambda_1\cdots\lambda_n=\det(A)\)</li>
+    </ul>
+
+    <p><strong>Consequences of \(A\vec{x}=\lambda\vec{x}\).</strong></p>
+    <div class="math-display">
+      \[
+      A^k\vec{x}=\lambda^k\vec{x},\quad
+      A^{-1}\vec{x}=\lambda^{-1}\vec{x},\quad
+      (A+cI)\vec{x}=(\lambda+c)\vec{x}
+      \]
+    </div>
+  </section>
+
+  <section id="multiplicity">
+    <h2>Algebraic and Geometric Multiplicity</h2>
+
+    <div class="math-box definition-box">
+      <div class="math-box-body">
+        <ul>
+          <li>
+            <strong>Algebraic multiplicity (AM):</strong>
+            number of times \(\lambda\) appears as a root of
+            \(\det(A-\lambda I)\)
+          </li>
+          <li>
+            <strong>Geometric multiplicity (GM):</strong>
+            dimension of \(\operatorname{Null}(A-\lambda I)\)
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <table class="math-table">
+      <thead>
+        <tr>
+          <th>Viewpoint</th>
+          <th>Measuring</th>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Algebra</td>
+          <td>Times \(\lambda\) is a root of \(\det(A-\lambda I)\)</td>
+          <td>AM</td>
+        </tr>
+        <tr>
+          <td>Geometry</td>
+          <td>Independent eigenvectors produced</td>
+          <td>GM</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="math-display">
+      \[
+      1\le \mathrm{GM}(\lambda)\le \mathrm{AM}(\lambda)
+      \]
+    </div>
+
+    <p>
+      The total number of independent eigenvectors equals
+      \(\sum \mathrm{GM}(\lambda_i)\le n\).
+    </p>
+
+    <div class="math-box note-box">
+      <div class="math-box-label">Rank and eigenstructure</div>
+      <div class="math-box-body">
+        <p>
+          Rank tells you how many dimensions survive under \(A\),
+          not which special directions survive unchanged.
+        </p>
+        <ul>
+          <li>
+            If \(\operatorname{rank}(A)=r\), then nullity is \(n-r\),
+            giving \(n-r\) eigenvectors with \(\lambda=0\)
+          </li>
+          <li>Rank does <em>not</em> determine diagonalisability</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="diagonalisation">
+    <h2>Diagonalisation</h2>
+
+    <div class="math-box theorem-box">
+      <div class="math-box-body">
+        <p>
+          Let \(A\) be \(n\times n\) with eigenvectors
+          \(\vec{x}_1,\dots,\vec{x}_n\) placed as columns of \(X\).
+          If \(X\) is invertible:
+        </p>
+        <div class="math-display">
+          \[
+          A=X\Lambda X^{-1},\qquad
+          \Lambda=\operatorname{diag}(\lambda_1,\dots,\lambda_n)
+          \]
+        </div>
+      </div>
+    </div>
+
+    <div class="math-box proof-box">
+      <div class="math-box-label">Proof</div>
+      <div class="math-box-body">
+        <p>
+          The columns of \(AX=X\Lambda\) say
+          \(A\vec{x}_k=\lambda_k\vec{x}_k\) for each \(k\).
+          If the columns are independent, \(X\) is invertible.
+        </p>
+      </div>
+    </div>
+
+    <p><strong>Powers.</strong></p>
+    <div class="math-display">
+      \[
+      A^k=X\Lambda^kX^{-1}
+      \]
+    </div>
+
+    <div class="math-box key-box">
+      <div class="math-box-label">Diagonalisability criterion</div>
+      <div class="math-box-body">
+        <div class="math-display">
+          \[
+          A \text{ is diagonalisable }
+          \Longleftrightarrow
+          \mathrm{GM}(\lambda)=\mathrm{AM}(\lambda)
+          \]
+        </div>
+        <p>
+          In particular, distinct eigenvalues always imply diagonalisability.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="spectral-theorem">
+    <h2>Symmetric Matrices and the Spectral Theorem</h2>
+
+    <div class="math-box theorem-box">
+      <div class="math-box-label">Spectral Theorem</div>
+      <div class="math-box-body">
+        <ol>
+          <li>All eigenvalues are real</li>
+          <li>Distinct eigenspaces are orthogonal</li>
+          <li>\(S=Q\Lambda Q^T\)</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="positive-definite">
+    <h2>Positive Definite Matrices</h2>
+
+    <div class="math-box definition-box">
+      <div class="math-box-label">Positive Definite</div>
+      <div class="math-box-body">
+        <p>A symmetric matrix \(S\) is positive definite if</p>
+        <div class="math-display">
+          \[
+          \vec{x}^TS\vec{x}>0\quad\forall \vec{x}\neq 0
+          \]
+        </div>
+      </div>
+    </div>
+
+    <div class="math-box key-box">
+      <div class="math-box-label">
+        Five Equivalent Tests for Symmetric \(S\)
+      </div>
+      <div class="math-box-body">
+        <ol>
+          <li>All eigenvalues \(>0\)</li>
+          <li>All pivots \(>0\)</li>
+          <li>Leading principal minors \(>0\)</li>
+          <li>\(S=A^TA\)</li>
+          <li>\(S=R^TR\)</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="psd">
+    <h2>Positive Semidefinite Matrices</h2>
+
+    <p>
+      \(S\) is <strong>positive semidefinite</strong> if
+      \(\vec{x}^TS\vec{x}\ge 0\) for all \(\vec{x}\).
+      Equivalently, all eigenvalues are nonnegative.
+    </p>
+
+    <div class="math-box proof-box">
+      <div class="math-box-label">Closure under addition</div>
+      <div class="math-box-body">
+        <p>
+          If \(S\) and \(T\) are symmetric positive definite,
+          then so is \(S+T\).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="cholesky">
+    <h2>Cholesky Factorisation</h2>
+
+    <p>
+      Every symmetric positive definite matrix admits a unique factorisation
+    </p>
+
+    <div class="math-display">
+      \[
+      S=R^TR
+      \]
+    </div>
+
+    <p>
+      where \(R\) is upper triangular with positive diagonal entries.
+    </p>
+
+    <ol>
+      <li>\(A_1\): rectangular, independent columns</li>
+      <li>\(A_2\): upper triangular Cholesky factor</li>
+      <li>\(A_3=Q\Lambda^{1/2}Q^T\): symmetric square root</li>
+    </ol>
+  </section>
+
+</section>
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>
