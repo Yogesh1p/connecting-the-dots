@@ -15,14 +15,14 @@ window.rawPages = [
   {
     "url": "./Eigenvectors.html",
     "book": "linear-algebra",
-    "title": "Eigenvectors and Diagonalisation",
+    "title": "Eigenvectors, Diagonalisation, Spectral Theorem",
     "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
     "date": "2026-04-04",
     "chapter": "Linear Algebra Foundations",
     "part": "  ",
     "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive-definite-matrices, cholesky factorisation",
     "order": 4,
-    "readingTime": 2
+    "readingTime": 7
   },
   {
     "url": "./pos_enc.html",
@@ -58,6 +58,6 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "keywords": "embeddings, word2vec, skipgram, CBOW",
     "order": 4,
-    "readingTime": 11
+    "readingTime": 13
   }
 ];

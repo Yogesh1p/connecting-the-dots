@@ -1,3 +1,75 @@
+
+:root {
+  --example-box-bg: #FFF8F2;
+  --example-box-border: #E2B08F;
+  --example-box-label-bg: #E8B89A;
+  --example-box-label-text: #2A211C;
+}
+
+[data-theme="dark"] {
+  --example-box-bg: #241811;
+  --example-box-border: #8A5A3F;
+  --example-box-label-bg: #A86D4C;
+  --example-box-label-text: #FAE9DB;
+}
+/* ── CSS Variables ── */
+:root {
+  --bg:        #FDFBF7;
+  --text:      #4A3F35;
+  --accent:    #D48C70;
+  --surface:   #F4EFE6;
+  --border:    #E8DFD1;
+  --muted:     #847769;
+  --dark:      #2D241E;
+  --highlight: rgba(212, 140, 112, 0.15);
+  --card-bg:   #FFFFFF;
+  --code-bg:   var(--surface);
+  --code-text: #5A4E42;
+  
+
+}
+:root {
+  --math-box-bg: #FBF6F2;
+  --math-box-border: #D99A74;
+  --math-box-label-bg: #D18B61;
+  --math-box-label-text: #1E1A17;
+
+  --proof-box-label-bg: #EEDDD3;
+  --proof-box-label-text: #7B5D50;
+
+  --note-box-bg: #FFF9F5;
+
+  --table-rule: #EAD8CF;
+}
+
+[data-theme="dark"] {
+  --bg:        #16100C;
+  --text:      #C5B49A;
+  --accent:    #D48C70;
+  --surface:   #1F1510;
+  --border:    #2E2018;
+  --muted:     #736050;
+  --dark:      #EAD9C2;
+  --highlight: rgba(212, 140, 112, 0.12);
+  --card-bg:   #1C1208;
+  --code-bg:   #130E0A;
+  --code-text: #B0A088;
+  
+
+}
+[data-theme="dark"] {
+  --math-box-bg: #221712;
+  --math-box-border: #7A5037;
+  --math-box-label-bg: #A56747;
+  --math-box-label-text: #F7E8D8;
+
+  --proof-box-label-bg: #34231B;
+  --proof-box-label-text: #D2AE97;
+
+  --note-box-bg: #261A14;
+
+  --table-rule: #3A281F;
+}
 /* Custom Reading Styles adapted for your Dark Mode system */
         .reading-container {
             max-width: 720px;
@@ -29,10 +101,65 @@
   margin: 0.45rem 0;
   line-height: 1.75;
 }
+
+/* =========================
+   EXAMPLE BOX
+   ========================= */
+
+.example-box {
+  border-color: var(--example-box-border);
+  background: var(--example-box-bg);
+}
+
+.example-box .math-box-label {
+  background: var(--example-box-label-bg);
+  color: var(--example-box-label-text);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.example-box .math-box-body {
+  padding: 1rem 1.2rem;
+}
+
+.example-box .math-display {
+  margin: 0.85rem 0;
+}
 /* =========================
    THEOREM / MATH BOX SYSTEM
    ========================= */
+/* =========================
+   CENTERED THEOREM STATEMENT
+   ========================= */
 
+.theorem-statement {
+  text-align: center;
+  font-size: 1.22rem;
+  line-height: 1.8;
+  margin: 0.4rem 0 0;
+}
+
+/* Push proof toggle lower */
+.proof-toggle {
+  margin-top: 1.4rem;
+  border-top: 1px solid var(--table-rule);
+  padding-top: 1rem;
+}
+
+/* Only the clickable label is muted */
+.proof-toggle summary {
+  font-style: italic;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* More breathing room after opening */
+.proof-content {
+  margin-top: 1.15rem;
+}
+.proof-toggle[open] summary {
+  margin-bottom: 0.2rem;
+}
 .math-box {
   margin: 1.4rem 0 1.8rem;
   border: 1px solid var(--math-box-border);
