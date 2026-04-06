@@ -17,7 +17,7 @@
     "book": "linear-algebra",
     "title": "Eigenvectors, Diagonalisation, Spectral Theorem",
     "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
-    "date": "2026-04-04",
+    "date": "2026-04-06",
     "chapter": "Linear Algebra Foundations",
     "part": "  ",
     "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive-definite-matrices, cholesky factorisation",

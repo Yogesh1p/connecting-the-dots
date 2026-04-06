@@ -124,14 +124,14 @@ function initGlobalNavigation(options = {}) {
   `;
 }
 
-// Auto-init nav
-const navRoot = document.getElementById('global-nav');
-initGlobalNavigation({ sticky: navRoot?.dataset?.sticky !== 'false' });
+
 
 /* ============================================================
    DOM CONTENT LOADED LOGIC
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
+  const navRoot = document.getElementById('global-nav');
+  initGlobalNavigation({ sticky: navRoot?.dataset?.sticky !== 'false' });
   
   // 1. SAFE HASH CLEANUP
   // Only scroll to hash if we are NOT on an article page (which handles its own scrolling)
@@ -162,7 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Set initial meta colors
-  applyTheme(htmlEl.getAttribute('data-theme'));
+const metaThemeColor = document.getElementById('theme-color-meta');
+if (metaThemeColor) {
+  metaThemeColor.setAttribute('content', savedTheme === 'dark' ? '#16100C' : '#FDFBF7');
+}
 
   document.addEventListener('click', (e) => {
     if (e.target.closest('.theme-toggle')) {

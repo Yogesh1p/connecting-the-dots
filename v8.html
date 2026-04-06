@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="theme-color" content="#FDFBF7" id="theme-color-meta">
+  <title>Connecting the Dots — Knowledge Graph</title>
+
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/base.css">
+  <script>(function(){var t=localStorage.getItem('theme')||'light';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();</script>
+  <script src="js/base.js" defer></script>
+  <script src="js/components.js" defer></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <style>
+    :root {
+      --bg:      #FDFBF7;
+      --text:    #4A3F35;
+      --accent:  #D48C70;
+      --surface: #F4EFE6;
+      --border:  #E8DFD1;
+      --muted:   #847769;
+      --dark:    #2D241E;
+      --card-bg: #FFFFFF;
+    }
+    [data-theme="dark"] {
+      --bg:      #16100C;
+      --text:    #C5B49A;
+      --accent:  #D48C70;
+      --surface: #1F1510;
+      --border:  #2E2018;
+      --muted:   #736050;
+      --dark:    #EAD9C2;
+      --card-bg: #1C1208;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lora', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    /* ── STAGE ── */
+    #stage {
+      position: fixed;
+      inset: 0;
+      width: 100dvw;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* Ambient radial gradient bg — very subtle */
+    #stage::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 30% 40%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 70%),
+        radial-gradient(ellipse 50% 50% at 75% 65%, color-mix(in srgb, var(--text) 4%, transparent), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── CANVAS (particles) ── */
+    #shatter-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+    }
+
+    /* ── D3 GRAPH ── */
+    #d3-container {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    #network-graph {
+      width: 100%; height: 100%;
+      display: block;
+      cursor: grab;
+      touch-action: none;
+    }
+    #network-graph:active { cursor: grabbing; }
+
+    /* ── LANDING HERO OVERLAY (before Enter) ── */
+    #landing-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(1.4rem, 4vw, 2.4rem);
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    /* Top-left eyebrow */
+    .landing-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.55rem, 1.5vw, 0.65rem);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0.85;
+      line-height: 1;
+    }
+
+    /* Bottom section: tagline + enter button */
+    .landing-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.8rem;
+    }
+
+    .landing-tagline {
+      text-align: center;
+      pointer-events: none;
+    }
+    .landing-tagline p {
+      font-style: italic;
+      font-size: clamp(0.8rem, 2vw, 0.95rem);
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 34ch;
+    }
+
+    /* Stats row */
+    .landing-stats {
+      display: flex;
+      gap: 1.8rem;
+      align-items: center;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    .stat-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+      font-weight: 500;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.5rem, 1.2vw, 0.58rem);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+    .stat-sep {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+    }
+
+    /* ── ENTER BUTTON ── */
+    #enter-btn {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.65rem 1.6rem 0.65rem 1.3rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 55%, var(--bg));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.6rem, 1.5vw, 0.65rem);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      outline: none;
+      min-height: 44px; /* touch target */
+      min-width: 44px;
+      transition: border-color 0.25s, color 0.25s, background 0.25s, box-shadow 0.25s;
+      animation: btn-pulse 3s ease-in-out infinite;
+    }
+    #enter-btn:hover, #enter-btn:focus-visible {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: color-mix(in srgb, var(--surface) 80%, var(--bg));
+      box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 20%, transparent);
+      animation: none;
+    }
+    #enter-btn:active { transform: scale(0.97); }
+    .btn-arrow {
+      width: 13px; height: 13px; opacity: 0.6;
+      transition: opacity 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+    #enter-btn:hover .btn-arrow, #enter-btn:focus-visible .btn-arrow { opacity: 1; transform: translateX(2px); }
+    @keyframes btn-pulse {
+      0%,100% { box-shadow: 0 0 0 0 transparent; }
+      50%      { box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 16%, transparent); }
+    }
+
+    /* ── CORNER BUTTONS (about + theme, always visible) ── */
+    #corner-btns {
+      position: absolute;
+      top: clamp(1rem, 3vw, 1.6rem);
+      right: clamp(1rem, 3vw, 1.6rem);
+      z-index: 50;
+      display: flex;
+      gap: 0.55rem;
+      align-items: center;
+    }
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      min-width: 44px; min-height: 44px; /* touch target via padding trick */
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--surface) 50%, var(--bg));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--muted);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .icon-btn:hover, .icon-btn:focus-visible {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 15%, transparent);
+    }
+    .icon-btn svg { width: 15px; height: 15px; pointer-events: none; }
+
+    /* ── GRAPH UI (after transition) ── */
+    #ui-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-bottom: clamp(1.5rem, 4vw, 2.5rem);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .ui-bottom {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      padding: 0 1rem;
+    }
+    .archive-search {
+      width: 100%;
+      max-width: 280px;
+      padding: 0.65rem 1.2rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 60%, var(--bg));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text);
+      font: italic clamp(0.8rem, 2vw, 0.85rem) 'Lora', serif;
+      outline: none;
+      pointer-events: auto;
+      min-height: 44px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      -webkit-appearance: none;
+    }
+    .archive-search::placeholder { color: var(--muted); opacity: 0.7; }
+    .archive-search:focus {
+      background: var(--card-bg);
+      border-color: var(--accent);
+      box-shadow: 0 4px 20px color-mix(in srgb, var(--dark) 6%, transparent);
+    }
+
+    /* Legend — top-left after transition */
+    #graph-legend {
+      position: absolute;
+      top: clamp(1rem, 3vw, 1.6rem);
+      left: clamp(1rem, 3vw, 1.6rem);
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.5rem, 1.3vw, 0.58rem);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0.8;
+    }
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-dot.hub  { background: var(--accent); width: 10px; height: 10px; }
+    .legend-dot.sub  { background: var(--text); }
+    .legend-dot.leaf { background: var(--muted); width: 6px; height: 6px; }
+
+    /* ── ABOUT DRAWER ── */
+    #about-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 200;
+      background: color-mix(in srgb, var(--dark) 35%, transparent);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    #about-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #about-drawer {
+      position: absolute;
+      top: 0; right: 0;
+      width: min(420px, 100vw);
+      height: 100%;
+      background: var(--card-bg);
+      border-left: 1px solid var(--border);
+      padding: clamp(1.8rem, 5vw, 3rem) clamp(1.4rem, 4vw, 2.4rem);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    #about-overlay.open #about-drawer {
+      transform: translateX(0);
+    }
+
+    .drawer-close {
+      position: absolute;
+      top: 1.2rem; right: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px;
+      min-width: 44px; min-height: 44px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .drawer-close:hover { border-color: var(--accent); color: var(--accent); }
+    .drawer-close svg { width: 14px; height: 14px; }
+
+    .drawer-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+    .drawer-title {
+      font-size: clamp(1.3rem, 4vw, 1.7rem);
+      font-weight: 600;
+      color: var(--dark);
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+    .drawer-body {
+      font-size: clamp(0.82rem, 2vw, 0.9rem);
+      line-height: 1.75;
+      color: var(--text);
+    }
+    .drawer-body p + p { margin-top: 0.9rem; }
+    .drawer-body em { color: var(--accent); font-style: italic; }
+
+    .drawer-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+    .drawer-clusters {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .cluster-row {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .cluster-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: var(--accent);
+    }
+    .cluster-name {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--dark);
+      flex: 1;
+    }
+    .cluster-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    .drawer-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      opacity: 0.7;
+      line-height: 1.8;
+      border-top: 1px solid var(--border);
+      padding-top: 1.2rem;
+    }
+    .drawer-hint span { color: var(--accent); }
+
+    /* ── D3 styles ── */
+    .graph-link {
+      stroke: var(--muted, #847769);
+      stroke-opacity: 0.18;
+      stroke-width: 1.5px;
+      transition: stroke-opacity 0.25s, stroke-width 0.25s;
+    }
+    .graph-node-hub  { fill: var(--accent, #D48C70); stroke: var(--bg, #FFF); stroke-width: 3px; }
+    .graph-node-sub  { fill: var(--text, #4A3F35);   stroke: var(--bg, #FFF); stroke-width: 2px; }
+    .graph-node-leaf { fill: var(--muted, #847769);  stroke: var(--bg, #FFF); stroke-width: 1.5px; }
+    .graph-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      fill: var(--text, #4A3F35);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .graph-label.hub-label { font-size: 0.85rem; font-weight: 600; fill: var(--dark, #2D241E); }
+    .graph-link.active { stroke: var(--accent); stroke-opacity: 0.7; stroke-width: 2.5px; }
+    .dimmed            { opacity: 0.05; }
+    .search-match      { stroke: var(--accent) !important; filter: drop-shadow(0 0 6px var(--accent)); }
+
+    /* ── MOBILE tweaks ── */
+    @media (max-width: 640px) {
+      .landing-stats { gap: 1.2rem; }
+      .graph-label   { font-size: 0.62rem; }
+      #about-drawer  { width: 100vw; border-left: none; border-top: 1px solid var(--border); }
+    }
+
+    /* Nav fade wrapper */
+    #nav-fade-wrapper {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+  }
+</script>
+
+<div id="stage">
+
+  <div id="nav-fade-wrapper">
+    <div id="global-nav" data-root=""></div>
+  </div>
+
+  <canvas id="shatter-canvas"></canvas>
+
+  <div id="d3-container">
+    <svg id="network-graph"></svg>
+  </div>
+
+  <div id="ui-overlay">
+    <div class="ui-bottom">
+      <input type="text" id="graph-search" class="archive-search" placeholder="Search concepts…" autocomplete="off" inputmode="search"/>
+    </div>
+  </div>
+
+  <div id="graph-legend">
+    <div class="legend-item"><div class="legend-dot hub"></div>Domain cluster</div>
+    <div class="legend-item"><div class="legend-dot sub"></div>Sub-topic</div>
+    <div class="legend-item"><div class="legend-dot leaf"></div>Concept / method</div>
+  </div>
+
+  <div id="landing-overlay">
+    <div class="landing-eyebrow">Personal knowledge graph · ML &amp; Deep Learning</div>
+
+    <div class="landing-bottom">
+      <div class="landing-tagline">
+        <p>A living map of concepts, models, and connections — built as I learn.</p>
+      </div>
+
+      <div class="landing-stats">
+        <div class="stat-item">
+          <span class="stat-num">35</span>
+          <span class="stat-label">Nodes</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <span class="stat-num">4</span>
+          <span class="stat-label">Clusters</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <span class="stat-num">35</span>
+          <span class="stat-label">Edges</span>
+        </div>
+      </div>
+
+      <button id="enter-btn" aria-label="Explore the graph">
+        Explore
+        <svg class="btn-arrow" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="corner-btns">
+    <button class="icon-btn" id="about-btn" aria-label="About this project">
+      <svg viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M8 7v5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        <circle cx="8" cy="4.8" r="0.7" fill="currentColor"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="theme-btn" aria-label="Toggle theme" onclick="toggleTheme()">
+      <svg viewBox="0 0 16 16" fill="none">
+        <path d="M8 2v1M8 13v1M2 8H1m14 0h-1M4.22 4.22l-.71-.71M12.49 12.49l-.71-.71M4.22 11.78l-.71.71M12.49 3.51l-.71.71" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        <circle cx="8" cy="8" r="2.8" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </button>
+  </div>
+
+  <div id="about-overlay" role="dialog" aria-modal="true" aria-label="About this project">
+    <div id="about-drawer">
+      <button class="drawer-close" id="drawer-close-btn" aria-label="Close">
+        <svg viewBox="0 0 14 14" fill="none">
+          <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div>
+        <div class="drawer-eyebrow">About</div>
+        <div class="drawer-title">Connecting the Dots.</div>
+        <div class="drawer-body">
+          <p>This is a personal knowledge graph I built to map out concepts in machine learning and deep learning as I study them — not a textbook, not a course, but a <em>living diagram of how ideas connect</em>.</p>
+          <p>Each node is a concept I've encountered. Each edge is a relationship I've traced — either hierarchically (a topic containing a sub-topic) or conceptually (two ideas that inform each other).</p>
+          <p>The graph grows as I learn. Some areas are dense; others are sparse — that's an honest map of what I actually know.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="drawer-section-label">Clusters</div>
+        <div class="drawer-clusters">
+          <div class="cluster-row">
+            <div class="cluster-dot" style="background:var(--accent)"></div>
+            <div class="cluster-name">Autoregressive Models</div>
+            <div class="cluster-count">7 nodes</div>
+          </div>
+          <div class="cluster-row">
+            <div class="cluster-dot" style="background:var(--accent)"></div>
+            <div class="cluster-name">Large Language Models</div>
+            <div class="cluster-count">9 nodes</div>
+          </div>
+          <div class="cluster-row">
+            <div class="cluster-dot" style="background:var(--accent)"></div>
+            <div class="cluster-name">Latent Variable Models</div>
+            <div class="cluster-count">11 nodes</div>
+          </div>
+          <div class="cluster-row">
+            <div class="cluster-dot" style="background:var(--accent)"></div>
+            <div class="cluster-name">Score-Based Models</div>
+            <div class="cluster-count">2 nodes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-hint">
+        <span>Hover</span> a node to see its connections ·
+        <span>Drag</span> to rearrange ·
+        <span>Search</span> to filter
+      </div>
+    </div>
+  </div>
+
+</div><script>
+window.addEventListener('load', () => {
+  if (typeof d3 === 'undefined') return;
+
+  /* ── AUDIO: node hover tap only ── */
+  let AC = null, audioUnlocked = false;
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    AC.resume();
+  }
+  function crispTap(nodeGroup) {
+    if (!AC) return;
+    if (AC.state === 'suspended') AC.resume();
+    const freq = nodeGroup === 'hub' ? 9500 : nodeGroup === 'sub' ? 7200 : 5800;
+    const t = AC.currentTime;
+    const osc = AC.createOscillator(), g = AC.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.030, t + 0.003);
+    g.gain.linearRampToValueAtTime(0.0001, t + 0.025);
+    osc.connect(g); g.connect(AC.destination);
+    osc.start(t); osc.stop(t + 0.030);
+  }
+
+  /* ── COLOR UTILS ── */
+  function getCssColor(v, fb) {
+    let val = getComputedStyle(document.documentElement).getPropertyValue(v).trim() || fb;
+    if (val.startsWith('#')) {
+      let h = val.replace('#','');
+      if (h.length===3) h=h.split('').map(x=>x+x).join('');
+      return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+    }
+    return [0,0,0];
+  }
+  let C = {};
+  function updateColors() {
+    C.bg     = getCssColor('--bg',     '#FDFBF7');
+    C.text   = getCssColor('--text',   '#4A3F35');
+    C.dark   = getCssColor('--dark',   '#2D241E');
+    C.accent = getCssColor('--accent', '#D48C70');
+    C.muted  = getCssColor('--muted',  '#847769');
+  }
+  function nodeColor(g) { return g==='hub'?C.accent:g==='sub'?C.text:C.muted; }
+
+  /* Mobile: smaller radii so graph fits */
+  const isMobile = () => window.innerWidth < 640;
+  function nodeR(g) {
+    if (isMobile()) return g==='hub'?18:g==='sub'?12:7; // larger tap targets
+    return g==='hub'?14:g==='sub'?9:5;
+  }
+
+  /* ── GRAPH DATA ── */
+  function createGraphData() {
+    const nodes = [
+      {id:"Autoregressive Models",group:"hub"},{id:"Large Language Models",group:"hub"},
+      {id:"Latent Variable Models",group:"hub"},{id:"Score-Based Models",group:"hub"},
+      {id:"Fixed-Length Models",group:"sub"},{id:"Sequence Models",group:"sub"},
+      {id:"Transformers",group:"sub"},{id:"Variational Inference",group:"sub"},
+      {id:"Normalizing Flows",group:"sub"},{id:"LLM Training",group:"sub"},
+      {id:"LLM Alignment",group:"sub"},{id:"Agentic Systems",group:"sub"},
+      {id:"Classical EM",group:"sub"},
+      {id:"FVSBN",group:"leaf"},{id:"NADE",group:"leaf"},{id:"MADE",group:"leaf"},
+      {id:"RNNs",group:"leaf"},{id:"Word2Vec",group:"leaf"},{id:"Attention",group:"leaf"},
+      {id:"MoE",group:"leaf"},{id:"LoRA",group:"leaf"},{id:"RLHF",group:"leaf"},
+      {id:"DPO",group:"leaf"},{id:"GRPO",group:"leaf"},{id:"RAG",group:"leaf"},
+      {id:"ReAct",group:"leaf"},{id:"ELBO",group:"leaf"},{id:"BBVI",group:"leaf"},
+      {id:"VAE",group:"leaf"},{id:"Reparameterisation",group:"leaf"},{id:"GMM",group:"leaf"},
+      {id:"HMM",group:"leaf"},{id:"Diffusion",group:"leaf"},{id:"DDPM",group:"leaf"}
+    ];
+    const links = [
+      ["Autoregressive Models","Fixed-Length Models"],["Autoregressive Models","Sequence Models"],
+      ["Fixed-Length Models","FVSBN"],["Fixed-Length Models","NADE"],["Fixed-Length Models","MADE"],
+      ["Sequence Models","RNNs"],["Sequence Models","Word2Vec"],["Sequence Models","Attention"],
+      ["Sequence Models","Transformers"],["Large Language Models","Transformers"],
+      ["Large Language Models","LLM Training"],["Large Language Models","LLM Alignment"],
+      ["Large Language Models","Agentic Systems"],["Transformers","Attention"],["Transformers","MoE"],
+      ["LLM Training","LoRA"],["LLM Alignment","RLHF"],["LLM Alignment","DPO"],["LLM Alignment","GRPO"],
+      ["Agentic Systems","RAG"],["Agentic Systems","ReAct"],["Latent Variable Models","Variational Inference"],
+      ["Latent Variable Models","Normalizing Flows"],["Latent Variable Models","Classical EM"],
+      ["Variational Inference","ELBO"],["Variational Inference","BBVI"],["Variational Inference","VAE"],
+      ["Variational Inference","Reparameterisation"],["Classical EM","GMM"],["Classical EM","HMM"],
+      ["Score-Based Models","Diffusion"],["Diffusion","DDPM"],["VAE","MADE"],
+      ["Normalizing Flows","Reparameterisation"],["Transformers","Sequence Models"]
+    ].map(([s,t])=>({source:s,target:t}));
+    nodes.forEach(n=>n.radius=nodeR(n.group));
+    return {nodes,links};
+  }
+
+  /* ── DOM refs ── */
+  const canvas        = document.getElementById('shatter-canvas');
+  const ctx           = canvas.getContext('2d', {alpha:false});
+  const svgCont       = document.getElementById('d3-container');
+  const uiOverlay     = document.getElementById('ui-overlay');
+  const graphLegend   = document.getElementById('graph-legend');
+  const navWrapper    = document.getElementById('nav-fade-wrapper');
+  const landingOv     = document.getElementById('landing-overlay');
+  const enterBtn      = document.getElementById('enter-btn');
+  const aboutBtn      = document.getElementById('about-btn');
+  const aboutOverlay  = document.getElementById('about-overlay');
+  const drawerClose   = document.getElementById('drawer-close-btn');
+  const searchInput   = document.getElementById('graph-search');
+
+  let W, H, DPR;
+  let particles = [], sceneData, d3sim;
+  let transitionDone = false, animating = false, animStartTime = null;
+  const ANIM_DURATION = 2600;
+
+  /* ── ABOUT DRAWER ── */
+  function openAbout()  { aboutOverlay.classList.add('open'); }
+  function closeAbout() { aboutOverlay.classList.remove('open'); }
+  aboutBtn.addEventListener('click', openAbout);
+  drawerClose.addEventListener('click', closeAbout);
+  aboutOverlay.addEventListener('click', e => { if(e.target===aboutOverlay) closeAbout(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeAbout(); });
+
+  /* ── CANVAS RESIZE [FIXED] ── */
+  function resizeCanvas() {
+    const stageRect = document.getElementById('stage').getBoundingClientRect();
+    
+    // Safely fallback to innerWidth/Height if rect is somehow missing during load
+    W = stageRect.width || window.innerWidth || 300; 
+    H = stageRect.height || window.innerHeight || 300;
+    
+    DPR = Math.min(window.devicePixelRatio||1, 2); // cap at 2x for perf
+    canvas.width  = W*DPR; 
+    canvas.height = H*DPR;
+    
+    // FIX: Reset the transform matrix to prevent scale values from accumulating!
+    ctx.setTransform(1, 0, 0, 1, 0, 0); 
+    ctx.scale(DPR,DPR);
+    
+    // FIX: Add viewBox to keep D3 elements positioned consistently
+    d3.select('#network-graph')
+      .attr('width', W)
+      .attr('height', H)
+      .attr('viewBox', `0 0 ${W} ${H}`); 
+      
+    updateColors();
+  }
+
+  /* ── BUILD SCENE ── */
+  function buildScene() {
+    const svg = d3.select('#network-graph');
+    svg.selectAll('*').remove();
+    sceneData = createGraphData();
+
+    const mobile = isMobile();
+    const linkDist   = mobile ? 35 : 45;
+    const chargeStr  = mobile ? -80 : -120;
+    const collideR   = mobile ? 14 : 12;
+
+    d3sim = d3.forceSimulation(sceneData.nodes)
+      .force('link',    d3.forceLink(sceneData.links).id(d=>d.id).distance(linkDist))
+      .force('charge',  d3.forceManyBody().strength(chargeStr))
+      .force('center',  d3.forceCenter(W/2, H/2))
+      .force('x',       d3.forceX(W/2).strength(0.08))
+      .force('y',       d3.forceY(H/2).strength(0.08))
+      .force('collide', d3.forceCollide().radius(d=>d.radius+collideR));
+
+    d3sim.stop();
+    for (let i=0;i<300;i++) d3sim.tick();
+
+    const pad = mobile ? 30 : 60;
+    sceneData.nodes.forEach(n=>{
+      n.x=Math.max(pad,Math.min(W-pad,n.x));
+      n.y=Math.max(pad,Math.min(H-pad,n.y));
+    });
+
+    const link  = svg.append('g').selectAll('line').data(sceneData.links).join('line').attr('class','graph-link');
+    const node  = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
+      .attr('class',d=>`graph-node-${d.group}`)
+      .attr('r',d=>d.radius)
+      .call(makeDrag(d3sim));
+
+    const hitNode = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
+      .attr('r', d => mobile ? Math.max(d.radius, 22) : d.radius)
+      .attr('fill', 'transparent')
+      .attr('stroke', 'none')
+      .style('cursor', 'pointer')
+      .call(makeDrag(d3sim));
+
+    const label = svg.append('g').selectAll('text').data(sceneData.nodes).join('text')
+      .attr('class',d=>`graph-label${d.group==='hub'?' hub-label':''}`)
+      .attr('dx',d=>d.radius+6).attr('dy',4)
+      .attr('x',d=>d.x).attr('y',d=>d.y)
+      .text(d=>d.id);
+
+    d3sim.on('tick',()=>{
+      const b = mobile ? 20 : 20;
+      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+      node.attr('cx',d=>d.x=Math.max(b,Math.min(W-b,d.x)))
+          .attr('cy',d=>d.y=Math.max(b,Math.min(H-b,d.y)));
+      hitNode.attr('cx',d=>d.x).attr('cy',d=>d.y);
+      label.attr('x',d=>d.x).attr('y',d=>d.y);
+    });
+
+    let dragging=false, hovered=null, term='';
+
+    function updateState() {
+      if(dragging) return;
+      if(hovered){
+        const conn=new Set([hovered.id]);
+        const connL=sceneData.links.filter(l=>{
+          if(l.source.id===hovered.id||l.target.id===hovered.id){conn.add(l.source.id);conn.add(l.target.id);return true;}
+          return false;
+        });
+        node.classed('dimmed',n=>!conn.has(n.id)).classed('search-match',false);
+        link.classed('dimmed',l=>!connL.includes(l)).classed('active',l=>connL.includes(l));
+        label.style('opacity',n=>conn.has(n.id)?1:0);
+      } else if(term){
+        const m=new Set(sceneData.nodes.filter(n=>n.id.toLowerCase().includes(term)).map(n=>n.id));
+        node.classed('dimmed',n=>!m.has(n.id)).classed('search-match',n=>m.has(n.id));
+        link.classed('dimmed',true).classed('active',false);
+        label.style('opacity',n=>m.has(n.id)?1:0);
+      } else {
+        node.classed('dimmed',false).classed('search-match',false);
+        link.classed('dimmed',false).classed('active',false);
+        label.style('opacity',0);
+      }
+    }
+
+    searchInput.addEventListener('input',e=>{term=e.target.value.toLowerCase().trim();updateState();});
+
+    node.on('mouseover',(_,d)=>{if(!mobile){hovered=d;updateState();crispTap(d.group);}});
+    node.on('mouseout', ()   =>{if(!mobile){hovered=null;updateState();}});
+
+    hitNode
+      .on('touchstart', (e,d)=>{ e.preventDefault(); hovered=(hovered===d?null:d); updateState(); crispTap(d.group); }, {passive:false})
+      .on('click',      (_,d)=>{ if(mobile){hovered=(hovered===d?null:d);updateState();crispTap(d.group);}});
+
+    svg.on('click', e=>{
+      if(mobile && e.target.tagName==='svg'){hovered=null;updateState();}
+    });
+
+    function makeDrag(sim){
+      return d3.drag()
+        .touchable(true)
+        .on('start',e=>{if(!e.active)sim.alphaTarget(.3).restart();e.subject.fx=e.subject.x;e.subject.fy=e.subject.y;dragging=true;})
+        .on('drag', e=>{e.subject.fx=e.x;e.subject.fy=e.y;})
+        .on('end',  e=>{if(!e.active)sim.alphaTarget(0);e.subject.fx=null;e.subject.fy=null;dragging=false;updateState();});
+    }
+
+    /* ── PARTICLE RASTERISATION ── */
+    const off=document.createElement('canvas');
+    off.width=W;off.height=H;
+    const oc=off.getContext('2d');
+    const sz=Math.min(86,W/9);
+    oc.fillStyle='#000';
+    oc.font=`600 ${sz}px 'Lora', Georgia, serif`;
+    oc.textAlign='center';oc.textBaseline='alphabetic';
+    oc.fillText('Connecting',W/2,H/2-sz*0.2);
+    oc.font=`italic 400 ${sz}px 'Lora', Georgia, serif`;
+    oc.fillText('the Dots.',W/2,H/2+sz*0.9);
+
+    const pxData=oc.getImageData(0,0,W,H).data;
+    particles=[];
+    const STEP=mobile?2:1; 
+    const totalW=sceneData.nodes.reduce((s,n)=>s+n.radius*n.radius,0);
+    let acc=0;
+    const cumW=sceneData.nodes.map(n=>{acc+=n.radius*n.radius/totalW;return acc;});
+    function pickNode(){const r=Math.random();const i=cumW.findIndex(c=>r<c);return sceneData.nodes[i>=0?i:sceneData.nodes.length-1];}
+
+    for(let y=0;y<H;y+=STEP){
+      for(let x=0;x<W;x+=STEP){
+        if(pxData[(y*W+x)*4+3]>80){
+          const target=pickNode();
+          const a=Math.random()*Math.PI*2;
+          const rd=Math.random()*target.radius*0.85;
+          particles.push({
+            sx:x+(Math.random()-.5)*1.5, sy:y+(Math.random()-.5)*1.5,
+            tx:target.x+Math.cos(a)*rd,  ty:target.y+Math.sin(a)*rd,
+            node:target,
+            r:Math.random()*1.3+0.5,
+            delay:Math.random()*0.3,
+            arcMag:(Math.random()-0.5)*2*Math.min(W,H)*0.2
+          });
+        }
+      }
+    }
+  }
+
+  /* ── CANVAS RENDERER ── */
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function ease(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+  function rgba(c,a){return `rgba(${c[0]},${c[1]},${c[2]},${a})`;}
+
+  function renderFrame(p) {
+    ctx.fillStyle=`rgb(${C.bg[0]},${C.bg[1]},${C.bg[2]})`;
+    ctx.fillRect(0,0,W,H);
+
+    const travelP=Math.min(1,p/0.65);
+    const edgeP  =p<0.55?0:Math.min(1,(p-0.55)/0.30);
+    const nodeP  =p<0.50?0:Math.min(1,(p-0.50)/0.45);
+
+    if(edgeP>0){
+      ctx.lineWidth=1.5;
+      sceneData.links.forEach(lk=>{
+        ctx.beginPath();ctx.moveTo(lk.source.x,lk.source.y);ctx.lineTo(lk.target.x,lk.target.y);
+        ctx.strokeStyle=rgba(C.muted,edgeP*0.2);ctx.stroke();
+      });
+    }
+    if(nodeP>0){
+      sceneData.nodes.forEach(n=>{
+        const nc=nodeColor(n.group);
+        ctx.beginPath();ctx.arc(n.x,n.y,n.radius*nodeP,0,Math.PI*2);
+        ctx.fillStyle=rgba(nc,nodeP);
+        ctx.strokeStyle=`rgb(${C.bg[0]},${C.bg[1]},${C.bg[2]})`;
+        ctx.lineWidth=n.group==='hub'?3:n.group==='sub'?2:1.5;
+        ctx.fill();ctx.stroke();
+      });
+    }
+
+    particles.forEach(pt=>{
+      const localT=Math.max(0,Math.min(1,(travelP-pt.delay)/(1-pt.delay)));
+      const et=ease(localT);
+      const mx=(pt.sx+pt.tx)/2,my=(pt.sy+pt.ty)/2;
+      const dx=pt.tx-pt.sx,dy=pt.ty-pt.sy;
+      const len=Math.sqrt(dx*dx+dy*dy)+0.001;
+      const cpx=mx-(dy/len)*pt.arcMag,cpy=my+(dx/len)*pt.arcMag;
+      const it=1-et;
+      const px=it*it*pt.sx+2*it*et*cpx+et*et*pt.tx;
+      const py=it*it*pt.sy+2*it*et*cpy+et*et*pt.ty;
+      const nc=nodeColor(pt.node.group);
+      const r=Math.round(lerp(C.dark[0],nc[0],et));
+      const g=Math.round(lerp(C.dark[1],nc[1],et));
+      const b=Math.round(lerp(C.dark[2],nc[2],et));
+      const alpha=et>0.98?lerp(1,0,(et-0.98)/0.02):1;
+      ctx.beginPath();ctx.arc(px,py,pt.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${r},${g},${b},${alpha})`;ctx.fill();
+    });
+
+    if(p<0.06){
+      const ghostA=Math.pow((0.06-p)/0.06,2)*0.08;
+      const sz=Math.min(86,W/9);
+      ctx.globalAlpha=ghostA;
+      ctx.fillStyle=`rgb(${C.dark[0]},${C.dark[1]},${C.dark[2]})`;
+      ctx.font=`600 ${sz}px 'Lora', Georgia, serif`;
+      ctx.textAlign='center';ctx.textBaseline='alphabetic';
+      ctx.fillText('Connecting',W/2,H/2-sz*0.2);
+      ctx.font=`italic 400 ${sz}px 'Lora', Georgia, serif`;
+      ctx.fillText('the Dots.',W/2,H/2+sz*0.9);
+      ctx.globalAlpha=1;
+    }
+  }
+
+  /* ── RAF LOOP ── */
+  function loop(){
+    if(animating&&!transitionDone){
+      const elapsed=performance.now()-animStartTime;
+      const rawP=Math.min(1,elapsed/ANIM_DURATION);
+      const p=rawP<0.5?2*rawP*rawP:-1+(4-2*rawP)*rawP;
+      renderFrame(p);
+
+      if(rawP>=1){
+        transitionDone=true; animating=false;
+        canvas.style.transition='opacity 0.4s ease';
+        canvas.style.opacity='0';
+        svgCont.style.opacity='1';
+        svgCont.style.pointerEvents='auto';
+        uiOverlay.style.opacity='1';
+        graphLegend.style.opacity='1';
+        navWrapper.style.opacity='1';
+        navWrapper.style.pointerEvents='auto';
+        landingOv.style.display='none';
+        d3sim.alpha(0.02).restart();
+      }
+    } else if(!transitionDone&&!animating){
+      renderFrame(0);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  /* ── ENTER BUTTON ── */
+  function startTransition(){
+    if(animating||transitionDone) return;
+    animating=true;
+    animStartTime=performance.now();
+    landingOv.style.opacity='0';
+    landingOv.style.pointerEvents='none';
+  }
+  enterBtn.addEventListener('click',()=>{ unlockAudio(); startTransition(); });
+  document.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&!animating&&!transitionDone&&document.activeElement!==enterBtn){
+      e.preventDefault(); unlockAudio(); startTransition();
+    }
+  });
+
+  /* ── INIT ── */
+  resizeCanvas();
+  buildScene();
+  renderFrame(0);
+
+  /* ── RESIZE EVENT [FIXED FOR MOBILE] ── */
+  let lastW = window.innerWidth;
+  
+  window.addEventListener('resize',()=>{
+    if(transitionDone) return;
+    
+    // FIX: Prevents D3 map from constantly restarting when address bar hides on mobile scroll
+    if(isMobile() && window.innerWidth === lastW) return; 
+    lastW = window.innerWidth;
+    
+    resizeCanvas(); buildScene(); renderFrame(0);
+  });
+
+  new MutationObserver(()=>{
+    updateColors();
+    if(!transitionDone&&!animating) renderFrame(0);
+  }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  loop();
+});
+</script>
+
+</body>
+</html>

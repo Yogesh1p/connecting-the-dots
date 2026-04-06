@@ -8,7 +8,7 @@
     <meta name="title" content="Eigenvectors, Diagonalisation, Spectral Theorem">
     <meta name="description" content="How to find eigenvectors and eigenvalues, and how to diagonalise matrices">
     <meta name="author" content="Yogesh">
-    <meta name="date" content="2026-04-04">
+    <meta name="date" content="2026-04-06">
     <meta name="order" content="4">
     <meta name="status" content="live">
         <meta name="belongs_to" content="lib">
@@ -117,7 +117,7 @@
         async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
-  <meta name="reading_time" content="7">
+  <meta name="reading_time" content="9">
 </head>
 <body>
 
@@ -201,7 +201,7 @@
 </section>
 
 <section id="steady-state-example">
-  <h2>Example: A Matrix Approaching Steady State</h2>
+  <h3>Example: A Matrix Approaching Steady State</h3>
 
   <div class="math-display">
     \[
@@ -231,7 +231,7 @@
 
 
 <section id="eigen-animation">
-  <h2>Visual Intuition: Repeated Matrix Action</h2>
+  <h3>Visual Intuition: Repeated Matrix Action</h3>
   <div class="eigen-animation-wrap">
     <div id="exponentLabel" class="stats">Matrix Power: $A^{1.00}$</div>
 <canvas id="eigenCanvas" width="360" height="360"></canvas>
@@ -254,7 +254,7 @@
 
 
 <section id="geometry-examples">
-  <h2>Geometric Examples</h2>
+  <h3>Geometric Examples</h3>
 
   <table class="math-table">
     <thead>
@@ -285,7 +285,7 @@
 </section>
 
   <section id="definitions">
-    <h2>Definitions</h2>
+   
 
     <div class="math-box definition-box">
       <div class="math-box-body">
@@ -509,7 +509,7 @@
 
 
 <section id="multiplicity">
-  <h2>Algebraic and Geometric Multiplicity</h2>
+  <h3>Algebraic and Geometric Multiplicity</h3>
 
   <p>
     For an eigenvalue \(\lambda\), multiplicity can be understood from
@@ -617,7 +617,7 @@
         </ul>
       </div>
     </div>
-  </section>
+
 
 <section id="symmetric-matrices">
   <h2>Symmetric Matrices and the Spectral Theorem</h2>
@@ -1087,66 +1087,76 @@
   </div>
 </section>
 
+ <section id="positive-definite-matrices">
+  <h2>Positive Definite Matrices</h2>
 
-
-
-
-
-
-
-
- 
-
-  <section id="positive-definite">
-    <h2>Positive Definite Matrices</h2>
-
-    <div class="math-box definition-box">
-      <div class="math-box-label">Positive Definite</div>
-      <div class="math-box-body">
-        <p>A symmetric matrix \(S\) is positive definite if</p>
-        <div class="math-display">
-          \[
-          \vec{x}^TS\vec{x}>0\quad\forall \vec{x}\neq 0
-          \]
-        </div>
+  <div class="math-box definition-box">
+    <div class="math-box-label">Positive Definite Matrix</div>
+    <div class="math-box-body">
+      <p>
+        A real matrix $A$ is called positive definite if:
+      </p>
+      <div class="math-display">
+        $$x^TAx>0\qquad \forall x\neq0$$
       </div>
     </div>
+  </div>
 
-    <div class="math-box key-box">
-      <div class="math-box-label">
-        Five Equivalent Tests for Symmetric \(S\)
-      </div>
-      <div class="math-box-body">
-        <ol>
-          <li>All eigenvalues \(>0\)</li>
-          <li>All pivots \(>0\)</li>
-          <li>Leading principal minors \(>0\)</li>
-          <li>\(S=A^TA\)</li>
-          <li>\(S=R^TR\)</li>
-        </ol>
-      </div>
-    </div>
-  </section>
+  <p>
+    Positivity of the quadratic form is the definition itself. It depends <em>only</em> on the quadratic form, not on whether the matrix is symmetric, diagonalizable, or has real eigenvalues.
+  </p>
 
-  <section id="psd">
-    <h2>Positive Semidefinite Matrices</h2>
+  <h3>The Symmetric and Skew-Symmetric Parts</h3>
+  <p>
+    For any real matrix $A$, we can split it into a symmetric part $S=\frac{A+A^T}{2}$ and a skew-symmetric part $K=\frac{A-A^T}{2}$. 
+  </p>
+  <p>
+    The skew-symmetric part contributes nothing to the quadratic form because $x^TKx=0$. Therefore, the quadratic form depends entirely on $S$:
+  </p>
+  <div class="math-display">
+    $$x^TAx=x^T\left(\frac{A+A^T}{2}\right)x=x^TSx$$
+  </div>
+  <p>
+    This means $x^TAx>0$ for all nonzero $x$ if and only if its symmetric part $S$ is positive definite. $A$ itself does not need to be symmetric.
+  </p>
+  <p>
+    <strong>Note on Eigenvalues:</strong> For non-symmetric matrices, eigenvalues are irrelevant to the quadratic form. Even if a non-symmetric matrix has all positive eigenvalues ($\lambda_i>0$), it may not have enough eigenvectors to cover the basis, meaning it does not guarantee $x^TAx>0$. Conversely, a matrix can be positive definite yet have complex eigenvalues or negative real parts.
+  </p>
 
-    <p>
-      \(S\) is <strong>positive semidefinite</strong> if
-      \(\vec{x}^TS\vec{x}\ge 0\) for all \(\vec{x}\).
-      Equivalently, all eigenvalues are nonnegative.
-    </p>
+  <h3>The Symmetric Case</h3>
+  <p>
+    If a matrix is symmetric ($A=S=S^T$) and all of its eigenvalues are positive, it possesses a full set of orthogonal eigenvectors. Any vector $x$ can be expressed as a combination of these eigenvectors, scaling strictly by the respective positive eigenvalues. 
+  </p>
+  <p>
+    Because of this, the spectral theorem gives us a remarkably clean rule for symmetric matrices:
+  </p>
+  <div class="math-display">
+    $$x^TSx>0\ \forall x\neq0 \quad\Longleftrightarrow\quad \lambda_i>0\ \forall i$$
+  </div>
+  <p>
+    Furthermore, for any real symmetric matrix $S$ (such as in an $LDL^T$ decomposition with no row exchanges), the signs of the eigenvalues perfectly match the signs of the pivots. The number of positive, negative, and zero eigenvalues exactly equals the number of positive, negative, and zero pivots, respectively.
+  </p>
 
-    <div class="math-box proof-box">
-      <div class="math-box-label">Closure under addition</div>
-      <div class="math-box-body">
-        <p>
-          If \(S\) and \(T\) are symmetric positive definite,
-          then so is \(S+T\).
-        </p>
-      </div>
-    </div>
-  </section>
+  <h3>Closure Under Addition</h3>
+  <p>
+    If $S$ and $T$ are symmetric positive definite $n\times n$ matrices, then their sum $S+T$ is also symmetric positive definite.
+  </p>
+  <p>
+    <strong>Proof:</strong><br>
+    First, $(S+T)^T = S^T+T^T = S+T$, so the sum is symmetric. <br>
+    Second, for any nonzero vector $x$, we know $x^T(S+T)x = x^TSx + x^TTx$. Since $S$ and $T$ are positive definite, both $x^TSx > 0$ and $x^TTx > 0$. Their sum is strictly positive, making $S+T$ positive definite.
+  </p>
+
+  <h3>Factorizations</h3>
+  <p>
+    If the columns of a matrix $A$ are independent, then $S=A^TA$ is always positive definite. A symmetric positive definite matrix $S$ can be factored in three standard ways:
+  </p>
+  <ul>
+    <li><strong>The Rectangular Factor ($A_1$):</strong> $S=A_1^TA_1$, where $A_1$ can be any matrix whose columns generate $S$ (common in least squares).</li>
+    <li><strong>The Cholesky Factor ($A_2$ or $R$):</strong> $S=A_2^TA_2$, where $A_2$ is upper triangular and square with positive diagonal entries. This decomposition exists <em>if and only if</em> $S$ is symmetric and positive definite.</li>
+    <li><strong>The Symmetric Square Root ($A_3$):</strong> $S=A_3^TA_3=A_3^2$, found using the eigendecomposition $A_3=Q\Lambda^{1/2}Q^T$. Here, $A_3$ is itself symmetric and positive definite.</li>
+  </ul>
+</section>
 
   <section id="cholesky">
     <h2>Cholesky Factorisation</h2>

@@ -1,6 +1,6 @@
 /* ============================================================
    article_components.js (Optimized & Robust)
-   Handles: Header Injection, TOC, and Instant Progress Recovery
+   Handles: Header Injection, and Instant Progress Recovery
    ============================================================ */
 
 // 1. SILENCE BROWSER SCROLL RESTORATION
@@ -222,5 +222,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }, { passive: true });
 
   // Restore immediately—don't wait for images
-  setTimeout(restoreProgress, 50);
+if (document.readyState === 'complete') {
+  restoreProgress();
+} else {
+  window.addEventListener('load', restoreProgress);
+}
 });
