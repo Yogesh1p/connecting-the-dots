@@ -28,11 +28,11 @@ window.rawPages = [
     "url": "../dots/vec_spaces.html",
     "book": "linear-algebra",
     "title": "Vector Spaces & Subspaces",
-    "description": "A deep dive into vector spaces, the column space, the null space, basis, dimension, and Strang",
+    "description": " vector spaces, the column space, the null space, basis, dimension",
     "date": "2026-04-04",
     "chapter": "Linear Algebra Foundations",
     "part": " ",
-    "keywords": "vector spaces, subspaces, basis, dimension, rank, nullity, column space, row space, null space, linear algebra, gilbert strang",
+    "keywords": "vector spaces, subspaces, basis, dimension, rank, nullity, column space, row space, null space",
     "order": 3,
     "readingTime": 7
   },
@@ -46,6 +46,6 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "keywords": "embeddings, word2vec, skipgram, CBOW",
     "order": 4,
-    "readingTime": 13
+    "readingTime": 11
   }
 ];

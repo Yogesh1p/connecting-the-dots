@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connecting the Dots</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════
+       THEME VARIABLES
+    ═══════════════════════════════════════ */
+    :root {
+      --bg:        #FDFBF7;
+      --text:      #4A3F35;
+      --accent:    #D48C70;
+      --surface:   #F4EFE6;
+      --border:    #E8DFD1;
+      --muted:     #847769;
+      --dark:      #2D241E;
+      --card-bg:   #FFFFFF;
+      
+      --page-width: 900px;
+      --radius-lg: 24px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 10px 30px color-mix(in srgb, var(--dark) 8%, transparent);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:        #16100C;
+        --text:      #C5B49A;
+        --accent:    #D48C70;
+        --surface:   #1F1510;
+        --border:    #2E2018;
+        --muted:     #736050;
+        --dark:      #EAD9C2;
+        --card-bg:   #1C1208;
+        --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    /* ═══════════════════════════════════════
+       CUSTOM REACTIVE CURSOR
+    ═══════════════════════════════════════ */
+    * {
+      cursor: none !important; /* Hides system cursor */
+    }
+
+    .cursor-dot {
+      position: fixed;
+      top: 0; left: 0;
+      width: 12px; height: 12px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), 
+                  background-color 0.3s ease, 
+                  opacity 0.3s ease;
+    }
+
+    .cursor-dot.active {
+      transform: translate(-50%, -50%) scale(3.5);
+      background-color: var(--text);
+      opacity: 0.15;
+    }
+
+    /* ═══════════════════════════════════════
+       BASE STYLES & LAYOUT
+    ═══════════════════════════════════════ */
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lora', Georgia, serif;
+      line-height: 1.7;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .layout {
+      max-width: var(--page-width);
+      margin: 0 auto;
+      padding: 4rem 2rem 5rem;
+    }
+
+    header {
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 3.5rem;
+      color: var(--dark);
+      margin: 0 0 1rem;
+      letter-spacing: -0.04em;
+    }
+    
+    header h1 em { color: var(--accent); font-style: italic; font-weight: 400; }
+    
+    header p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 500px;
+      margin: 0 auto;
+      font-style: italic;
+    }
+
+    /* ═══════════════════════════════════════
+       HERO NETWORK GRAPH
+    ═══════════════════════════════════════ */
+    .hero-graph-wrap {
+      width: 100%;
+      height: 500px;
+      margin-bottom: 3rem;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, var(--card-bg), var(--surface));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+      position: relative;
+    }
+
+    #network-graph {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* D3 SVG Elements */
+    .graph-link {
+      stroke: var(--muted);
+      stroke-opacity: 0.25;
+      stroke-width: 1.5px;
+      transition: stroke-opacity 0.3s ease, stroke-width 0.3s ease;
+    }
+
+    .graph-node-category {
+      fill: var(--accent);
+      stroke: var(--bg);
+      stroke-width: 2px;
+      transition: fill 0.3s ease;
+    }
+
+    .graph-node-article {
+      fill: var(--text);
+      stroke: var(--bg);
+      stroke-width: 1.5px;
+      transition: fill 0.3s ease;
+    }
+
+    .graph-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      fill: var(--text);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Interactive States applied via JS */
+    .graph-link.active { stroke: var(--accent); stroke-opacity: 0.8; stroke-width: 2px; }
+    .graph-label.active { opacity: 1; }
+    .dimmed { opacity: 0.15; }
+
+    /* ═══════════════════════════════════════
+       DUMMY SEARCH BAR FOR CONTEXT
+    ═══════════════════════════════════════ */
+    .search-demo {
+      display: flex;
+      justify-content: center;
+    }
+    
+    .archive-search {
+      width: 100%;
+      max-width: 400px;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font: italic 1.1rem 'Lora', serif;
+      outline: none;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .archive-search:focus {
+      background: var(--card-bg);
+      border-color: var(--accent);
+      box-shadow: var(--shadow-soft);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <main class="layout">
+    <header>
+      <h1>Dots<em>.</em></h1>
+      <p>Explore the connected topology of artificial intelligence, linear algebra, and systems architecture.</p>
+    </header>
+
+    <div class="hero-graph-wrap">
+      <svg id="network-graph"></svg>
+    </div>
+
+    <div class="search-demo">
+      <input type="text" class="archive-search" placeholder="Search the network..." />
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      /* =================================================================
+         1. CUSTOM REACTIVE CURSOR LOGIC
+      ================================================================= */
+      const cursor = document.createElement('div');
+      cursor.classList.add('cursor-dot');
+      document.body.appendChild(cursor);
+
+      document.addEventListener('mousemove', (e) => {
+        cursor.style.left = `${e.clientX}px`;
+        cursor.style.top = `${e.clientY}px`;
+      });
+
+      document.addEventListener('mouseover', (e) => {
+        // SVG circles and inputs trigger the hover state
+        const isClickable = e.target.closest('circle, input, button, a');
+        if (isClickable) {
+          cursor.classList.add('active');
+        } else {
+          cursor.classList.remove('active');
+        }
+      });
+
+      /* =================================================================
+         2. D3.js NETWORK GRAPH LOGIC
+      ================================================================= */
+      const renderGraph = () => {
+        const svg = d3.select("#network-graph");
+        const container = document.querySelector('.hero-graph-wrap');
+        if (!container) return;
+
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        // Data Definition
+        const data = {
+          nodes: [
+            { id: "Linear Algebra", group: "category", radius: 10 },
+            { id: "Autoregressive Models", group: "category", radius: 10 },
+            { id: "Optimization", group: "category", radius: 10 },
+            { id: "Eigenvectors", group: "article", radius: 5 },
+            { id: "Vector Spaces", group: "article", radius: 5 },
+            { id: "Word Representation", group: "article", radius: 5 },
+            { id: "Position Representation", group: "article", radius: 5 },
+            { id: "Gradient Descent", group: "article", radius: 5 },
+            { id: "Attention", group: "article", radius: 5 },
+            { id: "Loss Landscapes", group: "article", radius: 5 }
+          ],
+          links: [
+            { source: "Linear Algebra", target: "Eigenvectors" },
+            { source: "Linear Algebra", target: "Vector Spaces" },
+            { source: "Autoregressive Models", target: "Word Representation" },
+            { source: "Autoregressive Models", target: "Position Representation" },
+            { source: "Autoregressive Models", target: "Attention" },
+            { source: "Optimization", target: "Gradient Descent" },
+            { source: "Optimization", target: "Loss Landscapes" },
+            // Cross-pollination links
+            { source: "Vector Spaces", target: "Word Representation" },
+            { source: "Linear Algebra", target: "Optimization" },
+            { source: "Gradient Descent", target: "Loss Landscapes" },
+            { source: "Attention", target: "Optimization" }
+          ]
+        };
+
+        // Initialize Physics Simulation
+        const simulation = d3.forceSimulation(data.nodes)
+          .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+          .force("charge", d3.forceManyBody().strength(-300)) // Repel each other
+          .force("center", d3.forceCenter(width / 2, height / 2)) // Pull to center
+          .force("collide", d3.forceCollide().radius(d => d.radius + 15)); // Prevent overlap
+
+        // Draw Links
+        const link = svg.append("g")
+          .selectAll("line")
+          .data(data.links)
+          .join("line")
+          .attr("class", "graph-link");
+
+        // Draw Nodes
+        const node = svg.append("g")
+          .selectAll("circle")
+          .data(data.nodes)
+          .join("circle")
+          .attr("class", d => d.group === 'category' ? 'graph-node-category' : 'graph-node-article')
+          .attr("r", d => d.radius)
+          .call(drag(simulation));
+
+        // Draw Text Labels
+        const label = svg.append("g")
+          .selectAll("text")
+          .data(data.nodes)
+          .join("text")
+          .attr("class", "graph-label")
+          .attr("dx", 15)
+          .attr("dy", 4)
+          .text(d => d.id);
+
+        // Tick Function (updates positions on every frame)
+        simulation.on("tick", () => {
+          link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+          // Keep nodes within bounding box
+          node
+            .attr("cx", d => d.x = Math.max(15, Math.min(width - 15, d.x)))
+            .attr("cy", d => d.y = Math.max(15, Math.min(height - 15, d.y)));
+
+          label
+            .attr("x", d => d.x)
+            .attr("y", d => d.y);
+        });
+
+        // Hover Interactions
+        node.on("mouseover", function(event, d) {
+          const connectedNodeIds = new Set([d.id]);
+          const connectedLinks = data.links.filter(l => {
+            if (l.source.id === d.id || l.target.id === d.id) {
+              connectedNodeIds.add(l.source.id);
+              connectedNodeIds.add(l.target.id);
+              return true;
+            }
+            return false;
+          });
+
+          // Dim the rest, highlight the connected
+          node.classed("dimmed", n => !connectedNodeIds.has(n.id));
+          link.classed("dimmed", l => !connectedLinks.includes(l));
+          link.classed("active", l => connectedLinks.includes(l));
+          label.classed("active", n => connectedNodeIds.has(n.id));
+        });
+
+        node.on("mouseout", function() {
+          node.classed("dimmed", false);
+          link.classed("dimmed", false).classed("active", false);
+          label.classed("active", false);
+        });
+      };
+
+      // Drag behavior functions
+      function drag(simulation) {
+        function dragstarted(event) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          event.subject.fx = event.subject.x;
+          event.subject.fy = event.subject.y;
+        }
+        function dragged(event) {
+          event.subject.fx = event.x;
+          event.subject.fy = event.y;
+        }
+        function dragended(event) {
+          if (!event.active) simulation.alphaTarget(0);
+          event.subject.fx = null;
+          event.subject.fy = null;
+        }
+        return d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended);
+      }
+
+      // Initial Render
+      renderGraph();
+
+      // Handle Resize Window
+      window.addEventListener('resize', () => {
+        d3.select("#network-graph").selectAll("*").remove();
+        renderGraph();
+      });
+
+    });
+  </script>
+</body>
+</html>

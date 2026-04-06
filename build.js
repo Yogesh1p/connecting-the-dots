@@ -4,6 +4,7 @@ const path = require("path");
 const projectRoot = __dirname;
 const dotsDir = path.join(projectRoot, "dots");
 const builderDir = path.join(projectRoot, "builder");
+const metaCachePath = path.join(builderDir, ".meta-cache.json");
 
 function getMeta(content, name) {
   const regex = new RegExp(
@@ -15,20 +16,12 @@ function getMeta(content, name) {
 
 function syncReadingTime(content, minutes) {
   const metaTag = `  <meta name="reading_time" content="${minutes}">`;
+  const existingRegex = /<meta\s+name=["']reading_time["']\s+content=["'][^"']*["']\s*\/?>/i;
 
-  const existingRegex =
-    /<meta\s+name=["']reading_time["']\s+content=["'][^"']*["']\s*\/?>/i;
-
-  if (existingRegex.test(content)) {
-    return content.replace(existingRegex, metaTag.trim());
-  }
-
+  if (existingRegex.test(content)) return content.replace(existingRegex, metaTag.trim());
   const headCloseRegex = /<\/head>/i;
-
-  if (headCloseRegex.test(content)) {
-    return content.replace(headCloseRegex, `${metaTag}\n</head>`);
-  }
-
+  if (headCloseRegex.test(content)) return content.replace(headCloseRegex, `${metaTag}\n</head>`);
+  
   return `${metaTag}\n${content}`;
 }
 
@@ -61,13 +54,48 @@ function createPageObject(file, content, readingTime, isLibrary = false) {
 }
 
 function build() {
-  const files = fs.readdirSync(dotsDir);
+  if (!fs.existsSync(builderDir)) fs.mkdirSync(builderDir);
+
+  const files = fs.readdirSync(dotsDir).filter(f => f.endsWith(".html") && f !== "index.html");
+
+  // 1. GATHER CORE METADATA SNAPSHOT (Ignore body text)
+  const currentMetaSnapshot = files.map(file => {
+    const content = fs.readFileSync(path.join(dotsDir, file), "utf8");
+    return {
+      file,
+      book: getMeta(content, "book"),
+      title: getMeta(content, "title"),
+      description: getMeta(content, "description"),
+      date: getMeta(content, "date"),
+      chapter: getMeta(content, "chapter"),
+      part: getMeta(content, "part"),
+      keywords: getMeta(content, "keywords"),
+      order: getMeta(content, "order"),
+      status: getMeta(content, "status"),
+      belongs_to: getMeta(content, "belongs_to")
+    };
+  });
+
+  // 2. COMPARE WITH PREVIOUS SNAPSHOT
+  let previousMetaSnapshot = [];
+  if (fs.existsSync(metaCachePath)) {
+    try {
+      previousMetaSnapshot = JSON.parse(fs.readFileSync(metaCachePath, "utf8"));
+    } catch (e) {}
+  }
+
+  // If the core metadata hasn't changed, ABORT immediately. 
+  // Do not recalculate reading time or overwrite HTML files.
+  if (JSON.stringify(currentMetaSnapshot) === JSON.stringify(previousMetaSnapshot)) {
+    console.log(`⏩ No explicit <meta> changes detected. Ignored prose update.`);
+    return;
+  }
+
+  // 3. IF METADATA CHANGED, PROCEED WITH FULL BUILD
   const dotsPages = [];
   const libPages = [];
 
   files.forEach(file => {
-    if (!file.endsWith(".html") || file === "index.html") return;
-
     const filePath = path.join(dotsDir, file);
     let content = fs.readFileSync(filePath, "utf8");
 
@@ -89,19 +117,22 @@ function build() {
     }
   });
 
+  // Write the JavaScript data files
   fs.writeFileSync(
     path.join(builderDir, "dots-data.js"),
-    `// AUTO-GENERATED FILE. DO NOT EDIT MANUALLY.\nwindow.rawPages = ${JSON.stringify(dotsPages, null, 2)};\n`
+    `// AUTO-GENERATED FILE. DO NOT EDIT MANUALLY.\nwindow.rawPages = ${JSON.stringify(dotsPages, null, 2)};\n`,
+    "utf8"
   );
-
   fs.writeFileSync(
     path.join(builderDir, "lib-data.js"),
-    `// AUTO-GENERATED FILE. DO NOT EDIT MANUALLY.\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n`
+    `// AUTO-GENERATED FILE. DO NOT EDIT MANUALLY.\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n`,
+    "utf8"
   );
 
-  console.log(`✅ Built dots-data.js (${dotsPages.length})`);
-  console.log(`✅ Built lib-data.js (${libPages.length})`);
-  console.log(`✅ Synced reading_time metadata`);
+  // Save the new snapshot so we can check against it next time
+  fs.writeFileSync(metaCachePath, JSON.stringify(currentMetaSnapshot, null, 2), "utf8");
+
+  console.log(`✅ Metadata changed! Built files and synced reading_time.`);
 }
 
 build();

@@ -316,18 +316,18 @@
 <script>
 const BOOK_CONFIG = {
   generative: {
-    eyebrow: "Connecting the Dots · Book I",
+    eyebrow: "Connecting the Dots ",
     title: "Deep Generative Models",
     description: "Explicit likelihoods, latent variables, and modern generative architectures — with interactive visualisations at every step."
   },
   "linear-algebra": {
-    eyebrow: "Connecting the Dots · Book II",
+    eyebrow: "Connecting the Dots ",
     title: "Linear Algebra",
     description: "Vectors, matrix transformations, eigenspaces, and the geometry behind modern machine learning."
   }
 };
 
-let activeBook = "generative"; // Default book
+let activeBook = "generative"; // Default fallback
 
 // Function to visually activate the correct tab
 function setActiveTabUI(book) {
@@ -340,12 +340,22 @@ function setActiveTabUI(book) {
 
 document.addEventListener("DOMContentLoaded", () => {
   
-  // 1. Check URL for existing book state on initial load
+  // 1. Determine Initial State: URL params win, then localStorage, then default
   const params = new URLSearchParams(window.location.search);
   const urlBook = params.get('book');
+  const savedBook = localStorage.getItem('libraryActiveBook');
   
   if (urlBook && BOOK_CONFIG[urlBook]) {
     activeBook = urlBook;
+    // Update local storage so if they click away from this shared link, it remembers
+    localStorage.setItem('libraryActiveBook', activeBook);
+  } else if (savedBook && BOOK_CONFIG[savedBook]) {
+    activeBook = savedBook;
+    
+    // Optional: Update the URL to match the saved state right on load
+    const url = new URL(window.location);
+    url.searchParams.set('book', activeBook);
+    window.history.replaceState({}, '', url);
   }
   
   // Visually set the correct tab before building
@@ -368,7 +378,6 @@ document.addEventListener("DOMContentLoaded", () => {
         library[page.chapter] = {};
       }
       
-      // 2. Handle missing parts (like in Linear Algebra) by defaulting to "Main"
       const part = page.part?.trim() || "Main";
       
       if (!library[page.chapter][part]) {
@@ -382,62 +391,62 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderLibrary(library) {
-  const container = document.getElementById("library-content");
-  let html = "";
+    const container = document.getElementById("library-content");
+    let html = "";
 
-  Object.keys(library)
-    .sort((a, b) => {
-      const getMinOrder = chapter =>
-        Math.min(
-          ...Object.values(library[chapter])
-            .flat()
-            .map(page => page.order ?? 999)
-        );
+    Object.keys(library)
+      .sort((a, b) => {
+        const getMinOrder = chapter =>
+          Math.min(
+            ...Object.values(library[chapter])
+              .flat()
+              .map(page => page.order ?? 999)
+          );
 
-      return getMinOrder(a) - getMinOrder(b);
-    })
-    .forEach(chapter => {
-      const parts = library[chapter];
-      let rowsHtml = "";
-      let totalSections = 0;
+        return getMinOrder(a) - getMinOrder(b);
+      })
+      .forEach(chapter => {
+        const parts = library[chapter];
+        let rowsHtml = "";
+        let totalSections = 0;
 
-      Object.keys(parts)
-        .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
-        .forEach(part => {
-          if (part !== "Main" && part !== "undefined" && part.trim()) {
-            rowsHtml += `<div class="toc-part">${part}</div>`;
-          }
+        Object.keys(parts)
+          .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
+          .forEach(part => {
+            if (part !== "Main" && part !== "undefined" && part.trim()) {
+              rowsHtml += `<div class="toc-part">${part}</div>`;
+            }
 
-          parts[part]
-            .sort((a, b) => a.order - b.order)
-            .forEach(page => {
-              totalSections++;
-              rowsHtml += `
-                <div class="toc-row">
-                  <a href="${page.url}">
-                    <span class="row-title">${page.title}</span>
-                  </a>
-                </div>
-              `;
-            });
-        });
+            parts[part]
+              .sort((a, b) => a.order - b.order)
+              .forEach(page => {
+                totalSections++;
+                rowsHtml += `
+                  <div class="toc-row">
+                    <a href="${page.url}">
+                      <span class="row-title">${page.title}</span>
+                    </a>
+                  </div>
+                `;
+              });
+          });
 
-      html += `
-        <details class="toc-block" open>
-          <summary>
-            <span class="ch-summary-title">${chapter}</span>
-            <span class="ch-summary-count">${totalSections} Lessons</span>
-            <span class="ch-summary-arrow">▶</span>
-          </summary>
-          <div class="toc-section-group">
-            ${rowsHtml}
-          </div>
-        </details>
-      `;
-    });
+        html += `
+          <details class="toc-block" open>
+            <summary>
+              <span class="ch-summary-title">${chapter}</span>
+              <span class="ch-summary-count">${totalSections} Lessons</span>
+              <span class="ch-summary-arrow">▶</span>
+            </summary>
+            <div class="toc-section-group">
+              ${rowsHtml}
+            </div>
+          </details>
+        `;
+      });
 
-  container.innerHTML = html;
-}
+    container.innerHTML = html;
+  }
 
   function updateHero(book, pages) {
     const config = BOOK_CONFIG[book];
@@ -459,12 +468,15 @@ document.addEventListener("DOMContentLoaded", () => {
         : `${totalMinutes}m`;
   }
 
-  // 3. Activate tab switching and update URL state
+  // Activate tab switching, update URL state, AND save to localStorage
   document.querySelectorAll(".book-tab[data-book]").forEach(tab => {
     tab.addEventListener("click", () => {
       activeBook = tab.dataset.book;
       
       setActiveTabUI(activeBook);
+
+      // Save preference so it remembers for next time
+      localStorage.setItem('libraryActiveBook', activeBook);
 
       // Update the URL without triggering a page reload
       const url = new URL(window.location);
@@ -475,13 +487,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 4. Handle Browser Back/Forward buttons smoothly
+  // Handle Browser Back/Forward buttons smoothly
   window.addEventListener("popstate", () => {
     const currentParams = new URLSearchParams(window.location.search);
-    const poppedBook = currentParams.get('book') || 'generative'; // Fallback to default
+    const poppedBook = currentParams.get('book') || localStorage.getItem('libraryActiveBook') || 'generative';
     
     if (BOOK_CONFIG[poppedBook]) {
       activeBook = poppedBook;
+      localStorage.setItem('libraryActiveBook', activeBook); // keep storage synced with history
       setActiveTabUI(activeBook);
       buildLibrary(activeBook);
     }
@@ -491,6 +504,5 @@ document.addEventListener("DOMContentLoaded", () => {
   buildLibrary();
 });
 </script>
-
 </body>
 </html>

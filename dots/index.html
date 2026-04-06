@@ -3,370 +3,360 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dots — Connecting the Dots</title>
+  <title>Connecting the Dots</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="../css/base.css" />
-  <script src="../js/base.js" defer></script>
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/articles.css">
 
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
     body {
-      font-family: 'Lora', Georgia, serif;
-    }
-
-    .page-header-container {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.25rem;
-  max-width: 1000px;
-  margin: -0.75rem auto 2.5rem;
-  padding: 0.5rem 0 1.25rem;
-  border-bottom: 1px solid var(--border);
-}
-
-    .articles-header h1 {
-      margin: 0 0 0.5rem;
-      font-size: 2.25rem;
-      letter-spacing: -0.02em;
-      transition: all 0.2s ease;
-    }
-
-    .articles-header h1.search-active {
-      font-size: 1.25rem;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .subtitle {
       margin: 0;
-      color: var(--muted);
-      font-size: 1.1rem;
+      font-family: 'Lora', Georgia, serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
     }
 
-    .page-header-container.search-active .subtitle {
-      display: none;
+    /* ═══════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════ */
+    .layout {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 4rem 2.5rem;
     }
 
-    .archive-controls {
+    .content {
+      width: 100%;
+    }
+
+    /* ═══════════════════════════════════════
+       PREMIUM CONTROLS
+    ═══════════════════════════════════════ */
+    .controls {
       display: flex;
-      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-bottom: 2.5rem;
       flex-wrap: wrap;
     }
-.control-chip {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 0.8rem 1.1rem;
-  font-family: inherit;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
 
-.control-chip:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  transform: translateY(-1px);
-}
-    .archive-search,
-    .archive-sort {
-      padding: 0.75rem 1rem;
+    .controls-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .search-wrap { 
+      position: relative; 
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1.2rem;
+      width: 16px;
+      height: 16px;
+      color: var(--muted);
+      pointer-events: none;
+      transition: color 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 2;
+    }
+
+    .search-wrap:focus-within .search-icon {
+      color: var(--accent);
+    }
+
+    .archive-search, .chip {
       border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--surface);
-      font-family: inherit;
+      border-radius: 30px; 
+      transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
       color: var(--text);
     }
 
     .archive-search {
+      padding: 0.85rem 1rem 0.85rem 2.8rem;
+      font-family: 'Lora', Georgia, serif;
+      font-size: 1.05rem;
+      font-style: italic; 
       width: 260px;
       outline: none;
+      background: var(--surface); /* Rest state uses surface color */
     }
-    .archive-search::placeholder {
-  color: var(--muted);
-  opacity: 1;
-}
 
+    .archive-search::placeholder {
+      color: var(--muted);
+      opacity: 0.6;
+      font-weight: 400;
+    }
+
+    .archive-search:hover {
+      border-color: rgba(212, 140, 112, 0.4); 
+    }
+
+    .archive-search:focus {
+      width: 320px; 
+      background: var(--card-bg); /* Brightens on focus */
+      border-color: var(--accent);
+      box-shadow: 0 10px 30px rgba(45, 36, 30, 0.08); 
+      transform: translateY(-1px);
+    }
+
+    [data-theme="dark"] .archive-search:focus {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .chip {
+      background: var(--surface); /* Chips match the new card base color */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.8rem 1.4rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+
+    .chip:hover {
+      background: var(--card-bg); /* Brightens on hover */
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .tally {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ═══════════════════════════════════════
+       ARTICLE ROWS (UPDATED COLORS)
+    ═══════════════════════════════════════ */
     .articles-list {
-      max-width: 900px;
-      margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
-    }
-.read-time-pill {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--muted);
-  border-bottom: 1px dotted var(--border);
-  padding: 0;
-  border-radius: 0;
-  background: none;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-}
-.meta-separator {
-  margin: 0 0.45rem;
-  opacity: 0.45;
-}
-
-    .post-item {
-      padding: 1.75rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s ease;
+      gap: 1.25rem;
     }
 
-    .post-item:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .article-date {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-bottom: 0.45rem;
-  font-style: normal;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-    .post-item h3 {
-      margin: 0 0 0.5rem;
-      font-size: 1.2rem;
-    }
-
-    .post-item h3 a {
-      color: var(--text);
+    .post-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 40px;
+      align-items: center;
+      gap: 2rem;
+      padding: 2rem;
       text-decoration: none;
+      color: inherit;
+      /* Changed to --surface for a subtly darker/warmer resting state */
+      background: var(--surface); 
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: rowIn 0.5s ease forwards;
     }
 
-    .post-item p {
-      color: var(--muted);
-      margin: 0 0 1rem;
-      line-height: 1.6;
+    .post-row:hover {
+      /* Brightens to the card background color when hovered */
+      background: var(--card-bg); 
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 15px 45px rgba(45, 36, 30, 0.08);
     }
 
-    .pill-tag {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      font-size: 0.85rem;
+    [data-theme="dark"] .post-row:hover {
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+    }
+
+    .row-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .row-chapter {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       color: var(--accent);
-      border-radius: 999px;
-      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+
+    .row-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .row-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin: 0 0 0.4rem 0;
+    }
+
+    .row-desc {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .row-arrow {
+      text-align: right;
+      color: var(--border);
+      font-size: 1.2rem;
+      transition: color 0.3s, transform 0.3s;
+    }
+
+    .post-row:hover .row-arrow {
+      color: var(--accent);
+      transform: translateX(5px);
+    }
+
+    @keyframes rowIn  { to { opacity: 1; transform: none; } }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .layout { padding: 3rem 1.5rem; }
+      .post-row { grid-template-columns: 1fr; padding: 1.5rem; gap: 1rem; }
+      .row-arrow { display: none; }
+      .archive-search { width: 100%; }
+      .archive-search:focus { width: 100%; transform: none; }
+      .controls { justify-content: center; }
     }
   </style>
 </head>
 
 <body>
-  <div id="global-nav" data-root="../"></div>
 
-  <main class="page-wrap articles-page">
-    <div class="page-header-container" id="headerContainer">
-      <header class="articles-header">
-        <h1 id="mainHeading">Dots</h1>
-        <p class="subtitle">
-          Connected ideas across AI, optimization, systems, and mathematical intuition.
-        </p>
-      </header>
+  <div id="global-nav" data-root="../" data-sticky="true"></div>
+  
+  <main class="layout">
+    <div class="content">
+      <div class="controls">
+        <div class="controls-left">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input id="articleSearch" class="archive-search" type="text" placeholder="Search dots..." autocomplete="off" />
+          </div>
+          <button id="filterBtn" class="chip">⎇ All</button>
+          <button id="sortBtn"   class="chip">⇅ Recent</button>
+        </div>
+        <span class="tally" id="tally"></span>
+      </div>
 
-      <div class="archive-controls">
-  <input
-    id="articleSearch"
-    class="archive-search"
-    type="text"
-    placeholder="Search dots, topics, or chapters"
-  />
-
-<button id="filterBtn" class="control-chip">⎇ Filter</button>
-<button id="sortBtn" class="control-chip">⇅ Sort</button>
-</div>
-</div>
-
-    <section class="articles-list" id="articlesList"></section>
+      <section id="articlesList" class="articles-list"></section>
+    </div>
   </main>
 
+  <script src="../js/base.js"></script>
   <script src="../js/components.js"></script>
   <script src="../builder/dots-data.js"></script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const list = document.getElementById("articlesList");
-  const searchInput = document.getElementById("articleSearch");
-  const filterBtn = document.getElementById("filterBtn");
-  const sortBtn = document.getElementById("sortBtn");
-  const mainHeading = document.getElementById("mainHeading");
-  const headerContainer = document.getElementById("headerContainer");
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const list        = document.getElementById("articlesList");
+      const searchInput = document.getElementById("articleSearch");
+      const filterBtn   = document.getElementById("filterBtn");
+      const sortBtn     = document.getElementById("sortBtn");
+      const tallyEl     = document.getElementById("tally");
 
-  const articles = [...window.rawPages];
+      // Fallback demo data if lib-data.js is missing
+      const demo = [
+        { title:"Eigenvectors and Diagonalisation",   description:"How to find eigenvectors and eigenvalues, and how to diagonalise matrices.", date:"2026-04-04", chapter:"Linear Algebra", readingTime:2, url:"#", keywords:"eigenvector eigenvalue matrix" },
+        { title:"Vector Spaces & Subspaces",           description:"The formal structure behind vectors — what makes a space, and how subspaces carve it up.", date:"2026-04-04", chapter:"Linear Algebra", readingTime:7, url:"#", keywords:"vector space basis null" },
+        { title:"Word Representation",                description:"From one-hot to dense embeddings: how language becomes geometry.", date:"2026-04-04", chapter:"Autoregressive Models", readingTime:13, url:"#", keywords:"embedding nlp word2vec" },
+        { title:"Position Representation",            description:"How positions are encoded in the same vector space as embeddings.", date:"2026-04-03", chapter:"Autoregressive Models", readingTime:8, url:"#", keywords:"positional encoding rope transformer" }
+      ];
 
-  const chapters = ["all", ...new Set(
-    articles.map(a => a.chapter).filter(Boolean)
-  ).values()];
+      const articles  = (window.rawPages && window.rawPages.length) ? [...window.rawPages] : demo;
+      const chapters  = ["all", ...new Set(articles.map(a => a.chapter).filter(Boolean))];
+      const sortModes = ["recent", "oldest", "az", "za", "chapter"];
+      let chIdx = 0, sortIdx = 0;
 
-  const sortModes = ["recent", "oldest", "az", "za", "chapter"];
+      function score(a, q) {
+        let s = 0;
+        if ((a.title   ||"").toLowerCase().includes(q)) s += 5;
+        if ((a.keywords||"").toLowerCase().includes(q)) s += 3;
+        if ((a.chapter ||"").toLowerCase().includes(q)) s += 2;
+        return s;
+      }
 
-  let currentChapterIndex = 0;
-  let currentSortIndex = 0;
+      function updateLabels() {
+        filterBtn.textContent = chapters[chIdx] === "all" ? "⎇ All" : `⎇ ${chapters[chIdx]}`;
+        const sl = { recent:"⇅ Recent", oldest:"⇅ Oldest", az:"⇅ A–Z", za:"⇅ Z–A", chapter:"⇅ Chapter" };
+        sortBtn.textContent = sl[sortModes[sortIdx]];
+      }
 
-  function getCurrentChapter() {
-    return chapters[currentChapterIndex];
-  }
+      function render(items) {
+        if (!items.length) {
+          list.innerHTML = `<p style="padding: 3rem 0; font-style: italic; color: var(--muted); opacity: 0.7; text-align: center;">No dots match your search.</p>`;
+          return;
+        }
+        
+        list.innerHTML = items.map((a, i) => `
+          <a class="post-row" href="${a.url||'#'}" style="animation-delay:${i*0.05}s">
+            <div class="row-meta">
+              <span class="row-chapter">${a.chapter||''}</span>
+              <span class="row-date">${new Date(a.date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'})}</span>
+            </div>
+            <div class="row-body">
+              <div class="row-title">${a.title}</div>
+              <div class="row-desc">${a.description}</div>
+            </div>
+            <div class="row-arrow">→</div>
+          </a>
+        `).join("");
+      }
 
-  function getCurrentSort() {
-    return sortModes[currentSortIndex];
-  }
+      function updateUI() {
+        const q  = searchInput.value.trim().toLowerCase();
+        const ch = chapters[chIdx];
+        let out  = articles.filter(a => (!q || score(a,q)>0) && (ch==="all" || a.chapter===ch));
+        
+        if (q) {
+          out.sort((a,b) => score(b,q) - score(a,q));
+        } else {
+          switch (sortModes[sortIdx]) {
+            case "recent":  out.sort((a,b)=>new Date(b.date)-new Date(a.date)); break;
+            case "oldest":  out.sort((a,b)=>new Date(a.date)-new Date(b.date)); break;
+            case "az":      out.sort((a,b)=>a.title.localeCompare(b.title));    break;
+            case "za":      out.sort((a,b)=>b.title.localeCompare(a.title));    break;
+            case "chapter": out.sort((a,b)=>(a.chapter||"").localeCompare(b.chapter||"")||a.title.localeCompare(b.title)); break;
+          }
+        }
+        
+        tallyEl.textContent = `${out.length} dot${out.length !== 1 ? "s" : ""}`;
+        
+        updateLabels();
+        render(out);
+      }
 
-  function updateButtonLabels() {
-    const chapter = getCurrentChapter();
-    const sort = getCurrentSort();
-
-    filterBtn.textContent =
-      chapter === "all" ? "⎇ All chapters" : `⎇ ${chapter}`;
-
-    const sortLabels = {
-      recent: "⇅ Recent",
-      oldest: "⇅ Oldest",
-      az: "⇅ A–Z",
-      za: "⇅ Z–A",
-      chapter: "⇅ Chapter"
-    };
-
-    sortBtn.textContent = sortLabels[sort];
-  }
-function formatReadableDate(dateStr) {
-  const date = new Date(dateStr);
-
-  return date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC"
-  });
-}
-function render(items) {
-  if (!items.length) {
-    list.innerHTML = `
-      <div class="post-item">
-        <h3>No matching dots</h3>
-        <p>Try another search term or filter.</p>
-      </div>
-    `;
-    return;
-  }
-
-  list.innerHTML = items.map(article => `
-    <article class="post-item">
-      <time class="article-date">
-        ${formatReadableDate(article.date)}
-        <span class="meta-separator">·</span>
-        <span class="read-time-pill">${article.readingTime} min read</span>
-       </time>
-
-      <h3>
-        <a href="${article.url}">${article.title}</a>
-      </h3>
-
-      <p>${article.description}</p>
-
-      <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-        ${article.chapter ? `<span class="pill-tag">${article.chapter}</span>` : ""}
-      </div>
-    </article>
-  `).join("");
-}
-
-  function scoreArticle(article, query) {
-    if (!query) return 0;
-
-    let score = 0;
-    const title = article.title.toLowerCase();
-    const keywords = (article.keywords || "").toLowerCase();
-    const chapter = (article.chapter || "").toLowerCase();
-
-    if (title.includes(query)) score += 5;
-    if (keywords.includes(query)) score += 3;
-    if (chapter.includes(query)) score += 2;
-
-    return score;
-  }
-
-  function updateUI() {
-    const query = searchInput.value.trim().toLowerCase();
-    const chapterValue = getCurrentChapter();
-    const sortMode = getCurrentSort();
-
-    let filtered = articles.filter(article => {
-      const matchesQuery = !query || scoreArticle(article, query) > 0;
-      const matchesChapter =
-        chapterValue === "all" || article.chapter === chapterValue;
-
-      return matchesQuery && matchesChapter;
+      filterBtn.addEventListener("click", () => { chIdx   = (chIdx+1)   % chapters.length;  updateUI(); });
+      sortBtn  .addEventListener("click", () => { sortIdx = (sortIdx+1) % sortModes.length; updateUI(); });
+      searchInput.addEventListener("input", updateUI);
+      
+      updateUI();
     });
-
-    if (query) {
-      filtered.sort((a, b) => scoreArticle(b, query) - scoreArticle(a, query));
-    }
-
-    switch (sortMode) {
-      case "recent":
-        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-        break;
-      case "oldest":
-        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
-        break;
-      case "az":
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case "za":
-        filtered.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case "chapter":
-        filtered.sort((a, b) =>
-          (a.chapter || "").localeCompare(b.chapter || "") ||
-          a.title.localeCompare(b.title)
-        );
-        break;
-    }
-
-    if (query || chapterValue !== "all") {
-      mainHeading.textContent = `${filtered.length} matching dots`;
-      mainHeading.classList.add("search-active");
-      headerContainer.classList.add("search-active");
-    } else {
-      mainHeading.textContent = "Dots";
-      mainHeading.classList.remove("search-active");
-      headerContainer.classList.remove("search-active");
-    }
-
-    updateButtonLabels();
-    render(filtered);
-  }
-
-  filterBtn.addEventListener("click", () => {
-    currentChapterIndex = (currentChapterIndex + 1) % chapters.length;
-    updateUI();
-  });
-
-  sortBtn.addEventListener("click", () => {
-    currentSortIndex = (currentSortIndex + 1) % sortModes.length;
-    updateUI();
-  });
-
-  searchInput.addEventListener("input", updateUI);
-
-  updateUI();
-});
-</script>
+  </script>
 </body>
 </html>

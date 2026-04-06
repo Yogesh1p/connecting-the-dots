@@ -1,0 +1,24 @@
+{
+  "name": "connecting-the-dots",
+  "version": "1.0.0",
+  "description": "This draft is in a very early stage. It is incomplete and likely contains many mistakes.",
+  "main": "build.js",
+  "scripts": {
+    "watch": "nodemon --watch dots -e html build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yogesh1p/connecting-the-dots.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Yogesh1p/connecting-the-dots/issues"
+  },
+  "homepage": "https://github.com/Yogesh1p/connecting-the-dots#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

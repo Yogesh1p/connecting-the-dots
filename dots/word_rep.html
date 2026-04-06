@@ -12,7 +12,7 @@
     <meta name="order" content="4">
     <meta name="status" content="live">
     <meta name="belongs_to" content="lib">
-    <meta name="reading_time" content="13">
+    <meta name="reading_time" content="11">
     <meta name="keywords" content="embeddings, word2vec, skipgram, CBOW">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -459,31 +459,7 @@
                             <div id="analogy-display"></div>
                         </div>
 
-                        <div class="examplebox">
-                            <strong>Consistent Patterns in Static Embeddings</strong>
-                            <table class="eg-table">
-                                <thead>
-                                    <tr>
-                                        <th>Relationship</th>
-                                        <th>Observed pattern</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Verb forms</td>
-                                        <td>$\mathbf{v}_{\text{walking}} - \mathbf{v}_{\text{walk}} \approx \mathbf{v}_{\text{running}} - \mathbf{v}_{\text{run}} \approx \mathbf{v}_{\text{swimming}} - \mathbf{v}_{\text{swim}}$</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Country–capital</td>
-                                        <td>$\mathbf{v}_{\text{Paris}} - \mathbf{v}_{\text{France}} \approx \mathbf{v}_{\text{Berlin}} - \mathbf{v}_{\text{Germany}} \approx \mathbf{v}_{\text{Rome}} - \mathbf{v}_{\text{Italy}}$</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Comparatives</td>
-                                        <td>$\mathbf{v}_{\text{bigger}} - \mathbf{v}_{\text{big}} \approx \mathbf{v}_{\text{taller}} - \mathbf{v}_{\text{tall}} \approx \mathbf{v}_{\text{faster}} - \mathbf{v}_{\text{fast}}$</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                       
 
                         <p>These patterns are more convincing because they appear across many examples, not just one. When the same offset works repeatedly, it suggests that the model has captured a real structure in language rather than a coincidence.</p>
 

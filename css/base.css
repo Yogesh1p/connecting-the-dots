@@ -310,133 +310,8 @@ nav a:hover, nav a.active { color: var(--accent); }
   .top-drawer-links a:hover { color: var(--accent); }
 }
 
-/* ────────────────────────────────────────────────────────────
-   MOBILE FLOATING BUTTONS
-   ──────────────────────────────────────────────────────────── */
-.floating-controls, .floating-theme-pill { display: none; }
 
-@media (max-width: 680px) {
-  .floating-controls, .floating-theme-pill {
-    display: block; position: fixed; z-index: 2001;
-    opacity: 0; pointer-events: none; filter: blur(20px);
-    transform: translateY(28px) scale(0.8);
-    transition: opacity 0.4s ease-out, transform 0.6s cubic-bezier(0.34, 1.4, 0.64, 1), filter 0.4s ease-out;
-  }
-  .floating-controls  { bottom: 24px; left: 20px; }
-  .floating-theme-pill { bottom: 24px; right: 20px; }
 
-  .floating-controls.floating-visible, .floating-theme-pill.floating-visible {
-    opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); filter: blur(0px);
-  }
-  .floating-hidden {
-    opacity: 0 !important; pointer-events: none !important;
-    transform: translateY(28px) scale(0.8) !important; filter: blur(20px);
-    transition: opacity 0.3s ease-in, transform 0.3s ease, filter 0.3s ease-in !important;
-  }
-}
-
-/* ── Floating Theme Button — matches .glass-hamburger premium glass ── */
-/* High specificity (.mob-theme-toggle.theme-toggle) to override the top nav's transparent background */
-.mob-theme-toggle.theme-toggle {
-  position: relative;
-  width: 54px; height: 54px; border-radius: 27px;
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  cursor: pointer; overflow: hidden;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
-    inset 1px 2px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent),
-    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent),
-    inset 0px -1px 2px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent),
-    0px 1px 3px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent),
-    0px 4px 16px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent);
-  transition:
-    transform 0.38s cubic-bezier(0.34, 1.1, 0.64, 1),
-    box-shadow 0.25s ease;
-}
-
-.mob-theme-toggle.theme-toggle:hover {
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  color: var(--accent);
-}
-
-.mob-theme-toggle.theme-toggle:active { transform: scale(0.93); }
-
-.mob-theme-toggle.theme-toggle svg {
-  position: absolute; width: 22px; height: 22px; color: var(--muted); pointer-events: none;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, color 0.2s ease;
-}
-
-html[data-theme="light"] .mob-theme-toggle.theme-toggle .moon-icon { opacity: 0; transform: scale(0.4) rotate(-45deg); }
-html[data-theme="light"] .mob-theme-toggle.theme-toggle .sun-icon  { opacity: 1; transform: scale(1) rotate(0); }
-
-html[data-theme="dark"] .mob-theme-toggle.theme-toggle .sun-icon  { opacity: 0; transform: scale(0.4) rotate(45deg); }
-html[data-theme="dark"] .mob-theme-toggle.theme-toggle .moon-icon { opacity: 1; transform: scale(1) rotate(0); color: var(--accent); }
-
-/* ── Floating Hamburger Navigation Card ── */
-.glass-hamburger {
-  position: relative; width: 54px; height: 54px; border-radius: 27px;
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  cursor: pointer; overflow: hidden;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
-    inset 1px 2px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent),
-    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent),
-    inset 0px -1px 2px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent),
-    0px 1px 3px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent),
-    0px 4px 16px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent);
-  transition:
-    width       0.38s cubic-bezier(0.34, 1.1, 0.64, 1),
-    height      0.38s cubic-bezier(0.34, 1.1, 0.64, 1),
-    border-radius 0.38s cubic-bezier(0.34, 1.1, 0.64, 1),
-    box-shadow  0.25s ease;
-}
-.glass-hamburger:active:not(.is-active) { transform: scale(0.93); }
-.glass-hamburger.is-active {
-  width: 160px; height: 230px; border-radius: 20px; cursor: default;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 10%), transparent),
-    inset 1px 2px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 90%), transparent),
-    inset -1px -1px 0px -1px color-mix(in srgb, #fff calc(var(--glass-reflex-light) * 80%), transparent),
-    inset 0px -1px 2px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 12%), transparent),
-    0px 8px 32px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 18%), transparent),
-    0px 2px 8px 0px color-mix(in srgb, #000 calc(var(--glass-reflex-dark) * 10%), transparent);
-}
-
-.hamburger-icon {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  display: flex; flex-direction: column; gap: 5px; width: 20px;
-  pointer-events: none; opacity: 1; transition: opacity 0.15s ease;
-}
-.glass-hamburger.is-active .hamburger-icon { opacity: 0; }
-.hamburger-icon span { display: block; height: 2px; width: 20px; background: var(--dark); border-radius: 2px; }
-
-.hamburger-close-hit { position: absolute; inset: 0; cursor: pointer; z-index: 10; display: none; }
-.glass-hamburger.is-active .hamburger-close-hit { display: block; }
-
-.glass-nav-content {
-  position: absolute; inset: 0; padding: 12px 8px; opacity: 0;
-  pointer-events: none; transition: opacity 0.15s ease; display: flex; flex-direction: column; z-index: 11;
-}
-.glass-hamburger.is-active .glass-nav-content { opacity: 1; pointer-events: auto; transition: opacity 0.22s 0.22s ease; }
-
-.glass-nav-label {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; padding-left: 10px;
-}
-
-.glass-nav-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1px; }
-.glass-nav-links a {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px;
-  font-family: -apple-system, sans-serif; font-size: 0.83rem; font-weight: 600; color: var(--text);
-  text-decoration: none; white-space: nowrap; transition: background 0.12s, color 0.12s;
-}
-.glass-nav-links a:hover, .glass-nav-links a:active { background: var(--highlight); color: var(--accent); }
-.glass-nav-links .nav-icon { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.55; }
 
 
 /* ────────────────────────────────────────────────────────────
@@ -574,3 +449,210 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 .iframe-shield { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 
+/* =========================================================
+   Floating Article TOC
+   - Right-side minimap rails
+   - Hover-safe popup panel
+   - Two-line wrapped headings
+   - Viewport-safe scrolling
+   ========================================================= */
+
+/* =========================================================
+   Floating Article TOC — Final Production Version
+   ========================================================= */
+
+/* ─────────────────────────────────────────
+   Floating right minimap rail
+   ───────────────────────────────────────── */
+.toc-wrapper {
+  position: fixed;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  z-index: 100;
+  width: fit-content;
+}
+
+/* invisible hover bridge */
+.toc-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 14px;
+  height: 420px;
+  transform: translateY(-50%);
+}
+
+/* ─────────────────────────────────────────
+   Minimap rail
+   ───────────────────────────────────────── */
+.toc-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+  cursor: pointer;
+}
+
+.toc-item-mini {
+  width: 12px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 65%, transparent);
+  transition: all 0.2s ease;
+}
+
+.toc-item-mini.toc-light {
+  opacity: 0.35;
+}
+
+.toc-item-mini:not(.toc-light) {
+  width: 16px;
+  opacity: 1;
+  background: var(--text);
+}
+
+/* ─────────────────────────────────────────
+   TOC popup card
+   ───────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   Enhanced Scrollable Container
+   ───────────────────────────────────────── */
+.toc-list {
+  display: none;
+  flex-direction: column;
+
+  width: 220px;
+  /* Ensures it stays within the screen height */
+  max-height: 75vh; 
+
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  padding: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 10px 20px rgba(209, 80, 29, 0.15);
+}
+
+/* Add a little bit of bottom padding to the last item 
+   so it doesn't hug the edge of the scroll area */
+.toc-item:last-child {
+  margin-bottom: 10px;
+}
+
+/* keep open when rail or panel hovered */
+.toc-wrapper:hover .toc-list {
+  display: flex;
+}
+
+/* ─────────────────────────────────────────
+   Scrollbar
+   ───────────────────────────────────────── */
+.toc-list::-webkit-scrollbar {
+  width: 4px; /* Slimmer is usually cleaner for TOCs */
+}
+
+.toc-list::-webkit-scrollbar-thumb {
+  background: var(--accent); /* Use accent color so users see the scroll progress */
+  border-radius: 10px;
+}
+
+.toc-list::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--border) 20%, transparent);
+}
+
+/* ─────────────────────────────────────────
+   TOC entries
+   ───────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   Updated TOC entries (No Clamping)
+   ───────────────────────────────────────── */
+.toc-item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  padding: 10px 0; 
+  font-size: 0.96rem;
+  line-height: 1.5;
+  color: var(--text);
+  opacity: 0.8;
+  display: block; 
+  width: 100%;
+  white-space: normal; 
+  word-wrap: break-word;
+
+  /* Change: Use a faster timing (0.15s) and 
+     ensure we target specific properties to prevent layout jumping 
+  */
+  transition: transform 0.15s ease-out, color 0.15s ease-out, opacity 0.15s ease-out;
+  
+  /* Critical: prevents 'jitter' by telling the browser this will move */
+  will-change: transform; 
+}
+
+.toc-item:hover {
+  color: var(--accent);
+  opacity: 1;
+  
+  /* Better than padding: translateX moves the visual 
+     layer without recalculating the width of the text block.
+  */
+  transform: translateX(6px);
+}
+
+/* Ensure the active heading also stays crisp */
+.toc-bold {
+  color: var(--accent);
+  opacity: 1;
+  font-weight: 600;
+}
+
+/* nested levels */
+.toc-ind-1 { padding-left: 10px; }
+.toc-ind-2 { padding-left: 18px; }
+.toc-ind-3 { padding-left: 26px; }
+
+/* clicked heading flash */
+.toc-highlight-target {
+  background: var(--highlight);
+  transition: background 0.4s ease;
+}
+
+/* ────────────────────────────────────────────────────────────
+   CUSTOM GLOBAL SCROLLBAR
+   ──────────────────────────────────────────────────────────── */
+
+/* Firefox */
+html {
+  scrollbar-color: var(--accent) var(--bg);
+  scrollbar-width: thin;
+}
+
+/* WebKit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px; /* For horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg); 
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
+}
+
+/* Optional: Make it slightly darker/brighter when the user hovers over the scrollbar */
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent) 85%, var(--text)); 
+}
