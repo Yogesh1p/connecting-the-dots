@@ -1,262 +1,226 @@
 /* ============================================================
-   article_components.js
-   Handles:
-   - Floating minimap TOC
-   - Persistent reading progress
-   - Article header injection
+   article_components.js (Optimized & Robust)
+   Handles: Header Injection, TOC, and Instant Progress Recovery
    ============================================================ */
 
-// 1. PREVENT BROWSER CONFLICT
-// Disable native browser scroll restoration so our script has full control
+// 1. SILENCE BROWSER SCROLL RESTORATION
+// This prevents the browser from fighting our custom restoration logic
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // --- STATE & CONFIGURATION ---
   const CONFIG = {
     navOffset: 96,
     tocTargetTop: 120,
     scrollHighlightDelay: 1200,
     progressKey: `article-progress:${window.location.pathname}`,
-    saveDebounceMs: 200, 
+    saveDebounceMs: 150, 
   };
 
-  let tocItems = [];
-  let isScrollingProgrammatically = false;
-  let saveProgressTimer = null;
-  
-  // Guard flag to prevent saving scroll data while the page is still building
-  let isInitialLoad = true;
-  setTimeout(() => { isInitialLoad = false; }, 1000);
+  let state = {
+    tocItems: [],
+    isScrollingProgrammatically: false,
+    saveTimer: null,
+  };
 
-  // ============================================================
-  // 2. HELPERS & METADATA
-  // ============================================================
   const getMeta = (name) => document.querySelector(`meta[name="${name}"]`)?.content || "";
 
-  const generateUniqueId = (text, existingIds) => {
-    let baseSlug = text.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/^-+|-+$/g, ""); 
-    let slug = baseSlug || "section";
-    let counter = 1;
-    while (existingIds.has(slug)) {
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-    }
-    existingIds.add(slug);
-    return slug;
-  };
-
-// ============================================================
-  // 3. ARTICLE HEADER INJECTION
+  // ============================================================
+  // 1. ARTICLE HEADER INJECTION
   // ============================================================
   const injectArticleHeader = () => {
-    const headerContainer = document.getElementById("article-header");
-    if (!headerContainer) return;
+    const container = document.getElementById("article-header");
+    if (!container) return;
 
-    const title = getMeta("title") || document.querySelector("title")?.textContent || "Untitled Article";
+    const title = getMeta("title") || document.querySelector("title")?.textContent || "Untitled";
     const subtitle = getMeta("description");
     const author = getMeta("author");
-    
-    // Look for last_updated first, fallback to standard date
     const dateStr = getMeta("last_updated") || getMeta("date");
     const parent = getMeta("parent") || getMeta("chapter");
-    const keywordsStr = getMeta("keywords");
+    const keywords = getMeta("keywords");
 
-    // Format Date safely
     let formattedDate = "";
     if (dateStr && !isNaN(Date.parse(dateStr))) {
       formattedDate = new Date(dateStr).toLocaleDateString("en-US", {
         year: "numeric", month: "long", day: "numeric", timeZone: "UTC"
       });
-      // Add a small label if it's an updated date
-      if (getMeta("last_updated")) {
-        formattedDate = `Updated ${formattedDate}`;
-      }
+      if (getMeta("last_updated")) formattedDate = `Updated ${formattedDate}`;
     }
 
-    // --- FIX: READ READING TIME FROM NODE SCRIPT ---
-    // First, try to get the pre-calculated reading time from the <meta> tag
     let readingTime = parseInt(getMeta("reading_time"), 10);
-
-    // Fallback: If the meta tag is missing for some reason, calculate it on the fly
-    if (!readingTime || isNaN(readingTime)) {
-      const articleBody = document.querySelector(".article-body");
-      const text = articleBody ? articleBody.innerText.replace(/\s+/g, " ").trim() : "";
-      readingTime = Math.max(1, Math.ceil((text.split(" ").filter(Boolean).length) / 220));
+    if (!readingTime) {
+      const text = document.querySelector(".article-body")?.innerText || "";
+      readingTime = Math.max(1, Math.ceil(text.split(/\s+/).length / 220));
     }
 
-    const tagsArray = keywordsStr ? keywordsStr.split(',').map(tag => tag.trim()).filter(Boolean) : [];
-    const tagsHtml = tagsArray.length > 0 
-      ? `<div class="article-header__tags">${tagsArray.map(tag => `<span class="article-tag">${tag}</span>`).join("")}</div>`
-      : "";
+    const tagsHtml = keywords ? keywords.split(',').map(tag => 
+      `<span class="article-tag">${tag.trim()}</span>`).join("") : "";
 
-    headerContainer.innerHTML = `
+    container.innerHTML = `
       <header class="article-header">
         ${parent ? `<div class="article-header__parent">${parent}</div>` : ''}
         <h1 class="article-header__title">${title}</h1>
         ${subtitle ? `<div class="article-header__subtitle">${subtitle}</div>` : ''}
-        
         <div class="article-header__meta">
           ${author ? `<span class="article-header__author">${author}</span>` : ''}
           ${formattedDate ? `<time class="article-header__date">${formattedDate}</time>` : ''}
           ${(author || formattedDate) ? `<span class="article-header__sep">•</span>` : ''}
           <span class="article-header__reading-time">${readingTime} min read</span>
         </div>
-        ${tagsHtml}
+        ${tagsHtml ? `<div class="article-header__tags">${tagsHtml}</div>` : ''}
       </header>
     `;
   };
 
   // ============================================================
-  // 4. TOC GENERATION & INITIALIZATION
+  // 2. PROGRESS SAVING (Instant + Debounced)
   // ============================================================
-  const buildTocItems = () => {
+  const saveProgress = (immediate = false) => {
+    if (immediate) {
+      performSave();
+    } else {
+      clearTimeout(state.saveTimer);
+      state.saveTimer = setTimeout(performSave, CONFIG.saveDebounceMs);
+    }
+  };
+
+  const performSave = () => {
+    const scrollY = window.scrollY;
+    let headingId = "";
+
+    // Identify current heading for context
+    if (state.tocItems.length > 0) {
+      let closestIdx = 0;
+      let minDistance = Infinity;
+      state.tocItems.forEach((item, i) => {
+        const rect = item.element.getBoundingClientRect();
+        const dist = Math.abs(rect.top - CONFIG.tocTargetTop);
+        if (rect.top < window.innerHeight && dist < minDistance) {
+          minDistance = dist;
+          closestIdx = i;
+        }
+      });
+      headingId = state.tocItems[closestIdx]?.element.id || "";
+    }
+
+    localStorage.setItem(CONFIG.progressKey, JSON.stringify({
+      scrollY,
+      headingId,
+      updatedAt: Date.now()
+    }));
+  };
+
+  // FORCE SAVE ON REFRESH/EXIT: Fixes the 5s lag
+  window.addEventListener("beforeunload", () => saveProgress(true));
+
+  // ============================================================
+  // 3. TOC & NAVIGATION
+  // ============================================================
+  const initializeToc = () => {
     const headers = Array.from(document.querySelectorAll(".article-body h2, .article-body h3, .article-body h4"));
     const existingIds = new Set();
 
-    return headers.map((el, index) => {
-      const text = el.innerText.replace(/#$/, "").trim();
-      const hLevel = parseInt(el.tagName[1], 10);
+    state.tocItems = headers.map((el, index) => {
+      let id = el.id || el.innerText.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
+      while (existingIds.has(id)) id += `-${index}`;
+      el.id = id;
+      existingIds.add(id);
 
-      if (!el.id) el.id = generateUniqueId(text, existingIds);
-      else existingIds.add(el.id);
-
-      return { index, text, hLevel, nesting: Math.max(0, hLevel - 2), element: el };
+      return { 
+        index, 
+        element: el, 
+        nesting: Math.max(0, parseInt(el.tagName[1]) - 2) 
+      };
     });
-  };
 
-  const initializeToc = () => {
-    tocItems = buildTocItems();
-    if (!tocItems.length) return;
-
-    document.querySelector(".toc-wrapper")?.remove(); 
+    if (!state.tocItems.length) return;
 
     const container = document.createElement("div");
     container.className = "toc-wrapper";
-
-    const miniTocHTML = tocItems.map(() => `<div class="toc-item-mini toc-light"></div>`).join("");
-    const listTocHTML = tocItems.map((item) => `
-      <button class="toc-item toc-ind-${item.nesting}" data-index="${item.index}" type="button">
-        ${item.text}
-      </button>
-    `).join("");
-
     container.innerHTML = `
-      <div class="toc-mini">${miniTocHTML}</div>
-      <div class="toc-list">${listTocHTML}</div>
+      <div class="toc-mini">${state.tocItems.map(() => `<div class="toc-item-mini toc-light"></div>`).join("")}</div>
+      <div class="toc-list">${state.tocItems.map(item => `
+        <button class="toc-item toc-ind-${item.nesting}" data-index="${item.index}" type="button">
+          ${item.element.innerText.replace(/#$/, "").trim()}
+        </button>`).join("")}</div>
     `;
+    
     document.body.appendChild(container);
-
     container.addEventListener("click", (e) => {
       const btn = e.target.closest(".toc-item");
-      if (btn) navigateToTocItem(parseInt(btn.dataset.index, 10));
+      if (btn) navigateTo(parseInt(btn.dataset.index));
     });
   };
 
-  // ============================================================
-  // 5. NAVIGATION & HIGHLIGHTING
-  // ============================================================
-  const updateActiveTocUI = (activeIndex) => {
+  const navigateTo = (index) => {
+    const item = state.tocItems[index];
+    if (!item) return;
+
+    state.isScrollingProgrammatically = true;
+    const yPos = item.element.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset;
+
+    window.scrollTo({ top: yPos, behavior: "smooth" });
+    history.replaceState(null, "", `#${item.element.id}`);
+    
+    updateUI(index);
+    saveProgress(true);
+
+    setTimeout(() => { state.isScrollingProgrammatically = false; }, 1000);
+  };
+
+  const updateUI = (activeIndex) => {
     document.querySelectorAll(".toc-item-mini").forEach((el, i) => el.classList.toggle("toc-light", i !== activeIndex));
     document.querySelectorAll(".toc-item").forEach((el, i) => el.classList.toggle("toc-bold", i === activeIndex));
   };
 
-  const navigateToTocItem = (index) => {
-    const item = tocItems[index];
-    if (!item) return;
-
-    isScrollingProgrammatically = true;
-    const yPosition = item.element.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset;
-
-    window.scrollTo({ top: yPosition, behavior: "smooth" });
-    history.replaceState(null, "", `#${item.element.id}`);
-    
-    item.element.classList.add("toc-highlight-target");
-    setTimeout(() => item.element.classList.remove("toc-highlight-target"), CONFIG.scrollHighlightDelay);
-
-    updateActiveTocUI(index);
-    debouncedSaveProgress(index, yPosition);
-
-    setTimeout(() => { isScrollingProgrammatically = false; }, 800);
-  };
-
-  const handleScrollProgress = () => {
-    if (!tocItems.length || isScrollingProgrammatically || isInitialLoad) return;
-
-    if (window.scrollY < 200) {
-      updateActiveTocUI(-1);
-      debouncedSaveProgress(-1, window.scrollY);
-      return;
+  // ============================================================
+  // 4. RESTORATION & EXECUTION
+  // ============================================================
+  const restoreProgress = () => {
+    // 1. Priority: URL Hash
+    if (window.location.hash) {
+      const el = document.getElementById(window.location.hash.substring(1));
+      if (el) {
+        window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset, behavior: "instant" });
+        return;
+      }
     }
 
-    let closestIdx = 0;
-    let minDistance = Infinity;
-
-    tocItems.forEach((item, i) => {
-      const rect = item.element.getBoundingClientRect();
-      const distance = Math.abs(rect.top - CONFIG.tocTargetTop);
-
-      if (rect.top < window.innerHeight && distance < minDistance) {
-        minDistance = distance;
-        closestIdx = i;
+    // 2. Fallback: LocalStorage
+    const saved = localStorage.getItem(CONFIG.progressKey);
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.scrollY) {
+        window.scrollTo({ top: data.scrollY, behavior: "instant" });
       }
-    });
-
-    updateActiveTocUI(closestIdx);
-    debouncedSaveProgress(closestIdx, window.scrollY);
-  };
-
-  // ============================================================
-  // 6. READING PROGRESS STORAGE
-  // ============================================================
-  const debouncedSaveProgress = (index, scrollY) => {
-    clearTimeout(saveProgressTimer);
-    saveProgressTimer = setTimeout(() => {
-      const payload = { scrollY, updatedAt: Date.now() };
-      if (index >= 0 && tocItems[index]) payload.headingId = tocItems[index].element.id;
-      localStorage.setItem(CONFIG.progressKey, JSON.stringify(payload));
-    }, CONFIG.saveDebounceMs);
-  };
-
-  const restoreReadingProgress = () => {
-    const savedData = localStorage.getItem(CONFIG.progressKey);
-    if (!savedData) return;
-
-    try {
-      const progress = JSON.parse(savedData);
-      
-      if (typeof progress.scrollY === "number") {
-        window.scrollTo({ top: progress.scrollY, behavior: "instant" });
-        handleScrollProgress();
-      } else if (progress.headingId) {
-        const heading = document.getElementById(progress.headingId);
-        if (heading) {
-          const yPosition = heading.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset;
-          window.scrollTo({ top: yPosition, behavior: "instant" });
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to restore reading progress", err);
     }
   };
 
-  // ============================================================
-  // 7. EXECUTION PIPELINE
-  // ============================================================
+  // Launch sequence
   injectArticleHeader();
   initializeToc();
-
+  
+  // High-frequency scroll listener using requestAnimationFrame
   let ticking = false;
   window.addEventListener("scroll", () => {
     if (!ticking) {
-      requestAnimationFrame(() => {
-        handleScrollProgress();
+      window.requestAnimationFrame(() => {
+        if (!state.isScrollingProgrammatically) {
+          saveProgress();
+          // Logic for updating active TOC highlight...
+          let closest = 0;
+          state.tocItems.forEach((item, i) => {
+            if (item.element.getBoundingClientRect().top < CONFIG.tocTargetTop + 50) closest = i;
+          });
+          updateUI(window.scrollY < 200 ? -1 : closest);
+        }
         ticking = false;
       });
       ticking = true;
     }
   }, { passive: true });
 
-  window.addEventListener("load", restoreReadingProgress);
+  // Restore immediately—don't wait for images
+  setTimeout(restoreProgress, 50);
 });
