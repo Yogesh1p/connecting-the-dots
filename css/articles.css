@@ -1,73 +1,51 @@
 
+/* Consolidated Variables */
 :root {
-  --example-box-bg: #FFF8F2;
-  --example-box-border: #E2B08F;
-  --example-box-label-bg: #E8B89A;
-  --example-box-label-text: #2A211C;
-}
-
-[data-theme="dark"] {
-  --example-box-bg: #241811;
-  --example-box-border: #8A5A3F;
-  --example-box-label-bg: #A86D4C;
-  --example-box-label-text: #FAE9DB;
-}
-/* ── CSS Variables ── */
-:root {
-  --bg:        #FDFBF7;
-  --text:      #4A3F35;
-  --accent:    #D48C70;
-  --surface:   #F4EFE6;
-  --border:    #E8DFD1;
-  --muted:     #847769;
-  --dark:      #2D241E;
+  /* Layout & Core */
+  --bg: #FDFBF7;
+  --text: #4A3F35;
+  --accent: #D48C70;
+  --surface: #F4EFE6;
+  --border: #E8DFD1;
+  --muted: #847769;
+  --dark: #2D241E;
   --highlight: rgba(212, 140, 112, 0.15);
-  --card-bg:   #FFFFFF;
-  --code-bg:   var(--surface);
-  --code-text: #5A4E42;
   
-
-}
-:root {
+  /* Box Specifics */
   --math-box-bg: #FBF6F2;
   --math-box-border: #D99A74;
   --math-box-label-bg: #D18B61;
   --math-box-label-text: #1E1A17;
-
+  --example-box-bg: #FFF8F2;
+  --example-box-border: #E2B08F;
+  --example-box-label-bg: #E8B89A;
+  --example-box-label-text: #2A211C;
   --proof-box-label-bg: #EEDDD3;
   --proof-box-label-text: #7B5D50;
-
   --note-box-bg: #FFF9F5;
-
   --table-rule: #EAD8CF;
 }
 
 [data-theme="dark"] {
-  --bg:        #16100C;
-  --text:      #C5B49A;
-  --accent:    #D48C70;
-  --surface:   #1F1510;
-  --border:    #2E2018;
-  --muted:     #736050;
-  --dark:      #EAD9C2;
+  --bg: #16100C;
+  --text: #C5B49A;
+  --surface: #1F1510;
+  --border: #2E2018;
+  --muted: #736050;
+  --dark: #EAD9C2;
   --highlight: rgba(212, 140, 112, 0.12);
-  --card-bg:   #1C1208;
-  --code-bg:   #130E0A;
-  --code-text: #B0A088;
   
-
-}
-[data-theme="dark"] {
   --math-box-bg: #221712;
   --math-box-border: #7A5037;
   --math-box-label-bg: #A56747;
   --math-box-label-text: #F7E8D8;
-
+  --example-box-bg: #241811;
+  --example-box-border: #8A5A3F;
+  --example-box-label-bg: #A86D4C;
+  --example-box-label-text: #FAE9DB;
   --proof-box-label-bg: #34231B;
   --proof-box-label-text: #D2AE97;
-
   --note-box-bg: #261A14;
-
   --table-rule: #3A281F;
 }
 /* Custom Reading Styles adapted for your Dark Mode system */
@@ -88,19 +66,7 @@
    ARTICLE LISTS (outside boxes)
    ========================= */
 
-.article-body > ul,
-.article-body > ol,
-.article-body section > ul,
-.article-body section > ol {
-  margin: 1rem 0;
-  margin-left: 0;
-  padding-left: 1.35rem;
-}
 
-.article-body li {
-  margin: 0.45rem 0;
-  line-height: 1.75;
-}
 
 /* =========================
    EXAMPLE BOX
@@ -139,26 +105,46 @@
   margin: 0.4rem 0 0;
 }
 
-/* Push proof toggle lower */
-.proof-toggle {
-  margin-top: 1.4rem;
-  border-top: 1px solid var(--table-rule);
-  padding-top: 1rem;
-}
-
-/* Only the clickable label is muted */
+/* Remove default arrow in all browsers */
 .proof-toggle summary {
-  font-style: italic;
-  color: var(--muted);
-  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
 }
 
-/* More breathing room after opening */
-.proof-content {
-  margin-top: 1.15rem;
+.proof-toggle summary::-webkit-details-marker {
+  display: none;
 }
-.proof-toggle[open] summary {
-  margin-bottom: 0.2rem;
+
+/* Custom Chevron Icon */
+.proof-toggle summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-right: 4px;
+}
+
+/* Hover & Open States */
+.proof-toggle:hover summary {
+  color: var(--accent);
+}
+
+.proof-toggle:hover summary::before {
+  border-color: var(--accent);
+}
+
+.proof-toggle[open] summary::before {
+  transform: rotate(45deg);
+  border-color: var(--accent);
 }
 .math-box {
   margin: 1.4rem 0 1.8rem;
@@ -169,7 +155,7 @@
 }
 
 .math-box-body {
-  padding: 1rem 1.2rem;
+  padding: 1.2rem 1.5rem;
 }
 
 .math-box-body > :first-child {
@@ -249,23 +235,70 @@
   color: var(--dark);
 }
 
-/* Lists inside theorem boxes */
-.math-box-body ul,
-.math-box-body ol {
-  margin: 0.8rem 0 0;
-  padding-left: 1.15rem;
+/* =========================
+   BOX LIST ALIGNMENT
+   ========================= */
+.math-box-body ol, 
+.math-box-body ul {
+  margin: 1rem 0;
+  padding-left: 2.5rem; /* Moves the list to the right */
+  list-style-position: outside; /* Keeps bullets in the gutter */
 }
 
 .math-box-body li {
-  margin: 0.45rem 0;
-  padding-left: 0.1rem;
-  line-height: 1.7;
+  margin-bottom: 0.5rem;
 }
 
+/* Specific fix for your "No Bold/Color" rule on markers */
+.math-box-body ol li::marker,
 .math-box-body ul li::marker {
-  color: var(--accent);
-  font-size: 0.82em;
+  color: var(--muted); 
+  font-weight: 400;
 }
+
+/* =========================
+   ARTICLE LIST ALIGNMENT
+   ========================= */
+.reading-content ol, 
+.reading-content ul {
+  margin: 1.5rem 0;
+  padding-left: 3rem; /* Larger indentation for main reading flow */
+  list-style-position: outside;
+  width: auto; /* Overrides the 100% width which can cause alignment issues */
+}
+
+.reading-content li {
+  margin-bottom: 0.8rem;
+  line-height: 1.8;
+  padding-left: 0.5rem; /* Spacing between bullet and text */
+}
+/* =========================
+   RESPONSIVE TABLE FIX
+   ========================= */
+
+/* Wrap your table in a div with this class if possible, 
+   OR apply these rules to the table container */
+.math-table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  white-space: nowrap; /* Prevents text from awkward wrapping inside cells */
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+/* Ensure cells don't shrink too small to read */
+.math-table th,
+.math-table td {
+  min-width: 120px; /* Adjust based on your content */
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--table-rule);
+  text-align: left;
+}
+
+
+
 
 /* Compact definitions */
 .definition-box .math-box-body {
