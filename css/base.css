@@ -659,44 +659,39 @@ html {
 }
 
 @media (max-width: 600px) {
+  /* 1. Prevent the entire page from stretching */
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden; /* This kills the 'ghost' space on the right */
+    position: relative;
+  }
+
+  /* 2. Fix the TOC Container */
   .toc-container {
-    /* 1. Take it out of the flow so it doesn't push the body */
-    position: relative; 
-    width: 100%;
-    max-width: 100%;
-    margin: 1.5rem 0;
-    padding: 1rem;
-    
-    /* 2. Style it like a separate card/panel */
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-    z-index: 10;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    position: relative;
+    overflow: visible; /* Allows lines to overlap text, but within the 100% width */
+    margin-right: 0 !important;
+    padding-right: 1rem !important;
   }
 
-  .toc-list, 
-  .toc-list ul, 
-  .toc-list ol {
-    padding-left: 1.2rem !important; /* Minimal indent to save space */
-    margin-left: 0;
-    list-style-position: outside;
+  /* 3. Fix the 'Lines' (usually pseudo-elements like ::before) */
+  .toc-list li::before,
+  .toc-list ul::before,
+  .toc-list ol::before {
+    /* Ensure the lines stay relative to the container, not the page width */
     max-width: 100%;
+    pointer-events: none; /* Make sure you can still click through them */
   }
 
+  /* 4. Force wrapping on the list items so they don't 'push' the lines */
   .toc-list li {
-    /* 3. Force the text to wrap instead of expanding the page */
-    white-space: normal; 
+    max-width: 100%;
+    word-wrap: break-word;
     overflow-wrap: break-word;
-    word-break: break-word;
-    margin-bottom: 0.8rem;
-  }
-
-  .toc-list a {
-    display: inline; /* Allows text to wrap naturally like a paragraph */
-    color: var(--accent);
-    text-decoration: none;
-    line-height: 1.4;
+    white-space: normal !important;
+    display: block;
   }
 }
