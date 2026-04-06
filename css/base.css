@@ -657,3 +657,46 @@ html {
 ::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--accent) 85%, var(--text)); 
 }
+
+@media (max-width: 600px) {
+  .toc-container {
+    /* 1. Take it out of the flow so it doesn't push the body */
+    position: relative; 
+    width: 100%;
+    max-width: 100%;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    
+    /* 2. Style it like a separate card/panel */
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+    z-index: 10;
+  }
+
+  .toc-list, 
+  .toc-list ul, 
+  .toc-list ol {
+    padding-left: 1.2rem !important; /* Minimal indent to save space */
+    margin-left: 0;
+    list-style-position: outside;
+    max-width: 100%;
+  }
+
+  .toc-list li {
+    /* 3. Force the text to wrap instead of expanding the page */
+    white-space: normal; 
+    overflow-wrap: break-word;
+    word-break: break-word;
+    margin-bottom: 0.8rem;
+  }
+
+  .toc-list a {
+    display: inline; /* Allows text to wrap naturally like a paragraph */
+    color: var(--accent);
+    text-decoration: none;
+    line-height: 1.4;
+  }
+}
