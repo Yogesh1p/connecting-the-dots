@@ -38,7 +38,7 @@
     }
 
     /* ═══════════════════════════════════════
-       PREMIUM CONTROLS
+       PREMIUM CONTROLS & SEARCH
     ═══════════════════════════════════════ */
     .controls {
       display: flex;
@@ -76,21 +76,18 @@
       color: var(--accent);
     }
 
-    .archive-search, .chip {
+    .archive-search {
       border: 1px solid var(--border);
       border-radius: 30px; 
       transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
       color: var(--text);
-    }
-
-    .archive-search {
       padding: 0.85rem 1rem 0.85rem 2.8rem;
       font-family: 'Lora', Georgia, serif;
       font-size: 1.05rem;
       font-style: italic; 
       width: 260px;
       outline: none;
-      background: var(--surface); /* Rest state uses surface color */
+      background: var(--surface);
     }
 
     .archive-search::placeholder {
@@ -105,7 +102,7 @@
 
     .archive-search:focus {
       width: 320px; 
-      background: var(--card-bg); /* Brightens on focus */
+      background: var(--card-bg);
       border-color: var(--accent);
       box-shadow: 0 10px 30px rgba(45, 36, 30, 0.08); 
       transform: translateY(-1px);
@@ -113,27 +110,6 @@
 
     [data-theme="dark"] .archive-search:focus {
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    .chip {
-      background: var(--surface); /* Chips match the new card base color */
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.8rem 1.4rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      cursor: pointer;
-    }
-
-    .chip:hover {
-      background: var(--card-bg); /* Brightens on hover */
-      border-color: var(--accent);
-      color: var(--accent);
-      transform: translateY(-1px);
     }
 
     .tally {
@@ -145,7 +121,116 @@
     }
 
     /* ═══════════════════════════════════════
-       ARTICLE ROWS (UPDATED COLORS)
+       CUSTOM DROPDOWN MENUS
+    ═══════════════════════════════════════ */
+    .dropdown-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+
+    .chip:hover, .dropdown-wrapper.active .chip {
+      background: var(--card-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .icon-chip {
+      padding: 0.85rem; 
+      border-radius: 50%;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 0.6rem);
+      
+      /* CHANGED: Anchor menus to the right edge so they expand inward */
+      right: 0;
+      left: auto;
+      
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(45, 36, 30, 0.08);
+      min-width: 170px;
+      z-index: 100;
+      
+      /* Hidden state */
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+      
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .dropdown-wrapper.active .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .dropdown-item {
+      padding: 0.85rem 1.25rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      
+      /* Ensure long category names wrap nicely */
+      white-space: normal;
+      line-height: 1.4;
+    }
+
+    .dropdown-item:hover {
+      background: var(--card-bg);
+      color: var(--accent);
+    }
+
+    .dropdown-item.selected {
+      background: var(--card-bg);
+      color: var(--accent);
+      position: relative;
+    }
+
+    .dropdown-item.selected::before {
+      content: '•';
+      position: absolute;
+      left: 0.5rem;
+      color: var(--accent);
+    }
+
+    [data-theme="dark"] .dropdown-menu {
+       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ═══════════════════════════════════════
+       ARTICLE ROWS
     ═══════════════════════════════════════ */
     .articles-list {
       display: flex;
@@ -161,7 +246,6 @@
       padding: 2rem;
       text-decoration: none;
       color: inherit;
-      /* Changed to --surface for a subtly darker/warmer resting state */
       background: var(--surface); 
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -172,7 +256,6 @@
     }
 
     .post-row:hover {
-      /* Brightens to the card background color when hovered */
       background: var(--card-bg); 
       border-color: var(--accent);
       transform: translateY(-3px);
@@ -236,9 +319,32 @@
       .layout { padding: 3rem 1.5rem; }
       .post-row { grid-template-columns: 1fr; padding: 1.5rem; gap: 1rem; }
       .row-arrow { display: none; }
-      .archive-search { width: 100%; }
-      .archive-search:focus { width: 100%; transform: none; }
-      .controls { justify-content: center; }
+      
+      /* Force all items on a single row */
+      .controls-left { 
+        width: 100%; 
+        flex-wrap: nowrap; /* Prevent wrapping */
+        gap: 0.5rem; /* Slightly tighter spacing on mobile */
+      }
+      
+      /* Search takes all available remaining space */
+      .search-wrap { 
+        flex: 1; 
+        min-width: 0; /* Allows flex child to shrink below its content size */
+      }
+      
+      .archive-search { 
+        width: 100%; 
+      }
+      
+      .archive-search:focus { 
+        width: 100%; 
+        transform: none; 
+      }
+      
+      .dropdown-menu {
+        max-width: calc(100vw - 3rem);
+      }
     }
   </style>
 </head>
@@ -258,9 +364,29 @@
             </svg>
             <input id="articleSearch" class="archive-search" type="text" placeholder="Search dots..." autocomplete="off" />
           </div>
-          <button id="filterBtn" class="chip">⎇ All</button>
-          <button id="sortBtn"   class="chip">⇅ Recent</button>
+          
+          <div class="dropdown-wrapper" id="filterDropdown">
+            <button id="filterToggle" class="chip icon-chip" aria-label="Filter Categories">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            </button>
+            <div class="dropdown-menu" id="filterMenu">
+              </div>
+          </div>
+
+          <div class="dropdown-wrapper" id="sortDropdown">
+            <button id="sortToggle" class="chip icon-chip" aria-label="Sort Order">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <polyline points="19 12 12 19 5 12"></polyline>
+              </svg>
+            </button>
+            <div class="dropdown-menu" id="sortMenu">
+              </div>
+          </div>
         </div>
+        
         <span class="tally" id="tally"></span>
       </div>
 
@@ -276,11 +402,14 @@
     document.addEventListener("DOMContentLoaded", () => {
       const list        = document.getElementById("articlesList");
       const searchInput = document.getElementById("articleSearch");
-      const filterBtn   = document.getElementById("filterBtn");
-      const sortBtn     = document.getElementById("sortBtn");
       const tallyEl     = document.getElementById("tally");
+      
+      const filterMenu   = document.getElementById("filterMenu");
+      const sortMenu     = document.getElementById("sortMenu");
+      const filterToggle = document.getElementById("filterToggle");
+      const sortToggle   = document.getElementById("sortToggle");
 
-      // Fallback demo data if lib-data.js is missing
+      // Fallback demo data
       const demo = [
         { title:"Eigenvectors and Diagonalisation",   description:"How to find eigenvectors and eigenvalues, and how to diagonalise matrices.", date:"2026-04-04", chapter:"Linear Algebra", readingTime:2, url:"#", keywords:"eigenvector eigenvalue matrix" },
         { title:"Vector Spaces & Subspaces",           description:"The formal structure behind vectors — what makes a space, and how subspaces carve it up.", date:"2026-04-04", chapter:"Linear Algebra", readingTime:7, url:"#", keywords:"vector space basis null" },
@@ -290,8 +419,64 @@
 
       const articles  = (window.rawPages && window.rawPages.length) ? [...window.rawPages] : demo;
       const chapters  = ["all", ...new Set(articles.map(a => a.chapter).filter(Boolean))];
-      const sortModes = ["recent", "oldest", "az", "za", "chapter"];
+      
+      const sortModes  = ["recent", "oldest", "az", "za", "chapter"];
+      const sortLabels = ["Recent", "Oldest", "A–Z", "Z–A", "Chapter"];
+      
       let chIdx = 0, sortIdx = 0;
+
+      function renderDropdowns() {
+        filterMenu.innerHTML = chapters.map((ch, i) => `
+          <button class="dropdown-item ${i === chIdx ? 'selected' : ''}" data-idx="${i}">
+            ${ch === "all" ? "All Categories" : ch}
+          </button>
+        `).join("");
+
+        // CHANGED: Removed "Sort: " text from here
+        sortMenu.innerHTML = sortModes.map((mode, i) => `
+          <button class="dropdown-item ${i === sortIdx ? 'selected' : ''}" data-idx="${i}">
+            ${sortLabels[i]}
+          </button>
+        `).join("");
+      }
+
+      function closeAllDropdowns() {
+        document.querySelectorAll('.dropdown-wrapper').forEach(w => w.classList.remove('active'));
+      }
+
+      filterToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wrapper = filterToggle.closest('.dropdown-wrapper');
+        const isActive = wrapper.classList.contains('active');
+        closeAllDropdowns();
+        if (!isActive) wrapper.classList.add('active');
+      });
+
+      sortToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wrapper = sortToggle.closest('.dropdown-wrapper');
+        const isActive = wrapper.classList.contains('active');
+        closeAllDropdowns();
+        if (!isActive) wrapper.classList.add('active');
+      });
+
+      document.addEventListener('click', closeAllDropdowns);
+
+      filterMenu.addEventListener('click', (e) => {
+        if (e.target.classList.contains('dropdown-item')) {
+          chIdx = parseInt(e.target.dataset.idx);
+          renderDropdowns(); 
+          updateUI();
+        }
+      });
+
+      sortMenu.addEventListener('click', (e) => {
+        if (e.target.classList.contains('dropdown-item')) {
+          sortIdx = parseInt(e.target.dataset.idx);
+          renderDropdowns();
+          updateUI();
+        }
+      });
 
       function score(a, q) {
         let s = 0;
@@ -299,12 +484,6 @@
         if ((a.keywords||"").toLowerCase().includes(q)) s += 3;
         if ((a.chapter ||"").toLowerCase().includes(q)) s += 2;
         return s;
-      }
-
-      function updateLabels() {
-        filterBtn.textContent = chapters[chIdx] === "all" ? "⎇ All" : `⎇ ${chapters[chIdx]}`;
-        const sl = { recent:"⇅ Recent", oldest:"⇅ Oldest", az:"⇅ A–Z", za:"⇅ Z–A", chapter:"⇅ Chapter" };
-        sortBtn.textContent = sl[sortModes[sortIdx]];
       }
 
       function render(items) {
@@ -346,15 +525,11 @@
         }
         
         tallyEl.textContent = `${out.length} dot${out.length !== 1 ? "s" : ""}`;
-        
-        updateLabels();
         render(out);
       }
 
-      filterBtn.addEventListener("click", () => { chIdx   = (chIdx+1)   % chapters.length;  updateUI(); });
-      sortBtn  .addEventListener("click", () => { sortIdx = (sortIdx+1) % sortModes.length; updateUI(); });
       searchInput.addEventListener("input", updateUI);
-      
+      renderDropdowns();
       updateUI();
     });
   </script>

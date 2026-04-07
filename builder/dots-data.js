@@ -17,12 +17,12 @@ window.rawPages = [
     "book": "linear-algebra",
     "title": "Eigenvectors, Diagonalisation, Spectral Theorem",
     "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
-    "date": "2026-04-06",
+    "date": "2026-04-07",
     "chapter": "Linear Algebra Foundations",
     "part": "  ",
     "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive-definite-matrices, cholesky factorisation",
     "order": 4,
-    "readingTime": 9
+    "readingTime": 11
   },
   {
     "url": "./pos_enc.html",
