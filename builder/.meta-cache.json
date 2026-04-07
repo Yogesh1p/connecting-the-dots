@@ -52,6 +52,19 @@
     "belongs_to": "lib"
   },
   {
+    "file": "taxonomy.html",
+    "book": "generative",
+    "title": "Taxonomy of Generative Models",
+    "description": "A comprehensive classification of generative AI models, including explicit likelihood, implicit likelihood, and score-based approaches.",
+    "date": "2026-04-07",
+    "chapter": "Taxonomy",
+    "part": "Foundations",
+    "keywords": "generative models, taxonomy, autoregressive, normalizing flows, VAE, GAN, diffusion models, score-based models",
+    "order": "1",
+    "status": "draft",
+    "belongs_to": "lib"
+  },
+  {
     "file": "template.html",
     "book": "generative",
     "title": "Word Representation",

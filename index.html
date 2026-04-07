@@ -1,101 +1,462 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="version" content="v9audio">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#FDFBF7" id="theme-color-meta">
   <meta name="description" content="Connecting the Dots — an intuition-first technical manuscript reconstructing modern AI from first principles.">
   <title>Connecting the Dots — Yogesh</title>
-  
+
   <link rel="canonical" href="https://yogesh1p.github.io/connecting-the-dots/#taxonomy">
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg?v=2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  
+
   <link rel="stylesheet" href="css/base.css">
-  <!-- Apply saved theme before first paint to prevent flash -->
-  <script>
-    (function(){var t=localStorage.getItem('theme')||'light';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();
-  </script>
+  <script>(function(){var t=localStorage.getItem('theme')||'light';if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();</script>
   <script src="js/base.js" defer></script>
   <script src="js/components.js" defer></script>
-  <meta property="og:type"         content="website">
-  <meta property="og:site_name"    content="Connecting the Dots">
-  <meta property="og:title"        content="Connecting the Dots — Yogesh">
-  <meta property="og:description"  content="An intuition-first introduction to modern AI — focused on understanding, not just usage.">
-  <meta property="og:url"          content="https://yogesh1p.github.io/connecting-the-dots">
-  <meta property="og:image"        content="https://yogesh1p.github.io/connecting-the-dots/assets/og_index.png">
-  <meta property="og:image:width"  content="1200">
-  <meta property="og:image:height" content="630">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 
+  <meta property="og:type"        content="website">
+  <meta property="og:site_name"   content="Connecting the Dots">
+  <meta property="og:title"       content="Connecting the Dots — Yogesh">
+  <meta property="og:description" content="An intuition-first introduction to modern AI — focused on understanding, not just usage.">
+  <meta property="og:url"         content="https://yogesh1p.github.io/connecting-the-dots">
+  <meta property="og:image"       content="https://yogesh1p.github.io/connecting-the-dots/assets/og_index.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="Connecting the Dots — Yogesh">
   <meta name="twitter:description" content="An intuition-first introduction to modern AI — focused on understanding, not just usage.">
   <meta name="twitter:image"       content="https://yogesh1p.github.io/connecting-the-dots/assets/og_index.png">
+
+  <style>
+    /* ── CSS vars are owned by base.css / nav — we just reference them ── */
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lora', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      /* overflow stays auto so the page below scrolls */
+    }
+
+    /* ══════════════════════════════════════════
+       GRAPH HERO — full-viewport, fixed
+    ══════════════════════════════════════════ */
+    #graph-hero {
+      position: relative;
+      width: 100%;
+      height: 100svh;
+      overflow: hidden;
+    }
+
+    /* Ambient warmth */
+    #graph-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 30% 40%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 70%),
+        radial-gradient(ellipse 50% 50% at 75% 65%, color-mix(in srgb, var(--text)   3%, transparent), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      /* Add these two lines to kill the concentric rings: */
+      filter: blur(80px);
+      transform: translate3d(0, 0, 0);
+    }
+
+    /* ── Particle canvas ── */
+    #shatter-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+    }
+
+    /* ── D3 graph layer ── */
+    #d3-container {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    #network-graph {
+      width: 100%; height: 100%;
+      display: block;
+      cursor: grab;
+      touch-action: none;
+    }
+    #network-graph:active { cursor: grabbing; }
+
+    /* ══════════════════════════════════════════
+       SHARED PILL — enter button + search bar
+       live at the exact same spot; button morphs into input
+    ══════════════════════════════════════════ */
+
+    /* Wrapper anchors both pill elements to the same position */
+    #pill-anchor {
+      position: absolute;
+      /* vertically: centre of hero shifted down past the graph bulk */
+      top: calc(50% + 30px + clamp(7rem, 15vw, 10rem));
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* wide enough so the morphed search doesn't jump layout */
+      width: clamp(200px, 40vw, 320px);
+    }
+
+    /* Shared pill shape — both elements inherit this via a class */
+    .pill {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 58%, var(--bg));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s, color 0.3s, width 2.4s cubic-bezier(0.22, 1, 0.36, 1); }
+    .pill:hover, .pill:focus-visible, .pill:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 20%, transparent);
+      outline: none;
+
+    }
+
+    /* ── Enter button (pre-morph) ── */
+    #enter-btn {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.65rem 1.6rem 0.65rem 1.3rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.58rem, 1.4vw, 0.65rem);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      outline: none;
+      /* start narrow — just wrapping "Explore →" */
+      width: auto;
+      animation: btn-pulse 3s ease-in-out infinite;
+    }
+    #enter-btn:hover, #enter-btn:focus-visible {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--surface) 80%, var(--bg));
+      animation: none;
+    }
+    #enter-btn:active { transform: scale(0.97); }
+    #enter-btn.morphing {
+      animation: none;
+      pointer-events: none;
+      color: transparent;
+    }
+    .btn-arrow {
+      width: 13px; height: 13px; opacity: 0.6;
+      transition: opacity 0.2s, transform 0.2s; flex-shrink: 0;
+    }
+    #enter-btn:hover .btn-arrow { opacity: 1; transform: translateX(2px); }
+    #enter-btn.morphing .btn-arrow { opacity: 0; }
+
+    @keyframes btn-pulse {
+      0%,100% { box-shadow: 0 0 0 0 transparent; }
+      50%      { box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 16%, transparent); }
+    }
+
+    /* ── Search bar (post-morph) ── */
+    #ui-overlay {
+      /* not used for layout anymore — pill-anchor handles position */
+      display: none;
+    }
+    .archive-search {
+      padding: 0.65rem 1.2rem;
+      color: var(--text);
+      font: italic clamp(0.8rem, 2vw, 0.85rem) 'Lora', serif;
+      outline: none;
+      pointer-events: none; /* enabled after morph */
+      -webkit-appearance: none;
+      /* start as zero-width invisible, expand on morph */
+      width: 0;
+      opacity: 0;
+      position: absolute;
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s,
+              width 2.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s;
+    }
+    .archive-search.visible {
+      position: relative;
+      width: 100%;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .archive-search::placeholder { color: var(--muted); opacity: 0.7; }
+    .archive-search:focus {
+      background: var(--card-bg);
+    }
+
+    /* ── Legend (top-left, after transition) ── */
+    #graph-legend {
+      display: none; /* removed */
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.48rem, 1.2vw, 0.56rem);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0.8;
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .legend-dot.hub  { background: var(--accent); width: 10px; height: 10px; }
+    .legend-dot.sub  { background: var(--text); }
+    .legend-dot.leaf { background: var(--muted); width: 6px; height: 6px; }
+
+    /* ── About button — removed ── */
+    #about-btn { display: none; }
+
+ 
+    /* ── About drawer ── */
+    #about-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: color-mix(in srgb, var(--dark) 35%, transparent);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #about-overlay.open { opacity: 1; pointer-events: auto; }
+    #about-drawer {
+      position: absolute;
+      top: 0; right: 0;
+      width: min(420px, 100vw);
+      height: 100%;
+      background: var(--card-bg);
+      border-left: 1px solid var(--border);
+      padding: clamp(1.8rem, 5vw, 3rem) clamp(1.4rem, 4vw, 2.4rem);
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+      display: flex; flex-direction: column; gap: 2rem;
+    }
+    #about-overlay.open #about-drawer { transform: translateX(0); }
+
+    .drawer-close {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; padding: 6px;
+      min-width: 44px; min-height: 44px;
+      border: 1px solid var(--border); border-radius: 50%;
+      background: transparent; color: var(--muted);
+      cursor: pointer; outline: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .drawer-close:hover { border-color: var(--accent); color: var(--accent); }
+    .drawer-close svg { width: 14px; height: 14px; }
+
+    .drawer-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.6rem;
+    }
+    .drawer-title {
+      font-size: clamp(1.3rem, 4vw, 1.65rem); font-weight: 600;
+      color: var(--dark); line-height: 1.25; margin-bottom: 1rem;
+    }
+    .drawer-body {
+      font-size: clamp(0.82rem, 2vw, 0.88rem);
+      line-height: 1.78; color: var(--text);
+    }
+    .drawer-body p + p { margin-top: 0.9rem; }
+    .drawer-body em { color: var(--accent); font-style: italic; }
+
+    .drawer-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.8rem;
+    }
+    .drawer-clusters { display: flex; flex-direction: column; gap: 0.55rem; }
+    .cluster-row {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 8px; background: var(--surface); border: 1px solid var(--border);
+    }
+    .cluster-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--accent); }
+    .cluster-name { font-size: 0.82rem; font-weight: 500; color: var(--dark); flex: 1; }
+    .cluster-count { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+
+    .drawer-hint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.56rem; letter-spacing: 0.1em;
+      color: var(--muted); opacity: 0.7; line-height: 1.9;
+      border-top: 1px solid var(--border); padding-top: 1.2rem;
+    }
+    .drawer-hint span { color: var(--accent); }
+
+    /* ── Node hover tooltip ── */
+    #graph-tooltip {
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      background: color-mix(in srgb, var(--card-bg) 92%, transparent);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 8px;
+      padding: 0.45rem 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      white-space: nowrap;
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--dark) 8%, transparent);
+      transform: translate(-50%, -120%);
+    }
+    #graph-tooltip.visible { opacity: 1; }
+
+    /* ── D3 node/link styles ── */
+    .graph-link {
+      stroke: var(--muted, #847769); stroke-opacity: 0.18; stroke-width: 1.5px;
+      transition: stroke-opacity 0.25s, stroke-width 0.25s;
+    }
+    .graph-node-hub  { fill: var(--accent,#D48C70); stroke: var(--bg,#FFF); stroke-width: 3px; }
+    .graph-node-sub  { fill: var(--text,  #4A3F35); stroke: var(--bg,#FFF); stroke-width: 2px; }
+    .graph-node-leaf { fill: var(--muted, #847769); stroke: var(--bg,#FFF); stroke-width: 1.5px; }
+    .graph-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+      fill: var(--text,#4A3F35); pointer-events: none;
+      opacity: 0; transition: opacity 0.2s ease;
+    }
+    .graph-label.hub-label { font-size: 0.82rem; font-weight: 600; fill: var(--dark,#2D241E); }
+    .graph-link.active { stroke: var(--accent); stroke-opacity: 0.7; stroke-width: 2.5px; }
+    .dimmed       { opacity: 0.05; }
+    .search-match { stroke: var(--accent) !important; filter: drop-shadow(0 0 6px var(--accent)); }
+
+    /* ══════════════════════════════════════════
+       PAGE CONTENT (below the graph)
+    ══════════════════════════════════════════ */
+    /* reading-progress bar stays from base.css */
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .landing-stats { gap: 1.1rem; }
+      .graph-label   { font-size: 0.6rem; }
+      #about-drawer  { width: 100vw; border-left: none; border-top: 1px solid var(--border); }
+      #scroll-down-hint { display: none; }
+      /* Stop the page from wobbling left and right */
+      body, .page-wrap {
+        overflow-x: hidden;
+      }
+      
+      /* Allow wide content to be swiped left/right internally */
+      .code-block, .taxonomy-tree, .ch-topics-grid {
+        max-width: 100vw;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 1rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
 <div class="reading-progress"></div>
-
 <div id="global-nav" data-root=""></div>
 
-  
-<main class="page-wrap">
-  <header class="main-header">
-    <div class="header-content">
-      <div class="chapter-label label-caps">
-  <span>Yogesh</span>
-  <span class="separator">·</span>
-  <span>A Living Document</span>
-  <span class="separator">·</span>
-  <span>Open Collaboration</span>
-</div>
-      <h1>Connecting <br><em>the Dots.</em></h1>
-      <p class="subtitle">An intuition-first introduction to modern AI — focused on understanding.</p>
-      
-      <div class="header-cta">
-       <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf"
-   target="_blank"
-   rel="noopener noreferrer"
-   class="btn primary">
-  Read current draft →
-</a>
+<div id="graph-hero">
+
+  <canvas id="shatter-canvas"></canvas>
+
+  <div id="d3-container">
+    <svg id="network-graph"></svg>
+  </div>
+
+  <div id="pill-anchor">
+    <button id="enter-btn" class="pill" aria-label="Explore the graph">
+      Explore
+      <svg class="btn-arrow" viewBox="0 0 14 14" fill="none">
+        <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <input type="text" id="graph-search" class="archive-search pill"
+           placeholder="Search concepts…" autocomplete="off" inputmode="search"/>
+  </div>
+
+  <div id="landing-overlay"></div>
+
+  <div id="ui-overlay"></div>
+
+  <div id="graph-tooltip"></div>
+
+
+
+</div><div id="about-overlay" role="dialog" aria-modal="true" aria-label="About this graph">
+  <div id="about-drawer">
+    <button class="drawer-close" id="drawer-close-btn" aria-label="Close">
+      <svg viewBox="0 0 14 14" fill="none">
+        <path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div>
+      <div class="drawer-eyebrow">The Graph</div>
+      <div class="drawer-title">Connecting the Dots.</div>
+      <div class="drawer-body">
+        <p>Each node is a concept I've encountered studying ML. Each edge is a relationship I've traced — hierarchical or conceptual.</p>
+        <p>The graph reflects what I've actually worked through. Dense areas are well-studied; sparse ones are honest gaps.</p>
       </div>
     </div>
-
-    <div class="widget-container">
-      <iframe 
-        src="assets/book-widget.html" 
-        class="book-widget-frame"
-        scrolling="no"
-        allowtransparency="true"
-        title="Book widget"
-        style="opacity:0;transition:opacity 0.4s ease;"
-        onload="this.style.opacity='1'">
-      </iframe>
-      <div class="iframe-shield"></div>
+    <div>
+      <div class="drawer-section-label">Clusters</div>
+      <div class="drawer-clusters">
+        <div class="cluster-row"><div class="cluster-dot"></div><div class="cluster-name">Autoregressive Models</div><div class="cluster-count">7 nodes</div></div>
+        <div class="cluster-row"><div class="cluster-dot"></div><div class="cluster-name">Large Language Models</div><div class="cluster-count">9 nodes</div></div>
+        <div class="cluster-row"><div class="cluster-dot"></div><div class="cluster-name">Latent Variable Models</div><div class="cluster-count">11 nodes</div></div>
+        <div class="cluster-row"><div class="cluster-dot"></div><div class="cluster-name">Score-Based Models</div><div class="cluster-count">2 nodes</div></div>
+      </div>
     </div>
-  </header>
+    <div class="drawer-hint">
+      <span>Hover</span> a node to see connections ·
+      <span>Drag</span> to rearrange ·
+      <span>Search</span> to filter
+    </div>
+  </div>
+</div>
+
+<main class="page-wrap">
 
   <section id="about">
     <div class="rule"><span>About the project</span></div>
-    
     <div class="lede">
       <p>Hey, I'm Yogesh. This project is an attempt to understand how modern AI systems work — not just what they do, but why the ideas behind them are structured the way they are.</p>
     </div>
-
     <div class="prose">
       <p>It grew out of months spent working through lectures, books, and research papers, often revisiting the same derivation several times before the intuition became clear. This document tries to record that process — the order in which the understanding actually arrived.</p>
       <p>The chapter on autoregressive models begins with a simple question: how can we model a joint distribution over many variables without storing an exponential number of parameters? From there the discussion moves through the chain rule, Bayesian networks, FVSBN, NADE, and MADE, eventually reaching modern sequence models and the Transformer. Each idea appears as a response to a limitation in the previous one.</p>
       <p>The aim is to follow this thread through modern AI: large language models, diffusion models, latent variable methods, state space models, world models, and whatever architectures come next.</p>
-      <p>The goal is that a reader finishing a chapter should feel like they <mark>could have invented</mark> the ideas themselves if they had started from the same questions. At the moment it’s just me. Collaboration is welcome.</p>
+      <p>The goal is that a reader finishing a chapter should feel like they <mark>could have invented</mark> the ideas themselves if they had started from the same questions.</p>
     </div>
   </section>
 
   <section id="philosophy">
     <div class="rule"><span>A Working Philosophy</span></div>
-
     <div class="philosophy-block">
       <p>Whenever we want to "get a task done," we are ultimately constructing a function that maps inputs to outputs. Neural networks are universal function approximators — but a naive, fully connected model is inefficient, data-hungry, and impractical under real-world constraints.</p>
       <p>The field has progressed by imposing increasingly sophisticated internal structure on these networks: convolutions for spatial structure, recurrence and gating for temporal dependencies, attention for relational modeling, residual connections for optimization stability, diffusion and latent-variable frameworks for generative modeling. Each architectural advance reshapes the underlying function class, injecting inductive bias that makes learning more efficient and generalization more robust. Scaling laws showed that scale matters, but architectural structure determines how efficiently data and compute are used.</p>
@@ -103,204 +464,58 @@
     </div>
   </section>
 
-  <section id="anatomy">
-    <div class="rule"><span>How the Dots Connect</span></div>
+ <section id="anatomy">
+  <div class="rule"><span>How the Ideas Connect</span></div>
 
-    <div class="book-anatomy">
-      <div class="anatomy-card">
-        <div class="card-num">01</div>
-        <div class="card-title">Problem-first structure</div>
-        <p>Every concept is introduced as the answer to a specific failure. Exponential parameters → chain rule. Chain rule alone isn't enough → structural assumptions. And so on.</p>
-      </div>
-      <div class="anatomy-card">
-        <div class="card-num">02</div>
-        <div class="card-title">Honest mathematics</div>
-        <p>Equations are written out, not waved at. But each one is preceded by the question it answers and followed by what it still can't do.</p>
-      </div>
-      <div class="anatomy-card">
-        <div class="card-num">03</div>
-        <div class="card-title">No assumed intuition</div>
-        <p>Nothing is assumed. Ideas are explained from scratch. Terms like “attention” and “residual stream” are introduced only after the underlying idea is clear.</p>
-      </div>
-      <div class="anatomy-card">
-        <div class="card-num">04</div>
-        <div class="card-title">Cumulative narrative</div>
-        <p>NADE's incremental pre-activation sum is the seed of the RNN hidden state. The LSTM's additive cell state echoes NADE again. These threads are made explicit.</p>
-      </div>
+  <div class="book-anatomy">
+    <div class="anatomy-card">
+      <div class="card-num">01</div>
+      <div class="card-title">Start with the problem</div>
+      <p>
+        Every new idea begins with a clear problem.
+        We first see what fails, then introduce the tool
+        that fixes it. This makes each concept feel necessary.
+      </p>
     </div>
-  </section>
 
-  <section id="chapters" style="scroll-margin-top: 1rem;">
-    <h3>Current Progress</h3>
-
-    <div class="progress-block">
-      <div class="ch-updated">Updated March 2026</div>
-
-      <div class="progress-row ch-toggle" id="ch1-toggle" onclick="toggleCh1()">
-        <span class="ch-label">Ch 1 · AR Models <span class="toggle-arrow">▶</span></span>
-        <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="70"></div></div>
-        <span class="pct">70%</span>
-      </div>
-
-      <div class="ch-topics-collapsible" id="ch1-topics">
-        <div class="ch-topics-block">
-          <div class="ch-topics-header">
-            <span>Chapter 1 — Autoregressive Models</span>
-            <a target="_blank" href="chapter_assets/AR/experiments.html" class="exp-link">Experiments ↗</a>
-          </div>
-          <div class="ch-topics-grid">
-            <div class="ch-topic-group">
-              <div class="ch-topic-section label-caps">Fixed-Length Models</div>
-              <div class="ch-topic">Modeling joint distributions</div>
-              <div class="ch-topic">Chain rule & exponential cost</div>
-              <div class="ch-topic">Bayesian networks</div>
-              <div class="ch-topic">Markov assumption</div>
-              <div class="ch-topic">Parametric conditionals</div>
-              <div class="ch-topic">FVSBN</div>
-              <div class="ch-topic">NADE & weight sharing</div>
-              <div class="ch-topic">NADE extensions (discrete, RNADE)</div>
-              <div class="ch-topic">Autoencoders & the cheating problem</div>
-              <div class="ch-topic">MADE & autoregressive masking</div>
-            </div>
-            <div class="ch-topic-group">
-              <div class="ch-topic-section label-caps">Variable-Length Models</div>
-              <div class="ch-topic">Words to vectors — one-hot failures</div>
-              <div class="ch-topic">Distributional hypothesis</div>
-              <div class="ch-topic">Word2Vec — Skipgram & CBOW, GloVe</div>
-              <div class="ch-topic">Geometry of word vectors</div>
-              <div class="ch-topic">From NADE accumulation → RNN hidden state</div>
-              <div class="ch-topic">RNNs & backprop through time</div>
-              <div class="ch-topic">Vanishing & exploding gradients</div>
-              <div class="ch-topic">LSTM & GRU</div>
-              <div class="ch-topic">Bidirectional RNNs · Stacked RNNs</div>
-              <div class="ch-topic">Encoder–decoder seq2seq</div>
-              <div class="ch-topic">Attention — additive, dot-product, Q/K/V</div>
-              <div class="ch-topic">Self-attention & cross-attention</div>
-              <div class="ch-topic">Multi-head attention</div>
-              <div class="ch-topic">Transformer — full decoder walkthrough</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="progress-row">
-        <span class="ch-label">Ch 2 · LLMs</span>
-        <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="0"></div></div>
-        <span class="pct">0%</span>
-      </div>
-
-      <div class="progress-row">
-        <span class="ch-label">Ch 3 · Latent Var.</span>
-        <div class="progress-bar-wrap"><div class="progress-bar-fill draft" data-w="40"></div></div>
-        <span class="pct">40%</span>
-      </div>
-
-      <div style="margin-top: 1.2rem; text-align: center;">
-        <a href="https://yogesh1p.github.io/connecting-the-dots/main.pdf" target="_blank" class="btn" style="padding: 0.5rem 1.2rem; font-size: 0.8rem;">Read current draft</a>
-      </div>
+    <div class="anatomy-card">
+      <div class="card-num">02</div>
+      <div class="card-title">Math with meaning</div>
+      <p>
+        Equations are written step by step.
+        Before each formula, we explain why we need it.
+        After it, we explain what it tells us and where it helps.
+      </p>
     </div>
-  </section>
 
-  <section id="taxonomy" class="chapter-sample">
-    <div class="sample-label label-caps">Taxonomy — Generative Models</div>
-    <div class="taxonomy-tree">
-
-      <div class="tax-root">Generative Models</div>
-
-      <div class="tax-branch-label">I. Explicit Likelihood-Based Models</div>
-      <div class="tax-desc">maximize log-likelihood · p<sub>θ</sub>(x) explicitly defined</div>
-
-      <div class="tax-section">
-        <div class="tax-section-title">A. No Extra Variables <span class="tax-dim">(Direct Models)</span></div>
-
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">A1. Fixed-Length Autoregressive Models</div>
-          <div class="tax-items">
-            <span class="pill-tag">FVSBN</span><span class="pill-tag">NADE</span><span class="pill-tag">MADE</span><span class="pill-tag">PixelRNN / PixelCNN</span><span class="pill-tag">Image AR Transformers</span>
-          </div>
-        </div>
-
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">A2. Variable-Length Autoregressive Models <span class="tax-dim">(Sequence Models)</span></div>
-          <div class="tax-items">
-            <span class="pill-tag">RNN</span><span class="pill-tag">LSTM / GRU</span><span class="pill-tag">GPT</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="tax-section">
-        <div class="tax-section-title">B. Extra Variables, Not Hidden <span class="tax-dim">(Invertible · Exact Likelihood)</span></div>
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">Normalizing Flows</div>
-          <div class="tax-items">
-            <span class="pill-tag">NICE</span><span class="pill-tag">RealNVP</span><span class="pill-tag">Glow</span><span class="pill-tag">MAF · IAF · Parallel WaveNet</span><span class="pill-tag">Flow++</span><span class="pill-tag">FFJORD</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="tax-section">
-        <div class="tax-section-title">C. Extra Variables + Hidden <span class="tax-dim">(Latent-Variable · Approx. Likelihood)</span></div>
-
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">C1. Amortized Inference <span class="tax-dim">(VAE Family)</span></div>
-          <div class="tax-items">
-            <span class="pill-tag">VAE</span><span class="pill-tag">β-VAE</span><span class="pill-tag">CVAE</span><span class="pill-tag">Hierarchical VAEs</span>
-          </div>
-        </div>
-
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">C2. Non-Amortized Inference <span class="tax-dim">(Classical EM-Based)</span></div>
-          <div class="tax-items">
-            <span class="pill-tag">GMM</span><span class="pill-tag">HMM</span><span class="pill-tag">Factor Analysis</span><span class="pill-tag">Probabilistic PCA</span><span class="pill-tag">Kalman Filters</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="tax-branch-label">II. Implicit Likelihood Models</div>
-      <div class="tax-desc">divergence minimization · hidden latent variable</div>
-
-      <div class="tax-section">
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">GAN Family</div>
-          <div class="tax-items">
-            <span class="pill-tag">GAN</span><span class="pill-tag">WGAN</span><span class="pill-tag">f-GAN</span><span class="pill-tag">StyleGAN</span><span class="pill-tag">BigGAN</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="tax-branch-label">III. Score-Based Models</div>
-      <div class="tax-desc">learn ∇ log p(x) · no tractable likelihood</div>
-
-      <div class="tax-section">
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">A. Energy-Based Models</div>
-          <div class="tax-items">
-            <span class="pill-tag">Classical EBMs</span><span class="pill-tag">Contrastive Divergence</span><span class="pill-tag">Persistent CD / NCE-based EBMs</span>
-          </div>
-        </div>
-
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">B. Score Matching</div>
-          <div class="tax-items">
-            <span class="pill-tag">Hyvärinen Score Matching</span><span class="pill-tag">Denoising Score Matching</span><span class="pill-tag">Sliced Score Matching</span>
-          </div>
-        </div>
-
-        <div class="tax-group">
-          <div class="tax-group-title label-caps">C. Diffusion / Score-SDE Models</div>
-          <div class="tax-items">
-            <span class="pill-tag">DDPM</span><span class="pill-tag">Improved DDPM</span><span class="pill-tag">Score-SDE</span><span class="pill-tag">Latent Diffusion (Stable Diffusion)</span><span class="pill-tag">Consistency Models</span>
-          </div>
-        </div>
-      </div>
-
+    <div class="anatomy-card">
+      <div class="card-num">03</div>
+      <div class="card-title">Built from scratch</div>
+      <p>
+        No intuition is assumed.
+        Every idea starts from the basics, so even difficult
+        concepts become easy to follow.
+      </p>
     </div>
-  </section>
+
+    <div class="anatomy-card">
+      <div class="card-num">04</div>
+      <div class="card-title">Everything builds forward</div>
+      <p>
+        Earlier ideas return in later chapters.
+        Concepts are connected clearly, so the book feels like
+        one continuous story instead of separate topics.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+
 
   <section class="chapter-sample">
     <div class="sample-label label-caps">Excerpt — Chapter 1 · The Residual Stream</div>
     <p>ResNets and Transformers look different on the surface. The connection runs deeper than it appears.</p>
-
     <div class="code-block">
       <div class="eq-row">
         <span class="eq-comment">// ResNet — each block adds a correction</span>
@@ -317,51 +532,375 @@
         <span class="eq-math">X<sup>(L)</sup> = X<sup>(0)</sup> + &sum;<sub>ℓ=1</sub><sup>L</sup>&thinsp;(&Delta;<sup>(ℓ)</sup><sub>attn</sub> + &Delta;<sup>(ℓ)</sup><sub>ffn</sub>)</span>
       </div>
     </div>
-
     <p>Neither architecture overwrites its representations — they accumulate them. In ResNet, the residual function <em>F<sub>l</sub></em> learns a correction. In the Transformer, that correction is split into two structured parts: <em>Δ<sub>attn</sub></em>, which gathers information across positions, and <em>Δ<sub>ffn</sub></em>, which transforms it locally. The final representation is the original embedding plus every increment every layer ever wrote. Depth, in both cases, is accumulation — not replacement.</p>
-
     <blockquote>The Transformer does not overwrite representations; it refines them, layer by layer, through addition. The name is apt in a way the original paper never quite spells out.</blockquote>
   </section>
 
-  <section id="contribute">
-    <div class="rule" id="medium"><span>The Medium: Beyond the PDF</span></div>
+</main>
 
-    <div class="prose">
-      <p>Right now, I am drafting this manuscript in Overleaf. I love the typographic rigor of LaTeX—it feels clean, serious, and easy to read. But a static PDF is fundamentally the wrong container for a field that moves this fast.</p>
-      <p>I want to build something that preserves that typographic elegance but evolves alongside my thoughts. A dynamic digital space where intuition is guided by interactive animations, where new research naturally triggers new conceptual branches, and where the text is a living artifact rather than a frozen export. If you are someone who is excited by building interactive technical publications, I would love to build this together.</p>
-    </div>
+<script>
+window.addEventListener('load', () => {
+  if (typeof d3 === 'undefined') return;
 
-    <div class="rule"><span>Who I'm looking for</span></div>
+  /* ── Audio: hover tap only ── */
+  let AC = null, audioUnlocked = false;
+  function unlockAudio() {
+    if (audioUnlocked) return; audioUnlocked = true;
+    AC = new (window.AudioContext || window.webkitAudioContext)(); AC.resume();
+  }
+  function crispTap(grp) {
+    if (!AC) return;
+    if (AC.state === 'suspended') AC.resume();
+    const freq = grp==='hub' ? 9500 : grp==='sub' ? 7200 : 5800;
+    const t = AC.currentTime;
+    const osc = AC.createOscillator(), g = AC.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.028, t+0.003);
+    g.gain.linearRampToValueAtTime(0.0001, t+0.025);
+    osc.connect(g); g.connect(AC.destination);
+    osc.start(t); osc.stop(t+0.030);
+  }
 
-    <div class="prose">
-      <p>I'm not looking for people to write sections for me. I'm looking for <mark>thinking partners</mark> — people who will read a draft and tell me where the intuition breaks, where I'm hand-waving, where the thread I'm following actually leads somewhere I haven't seen yet.</p>
-    </div>
+  /* ── Colors from CSS vars (base.css owns the truth) ── */
+  function getCssColor(v, fb) {
+    let val = getComputedStyle(document.documentElement).getPropertyValue(v).trim() || fb;
+    if (val.startsWith('#')) {
+      let h = val.replace('#','');
+      if (h.length===3) h=h.split('').map(x=>x+x).join('');
+      return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+    }
+    return [0,0,0];
+  }
+  let C = {};
+  function updateColors() {
+    C.bg     = getCssColor('--bg',     '#FDFBF7');
+    C.text   = getCssColor('--text',   '#4A3F35');
+    C.dark   = getCssColor('--dark',   '#2D241E');
+    C.accent = getCssColor('--accent', '#D48C70');
+    C.muted  = getCssColor('--muted',  '#847769');
+  }
+  function nodeColor(g) { return g==='hub'?C.accent:g==='sub'?C.text:C.muted; }
 
-    <ul class="collab-list">
-      <li>
-        <span class="tag label-caps">Review</span>
-        <div><strong>Technical Reviewers</strong> — ML researchers, practitioners, or careful readers who can catch when an explanation is almost right but not quite, or where a mathematical derivation quietly skips a step.</div>
-      </li>
-      <li>
-        <span class="tag label-caps">Visual</span>
-        <div><strong>Visual Collaborators</strong> — Someone who thinks visually about how to represent attention, gradient flow, or the residual stream in ways that are clear without being decorative.</div>
-      </li>
-      <li>
-        <span class="tag label-caps">Build</span>
-        <div><strong>Platform Builders</strong> — Someone who can build the pipeline to enable a dynamic, interactive book-like experience, bridging LaTeX/Markdown with modern web frameworks.</div>
-      </li>
-    </ul>
+  const isMobile = () => window.innerWidth < 640;
+  function nodeR(g) {
+    return isMobile()
+      ? (g==='hub'?18:g==='sub'?12:7)
+      : (g==='hub'?14:g==='sub'?9:5);
+  }
 
-    <div class="cta-section">
-      <h2>Interested in collaborating?</h2>
-      <p>If something in <em>Connecting the Dots</em> sparked an idea or raised a question, I'd love to hear from you. Feel free to reach out — whether it's feedback, discussion, or exploring an experiment together.</p>
-    <a class="btn primary" 
-     href="mailto:3pyogesh@gmail.com?subject=Collaboration on Connecting the Dots">
-     Send Email
-</a>     
-    </div>
-  </section>
+  /* ── Graph data ── */
+  function createGraphData() {
+    const nodes = [
+      {id:"Autoregressive Models",group:"hub"},{id:"Large Language Models",group:"hub"},
+      {id:"Latent Variable Models",group:"hub"},{id:"Score-Based Models",group:"hub"},
+      {id:"Fixed-Length Models",group:"sub"},{id:"Sequence Models",group:"sub"},
+      {id:"Transformers",group:"sub"},{id:"Variational Inference",group:"sub"},
+      {id:"Normalizing Flows",group:"sub"},{id:"LLM Training",group:"sub"},
+      {id:"LLM Alignment",group:"sub"},{id:"Agentic Systems",group:"sub"},
+      {id:"Classical EM",group:"sub"},
+      {id:"FVSBN",group:"leaf"},{id:"NADE",group:"leaf"},{id:"MADE",group:"leaf"},
+      {id:"RNNs",group:"leaf"},{id:"Word2Vec",group:"leaf"},{id:"Attention",group:"leaf"},
+      {id:"MoE",group:"leaf"},{id:"LoRA",group:"leaf"},{id:"RLHF",group:"leaf"},
+      {id:"DPO",group:"leaf"},{id:"GRPO",group:"leaf"},{id:"RAG",group:"leaf"},
+      {id:"ReAct",group:"leaf"},{id:"ELBO",group:"leaf"},{id:"BBVI",group:"leaf"},
+      {id:"VAE",group:"leaf"},{id:"Reparameterisation",group:"leaf"},{id:"GMM",group:"leaf"},
+      {id:"HMM",group:"leaf"},{id:"Diffusion",group:"leaf"},{id:"DDPM",group:"leaf"}
+    ];
+    const links = [
+      ["Autoregressive Models","Fixed-Length Models"],["Autoregressive Models","Sequence Models"],
+      ["Fixed-Length Models","FVSBN"],["Fixed-Length Models","NADE"],["Fixed-Length Models","MADE"],
+      ["Sequence Models","RNNs"],["Sequence Models","Word2Vec"],["Sequence Models","Attention"],
+      ["Sequence Models","Transformers"],["Large Language Models","Transformers"],
+      ["Large Language Models","LLM Training"],["Large Language Models","LLM Alignment"],
+      ["Large Language Models","Agentic Systems"],["Transformers","Attention"],["Transformers","MoE"],
+      ["LLM Training","LoRA"],["LLM Alignment","RLHF"],["LLM Alignment","DPO"],["LLM Alignment","GRPO"],
+      ["Agentic Systems","RAG"],["Agentic Systems","ReAct"],["Latent Variable Models","Variational Inference"],
+      ["Latent Variable Models","Normalizing Flows"],["Latent Variable Models","Classical EM"],
+      ["Variational Inference","ELBO"],["Variational Inference","BBVI"],["Variational Inference","VAE"],
+      ["Variational Inference","Reparameterisation"],["Classical EM","GMM"],["Classical EM","HMM"],
+      ["Score-Based Models","Diffusion"],["Diffusion","DDPM"],["VAE","MADE"],
+      ["Normalizing Flows","Reparameterisation"],["Transformers","Sequence Models"]
+    ].map(([s,t])=>({source:s,target:t}));
+    nodes.forEach(n=>n.radius=nodeR(n.group));
+    return {nodes,links};
+  }
 
+  /* ── DOM refs ── */
+  const hero         = document.getElementById('graph-hero');
+  const canvas       = document.getElementById('shatter-canvas');
+  const ctx          = canvas.getContext('2d',{alpha:false});
+  const svgCont      = document.getElementById('d3-container');
+  const uiOverlay    = document.getElementById('ui-overlay');
+  const graphLegend  = document.getElementById('graph-legend');
+  const landingOv    = document.getElementById('landing-overlay');
+  const enterBtn     = document.getElementById('enter-btn');
+  const aboutBtn     = document.getElementById('about-btn');
+  const aboutOverlay = document.getElementById('about-overlay');
+  const drawerClose  = document.getElementById('drawer-close-btn');
+  const searchInput  = document.getElementById('graph-search');
 
-  <footer>
-    Connecting the Dots  · An open research documentation project
+  const tooltip      = document.getElementById('graph-tooltip');
+
+  let W, H, DPR;
+  let particles = [], sceneData, d3sim;
+  let transitionDone = false, animating = false, animStartTime = null;
+  const ANIM_DURATION = 2600;
+
+  /* ── About drawer ── */
+  function openAbout()  { aboutOverlay.classList.add('open'); }
+  function closeAbout() { aboutOverlay.classList.remove('open'); }
+  if(aboutBtn) aboutBtn.addEventListener('click', openAbout);
+  drawerClose.addEventListener('click', closeAbout);
+  aboutOverlay.addEventListener('click', e => { if(e.target===aboutOverlay) closeAbout(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeAbout(); });
+
+  /* ── FIX: Safe resize function ── */
+  function resizeHero() {
+    const rect = hero.getBoundingClientRect();
+    W = Math.max(rect.width || window.innerWidth, 300);
+    H = Math.max(rect.height || window.innerHeight, 300);
+    
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width  = W * DPR; 
+    canvas.height = H * DPR;
+
+    // Reset the transform matrix so scales don't accumulate
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(DPR, DPR);
+
+    // Apply the viewBox for D3 layout stability
+    d3.select('#network-graph')
+      .attr('width', W)
+      .attr('height', H)
+      .attr('viewBox', `0 0 ${W} ${H}`);
+
+    updateColors();
+  }
+
+  /* ── Build D3 + particles ── */
+  function buildScene() {
+    const svg = d3.select('#network-graph');
+    svg.selectAll('*').remove();
+    sceneData = createGraphData();
+
+    const mob = isMobile();
+    const CY = H * 0.42; // pulled up from center
+    d3sim = d3.forceSimulation(sceneData.nodes)
+      .force('link',    d3.forceLink(sceneData.links).id(d=>d.id).distance(mob?35:45))
+      .force('charge',  d3.forceManyBody().strength(mob?-80:-120))
+      .force('center',  d3.forceCenter(W/2, CY))
+      .force('x',       d3.forceX(W/2).strength(0.08))
+      .force('y',       d3.forceY(CY).strength(0.08))
+      .force('collide', d3.forceCollide().radius(d=>d.radius+(mob?14:12)));
+
+    d3sim.stop();
+    for(let i=0;i<300;i++) d3sim.tick();
+    const pad = mob?30:60;
+    sceneData.nodes.forEach(n=>{n.x=Math.max(pad,Math.min(W-pad,n.x));n.y=Math.max(pad,Math.min(H-pad,n.y));});
+
+    const link  = svg.append('g').selectAll('line').data(sceneData.links).join('line').attr('class','graph-link');
+    const node  = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
+      .attr('class',d=>`graph-node-${d.group}`).attr('r',d=>d.radius).call(makeDrag(d3sim));
+    // Invisible larger hit targets for touch
+    const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
+      .attr('r',d=>mob?Math.max(d.radius,22):d.radius)
+      .attr('fill','transparent').attr('stroke','none')
+      .style('cursor','pointer').call(makeDrag(d3sim));
+    const label = svg.append('g').selectAll('text').data(sceneData.nodes).join('text')
+      .attr('class',d=>`graph-label${d.group==='hub'?' hub-label':''}`)
+      .attr('dx',d=>d.radius+6).attr('dy',4)
+      .attr('x',d=>d.x).attr('y',d=>d.y).text(d=>d.id);
+
+    d3sim.on('tick',()=>{
+      link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+      node.attr('cx',d=>d.x=Math.max(20,Math.min(W-20,d.x))).attr('cy',d=>d.y=Math.max(20,Math.min(H-20,d.y)));
+      hit.attr('cx',d=>d.x).attr('cy',d=>d.y);
+      label.attr('x',d=>d.x).attr('y',d=>d.y);
+    });
+
+    let dragging=false, hovered=null, term='';
+    function updateState(){
+      if(dragging) return;
+      if(hovered){
+        const conn=new Set([hovered.id]);
+        const connL=sceneData.links.filter(l=>{
+          if(l.source.id===hovered.id||l.target.id===hovered.id){conn.add(l.source.id);conn.add(l.target.id);return true;}
+          return false;
+        });
+        node.classed('dimmed',n=>!conn.has(n.id)).classed('search-match',false);
+        link.classed('dimmed',l=>!connL.includes(l)).classed('active',l=>connL.includes(l));
+        label.style('opacity',n=>conn.has(n.id)?1:0);
+      } else if(term){
+        const m=new Set(sceneData.nodes.filter(n=>n.id.toLowerCase().includes(term)).map(n=>n.id));
+        node.classed('dimmed',n=>!m.has(n.id)).classed('search-match',n=>m.has(n.id));
+        link.classed('dimmed',true).classed('active',false);
+        label.style('opacity',n=>m.has(n.id)?1:0);
+      } else {
+        node.classed('dimmed',false).classed('search-match',false);
+        link.classed('dimmed',false).classed('active',false);
+        label.style('opacity',0);
+      }
+    }
+    searchInput.addEventListener('input',e=>{term=e.target.value.toLowerCase().trim();updateState();});
+// Desktop: Hover to show connections
+hit.on('mouseover', (e, d) => {
+  if(!mob) {
+    hovered = d; 
+    updateState(); 
+    crispTap(d.group);
+  }
+});
+
+hit.on('mouseout', () => {
+  if(!mob) {
+    hovered = null; 
+    updateState(); 
+  }
+});
+
+// Mobile: Tap to toggle connections (Passive to allow scrolling!)
+hit.on('touchstart', (e, d) => {
+  if(mob) {
+    // Notice there is NO e.preventDefault() here, so the page can still scroll
+    hovered = (hovered === d ? null : d);
+    updateState();
+    crispTap(d.group);
+  }
+}, { passive: true });
+    function makeDrag(sim){
+      return d3.drag().touchable(true)
+        .on('start',e=>{if(!e.active)sim.alphaTarget(.3).restart();e.subject.fx=e.subject.x;e.subject.fy=e.subject.y;dragging=true;})
+        .on('drag', e=>{e.subject.fx=e.x;e.subject.fy=e.y;})
+        .on('end',  e=>{if(!e.active)sim.alphaTarget(0);e.subject.fx=null;e.subject.fy=null;dragging=false;updateState();});
+    }
+
+    /* Rasterise text into particles */
+    const off=document.createElement('canvas'); off.width=W; off.height=H;
+    const oc=off.getContext('2d');
+    const sz=Math.min(86,W/9);
+    const midY = H * 0.42;
+    oc.fillStyle='#000';
+    oc.font=`600 ${sz}px 'Lora', Georgia, serif`; oc.textAlign='center'; oc.textBaseline='alphabetic';
+    oc.fillText('Connecting',W/2,midY-sz*0.2);
+    oc.font=`italic 400 ${sz}px 'Lora', Georgia, serif`;
+    oc.fillText('the Dots.',W/2,midY+sz*0.9);
+    const pxData=oc.getImageData(0,0,W,H).data;
+    particles=[];
+    const STEP=mob?2:1;
+    const totalW=sceneData.nodes.reduce((s,n)=>s+n.radius*n.radius,0);
+    let acc=0; const cumW=sceneData.nodes.map(n=>{acc+=n.radius*n.radius/totalW;return acc;});
+    function pickNode(){const r=Math.random();const i=cumW.findIndex(c=>r<c);return sceneData.nodes[i>=0?i:sceneData.nodes.length-1];}
+    for(let y=0;y<H;y+=STEP)for(let x=0;x<W;x+=STEP){
+      if(pxData[(y*W+x)*4+3]>80){
+        const t=pickNode(),a=Math.random()*Math.PI*2,rd=Math.random()*t.radius*0.85;
+        particles.push({sx:x+(Math.random()-.5)*1.5,sy:y+(Math.random()-.5)*1.5,tx:t.x+Math.cos(a)*rd,ty:t.y+Math.sin(a)*rd,
+          node:t,r:Math.random()*1.3+0.5,delay:Math.random()*0.3,arcMag:(Math.random()-.5)*2*Math.min(W,H)*0.2});
+      }
+    }
+  }
+
+  /* ── Renderer ── */
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function ease(t){return t<.5?2*t*t:-1+(4-2*t)*t;}
+  function rgba(c,a){return `rgba(${c[0]},${c[1]},${c[2]},${a})`;}
+
+  function renderFrame(p){
+    ctx.fillStyle=`rgb(${C.bg[0]},${C.bg[1]},${C.bg[2]})`; ctx.fillRect(0,0,W,H);
+    const travelP=Math.min(1,p/0.65), edgeP=p<0.55?0:Math.min(1,(p-0.55)/0.30), nodeP=p<0.50?0:Math.min(1,(p-0.50)/0.45);
+    if(edgeP>0){ctx.lineWidth=1.5; sceneData.links.forEach(lk=>{ctx.beginPath();ctx.moveTo(lk.source.x,lk.source.y);ctx.lineTo(lk.target.x,lk.target.y);ctx.strokeStyle=rgba(C.muted,edgeP*0.2);ctx.stroke();});}
+    if(nodeP>0){sceneData.nodes.forEach(n=>{const nc=nodeColor(n.group);ctx.beginPath();ctx.arc(n.x,n.y,n.radius*nodeP,0,Math.PI*2);ctx.fillStyle=rgba(nc,nodeP);ctx.strokeStyle=`rgb(${C.bg[0]},${C.bg[1]},${C.bg[2]})`;ctx.lineWidth=n.group==='hub'?3:n.group==='sub'?2:1.5;ctx.fill();ctx.stroke();});}
+    particles.forEach(pt=>{
+      const localT=Math.max(0,Math.min(1,(travelP-pt.delay)/(1-pt.delay))),et=ease(localT);
+      const mx=(pt.sx+pt.tx)/2,my=(pt.sy+pt.ty)/2,dx=pt.tx-pt.sx,dy=pt.ty-pt.sy,len=Math.sqrt(dx*dx+dy*dy)+0.001;
+      const cpx=mx-(dy/len)*pt.arcMag,cpy=my+(dx/len)*pt.arcMag,it=1-et;
+      const px=it*it*pt.sx+2*it*et*cpx+et*et*pt.tx,py=it*it*pt.sy+2*it*et*cpy+et*et*pt.ty;
+      const nc=nodeColor(pt.node.group);
+      ctx.beginPath();ctx.arc(px,py,pt.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${Math.round(lerp(C.dark[0],nc[0],et))},${Math.round(lerp(C.dark[1],nc[1],et))},${Math.round(lerp(C.dark[2],nc[2],et))},${et>0.98?lerp(1,0,(et-0.98)/0.02):1})`;ctx.fill();
+    });
+    if(p<0.06){
+      const ghostA=Math.pow((0.06-p)/0.06,2)*0.08,sz=Math.min(86,W/9),midY=H*0.42;
+      ctx.globalAlpha=ghostA;ctx.fillStyle=`rgb(${C.dark[0]},${C.dark[1]},${C.dark[2]})`;
+      ctx.font=`600 ${sz}px 'Lora', Georgia, serif`;ctx.textAlign='center';ctx.textBaseline='alphabetic';
+      ctx.fillText('Connecting',W/2,midY-sz*0.2);ctx.font=`italic 400 ${sz}px 'Lora', Georgia, serif`;ctx.fillText('the Dots.',W/2,midY+sz*0.9);ctx.globalAlpha=1;
+    }
+  }
+
+  /* ── RAF loop ── */
+  function loop(){
+    if(animating&&!transitionDone){
+      const rawP=Math.min(1,(performance.now()-animStartTime)/ANIM_DURATION);
+      renderFrame(rawP<0.5?2*rawP*rawP:-1+(4-2*rawP)*rawP);
+      if(rawP>=1){
+        transitionDone=true; animating=false;
+        canvas.style.transition='opacity 0.4s ease'; canvas.style.opacity='0';
+        svgCont.style.opacity='1'; svgCont.style.pointerEvents='auto';
+        landingOv.style.display='none';
+        
+        // FIX: Removed the buggy reference to scrollHint to prevent crash
+        d3sim.alpha(0.02).restart();
+      }
+    } else if(!transitionDone&&!animating){
+      renderFrame(0);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  /* ── Enter ── */
+  function startTransition(){
+    if(animating||transitionDone) return;
+    animating=true; animStartTime=performance.now();
+    landingOv.style.opacity='0'; landingOv.style.pointerEvents='none';
+  }
+  
+  enterBtn.addEventListener('click',()=>{
+    unlockAudio();
+    
+    // 1. Fade out the text & start dots instantly
+    enterBtn.classList.add('morphing');
+    startTransition(); 
+
+    // 2. Wait 200ms for text to fade, then swap to the expanding search input
+    setTimeout(()=>{
+      enterBtn.style.display = 'none';
+      searchInput.classList.add('visible');
+      searchInput.focus();
+    }, 200);
+  });
+  
+  document.addEventListener('keydown',e=>{
+    if((e.key==='Enter'||e.key===' ')&&!animating&&!transitionDone&&document.activeElement!==enterBtn){
+      e.preventDefault(); enterBtn.click();
+    }
+  });
+
+  /* ── Theme observer — re-read colors when nav toggles theme ── */
+  new MutationObserver(()=>{
+    updateColors();
+    if(!transitionDone&&!animating) renderFrame(0);
+  }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  /* ── Init ── */
+  resizeHero(); buildScene(); renderFrame(0);
+  
+  /* ── Resize (with Keyboard Protection) ── */
+  let lastW = window.innerWidth;
+  window.addEventListener('resize', () => { 
+    if (transitionDone) return; 
+    
+    // Ignore height-only changes on mobile (like the keyboard popping up)
+    if (isMobile() && window.innerWidth === lastW) return; 
+    
+    lastW = window.innerWidth;
+    resizeHero(); 
+    buildScene(); 
+    renderFrame(0); 
+  });
+  
+  loop();
+});
+</script>
+
+</body>
+</html>
