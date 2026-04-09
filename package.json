@@ -20,5 +20,13 @@
   "homepage": "https://github.com/Yogesh1p/connecting-the-dots#readme",
   "devDependencies": {
     "nodemon": "^3.1.14"
+  },
+  "dependencies": {
+    "canvas": "^3.2.3",
+    "cheerio": "^1.2.0",
+    "fs-extra": "^11.3.4",
+    "glob": "^13.0.6",
+    "gray-matter": "^4.0.3",
+    "puppeteer": "^24.40.0"
   }
 }
