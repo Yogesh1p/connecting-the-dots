@@ -115,10 +115,8 @@ function build() {
       return; 
     }
 
-    // ONLY push "live" articles to your main dots feed
-    if (page.status === "live") {
-      dotsPages.push(page);
-    }
+    // 2. Push ALL visible articles (Live and Draft) to your main dots feed
+    dotsPages.push(page);
 
     // Push ALL articles (Live AND Draft) to the library feed if they belong there
     if (getMeta(content, "belongs_to") === "lib") {

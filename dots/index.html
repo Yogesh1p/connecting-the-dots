@@ -287,11 +287,38 @@
       color: var(--muted);
     }
 
+    /* ═══════════════════════════════════════
+       STATUS BADGES & UPDATED ROW TITLE
+    ═══════════════════════════════════════ */
     .row-title {
       font-size: 1.4rem;
       font-weight: 600;
       color: var(--dark);
       margin: 0 0 0.4rem 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap; /* Allows badge to wrap nicely on small screens */
+    }
+
+    .status-badge {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25em 0.6em;
+      border-radius: 6px;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+      position: relative;
+      display: inline-block;
+      line-height: 1;
+    }
+
+    .status-draft {
+      background: color-mix(in srgb, var(--muted) 12%, var(--bg));
+      color: var(--muted);
+      border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
     }
 
     .row-desc {
@@ -492,19 +519,32 @@
           return;
         }
         
-        list.innerHTML = items.map((a, i) => `
-          <a class="post-row" href="${a.url||'#'}" style="animation-delay:${i*0.05}s">
-            <div class="row-meta">
-              <span class="row-chapter">${a.chapter||''}</span>
-              <span class="row-date">${new Date(a.date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'})}</span>
-            </div>
-            <div class="row-body">
-              <div class="row-title">${a.title}</div>
-              <div class="row-desc">${a.description}</div>
-            </div>
-            <div class="row-arrow">→</div>
-          </a>
-        `).join("");
+        list.innerHTML = items.map((a, i) => {
+          // 1. Determine the status (fallback to 'draft' if missing)
+          const status = (a.status || 'draft').toLowerCase();
+          
+          // 2. Generate the badge ONLY if it's a draft
+          const statusBadge = status === 'draft' 
+            ? `<span class="status-badge status-draft">Draft</span>` 
+            : '';
+
+          return `
+            <a class="post-row" href="${a.url||'#'}" style="animation-delay:${i*0.05}s">
+              <div class="row-meta">
+                <span class="row-chapter">${a.chapter||''}</span>
+                <span class="row-date">${new Date(a.date).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'})}</span>
+              </div>
+              <div class="row-body">
+                <div class="row-title">
+                  ${a.title}
+                  ${statusBadge}
+                </div>
+                <div class="row-desc">${a.description}</div>
+              </div>
+              <div class="row-arrow">→</div>
+            </a>
+          `;
+        }).join("");
       }
 
       function updateUI() {

@@ -92,19 +92,6 @@ window.rawPages = [
     "readingTime": 13
   },
   {
-    "url": "../dots/test-page.html",
-    "book": "dots",
-    "title": "test page",
-    "description": "A brief description of this dot.",
-    "date": "2026-04-04",
-    "chapter": "New Chapter",
-    "part": "Main",
-    "keywords": "",
-    "order": 99,
-    "status": "draft",
-    "readingTime": 1
-  },
-  {
     "url": "../dots/vec_spaces.html",
     "book": "linear-algebra",
     "title": "Vector Spaces & Subspaces",
