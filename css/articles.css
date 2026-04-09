@@ -205,7 +205,8 @@
 .math-display,
 .math-block {
   text-align: center;
-  margin: 0.7rem 0;
+  /* Adjust this single margin to control the exact spacing you want */
+  margin: 1.5rem 0; 
   overflow-x: auto;
   overflow-y: hidden;
   max-width: 100%;
@@ -213,17 +214,37 @@
 }
 
 .reading-content mjx-container[display="true"] {
-  margin-top: 2.5rem !important;
-  margin-bottom: 2.5rem !important;
+  /* Match the 1.5rem paragraph margin perfectly */
+  margin-top: 1.5rem !important; 
+  margin-bottom: 1.5rem !important; 
+  padding: 0 !important;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0.5em 0;
 }
 
 mjx-container svg {
-  fill: var(--text);
-  color: var(--text);
+  fill: currentColor;
+  color: currentColor;
 }
+
+
+
+.book-quote{
+  margin: 1.5rem 0;
+  padding: 0.9rem 1rem 0.9rem 1.1rem;
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  color: var(--text);
+  font-style: italic;
+  line-height: 1.75;
+  font-size: 1rem;
+}
+
+.book-quote p{
+  margin: 0;
+}
+
 
 /* ─────────────────────────────────────
    Table

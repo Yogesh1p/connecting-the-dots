@@ -121,7 +121,7 @@
             flex-wrap: wrap;
         }
         .anim-controls label {
-            font-size: 0.72rem;
+            font-size: 0.92rem;
             color: var(--muted);
             font-family: 'Lora', serif;
             white-space: nowrap;
@@ -170,8 +170,8 @@
 
 <p>This gives us the first requirement:</p>
 
-<blockquote>
-  The model must distinguish the same words appearing in different positions.
+<blockquote class="book-quote">
+  <p>The model must distinguish the same words appearing in different positions.</p>
 </blockquote>
 
 <p>A second requirement comes from linguistic locality. In phrases such as</p>
@@ -496,7 +496,7 @@ function dArrow(ctx, x1,y1,x2,y2, color, lw=1.8) {
     ctx.lineTo(x2-hs*Math.cos(ang+0.4), y2-hs*Math.sin(ang+0.4));
     ctx.closePath(); ctx.fillStyle=color; ctx.fill();
 }
-function lbl(ctx, txt, x, y, color, size=11, align="center") {
+function lbl(ctx, txt, x, y, color, size=17, align="center") {
     ctx.font=`${size}px 'Lora',serif`;
     ctx.fillStyle=color; ctx.textAlign=align; ctx.textBaseline="middle";
     ctx.fillText(txt,x,y);
@@ -532,8 +532,8 @@ function glow(ctx, x, y, r, color) {
         const cx=w/2, cy=h/2, R=Math.min(w,h)*0.32;
 
         axes(ctx,cx,cy,R,t);
-        lbl(ctx,"cos",cx+R+20,cy,t.muted,9);
-        lbl(ctx,"sin",cx,cy-R-18,t.muted,9);
+        lbl(ctx,"cos",cx+R+29,cy,t.muted,13);
+        lbl(ctx,"sin",cx,cy-R-18,t.muted,13);
         dCircle(ctx,cx,cy,R,hex2rgba(t.border,1),1.2);
 
         // position dots
@@ -542,7 +542,7 @@ function glow(ctx, x, y, r, color) {
             const px=cx+R*Math.cos(a), py=cy-R*Math.sin(a);
             const al=0.18+0.65*(i/(N-1));
             dDot(ctx,px,py,i===0?4.5:3,hex2rgba(t.accent,al));
-            if(i<9) lbl(ctx,String(i),px+(px>cx?12:-12),py,t.muted,9);
+            if(i<9) lbl(ctx,String(i),px+(px>cx?12:-12),py,t.muted,13);
         }
 
         // animated dot
@@ -621,11 +621,11 @@ function glow(ctx, x, y, r, color) {
         dLine(ctx,mx,pY,mx,my,hex2rgba(t.muted,0.3),1,[3,3]);
         dDot(ctx,mx,my,6,t.sage);
 
-        lbl(ctx,`|i−j| = ${delta}`,pX+pW/2,pY+pH/2+14,t.muted,9);
-        lbl(ctx,`dot = ${dotV.toFixed(3)}`,pX+pW/2,pY-pH/2-14,t.sage,11);
+        lbl(ctx,`|i−j| = ${delta}`,pX+pW/2,pY+pH/2+14,t.muted,11);
+        lbl(ctx,`dot = ${dotV.toFixed(3)}`,pX+pW/2,pY-pH/2-14,t.sage,13);
         lbl(ctx,"Δ",pX+pW+10,pY,t.muted,9);
-        lbl(ctx,"1",  pX-8,pY-pH/2+4,t.muted,8,"right");
-        lbl(ctx,"−1", pX-8,pY+pH/2-4,t.muted,8,"right");
+        lbl(ctx,"1",  pX-8,pY-pH/2+4,t.muted,11,"right");
+        lbl(ctx,"−1", pX-8,pY+pH/2-4,t.muted,11,"right");
 
         requestAnimationFrame(draw);
     })();
@@ -652,11 +652,14 @@ function glow(ctx, x, y, r, color) {
 
         freqs.forEach((f,col)=>{
             const color=t[f.colorKey];
-            const offX=col*colW, cx=offX+colW/2, cy=h*0.44;
-            const R=Math.min(colW*0.29,h*0.29);
+            
+            // 1. Moved the circles down slightly (from 0.44 to 0.48)
+            const offX=col*colW, cx=offX+colW/2, cy=h*0.48;
+            const R=0.7*Math.min(colW*0.29,h*0.29);
 
-            lbl(ctx,f.label,cx,20,color,11);
-            lbl(ctx,f.sub,  cx,34,t.muted,9);
+            // 2. Adjusted title placement to fit the larger fonts
+            lbl(ctx,f.label,cx,39,color,14);
+            lbl(ctx,f.sub,  cx,59,t.muted,12);
 
             axes(ctx,cx,cy,R,t);
             dCircle(ctx,cx,cy,R,hex2rgba(t.border,1),1);
@@ -673,10 +676,10 @@ function glow(ctx, x, y, r, color) {
             dLine(ctx,cx,cy,px,py,hex2rgba(color,0.45),1.5,[3,3]);
             glow(ctx,px,py,12,color);
             dDot(ctx,px,py,5.5,color);
-            lbl(ctx,`pos ${iF}`,px+(px>cx?13:-13),py,color,9);
+            lbl(ctx,`pos ${iF}`,px+(px>cx?15:-15),py,color,12);
 
-            // sine wave
-            const wY=h-50, wH=20, wX0=offX+18, wX1=offX+colW-18;
+            // 3. Moved the sine wave down slightly so it doesn't crowd the bottom
+            const wY=h-38, wH=20, wX0=offX+18, wX1=offX+colW-18;
             ctx.beginPath();
             for(let x=wX0;x<=wX1;x++){
                 const pct=(x-wX0)/(wX1-wX0);
@@ -724,8 +727,8 @@ function glow(ctx, x, y, r, color) {
             const color=t[f.colorKey];
             const cx=col*colW+colW/2;
 
-            lbl(ctx,f.label,           cx,17,color,10);
-            lbl(ctx,f.omega.toFixed(3),cx,30,t.muted,8);
+            lbl(ctx,f.label,           cx,47,color,14);
+            lbl(ctx,f.omega.toFixed(3),cx,70,t.muted,14);
 
             dCircle(ctx,cx,cy,baseR,hex2rgba(t.border,1),1);
 
@@ -742,11 +745,11 @@ function glow(ctx, x, y, r, color) {
             glow(ctx,px,py,10,color);
             dDot(ctx,px,py,6,color);
 
-            lbl(ctx,`sin ${Math.sin(ang).toFixed(2)}`,cx,cy+baseR+18,t.muted,8);
-            lbl(ctx,`cos ${Math.cos(ang).toFixed(2)}`,cx,cy+baseR+30,t.muted,8);
+            lbl(ctx,`sin ${Math.sin(ang).toFixed(2)}`,cx,cy+baseR+18,t.muted,14);
+            lbl(ctx,`cos ${Math.cos(ang).toFixed(2)}`,cx,cy+baseR+35,t.muted,14);
         });
 
-        lbl(ctx,`Token position  i = ${tokenI}`,w/2,h-14,t.text,11);
+        lbl(ctx,`Token position  i = ${tokenI}`,w/2,h-17,t.text,14);
         tick+=0.025; requestAnimationFrame(draw);
     })();
 })();
@@ -780,9 +783,9 @@ function glow(ctx, x, y, r, color) {
         dArrow(ctx,cx,cy,rx,ry,color,2);
         glow(ctx,rx,ry,10,color);
         dDot(ctx,rx,ry,5.5,color);
-        lbl(ctx,title, cx,cy-R-18,t.text,11);
-        lbl(ctx,posLbl,cx,cy+R+16,t.muted,9);
-        lbl(ctx,`θ = ${theta.toFixed(2)}`,cx,cy+R+29,color,9);
+        lbl(ctx,title, cx,cy-R-18,t.text,14);
+        lbl(ctx,posLbl,cx,cy+R+16,t.muted,12);
+        lbl(ctx,`θ = ${theta.toFixed(2)}`,cx,cy+R+35,color,13);
     }
 
     (function draw(){
@@ -814,9 +817,9 @@ function glow(ctx, x, y, r, color) {
         ctx.strokeStyle=hex2rgba(t.sage,0.55); ctx.lineWidth=2; ctx.stroke();
 
         const dotVal=qB[0]*kRel[0]+qB[1]*kRel[1];
-        lbl(ctx,"Relative rotation",    cx3,cy-R-18,t.text,11);
-        lbl(ctx,`R(j−i) = R(${offset})`,cx3,cy+R+16,t.muted,9);
-        lbl(ctx,`dot = ${dotVal.toFixed(3)}`,cx3,cy+R+29,t.sage,10);
+        lbl(ctx,"Relative rotation",    cx3,cy-R-18,t.text,14);
+        lbl(ctx,`R(j−i) = R(${offset})`,cx3,cy+R+16,t.muted,12);
+        lbl(ctx,`dot = ${dotVal.toFixed(3)}`,cx3,cy+R+35,t.sage,13);
 
         tick+=0.025; requestAnimationFrame(draw);
     })();
