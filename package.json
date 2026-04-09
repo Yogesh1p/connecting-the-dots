@@ -22,11 +22,13 @@
     "nodemon": "^3.1.14"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "canvas": "^3.2.3",
     "cheerio": "^1.2.0",
     "fs-extra": "^11.3.4",
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
-    "puppeteer": "^24.40.0"
+    "satori": "^0.26.0",
+    "satori-html": "^0.3.2"
   }
 }

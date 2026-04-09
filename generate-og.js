@@ -1,189 +1,124 @@
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer');
 const cheerio = require('cheerio');
 
-// 1. Directory Configuration
+// Directories
 const ARTICLES_DIR = path.join(__dirname, 'dots'); 
 const OUTPUT_DIR = path.join(__dirname, 'assets', 'og'); 
 
-// Ensure output directory exists
 if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-    console.log(`Created output directory at: ${OUTPUT_DIR}`);
 }
 
-// 2. The exact CSS from your theme
-const getTemplateHTML = (category, title, author) => `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg:      #FDFBF7;
-            --text:    #4A3F35;
-            --accent:  #D48C70;
-            --surface: #F4EFE6;
-            --border:  #E8DFD1;
-            --muted:   #847769;
-            --dark:    #2D241E;
-        }
-        body {
-            margin: 0;
-            padding: 0;
-            width: 1200px;
-            height: 630px;
-            background: var(--bg);
-            font-family: system-ui, sans-serif;
-            box-sizing: border-box;
-            border: 1px solid var(--border);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 80px 100px;
-            overflow: hidden;
-        }
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            background-image: radial-gradient(var(--border) 2px, transparent 2px);
-            background-size: 40px 40px;
-            opacity: 0.5;
-            z-index: 0;
-        }
-        .content {
-            position: relative;
-            z-index: 1;
-        }
-        .category {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 1.5rem;
-        }
-        .title {
-            font-family: 'Lora', Georgia, serif;
-            font-size: 5.5rem;
-            font-weight: 700;
-            color: var(--dark);
-            line-height: 1.1;
-            letter-spacing: -0.02em;
-            margin: 0;
-            max-width: 1000px;
-        }
-        .footer {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            border-top: 2px solid var(--border);
-            padding-top: 30px;
-        }
-        .author {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-        .site {
-            font-family: 'Lora', Georgia, serif;
-            font-size: 1.8rem;
-            font-style: italic;
-            color: var(--muted);
-            margin-left: auto;
-        }
-    </style>
-</head>
-<body>
-    <div class="content">
-        <div class="category">${category}</div>
-        <h1 class="title">${title}</h1>
-    </div>
-    <div class="footer">
-        <div class="author">${author}</div>
-        <div class="site">Connecting the Dots</div>
-    </div>
-</body>
-</html>
-`;
+async function run() {
+    console.log('Fetching fonts and initializing Satori...');
 
-async function generateAllOGImages() {
-    console.log('Starting OG Image generation...');
+    // Satori is ESM, so we dynamically import it in a CommonJS environment
+    const { default: satori } = await import('satori');
+    const { html } = await import('satori-html');
+    const { Resvg } = await import('@resvg/resvg-js');
+
+    // FIX: Using a highly reliable CDN to fetch the raw Lora Bold WOFF file
+    const fontResponse = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/lora/files/lora-latin-700-normal.woff');
     
-    if (!fs.existsSync(ARTICLES_DIR)) {
-        console.error(`Error: The folder "${ARTICLES_DIR}" does not exist. Please check the path.`);
-        return;
+    if (!fontResponse.ok) {
+        throw new Error(`Failed to fetch font: ${fontResponse.statusText}`);
     }
+    
+    const fontData = await fontResponse.arrayBuffer();
 
     const files = fs.readdirSync(ARTICLES_DIR).filter(file => file.endsWith('.html'));
-    
-    if (files.length === 0) {
-        console.log('No HTML files found in', ARTICLES_DIR);
-        return;
-    }
+    if (files.length === 0) return console.log('No HTML files found.');
 
-    const browser = await puppeteer.launch({
-        headless: "new",
-        defaultViewport: { width: 1200, height: 630 }
-    });
-
-    const page = await browser.newPage();
+    console.log(`Starting blazingly fast generation for ${files.length} files...`);
 
     for (const file of files) {
-        const filePath = path.join(ARTICLES_DIR, file);
-        let htmlContent = fs.readFileSync(filePath, 'utf-8');
-        
-        // Load DOM to read your existing meta tags
-        const $ = cheerio.load(htmlContent);
-        
-        // 3. Extract data perfectly matching your meta tags
-        const title = $('meta[name="title"]').attr('content');
-        const chapter = $('meta[name="chapter"]').attr('content');
-        const author = $('meta[name="author"]').attr('content');
-        const description = $('meta[name="description"]').attr('content') || '';
+        try {
+            const filePath = path.join(ARTICLES_DIR, file);
+            let htmlContent = fs.readFileSync(filePath, 'utf-8');
+            const $ = cheerio.load(htmlContent);
+            
+            const title = $('meta[name="title"]').attr('content') || $('title').text();
+            const chapter = $('meta[name="chapter"]').attr('content') || 'Article';
+            const author = $('meta[name="author"]').attr('content') || 'Yogesh';
+            const description = $('meta[name="description"]').attr('content') || '';
 
-        if (!title) {
-            console.log(`⚠️ Skipping ${file}: No <meta name="title"> found.`);
-            continue;
-        }
+            // Skip template files or files without titles
+            if (!title || file === '_template.html') continue;
 
-        // Format filename: e.g., "fixed-length-autoregressive-models.png"
-        const outputFilename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
-        const outputPath = path.join(OUTPUT_DIR, outputFilename);
+            const outputFilename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+            const outputPath = path.join(OUTPUT_DIR, outputFilename);
 
-        console.log(`📸 Generating image: ${outputFilename}`);
+            // 1. Generate Image instantly if missing
+            if (!fs.existsSync(outputPath)) {
+                // Satori uses inline Flexbox styles
+                const markup = html`
+                    <div style="display: flex; flex-direction: column; justify-content: space-between; width: 1200px; height: 630px; background-color: #FDFBF7; padding: 80px 100px; border: 1px solid #E8DFD1;">
+                        <div style="display: flex; flex-direction: column;">
+                            <div style="font-size: 32px; color: #D48C70; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 24px;">
+                                ${chapter}
+                            </div>
+                            <div style="font-size: 88px; color: #2D241E; line-height: 1.1; letter-spacing: -2px; max-width: 1000px;">
+                                ${title}
+                            </div>
+                        </div>
+                        <div style="display: flex; border-top: 2px solid #E8DFD1; padding-top: 30px; justify-content: space-between; align-items: center; width: 100%;">
+                            <div style="font-size: 32px; color: #4A3F35;">
+                                ${author}
+                            </div>
+                            <div style="font-size: 32px; color: #847769;">
+                                Connecting the Dots
+                            </div>
+                        </div>
+                    </div>
+                `;
 
-        // 4. Generate the 1200x630 image
-        const template = getTemplateHTML(chapter, title, author);
-        await page.setContent(template, { waitUntil: 'networkidle0' }); 
-        await page.screenshot({ path: outputPath, type: 'png' });
+                // Convert HTML to SVG
+                const svg = await satori(markup, {
+                    width: 1200,
+                    height: 630,
+                    fonts: [
+                        {
+                            name: 'Lora',
+                            data: fontData,
+                            weight: 700,
+                            style: 'normal',
+                        },
+                    ],
+                });
 
-        // 5. Inject ONLY the missing OG/Twitter Meta Tags
-        if (!htmlContent.includes('<meta property="og:image"')) {
-            const metaTagsToInject = `
-    <meta property="og:title" content="${title}">
+                // Convert SVG to PNG
+                const resvg = new Resvg(svg, {
+                    fitTo: { mode: 'width', value: 1200 },
+                });
+                const pngData = resvg.render();
+                const pngBuffer = pngData.asPng();
+
+                fs.writeFileSync(outputPath, pngBuffer);
+                console.log(`✅ Generated: ${outputFilename}`);
+            } else {
+                console.log(`⏭️  Skipping: ${outputFilename} already exists.`);
+            }
+
+            // 2. Inject Meta Tags
+            if (!htmlContent.includes('og:image')) {
+                const metaTags = `\n    <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
     <meta property="og:image" content="../assets/og/${outputFilename}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta name="twitter:card" content="summary_large_image">
-`;
-            // Safely inject right before the closing </head> tag
-            htmlContent = htmlContent.replace('</head>', `${metaTagsToInject}</head>`);
-            fs.writeFileSync(filePath, htmlContent, 'utf-8');
-            console.log(`✅ Injected missing OG tags into ${file}`);
-        } else {
-            console.log(`⏩ OG tags already exist in ${file}, skipping injection.`);
+    <meta name="twitter:card" content="summary_large_image">`;
+                
+                htmlContent = htmlContent.replace('</head>', `${metaTags}\n</head>`);
+                fs.writeFileSync(filePath, htmlContent, 'utf-8');
+            }
+
+        } catch (err) {
+            console.error(`❌ Failed processing ${file}:`, err.message);
         }
     }
 
-    await browser.close();
-    console.log('🎉 Finished! All images generated and HTML files updated.');
+    console.log('🚀 Task complete. No browsers were harmed in the making of these images.');
 }
 
-generateAllOGImages().catch(console.error);
+run().catch(console.error);
