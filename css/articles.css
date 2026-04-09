@@ -1,112 +1,168 @@
-
-/* Consolidated Variables */
+/* ─────────────────────────────────────
+   Variables
+   ───────────────────────────────────── */
 :root {
-  /* Layout & Core */
-  --bg: #FDFBF7;
-  --text: #4A3F35;
-  --accent: #D48C70;
+  --bg:      #FDFBF7;
+  --text:    #4A3F35;
+  --accent:  #D48C70;
   --surface: #F4EFE6;
-  --border: #E8DFD1;
-  --muted: #847769;
-  --dark: #2D241E;
+  --border:  #E8DFD1;
+  --muted:   #847769;
+  --dark:    #2D241E;
   --highlight: rgba(212, 140, 112, 0.15);
-  
-  /* Box Specifics */
-  --math-box-bg: #FBF6F2;
-  --math-box-border: #D99A74;
-  --math-box-label-bg: #D18B61;
-  --math-box-label-text: #1E1A17;
-  --example-box-bg: #FFF8F2;
-  --example-box-border: #E2B08F;
-  --example-box-label-bg: #E8B89A;
-  --example-box-label-text: #2A211C;
-  --proof-box-label-bg: #EEDDD3;
-  --proof-box-label-text: #7B5D50;
-  --note-box-bg: #FFF9F5;
+  --box-bg:    #FBF6F2;
+  --box-border:#D99A74;
+  --box-label-bg:   #D18B61;
+  --box-label-text: #1E1A17;
   --table-rule: #EAD8CF;
 }
 
 [data-theme="dark"] {
-  --bg: #16100C;
-  --text: #C5B49A;
+  --bg:      #16100C;
+  --text:    #C5B49A;
   --surface: #1F1510;
-  --border: #2E2018;
-  --muted: #736050;
-  --dark: #EAD9C2;
+  --border:  #2E2018;
+  --muted:   #736050;
+  --dark:    #EAD9C2;
   --highlight: rgba(212, 140, 112, 0.12);
-  
-  --math-box-bg: #221712;
-  --math-box-border: #7A5037;
-  --math-box-label-bg: #A56747;
-  --math-box-label-text: #F7E8D8;
-  --example-box-bg: #241811;
-  --example-box-border: #8A5A3F;
-  --example-box-label-bg: #A86D4C;
-  --example-box-label-text: #FAE9DB;
-  --proof-box-label-bg: #34231B;
-  --proof-box-label-text: #D2AE97;
-  --note-box-bg: #261A14;
+  --box-bg:    #221712;
+  --box-border:#7A5037;
+  --box-label-bg:   #A56747;
+  --box-label-text: #F7E8D8;
   --table-rule: #3A281F;
 }
-/* Custom Reading Styles adapted for your Dark Mode system */
-        .reading-container {
-            max-width: 720px;
-            margin: 0 auto;
-            padding-top: 2rem;
-            padding-bottom: 4rem;
-        }
 
-        .reading-content p {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            line-height: 1.8;
-            font-size: 1.15rem; 
-        }
-/* =========================
-   ARTICLE LISTS (outside boxes)
-   ========================= */
-
-
-
-/* =========================
-   EXAMPLE BOX
-   ========================= */
-
-.example-box {
-  border-color: var(--example-box-border);
-  background: var(--example-box-bg);
+/* ─────────────────────────────────────
+   Layout
+   ───────────────────────────────────── */
+.reading-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
 }
 
-.example-box .math-box-label {
-  background: var(--example-box-label-bg);
-  color: var(--example-box-label-text);
+/* ─────────────────────────────────────
+   Typography
+   ───────────────────────────────────── */
+.reading-content p {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+  font-size: 1.15rem;
+}
+
+.reading-content h1 {
+  font-family: 'Lora', serif;
+  font-size: 2.6rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--dark);
+  margin: 2rem 0 1rem;
+}
+
+.reading-content h2 {
+  font-family: 'Lora', serif;
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--dark);
+  margin: 3.5rem 0 1rem;
+}
+
+.reading-content h3 {
+  font-family: 'Lora', serif;
+  font-size: 1.28rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--dark);
+  margin: 2.4rem 0 0.8rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ─────────────────────────────────────
+   Lists
+   ───────────────────────────────────── */
+.reading-content ol,
+.reading-content ul {
+  margin: 1.5rem 0;
+  padding-left: 3rem;
+  list-style-position: outside;
+}
+
+.reading-content li {
+  margin-bottom: 0.8rem;
+  line-height: 1.8;
+  padding-left: 0.5rem;
+}
+
+/* ─────────────────────────────────────
+   Box  (single unified component)
+   ───────────────────────────────────── */
+.math-box {
+  margin: 1.4rem 0 1.8rem;
+  border: 1px solid var(--box-border);
+  border-radius: 14px;
+  background: var(--box-bg);
+  overflow: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.math-box-label {
+  background: var(--box-label-bg);
+  color: var(--box-label-text);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  padding: 0.75rem 1.2rem;
 }
 
-.example-box .math-box-body {
-  padding: 1rem 1.2rem;
+.math-box-body {
+  padding: 1.2rem 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
 }
 
-.example-box .math-display {
-  margin: 0.85rem 0;
-}
-/* =========================
-   THEOREM / MATH BOX SYSTEM
-   ========================= */
-/* =========================
-   CENTERED THEOREM STATEMENT
-   ========================= */
+.math-box-body > :first-child { margin-top: 0; }
+.math-box-body > :last-child  { margin-bottom: 0; }
+.math-box-body p { margin: 0; }
 
-.theorem-statement {
-  text-align: center;
-  font-size: 1.22rem;
-  line-height: 1.8;
-  margin: 0.4rem 0 0;
+.math-box-body p + p,
+.math-box-body p + .math-display,
+.math-box-body .math-display + p,
+.math-box-body ul + p,
+.math-box-body ol + p { margin-top: 0.8rem; }
+
+.math-box-body ol,
+.math-box-body ul {
+  margin: 1rem 0;
+  padding-left: 2.5rem;
+  list-style-position: outside;
 }
 
-/* Remove default arrow in all browsers */
-.proof-toggle summary {
+.math-box-body li { margin-bottom: 0.5rem; }
+
+.math-box-body ol li::marker,
+.math-box-body ul li::marker {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ─────────────────────────────────────
+   Toggle  (single unified component)
+   ───────────────────────────────────── */
+.toggle {
+  margin-top: 1rem;
+}
+
+.toggle summary {
   list-style: none;
   display: flex;
   align-items: center;
@@ -114,15 +170,14 @@
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 0.9rem;
   letter-spacing: 0.02em;
+  cursor: pointer;
   transition: color 0.2s ease;
+  color: var(--muted);
 }
 
-.proof-toggle summary::-webkit-details-marker {
-  display: none;
-}
+.toggle summary::-webkit-details-marker { display: none; }
 
-/* Custom Chevron Icon */
-.proof-toggle summary::before {
+.toggle summary::before {
   content: "";
   width: 6px;
   height: 6px;
@@ -131,100 +186,61 @@
   transform: rotate(-45deg);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-right: 4px;
+  flex-shrink: 0;
 }
 
-/* Hover & Open States */
-.proof-toggle:hover summary {
-  color: var(--accent);
-}
+.toggle:hover summary,
+.toggle[open] summary { color: var(--accent); }
 
-.proof-toggle:hover summary::before {
+.toggle:hover summary::before,
+.toggle[open] summary::before {
   border-color: var(--accent);
 }
 
-.proof-toggle[open] summary::before {
-  transform: rotate(45deg);
-  border-color: var(--accent);
-}
-.math-box {
-  margin: 1.4rem 0 1.8rem;
-  border: 1px solid var(--math-box-border);
-  border-radius: 14px;
-  background: var(--math-box-bg);
-  overflow: hidden;
-}
+.toggle[open] summary::before { transform: rotate(45deg); }
 
-.math-box-body {
-  padding: 1.2rem 1.5rem;
-}
-
-.math-box-body > :first-child {
-  margin-top: 0;
-}
-
-.math-box-body > :last-child {
-  margin-bottom: 0;
-}
-
-.math-box-body p {
-  margin: 0;
-}
-
-.math-box-body p + p,
-.math-box-body p + .math-display,
-.math-box-body .math-display + p,
-.math-box-body ul + p,
-.math-box-body ol + p {
-  margin-top: 0.8rem;
-}
-
-/* Box labels */
-.math-box-label {
-  background: var(--math-box-label-bg);
-  color: var(--math-box-label-text);
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  padding: 0.75rem 1.2rem;
-  letter-spacing: -0.01em;
-}
-
-.proof-box .math-box-label {
-  background: var(--proof-box-label-bg);
-  color: var(--proof-box-label-text);
-  font-style: italic;
-  font-weight: 600;
-}
-
-/* Box variants */
-.definition-box,
-.theorem-box,
-.key-box,
-.note-box,
-.proof-box {
-  border-color: var(--math-box-border);
-}
-
-.note-box {
-  background: var(--note-box-bg);
-}
-
-/* Display equations */
+/* ─────────────────────────────────────
+   Math display
+   ───────────────────────────────────── */
 .math-display,
 .math-block {
   text-align: center;
   margin: 0.7rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Tables */
+.reading-content mjx-container[display="true"] {
+  margin-top: 2.5rem !important;
+  margin-bottom: 2.5rem !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+
+mjx-container svg {
+  fill: var(--text);
+  color: var(--text);
+}
+
+/* ─────────────────────────────────────
+   Table
+   ───────────────────────────────────── */
 .math-table {
+  display: block;
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
   border-collapse: collapse;
   margin: 1rem 0;
 }
 
 .math-table th,
 .math-table td {
+  min-width: 120px;
   padding: 0.75rem 0.9rem;
   border-bottom: 1px solid var(--table-rule);
   text-align: left;
@@ -235,240 +251,91 @@
   color: var(--dark);
 }
 
-/* =========================
-   BOX LIST ALIGNMENT
-   ========================= */
-.math-box-body ol, 
-.math-box-body ul {
-  margin: 1rem 0;
-  padding-left: 2.5rem; /* Moves the list to the right */
-  list-style-position: outside; /* Keeps bullets in the gutter */
+/* ─────────────────────────────────────
+   Article Header
+   ───────────────────────────────────── */
+.article-header {
+  margin: 2rem 0 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.math-box-body li {
+.article-header__parent {
+  font-family: system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
   margin-bottom: 0.5rem;
 }
 
-/* Specific fix for your "No Bold/Color" rule on markers */
-.math-box-body ol li::marker,
-.math-box-body ul li::marker {
-  color: var(--muted); 
-  font-weight: 400;
-}
-
-/* =========================
-   ARTICLE LIST ALIGNMENT
-   ========================= */
-.reading-content ol, 
-.reading-content ul {
-  margin: 1.5rem 0;
-  padding-left: 3rem; /* Larger indentation for main reading flow */
-  list-style-position: outside;
-  width: auto; /* Overrides the 100% width which can cause alignment issues */
-}
-
-.reading-content li {
-  margin-bottom: 0.8rem;
-  line-height: 1.8;
-  padding-left: 0.5rem; /* Spacing between bullet and text */
-}
-/* =========================
-   RESPONSIVE TABLE FIX
-   ========================= */
-
-/* Wrap your table in a div with this class if possible, 
-   OR apply these rules to the table container */
-.math-table {
-  display: block;
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-  white-space: nowrap; /* Prevents text from awkward wrapping inside cells */
-  border-collapse: collapse;
-  margin: 1rem 0;
-}
-
-/* Ensure cells don't shrink too small to read */
-.math-table th,
-.math-table td {
-  min-width: 120px; /* Adjust based on your content */
-  padding: 0.75rem 0.9rem;
-  border-bottom: 1px solid var(--table-rule);
-  text-align: left;
-}
-
-
-
-
-/* Compact definitions */
-.definition-box .math-box-body {
-  padding: 0.9rem 1.2rem;
-}
-
-.definition-box .math-display {
-  margin: 0.55rem 0 0;
-}
-/* ─────────────────────────────────────
-   Article typography hierarchy
-   ───────────────────────────────────── */
-
-.reading-content h1 {
-    font-family: 'Lora', serif;
-    font-size: 2.6rem;
-    font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: var(--dark);
-    margin-top: 2rem;
-    margin-bottom: 1rem; /* Tightened the margin slightly */
-    border-bottom: none; /* REMOVED THE LINE HERE */
-    padding-bottom: 0;   /* Removed the padding */
-}
-.reading-content h2 {
-    font-family: 'Lora', serif;
-    font-size: 1.7rem;
-    font-weight: 600;
-    line-height: 1.3;
-    letter-spacing: -0.01em;
-    color: var(--dark);
-    margin-top: 3.5rem;
-    margin-bottom: 1rem;
-}
-
-.reading-content h3 {
-    font-family: 'Lora', serif;
-    font-size: 1.28rem;
-    font-weight: 600;
-    line-height: 1.45;
-    letter-spacing: 0;
-    text-transform: none;
-    color: var(--dark);
-    margin-top: 2.4rem;
-    margin-bottom: 0.8rem;
-}
-
-        /* Math block spacing */
-        .reading-content mjx-container[display="true"] {
-            margin-top: 2.5rem !important;
-            margin-bottom: 2.5rem !important;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding: 0.5em 0;
-        }
-        
-        /* Forces MathJax SVGs to invert their color in Dark Mode */
-        mjx-container svg {
-            fill: var(--text);
-            color: var(--text);
-        }
-
-/* ─────────────────────────────────────
-   Article Header (injected via JS)
-   ───────────────────────────────────── */
-.article-header {
-    margin-top: 2rem;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--border, #333); 
-    display: block; /* Removed flex/gap for better typographic control */
-}
-
-/* Chapter Label */
-.article-header__parent {
-    font-family: var(--font-sans, system-ui, sans-serif);
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--accent, #fbbf24);
-    margin-bottom: 0.5rem; 
-}
-
-/* Main Title */
 .article-header__title {
-    font-family: 'Lora', Georgia, serif;
-    font-size: clamp(2.2rem, 3vw, 3.2rem); 
-    font-weight: 700 !important; /* Force override of global styles */
-    line-height: 1.15;
-    color: var(--dark, #ffffff);
-    letter-spacing: -0.02em;
-    margin: 0 0 0.5rem 0; /* Tight spacing below title */
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(2.2rem, 3vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--dark);
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
 }
 
-/* Subtitle */
 .article-header__subtitle {
-    font-family: 'Lora', Georgia, serif;
-    font-size: clamp(1.1rem, 1.5vw, 1.4rem);
-    font-weight: 400 !important; /* Forces it to be lighter than the title */
-    line-height: 1.4;
-    color: var(--muted, #9ca3af);
-    font-style: italic; 
-    margin: 0 0 1.5rem 0; /* Larger gap below subtitle */
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--muted);
+  font-style: italic;
+  margin: 0 0 1.5rem;
 }
 
-/* Meta Data Row */
 .article-header__meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    font-size: 0.95rem;
-    color: var(--text-dim);
-    font-family: var(--font-sans, system-ui, sans-serif);
-    margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  font-family: system-ui, sans-serif;
+  margin: 0 0 1rem;
 }
 
-.article-header__author {
-    font-weight: 600;
-    color: var(--text, #f3f4f6);
-}
+.article-header__author { font-weight: 600; color: var(--text); }
 
-.article-header__date {
-    display: flex;
-    align-items: center;
-}
-
-/* Bullet point between Author and Date */
+.article-header__date { display: flex; align-items: center; }
 .article-header__date::before {
-    content: "•";
-    margin: 0 0.75rem;
-    color: var(--muted );
-    opacity: 0.7; 
+  content: "•";
+  margin: 0 0.75rem;
+  color: var(--muted);
+  opacity: 0.7;
 }
 
-/* Tag Container */
+.article-header__reading-time { color: var(--muted); font-size: 0.9rem; }
+.article-header__sep { color: var(--muted); margin: 0 0.35rem; }
+
 .article-header__tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-/* Individual Tag Styling */
 .article-tag {
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-family: var(--font-sans, system-ui, sans-serif);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.35rem 0.85rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--border, #374151) 30%, transparent);
-    border: 1px solid var(--border, #374151);
-    color: var(--text-dim);
-    transition: all 0.2s ease;
-    cursor: default;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 30%, transparent);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: all 0.2s ease;
+  cursor: default;
 }
 
 .article-tag:hover {
-    background: var(--border, #374151);
-    color: var(--text, #ffffff);
-    transform: translateY(-1px);
-}
-.article-header__reading-time {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-.article-header__sep {
-  color: var(--muted);
-  margin: 0 0.35rem;
+  background: var(--border);
+  color: var(--text);
+  transform: translateY(-1px);
 }

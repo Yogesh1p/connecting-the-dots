@@ -1,0 +1,175 @@
+You are writing a long-form educational article for my custom mathematical and technical reading website.
+
+The article will be inserted directly inside:
+
+<section class="article-body">
+...
+</section>
+
+So output ONLY valid semantic HTML for the article body content.
+Do NOT include:
+- <!DOCTYPE>
+- <html>
+- <head>
+- <body>
+- metadata
+- title block
+- CSS
+- JavaScript
+- markdown fences
+- explanations outside the article
+
+The website automatically injects the article header from metadata.
+
+---
+
+WEBSITE STYLE SYSTEM
+
+The article is rendered inside a narrow reading column with elegant typography.
+
+Visual system:
+- Serif headings using Lora
+- Warm scholarly aesthetic
+- Premium textbook feel
+- Calm mathematical elegance
+- Strong conceptual pacing
+- Designed for deep reading, not blog-style skimming
+
+Write with:
+- slow conceptual buildup
+- strong intuition before formalism
+- precise mathematical transitions
+- paragraph rhythm optimized for 720px reading width
+- dense but readable educational prose
+
+The writing should feel like:
+“premium textbook chapter + essay-like intuition + rigorous mathematical clarity”
+
+---
+
+HTML COMPONENTS AVAILABLE
+
+Use ONLY these semantic structures.
+
+1) Standard paragraphs
+<p>...</p>
+
+2) Section headings
+<h2>...</h2>
+<h3>...</h3>
+
+3) Ordered and unordered lists
+<ol><li>...</li></ol>
+<ul><li>...</li></ul>
+
+4) Math boxed sections
+Use for key definitions, derivations, theorem intuition, formulas, important observations:
+
+<div class="math-box">
+  <div class="math-box-label">Key Idea</div>
+  <div class="math-box-body">
+    <p>...</p>
+    <div class="math-display">
+      $$ ... $$
+    </div>
+  </div>
+</div>
+
+Allowed labels:
+- Key Idea
+- Definition
+- Derivation
+- Example
+- Important
+- Geometric View
+- Intuition
+- Why This Matters
+
+5) Collapsible intuition / proofs / deeper explanation
+<details class="toggle">
+  <summary>See deeper intuition</summary>
+  <p>...</p>
+</details>
+
+6) Tables
+<table class="math-table">
+  <thead>
+    <tr>
+      <th>Concept</th>
+      <th>Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+  </tbody>
+</table>
+
+7) Math display
+<div class="math-display">
+  $$ ... $$
+</div>
+
+Use MathJax LaTeX syntax.
+Rewrite with MathJax-safe HTML notation, preserving exact meaning and avoiding raw < inside inline math.
+---
+
+WRITING REQUIREMENTS
+
+The article must:
+- begin with intuition before terminology
+- explain why the concept had to be invented
+- connect each definition to a failure of previous thinking
+- show geometric, algebraic, and computational interpretations
+- include examples
+- include at least one derivation or worked-out symbolic transition
+- include one “why this matters in ML / physics / systems” section when relevant
+- use elegant transitions between sections
+- maintain conceptual continuity
+- feel like a chapter from a coherent book
+
+Never sound like:
+- generic blog content
+- exam notes
+- bullet-point lecture slides
+- shallow summaries
+- SEO writing
+
+Instead sound like:
+- Axler + Strang + 3Blue1Brown + beautifully written technical essay
+
+---
+
+PEDAGOGICAL FLOW
+
+Follow this order unless topic requires a better structure:
+1. intuition
+2. motivating problem
+3. formal definition
+4. symbolic form
+5. worked example
+6. geometric interpretation
+7. common misconception
+8. deeper implication
+9. bridge to next chapter concept
+
+---
+
+TOPIC TO WRITE
+
+Topic: [INSERT TOPIC]
+
+Book: [INSERT BOOK / SERIES NAME]
+Chapter: [INSERT CHAPTER]
+Part: [INSERT PART]
+Audience: advanced beginner to mathematically mature reader
+
+Depth:
+- rigorous
+- beautiful
+- deeply intuitive
+- no loss of formal precision
+
+Now write the full article body in production-ready HTML.

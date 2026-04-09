@@ -1,7 +1,6 @@
 /* ============================================================
    base.css — Connecting the Dots
-   Shared styles: variables, reset, nav, typography, utilities.
-   All pages load this. Page-specific styles go in their own CSS.
+   Shared styles: variables, reset, nav, typography, TOC, utilities.
    ============================================================ */
 
 /* ── CSS Variables ── */
@@ -17,25 +16,6 @@
   --card-bg:   #FFFFFF;
   --code-bg:   var(--surface);
   --code-text: #5A4E42;
-  
-  /* Glass Switcher specific */
-  --c-glass: #bbbbbc;
-  --glass-reflex-light: 1;
-  --glass-reflex-dark: 1;
-  --saturation: 150%;
-}
-:root {
-  --math-box-bg: #FBF6F2;
-  --math-box-border: #D99A74;
-  --math-box-label-bg: #D18B61;
-  --math-box-label-text: #1E1A17;
-
-  --proof-box-label-bg: #EEDDD3;
-  --proof-box-label-text: #7B5D50;
-
-  --note-box-bg: #FFF9F5;
-
-  --table-rule: #EAD8CF;
 }
 
 [data-theme="dark"] {
@@ -50,28 +30,12 @@
   --card-bg:   #1C1208;
   --code-bg:   #130E0A;
   --code-text: #B0A088;
-  
-  /* Glass Switcher specific */
-  --glass-reflex-light: 0.3;
-  --glass-reflex-dark: 2;
 }
-[data-theme="dark"] {
-  --math-box-bg: #221712;
-  --math-box-border: #7A5037;
-  --math-box-label-bg: #A56747;
-  --math-box-label-text: #F7E8D8;
 
-  --proof-box-label-bg: #34231B;
-  --proof-box-label-text: #D2AE97;
-
-  --note-box-bg: #261A14;
-
-  --table-rule: #3A281F;
-}
 /* ── Reset ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* Lenis smooth-scroll shims (no-op if Lenis not loaded) */
+/* Lenis smooth-scroll shims */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
@@ -89,7 +53,6 @@ body {
   line-height: 1.8;
   overflow-x: hidden;
   opacity: 0;
-  /* Only fade-in on page load; color changes are instant via html[data-theme] */
   transition: opacity 0.5s ease;
 }
 body.loaded { opacity: 1; }
@@ -97,21 +60,11 @@ body.loaded { opacity: 1; }
 /* ── Smooth theme transitions ── */
 .theme-transitioning body,
 .theme-transitioning nav,
-.theme-transitioning .anatomy-card,
-.theme-transitioning .chapter-sample,
-.theme-transitioning .ch-topics-block,
-.theme-transitioning .cta-section,
-.theme-transitioning .philosophy-block,
 .theme-transitioning .code-block,
-.theme-transitioning .progress-bar-wrap,
-.theme-transitioning .glass-hamburger,
 .theme-transitioning .mob-theme-toggle,
 .theme-transitioning .btn,
 .theme-transitioning .pill-tag,
 .theme-transitioning mark,
-.theme-transitioning .tax-items span,
-.theme-transitioning .ch-topics-header,
-.theme-transitioning .collab-list .tag,
 .theme-transitioning footer,
 .theme-transitioning .rule {
   transition:
@@ -124,11 +77,7 @@ body.loaded { opacity: 1; }
 .theme-transitioning h1, .theme-transitioning h2, .theme-transitioning h3,
 .theme-transitioning p, .theme-transitioning a, .theme-transitioning li,
 .theme-transitioning blockquote, .theme-transitioning .lede p,
-.theme-transitioning .tax-root, .theme-transitioning .tax-branch-label,
-.theme-transitioning .ch-label, .theme-transitioning .pct,
-.theme-transitioning .eq-math, .theme-transitioning .eq-comment,
-.theme-transitioning .card-title, .theme-transitioning .card-num,
-.theme-transitioning .anatomy-card p {
+.theme-transitioning .eq-math, .theme-transitioning .eq-comment {
   transition: color 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
@@ -203,7 +152,7 @@ nav a:hover, nav a.active { color: var(--accent); }
   gap: 1rem;
 }
 
-/* ── Shared Icon Wrapper (Perfect Horizontal Alignment) ── */
+/* ── Shared Icon Wrapper ── */
 .theme-toggle,
 .github-link {
   background: none;
@@ -223,7 +172,6 @@ nav a:hover, nav a.active { color: var(--accent); }
 
 .theme-toggle:focus { outline: none; }
 
-/* The container scales on hover, keeping the SVG centers perfectly stable */
 .theme-toggle:hover,
 .github-link:hover {
   color: var(--accent);
@@ -240,31 +188,25 @@ nav a:hover, nav a.active { color: var(--accent); }
   pointer-events: none;
 }
 
-/* GitHub specifically needs the opacity hover */
 .github-icon {
   opacity: 0.85;
   transition: opacity 0.2s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.github-link:hover .github-icon {
-  opacity: 1;
-}
+.github-link:hover .github-icon { opacity: 1; }
 
 /* Sun/Moon absolute stacking & morph transitions */
 .theme-toggle svg { 
   position: absolute; 
   stroke-width: 2.1; 
-  /* We let data-theme handle their opacity, NOT the hover state */
   transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
 }
 
-/* Morph State */
 .moon-icon { opacity: 0; transform: scale(0.4) rotate(-45deg); }
 .sun-icon  { opacity: 1; transform: scale(1) rotate(0); }
 
 [data-theme="dark"] .sun-icon  { opacity: 0; transform: scale(0.4) rotate(45deg); }
 [data-theme="dark"] .moon-icon { opacity: 1; transform: scale(1) rotate(0); color: var(--text); }
-
 
 /* ────────────────────────────────────────────────────────────
    MOBILE NAVIGATION (Header Row & Top Drawer)
@@ -273,7 +215,6 @@ nav a:hover, nav a.active { color: var(--accent); }
 .top-drawer { display: none; }
 
 @media (max-width: 680px) {
-  /* Break Desktop Grid */
   nav {
     display: flex; flex-direction: column; align-items: stretch;
     padding: 0; gap: 0; border-bottom: none;
@@ -286,7 +227,6 @@ nav a:hover, nav a.active { color: var(--accent); }
 
   .nav-desktop-only, .nav-right { display: none !important; }
 
-  /* Mobile Top Bar */
   .mobile-top-controls {
     display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
     width: 100%; padding: 10px 2rem; border-bottom: none; 
@@ -309,19 +249,14 @@ nav a:hover, nav a.active { color: var(--accent); }
   .mobile-top-controls .top-logo  { justify-self: center; }
   .mobile-top-controls .theme-toggle { justify-self: end; margin-right: -8px; }
 
-  /* Top Drawer */
   .top-drawer {
     display: grid; grid-template-rows: 0fr; overflow: hidden;
     transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
     opacity: 0;
   }
-  .top-drawer.is-open { 
-    grid-template-rows: 1fr; opacity: 1; border-bottom: none; 
-  }
+  .top-drawer.is-open { grid-template-rows: 1fr; opacity: 1; border-bottom: none; }
 
-  .top-drawer-links { 
-    list-style: none; padding: 0 1.5rem; margin: 0; text-align: left; min-height: 0; 
-  }
+  .top-drawer-links { list-style: none; padding: 0 1.5rem; margin: 0; text-align: left; min-height: 0; }
   .top-drawer-links a {
     display: block; padding: 12px 0; font-family: -apple-system, sans-serif;
     font-size: 0.95rem; font-weight: 600; color: var(--muted); text-decoration: none;
@@ -361,43 +296,8 @@ blockquote { font-style: italic; border-left: 3px solid var(--accent); padding-l
 .btn.primary:active { transform: translateY(1px) scale(0.98); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
 .btn.primary:hover::after { opacity: 1; }
 
-/* ────────────────────────────────────────────────────────────
-   INDEX PAGE COMPONENTS
-   ──────────────────────────────────────────────────────────── */
-.main-header { display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: 2rem 0 1rem; animation: fadeUp 0.9s ease both; }
-.header-content { flex: 1; padding-bottom: 0px; }
-.chapter-label { font-size: 0.85rem; font-weight: 600; letter-spacing: 0.15em; margin-bottom: 1.5rem; display: block; }
-.header-cta { margin-top: 2rem; animation: fadeUp 0.9s 0.2s ease both; }
-.widget-container { display: flex; justify-content: center; width: 100%; }
-.book-widget-frame { width: 280px; height: 340px; border: none; overflow: hidden; display: block; }
-
 .lede { margin: 3rem auto 2rem; border-left: 3px solid var(--accent); padding-left: 1.5rem; animation: fadeUp 0.9s 0.15s ease both; }
 .lede p { font-size: 1.25rem; color: var(--dark); }
-
-.philosophy-block { background: var(--surface); padding: 2rem 2.5rem; border-radius: 16px; border: 1px solid var(--border); animation: fadeUp 0.9s 0.25s ease both; }
-
-.anatomy-card, .chapter-sample, .ch-topics-block, .cta-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; transition: all 0.35s ease; }
-
-.book-anatomy { margin: 2.5rem 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; animation: fadeUp 0.9s 0.3s ease both; }
-.anatomy-card { padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-.anatomy-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 20px var(--highlight); }
-.anatomy-card .card-num { font-family: -apple-system, sans-serif; font-size: 0.75rem; font-weight: 600; color: var(--accent); margin-bottom: 0.5rem; }
-.anatomy-card .card-title { font-size: 1.2rem; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; }
-.anatomy-card p { font-size: 0.95rem; color: var(--muted); line-height: 1.6; margin: 0; }
-
-.chapter-sample { padding: 2.5rem; margin: 3rem 0; animation: fadeUp 0.9s 0.4s ease both; border-radius: 16px; }
-.sample-label { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.15em; margin-bottom: 1.5rem; border-bottom: 2px solid var(--surface); padding-bottom: 0.5rem; }
-
-.tax-root { font-size: 1.4rem; font-weight: 600; color: var(--dark); margin-bottom: 1rem; }
-.tax-branch-label { font-size: 1.2rem; font-weight: 600; color: var(--dark); margin: 2.5rem 0 0.2rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border); }
-.tax-desc { font-size: 0.9rem; color: var(--muted); font-style: italic; margin-bottom: 1rem; padding-left: 0.5rem; }
-.tax-section { padding-left: 1.5rem; border-left: 2px solid var(--surface); margin: 1.5rem 0; }
-.tax-section-title { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
-.tax-dim { color: var(--muted); font-weight: 400; font-size: 0.9rem; font-style: italic; }
-.tax-group { padding-left: 1.2rem; border-left: 1px dashed var(--border); margin-top: 0.8rem; margin-bottom: 1.2rem; }
-.tax-group-title { font-size: 0.8rem; margin-bottom: 0.6rem; }
-.tax-items { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.tax-items span:hover { border-color: var(--accent); color: var(--accent); }
 
 .code-block { font-family: ui-monospace, monospace; font-size: 0.95rem; background: var(--code-bg); padding: 1.5rem 2rem; border-radius: 12px; margin: 1.5rem 0; color: var(--code-text); border: 1px solid var(--border); line-height: 1.8; transition: background-color 0.35s, color 0.35s; }
 .eq-row { margin-bottom: 1rem; }
@@ -405,82 +305,16 @@ blockquote { font-style: italic; border-left: 3px solid var(--accent); padding-l
 .eq-comment { color: var(--accent); font-family: 'Lora', serif; font-style: italic; font-size: 0.9rem; display: block; }
 .eq-math { font-size: 1.1rem; color: var(--dark); }
 
-.progress-block { margin: 2rem 0; }
-.progress-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-.ch-label { font-family: -apple-system, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text); width: 140px; }
-.progress-bar-wrap { flex: 1; height: 8px; background: var(--surface); border-radius: 99px; overflow: hidden; position: relative; }
-.progress-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; transition: width 1.2s cubic-bezier(0.22,1,0.36,1); width: 0; }
-.progress-bar-fill.draft { background: var(--accent); }
-.pct { width: 2.8rem; text-align: right; font-family: -apple-system, sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
-.ch-updated { font-family: -apple-system, sans-serif; font-size: 0.72rem; color: var(--muted); font-style: italic; margin-bottom: 1rem; opacity: 0.75; }
-
-.ch-toggle { cursor: pointer; user-select: none; }
-.ch-toggle .toggle-arrow { display: inline-block; font-size: 0.7rem; color: var(--accent); margin-left: 0.4rem; transition: transform 0.3s ease; }
-.ch-toggle.open .toggle-arrow { transform: rotate(90deg); }
-.ch-topics-collapsible { display: grid; grid-template-rows: 0fr; opacity: 0; margin-top: 0; margin-bottom: 0; transition: grid-template-rows 0.45s cubic-bezier(0.22,1,0.36,1), margin 0.45s cubic-bezier(0.22,1,0.36,1), opacity 0.35s ease; }
-.ch-topics-collapsible > div { overflow: hidden; }
-.ch-topics-collapsible.open { grid-template-rows: 1fr; margin-top: 0.6rem; margin-bottom: 0.6rem; opacity: 1; }
-
-.ch-topics-block { border-radius: 16px; overflow: hidden; margin: 0; }
-.ch-topics-header { background: var(--surface); padding: 0.75rem 1.2rem; border-bottom: 1px solid var(--border); font-family: -apple-system, sans-serif; font-weight: 600; font-size: 0.85rem; color: var(--dark); display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.ch-topics-header .exp-link { font-size: 0.72rem; font-weight: 600; color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 0.28em 0.85em; border-radius: 20px; letter-spacing: 0.04em; white-space: nowrap; transition: background 0.2s, color 0.2s; flex-shrink: 0; }
-.ch-topics-header .exp-link:hover { background: var(--accent); color: #fff; }
-.ch-topics-grid { display: grid; grid-template-columns: 1fr 1fr; }
-.ch-topic-group { padding: 1rem 1.2rem; }
-.ch-topic-group:first-child { border-right: 1px solid var(--border); }
-.ch-topic-section { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
-.ch-topic { font-size: 0.88rem; color: var(--text); display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.3rem; line-height: 1.4; }
-.ch-topic::before { content: '✓'; color: var(--accent); font-family: -apple-system, sans-serif; font-weight: bold; font-size: 0.8rem; margin-top: 0.1rem; }
-
-.collab-list { margin: 2rem 0; list-style: none; }
-.collab-list li { display: flex; align-items: flex-start; gap: 1.2rem; padding: 1.2rem 0; border-bottom: 1px solid var(--border); }
-.collab-list li:last-child { border-bottom: none; }
-.collab-list .tag { flex-shrink: 0; background: var(--surface); padding: 0.4em 0.8em; border-radius: 20px; margin-top: 0.2rem; }
-
-.cta-section { margin: 4rem 0 2rem; padding: 3rem; border-radius: 16px; text-align: center; }
-.cta-section h2 { margin: 0 0 1rem; }
-.cta-section p { color: var(--muted); margin-bottom: 2rem; }
-
-@media (max-width: 768px) {
-  .page-wrap { padding: 0 1rem; }
-  .main-header { flex-direction: column-reverse; align-items: center; text-align: center; padding-top: 1rem; padding-bottom: 1rem; }
-  .widget-container { margin-top: 0; }
-  .book-anatomy, .ch-topics-grid { grid-template-columns: 1fr; }
-  .ch-topic-group:first-child { border-right: none; border-bottom: 1px solid var(--border); }
-}
-
-@media (max-width: 680px) {
-  h1 { font-size: 2.5rem; margin-bottom: 0.4rem; }
-  .subtitle { font-size: 0.95rem; line-height: 1.55; margin-top: 0.5rem; opacity: 0.9; }
-  .chapter-label { font-size: 0.65rem; letter-spacing: 0.14em; opacity: 0.9; margin-bottom: 0.6rem; color: color-mix(in srgb, var(--accent) 85%, var(--muted)); }
-  .main-header { padding-top: 0.5rem; }
-}
-
-.chapter-label { white-space: normal; }
-@media (min-width: 768px) { .chapter-label { white-space: nowrap; } }
-
 /* ── Footer ── */
 footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--border); margin-top: 4rem; }
 
 /* ── Animations ── */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-.iframe-shield { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 
 /* =========================================================
    Floating Article TOC
-   - Right-side minimap rails
-   - Hover-safe popup panel
-   - Two-line wrapped headings
-   - Viewport-safe scrolling
    ========================================================= */
 
-/* =========================================================
-   Floating Article TOC — Final Production Version
-   ========================================================= */
-
-/* ─────────────────────────────────────────
-   Floating right minimap rail
-   ───────────────────────────────────────── */
 .toc-wrapper {
   position: fixed;
   top: 50%;
@@ -490,7 +324,6 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
   width: fit-content;
 }
 
-/* invisible hover bridge */
 .toc-wrapper::before {
   content: "";
   position: absolute;
@@ -501,9 +334,6 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
   transform: translateY(-50%);
 }
 
-/* ─────────────────────────────────────────
-   Minimap rail
-   ───────────────────────────────────────── */
 .toc-mini {
   display: flex;
   flex-direction: column;
@@ -520,78 +350,33 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
   transition: all 0.2s ease;
 }
 
-.toc-item-mini.toc-light {
-  opacity: 0.35;
-}
+.toc-item-mini.toc-light { opacity: 0.35; }
+.toc-item-mini:not(.toc-light) { width: 16px; opacity: 1; background: var(--text); }
 
-.toc-item-mini:not(.toc-light) {
-  width: 16px;
-  opacity: 1;
-  background: var(--text);
-}
-
-/* ─────────────────────────────────────────
-   TOC popup card
-   ───────────────────────────────────────── */
-/* ─────────────────────────────────────────
-   Enhanced Scrollable Container
-   ───────────────────────────────────────── */
 .toc-list {
   display: none;
   flex-direction: column;
-
   width: 220px;
-  /* Ensures it stays within the screen height */
   max-height: 75vh; 
-
   overflow-y: auto;
   overscroll-behavior: contain;
-
   position: absolute;
   right: 15px;
   top: 50%;
   transform: translateY(-50%);
-
   padding: 20px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 10px 20px rgba(209, 80, 29, 0.15);
 }
 
-/* Add a little bit of bottom padding to the last item 
-   so it doesn't hug the edge of the scroll area */
-.toc-item:last-child {
-  margin-bottom: 10px;
-}
+.toc-item:last-child { margin-bottom: 10px; }
+.toc-wrapper:hover .toc-list { display: flex; }
 
-/* keep open when rail or panel hovered */
-.toc-wrapper:hover .toc-list {
-  display: flex;
-}
+.toc-list::-webkit-scrollbar { width: 4px; }
+.toc-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+.toc-list::-webkit-scrollbar-track { background: color-mix(in srgb, var(--border) 20%, transparent); }
 
-/* ─────────────────────────────────────────
-   Scrollbar
-   ───────────────────────────────────────── */
-.toc-list::-webkit-scrollbar {
-  width: 4px; /* Slimmer is usually cleaner for TOCs */
-}
-
-.toc-list::-webkit-scrollbar-thumb {
-  background: var(--accent); /* Use accent color so users see the scroll progress */
-  border-radius: 10px;
-}
-
-.toc-list::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--border) 20%, transparent);
-}
-
-/* ─────────────────────────────────────────
-   TOC entries
-   ───────────────────────────────────────── */
-/* ─────────────────────────────────────────
-   Updated TOC entries (No Clamping)
-   ───────────────────────────────────────── */
 .toc-item {
   border: none;
   background: transparent;
@@ -607,39 +392,21 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
   width: 100%;
   white-space: normal; 
   word-wrap: break-word;
-
-  /* Change: Use a faster timing (0.15s) and 
-     ensure we target specific properties to prevent layout jumping 
-  */
   transition: transform 0.15s ease-out, color 0.15s ease-out, opacity 0.15s ease-out;
-  
-  /* Critical: prevents 'jitter' by telling the browser this will move */
   will-change: transform; 
 }
 
 .toc-item:hover {
   color: var(--accent);
   opacity: 1;
-  
-  /* Better than padding: translateX moves the visual 
-     layer without recalculating the width of the text block.
-  */
   transform: translateX(6px);
 }
 
-/* Ensure the active heading also stays crisp */
-.toc-bold {
-  color: var(--accent);
-  opacity: 1;
-  font-weight: 600;
-}
-
-/* nested levels */
+.toc-bold { color: var(--accent); opacity: 1; font-weight: 600; }
 .toc-ind-1 { padding-left: 10px; }
 .toc-ind-2 { padding-left: 18px; }
 .toc-ind-3 { padding-left: 26px; }
 
-/* clicked heading flash */
 .toc-highlight-target {
   background: var(--highlight);
   transition: background 0.4s ease;
@@ -649,61 +416,36 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
    CUSTOM GLOBAL SCROLLBAR
    ──────────────────────────────────────────────────────────── */
 
-/* Firefox */
-html {
-  scrollbar-color: var(--accent) var(--bg);
-  scrollbar-width: thin;
-}
-
-/* WebKit (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px; /* For horizontal scrollbars */
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg); 
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 10px;
-}
-
-/* Optional: Make it slightly darker/brighter when the user hovers over the scrollbar */
-::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--accent) 85%, var(--text)); 
-}
+html { scrollbar-color: var(--accent) var(--bg); scrollbar-width: thin; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--accent) 85%, var(--text)); }
 
 @media (max-width: 600px) {
-  /* 1. Prevent the entire page from stretching */
   html, body {
     max-width: 100vw;
-    overflow-x: hidden; /* This kills the 'ghost' space on the right */
+    overflow-x: hidden; 
     position: relative;
   }
 
-  /* 2. Fix the TOC Container */
   .toc-container {
     width: 100% !important;
     max-width: 100vw !important;
     box-sizing: border-box !important;
     position: relative;
-    overflow: visible; /* Allows lines to overlap text, but within the 100% width */
+    overflow: visible; 
     margin-right: 0 !important;
     padding-right: 1rem !important;
   }
 
-  /* 3. Fix the 'Lines' (usually pseudo-elements like ::before) */
   .toc-list li::before,
   .toc-list ul::before,
   .toc-list ol::before {
-    /* Ensure the lines stay relative to the container, not the page width */
     max-width: 100%;
-    pointer-events: none; /* Make sure you can still click through them */
+    pointer-events: none; 
   }
 
-  /* 4. Force wrapping on the list items so they don't 'push' the lines */
   .toc-list li {
     max-width: 100%;
     word-wrap: break-word;
@@ -711,4 +453,94 @@ html {
     white-space: normal !important;
     display: block;
   }
+}
+
+
+/* ============================================================
+   anatomy.css
+   Styles for the "Anatomy of the Book" four-card grid.
+   ============================================================ */
+
+.book-anatomy { 
+  margin: 2.5rem 0; 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 1.5rem; 
+  animation: fadeUp 0.9s 0.3s ease both; 
+}
+
+.anatomy-card { 
+  background: var(--card-bg); 
+  border: 1px solid var(--border); 
+  border-radius: 12px; 
+  padding: 1.5rem; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+  transition: all 0.35s ease; 
+}
+
+.anatomy-card:hover { 
+  transform: translateY(-3px); 
+  border-color: var(--accent); 
+  box-shadow: 0 8px 20px var(--highlight); 
+}
+
+.anatomy-card .card-num { 
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+  font-size: 0.75rem; 
+  font-weight: 600; 
+  color: var(--accent); 
+  margin-bottom: 0.5rem; 
+}
+
+.anatomy-card .card-title { 
+  font-size: 1.2rem; 
+  font-weight: 600; 
+  color: var(--dark); 
+  margin-bottom: 0.5rem; 
+}
+
+.anatomy-card p { 
+  font-size: 0.95rem; 
+  color: var(--muted); 
+  line-height: 1.6; 
+  margin: 0; 
+}
+
+/* ── Mobile Layout ── */
+@media (max-width: 600px) {
+  .book-anatomy {
+    grid-template-columns: 1fr; 
+  }
+}
+
+/* ── Theme Transitions ── */
+.theme-transitioning .anatomy-card {
+  transition:
+    background-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color     350ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow       350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.theme-transitioning .card-title, 
+.theme-transitioning .card-num, 
+.theme-transitioning .anatomy-card p {
+  transition: color 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ── Footer ── */
+footer { 
+  padding: 3rem 0 4rem; 
+  text-align: center; 
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+  font-size: 0.85rem; 
+  color: var(--muted); 
+  margin-top: 4rem; 
+  border-top: none;
+}
+
+.theme-transitioning footer {
+  transition:
+    background-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
+    color            350ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow       350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }

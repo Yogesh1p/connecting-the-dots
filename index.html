@@ -510,34 +510,10 @@
   </div>
 </section>
 
-
-
-
-  <section class="chapter-sample">
-    <div class="sample-label label-caps">Excerpt — Chapter 1 · The Residual Stream</div>
-    <p>ResNets and Transformers look different on the surface. The connection runs deeper than it appears.</p>
-    <div class="code-block">
-      <div class="eq-row">
-        <span class="eq-comment">// ResNet — each block adds a correction</span>
-        <span class="eq-math">x<sub>ℓ+1</sub> = x<sub>ℓ</sub> + F<sub>ℓ</sub>(x<sub>ℓ</sub>)</span>
-      </div>
-      <br>
-      <div class="eq-row">
-        <span class="eq-comment">// Transformer — depth accumulates refinements, not replacements</span>
-        <span class="eq-math">X<sup>(ℓ)</sup> = X<sup>(ℓ−1)</sup> + &Delta;<sup>(ℓ)</sup><sub>attn</sub> + &Delta;<sup>(ℓ)</sup><sub>ffn</sub></span>
-      </div>
-      <br>
-      <div class="eq-row">
-        <span class="eq-comment">// Unrolled to layer L</span>
-        <span class="eq-math">X<sup>(L)</sup> = X<sup>(0)</sup> + &sum;<sub>ℓ=1</sub><sup>L</sup>&thinsp;(&Delta;<sup>(ℓ)</sup><sub>attn</sub> + &Delta;<sup>(ℓ)</sup><sub>ffn</sub>)</span>
-      </div>
-    </div>
-    <p>Neither architecture overwrites its representations — they accumulate them. In ResNet, the residual function <em>F<sub>l</sub></em> learns a correction. In the Transformer, that correction is split into two structured parts: <em>Δ<sub>attn</sub></em>, which gathers information across positions, and <em>Δ<sub>ffn</sub></em>, which transforms it locally. The final representation is the original embedding plus every increment every layer ever wrote. Depth, in both cases, is accumulation — not replacement.</p>
-    <blockquote>The Transformer does not overwrite representations; it refines them, layer by layer, through addition. The name is apt in a way the original paper never quite spells out.</blockquote>
-  </section>
-
 </main>
-
+<footer>
+  <p>&copy; 2026 Yogesh. Connecting the Dots.</p>
+</footer>
 <script>
 window.addEventListener('load', () => {
   if (typeof d3 === 'undefined') return;

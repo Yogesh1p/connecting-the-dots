@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>Recurrent Neural Networks and Sequence Memory</title>
+
+<meta name="book" content="generative">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="part" content="Transformer Foundations">
+<meta name="title" content="Recurrent Neural Networks and Sequence Memory">
+<meta name="description" content="How recurrent neural networks model sequential dependencies, why gradients vanish or explode, and how LSTMs, GRUs, bidirectional networks, and encoder-decoder models address memory limitations.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-09">
+<meta name="order" content="5">
+<meta name="status" content="live">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="RNN, recurrent neural network, hidden state, BPTT, vanishing gradients, exploding gradients, LSTM, GRU, bidirectional RNN, stacked RNN, seq2seq, encoder decoder, sequence memory, attention bottleneck">
+<meta name="reading_time" content="13">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="1">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+<h2>Bridging NADE to Recurrent Computation.</h2>
+<p>NADE already contains a computational pattern that resembles recurrent computation. Instead of recomputing a new network for every conditional distribution, it incrementally updates a running quantity,</p>
+
+<div class="math-display">
+  $$a_t = a_{t-1} + W_{:,t-1} x_{t-1},$$
+</div>
+
+<p>which accumulates information about previously observed variables. Each conditional distribution is produced from this accumulated pre-activation.</p>
+
+<p>The vector $a_t$ therefore summarizes the prefix $x_{\lt t}$. As new variables are observed, the representation is updated incrementally rather than recomputed from scratch. In effect, the model maintains a running state that carries information from earlier variables to later ones.</p>
+
+<figure class="nade-figure">
+<style>
+    .nade-figure{
+  width:100%;
+  margin:2rem 0;
+}
+
+.nade-diagram{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+.nade-figure figcaption{
+  margin-top:1rem;
+  text-align:center;
+  line-height:1.6;
+  font-size:0.95rem;
+}
+.nade-diagram{
+  /* strokes */
+  --col-gold:   #D18B61; /* pre-activation */
+  --col-red:    #A85C3A; /* output */
+  --col-green:  #5F7A67; /* hidden */
+  --col-muted:  #847769;
+
+  /* fills */
+  --col-pre-bg: #FBEDE3; /* peach */
+  --col-hid-bg: #EAF3EC; /* pale sage */
+  --col-out-bg: #F8E7E1; /* rose */
+  --col-inp-bg: #F4EFE6; /* neutral beige */
+}
+
+[data-theme="dark"] .nade-diagram{
+  --col-gold:   #D89A74;
+  --col-red:    #D98568;
+  --col-green:  #88A18C;
+  --col-muted:  #736050;
+
+  --col-pre-bg: #2B1B14;
+  --col-hid-bg: #15201A;
+  --col-out-bg: #2A1713;
+  --col-inp-bg: #1F1510;
+}
+</style>
+
+<svg class="nade-diagram" viewBox="0 0 740 560"
+     style="font-family:'Computer Modern Serif',serif;">
+  <defs>
+    <marker id="nade-arr-gold" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="var(--col-gold)"/>
+    </marker>
+    <marker id="nade-arr-red" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L9,3.5 z" fill="var(--col-red)"/>
+    </marker>
+  </defs>
+
+  <!-- Row labels -->
+  <text x="44" y="100"  font-size="16" fill="var(--col-muted)" font-style="italic" text-anchor="middle">output</text>
+  <text x="44" y="230"  font-size="16" fill="var(--col-muted)" font-style="italic" text-anchor="middle">hidden</text>
+  <text x="44" y="360"  font-size="16" fill="var(--col-muted)" font-style="italic" text-anchor="middle">pre-act</text>
+  <text x="44" y="500"  font-size="16" fill="var(--col-muted)" font-style="italic" text-anchor="middle">input</text>
+
+  <!-- ── COLUMN 1 ── -->
+  <circle cx="190" cy="500" r="42" fill="var(--col-inp-bg)" stroke="var(--col-muted)" stroke-width="2.5"/>
+  <text x="190" y="508" font-size="22" fill="var(--col-muted)" text-anchor="middle"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan></text>
+
+  <rect x="140" y="328" width="100" height="56" rx="9" fill="var(--col-pre-bg)" stroke="var(--col-gold)" stroke-width="2.5"/>
+  <text x="190" y="353" font-size="20" fill="var(--col-gold)" text-anchor="middle"><tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan></text>
+  <text x="190" y="374" font-size="14" fill="var(--col-gold)" text-anchor="middle">= 0</text>
+
+  <line x1="190" y1="328" x2="190" y2="278" stroke="var(--col-gold)" stroke-width="2.5" marker-end="url(#nade-arr-gold)"/>
+  <text x="208" y="310" font-size="15" fill="var(--col-gold)" font-style="italic">σ(·)</text>
+
+  <rect x="140" y="196" width="100" height="64" rx="10" fill="var(--col-hid-bg)" stroke="var(--col-green)" stroke-width="2.5"/>
+  <text x="190" y="224" font-size="22" fill="var(--col-green)" text-anchor="middle"><tspan font-style="italic">h</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan></text>
+  <text x="190" y="247" font-size="13" fill="var(--col-green)" text-anchor="middle">= σ(<tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan> + <tspan font-style="italic">c</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan>)</text>
+
+  <line x1="190" y1="196" x2="190" y2="148" stroke="var(--col-red)" stroke-width="2.5" marker-end="url(#nade-arr-red)"/>
+  <text x="210" y="178" font-size="14" fill="var(--col-red)"><tspan font-family="serif" font-style="italic">α</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan>, <tspan font-style="italic">b</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan></text>
+
+  <circle cx="190" cy="106" r="42" fill="var(--col-out-bg)" stroke="var(--col-red)" stroke-width="2.5"/>
+  <text x="186" y="100" font-size="20" fill="var(--col-red)" text-anchor="middle" font-style="italic">x</text>
+  <path d="M184 88 L187.5 83 L191 88" fill="none" stroke="var(--col-red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="192" y="105" font-size="15" fill="var(--col-red)">1</text>
+  <text x="190" y="120" font-size="13" fill="var(--col-red)" text-anchor="middle">σ(<tspan font-family="serif" font-style="italic">α</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan><tspan font-style="italic">h</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan> + <tspan font-style="italic">b</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan>)</text>
+  <text x="190" y="46" font-size="16" fill="var(--col-red)" text-anchor="middle"><tspan font-style="italic">p</tspan>(<tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan>)</text>
+
+  <line x1="240" y1="356" x2="328" y2="356" stroke="var(--col-gold)" stroke-width="2.5" marker-end="url(#nade-arr-gold)"/>
+
+  <!-- ── COLUMN 2 ── -->
+  <circle cx="390" cy="500" r="42" fill="var(--col-inp-bg)" stroke="var(--col-muted)" stroke-width="2.5"/>
+  <text x="390" y="508" font-size="22" fill="var(--col-muted)" text-anchor="middle"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan></text>
+
+  <line x1="390" y1="457" x2="390" y2="387" stroke="var(--col-gold)" stroke-width="2.5" marker-end="url(#nade-arr-gold)"/>
+  <text x="416" y="432" font-size="14" fill="var(--col-gold)"><tspan font-weight="bold" font-style="italic">W</tspan><tspan baseline-shift="sub" font-size="0.75em">:,1</tspan></text>
+
+  <rect x="340" y="328" width="100" height="56" rx="9" fill="var(--col-pre-bg)" stroke="var(--col-gold)" stroke-width="2.5"/>
+  <text x="390" y="353" font-size="20" fill="var(--col-gold)" text-anchor="middle"><tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan></text>
+  <text x="390" y="373" font-size="12" fill="var(--col-gold)" text-anchor="middle"><tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan> + <tspan font-weight="bold" font-style="italic">W</tspan><tspan baseline-shift="sub" font-size="0.75em">:,1</tspan><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan></text>
+
+  <line x1="390" y1="328" x2="390" y2="278" stroke="var(--col-gold)" stroke-width="2.5" marker-end="url(#nade-arr-gold)"/>
+  <text x="408" y="310" font-size="15" fill="var(--col-gold)" font-style="italic">σ(·)</text>
+
+  <rect x="340" y="196" width="100" height="64" rx="10" fill="var(--col-hid-bg)" stroke="var(--col-green)" stroke-width="2.5"/>
+  <text x="390" y="224" font-size="22" fill="var(--col-green)" text-anchor="middle"><tspan font-style="italic">h</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan></text>
+  <text x="390" y="247" font-size="13" fill="var(--col-green)" text-anchor="middle">= σ(<tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan> + <tspan font-style="italic">c</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan>)</text>
+
+  <line x1="390" y1="196" x2="390" y2="148" stroke="var(--col-red)" stroke-width="2.5" marker-end="url(#nade-arr-red)"/>
+  <text x="410" y="178" font-size="14" fill="var(--col-red)"><tspan font-family="serif" font-style="italic">α</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan>, <tspan font-style="italic">b</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan></text>
+
+  <circle cx="390" cy="106" r="42" fill="var(--col-out-bg)" stroke="var(--col-red)" stroke-width="2.5"/>
+  <text x="386" y="100" font-size="20" fill="var(--col-red)" text-anchor="middle" font-style="italic">x</text>
+  <path d="M384 88 L387.5 83 L391 88" fill="none" stroke="var(--col-red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="392" y="105" font-size="15" fill="var(--col-red)">2</text>
+  <text x="390" y="120" font-size="13" fill="var(--col-red)" text-anchor="middle">σ(<tspan font-family="serif" font-style="italic">α</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan><tspan font-style="italic">h</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan> + <tspan font-style="italic">b</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan>)</text>
+  <text x="390" y="46" font-size="16" fill="var(--col-red)" text-anchor="middle"><tspan font-style="italic">p</tspan>(<tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan>|<tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan>)</text>
+
+  <line x1="440" y1="356" x2="528" y2="356" stroke="var(--col-gold)" stroke-width="2.5" marker-end="url(#nade-arr-gold)"/>
+
+  <!-- ── COLUMN 3 ── -->
+  <circle cx="590" cy="500" r="42" fill="var(--col-inp-bg)" stroke="var(--col-muted)" stroke-width="2.5"/>
+  <text x="590" y="508" font-size="22" fill="var(--col-muted)" text-anchor="middle"><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan></text>
+
+  <line x1="590" y1="457" x2="590" y2="387" stroke="var(--col-gold)" stroke-width="2.5" marker-end="url(#nade-arr-gold)"/>
+  <text x="616" y="432" font-size="14" fill="var(--col-gold)"><tspan font-weight="bold" font-style="italic">W</tspan><tspan baseline-shift="sub" font-size="0.75em">:,2</tspan></text>
+
+  <rect x="540" y="328" width="100" height="56" rx="9" fill="var(--col-pre-bg)" stroke="var(--col-gold)" stroke-width="2.5"/>
+  <text x="590" y="353" font-size="20" fill="var(--col-gold)" text-anchor="middle"><tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan></text>
+  <text x="590" y="373" font-size="12" fill="var(--col-gold)" text-anchor="middle"><tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan> + <tspan font-weight="bold" font-style="italic">W</tspan><tspan baseline-shift="sub" font-size="0.75em">:,2</tspan><tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan></text>
+
+  <line x1="590" y1="328" x2="590" y2="278" stroke="var(--col-gold)" stroke-width="2.5" marker-end="url(#nade-arr-gold)"/>
+  <text x="608" y="310" font-size="15" fill="var(--col-gold)" font-style="italic">σ(·)</text>
+
+  <rect x="540" y="196" width="100" height="64" rx="10" fill="var(--col-hid-bg)" stroke="var(--col-green)" stroke-width="2.5"/>
+  <text x="590" y="224" font-size="22" fill="var(--col-green)" text-anchor="middle"><tspan font-style="italic">h</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan></text>
+  <text x="590" y="247" font-size="13" fill="var(--col-green)" text-anchor="middle">= σ(<tspan font-style="italic">a</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan> + <tspan font-style="italic">c</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan>)</text>
+
+  <line x1="590" y1="196" x2="590" y2="148" stroke="var(--col-red)" stroke-width="2.5" marker-end="url(#nade-arr-red)"/>
+  <text x="610" y="178" font-size="14" fill="var(--col-red)"><tspan font-family="serif" font-style="italic">α</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan>, <tspan font-style="italic">b</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan></text>
+
+  <circle cx="590" cy="106" r="44" fill="var(--col-out-bg)" stroke="var(--col-red)" stroke-width="3"/>
+  <text x="586" y="100" font-size="20" fill="var(--col-red)" text-anchor="middle" font-style="italic">x</text>
+  <path d="M584 88 L587.5 83 L591 88" fill="none" stroke="var(--col-red)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="592" y="105" font-size="15" fill="var(--col-red)">3</text>
+  <text x="590" y="120" font-size="12" fill="var(--col-red)" text-anchor="middle">σ(<tspan font-family="serif" font-style="italic">α</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan><tspan font-style="italic">h</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan> + <tspan font-style="italic">b</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan>)</text>
+  <text x="590" y="44" font-size="15" fill="var(--col-red)" text-anchor="middle"><tspan font-style="italic">p</tspan>(<tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">3</tspan>|<tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">1</tspan>,<tspan font-style="italic">x</tspan><tspan baseline-shift="sub" font-size="0.75em">2</tspan>)</text>
+</svg>
+
+
+<figcaption>
+    <strong>Figure:</strong> NADE: Neural Autoregressive Distribution Estimator. Pre-activations $a_i$ chain horizontally; each hidden unit $h_i = \sigma(a_i + c)$ has its own bias $c$; outputs give \( p(x_i \mid x_{&lt;i}) = \sigma(\alpha_i h_i + b_i) \)
+</figcaption>
+</figure>
+
+
+<p>However, the accumulation rule in NADE is limited. The update is purely additive and linear: the model learns <em>what</em> contribution each variable makes through the weight columns $W_{:,t-1}$, but not <em>how</em> the accumulated state itself should evolve in response to its current value. Moreover, the weight columns are position-specific, so the update rule is not shared across steps.</p>
+
+<p>A natural generalization is to allow the state update itself to be learned. Instead of a fixed additive rule, we introduce a parameterized transition that determines how the previous state and the new input interact,</p>
+
+<div class="math-display">
+  $$h_t = f(h_{t-1}, x_t).$$
+</div>
+
+<p>This form of state evolution is familiar in control theory and dynamical systems, where a system is described by a state that evolves over time according to</p>
+
+<div class="math-display">
+  $$s_t = f(s_{t-1}, u_t).$$
+</div>
+
+<p>Applying this idea to neural networks yields a model that processes sequences by maintaining a learned state representation that evolves as new inputs arrive.</p>
+
+<p>This leads to the architecture known as a <em>recurrent neural network</em>, where the transition function is typically implemented as</p>
+
+<div class="math-display">
+  $$h_t = \sigma(W_h h_{t-1} + W_x x_t).$$
+</div>
+
+<p>From this perspective, NADE performs a simple linear recurrence, while recurrent neural networks generalize the idea by learning the dynamics of the state itself. The resulting model maintains a hidden state that summarizes the sequence prefix. This state acts as the context used to make predictions at each step.</p>
+
+<h2>RNNs: The Hidden State as Context</h2>
+
+<p>While feed-forward networks process inputs independently, many real-world data sources exhibit sequential structure.</p>
+
+<p>Many forms of data are inherently ordered. Language unfolds token by token, audio evolves continuously over time, and even images can be processed as sequences of pixels or patches. In such settings, the prediction at time $t$ should depend not only on the current input $x_t$ but also on the history $x_{\lt t}$.</p>
+
+<p>A standard neural network treats inputs independently and therefore has no mechanism for remembering past observations. RNNs address this by introducing a <em>hidden state</em>, a vector that is updated at each time step and acts as a compressed representation of everything seen so far. In this sense, the hidden state provides the contextual summary needed for sequential prediction.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Recurrent Neural Network (RNN)</div>
+  <div class="math-box-body">
+    <p>A <strong>Recurrent Neural Network</strong> processes a sequence one element at a time, updating a hidden state $h_t$ according to</p>
+    <div class="math-display">
+      $$h_t = \phi_1(W_{hh} h_{t-1} + W_{xh} x_t + b_h),$$
+    </div>
+    <p>and producing an output</p>
+    <div class="math-display">
+      $$\hat{y}_t = \phi_2(W_{hy} h_t + b_y),$$
+    </div>
+    <p>which is typically interpreted as the parameterization of a conditional distribution</p>
+    <div class="math-display">
+      $$p(y_t \mid h_t).$$
+    </div>
+    <p>The parameters $W_{hh}, W_{xh}, W_{hy}$ and biases $b_h, b_y$ are shared across all time steps, allowing sequences of arbitrary length to be processed with a constant number of parameters.</p>
+  </div>
+</div>
+
+<p>The key idea is simple: rather than explicitly storing all previous inputs, the model learns a function that compresses past information into a fixed-dimensional state. This compact representation enables flexible sequence modeling — but it also introduces a fundamental optimization challenge.</p>
+<figure class="rnn-figure">
+<style>
+.rnn-figure {
+  width: 100%;
+  max-width: 100%;
+  margin: 2rem 0;
+}
+
+.rnn-diagram {
+  /* strokes */
+  --col-blue:   #8A6A52;  /* input flow */
+  --col-red:    #D18B61;  /* output + prediction */
+  --col-green:  #5F7A67;  /* hidden */
+  --col-teal:   #B97A56;  /* recurrent chain */
+  --col-muted:  #847769;
+
+  /* fills */
+  --col-hid-bg: #EAF3EC;  /* pale sage */
+  --col-out-bg: #F8E7E1;  /* soft rose */
+  --col-inp-bg: #F4EFE6;  /* neutral beige */
+  --col-init-bg:#F7F1E8;  /* warm init */
+
+  width: 100%;
+  height: auto;
+  display: block;
+  font-family: 'Computer Modern Serif', serif;
+}
+
+[data-theme="dark"] .rnn-diagram {
+  --col-blue:   #B5967D;
+  --col-red:    #D89A74;
+  --col-green:  #88A18C;
+  --col-teal:   #C68B68;
+  --col-muted:  #736050;
+
+  --col-hid-bg: #15201A;
+  --col-out-bg: #2A1713;
+  --col-inp-bg: #1F1510;
+  --col-init-bg:#221712;
+}
+
+.rnn-figure figcaption {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+</style>
+
+  <svg class="rnn-diagram" viewBox="0 0 860 560" role="img"
+       aria-label="Unrolled recurrent neural network showing hidden state transitions and outputs across time">
+    <defs>
+      <marker id="rnn-arr-blue" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+        <path d="M0,0 L0,8 L10,4 z" fill="var(--col-blue)"/>
+      </marker>
+      <marker id="rnn-arr-red" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+        <path d="M0,0 L0,8 L10,4 z" fill="var(--col-red)"/>
+      </marker>
+      <marker id="rnn-arr-teal" markerWidth="7" markerHeight="7" refX="7" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L7,3 z" fill="var(--col-teal)"/>
+      </marker>
+    </defs>
+
+    <!-- time labels -->
+    <text x="340" y="25" font-size="15" fill="var(--col-muted)" text-anchor="middle" font-style="italic">t = 1</text>
+    <text x="620" y="25" font-size="15" fill="var(--col-muted)" text-anchor="middle" font-style="italic">t = 2</text>
+
+    <!-- h0 -->
+    <rect x="60" y="252" width="120" height="76" rx="11" fill="var(--col-init-bg)" stroke="var(--col-muted)" stroke-width="2"/>
+    <text x="120" y="286" font-size="26" fill="var(--col-muted)" text-anchor="middle" font-style="italic">h<tspan font-size="18" font-style="normal" dy="5">0</tspan></text>
+    <text x="120" y="312" font-size="16" fill="var(--col-muted)" text-anchor="middle">= 0</text>
+
+    <line x1="180" y1="290" x2="236" y2="290" stroke="var(--col-teal)" stroke-width="2.5" marker-end="url(#rnn-arr-teal)"/>
+    <text x="208" y="280" font-size="17" font-weight="bold" text-anchor="middle" fill="var(--col-teal)" font-style="italic">W<tspan font-size="13" dy="3">hh</tspan></text>
+
+    <!-- step 1 -->
+    <circle cx="340" cy="490" r="48" fill="var(--col-inp-bg)" stroke="var(--col-blue)" stroke-width="2.5"/>
+    <text x="340" y="498" font-size="26" fill="var(--col-blue)" text-anchor="middle" font-style="italic">x<tspan font-size="18" font-style="normal" dy="5">1</tspan></text>
+
+    <line x1="340" y1="441" x2="340" y2="338" stroke="var(--col-blue)" stroke-width="2.5" marker-end="url(#rnn-arr-blue)"/>
+    <text x="366" y="393" font-size="17" fill="var(--col-blue)" font-weight="bold" font-style="italic">W<tspan font-size="13" dy="3">xh</tspan></text>
+
+    <rect x="256" y="244" width="168" height="92" rx="11" fill="var(--col-hid-bg)" stroke="var(--col-green)" stroke-width="2.5"/>
+    <text x="340" y="276" font-size="26" fill="var(--col-green)" text-anchor="middle" font-style="italic">h<tspan font-size="18" font-style="normal" dy="5">1</tspan></text>
+    <text x="340" y="322" font-size="14" fill="var(--col-green)" text-anchor="middle">σ(Wxhx1 + Whhh0 + bh)</text>
+
+    <line x1="340" y1="244" x2="340" y2="183" stroke="var(--col-red)" stroke-width="2.5" marker-end="url(#rnn-arr-red)"/>
+    <text x="314" y="210" font-size="17" fill="var(--col-red)" font-weight="bold" text-anchor="middle" font-style="italic">W<tspan font-size="13" dy="3">hy</tspan></text>
+
+    <circle cx="340" cy="127" r="54" fill="var(--col-out-bg)" stroke="var(--col-red)" stroke-width="2.5"/>
+    <text x="340" y="116" font-size="24" fill="var(--col-red)" text-anchor="middle" font-style="italic">ŷ<tspan font-size="16" font-style="normal" dy="5">1</tspan></text>
+    <text x="340" y="152" font-size="14" fill="var(--col-red)" text-anchor="middle">σ(Whyh1 + by)</text>
+    <text x="340" y="50" font-size="15" fill="var(--col-red)" text-anchor="middle" font-style="italic">p(y1|h1)</text>
+
+    <line x1="424" y1="290" x2="516" y2="290" stroke="var(--col-teal)" stroke-width="2.5" marker-end="url(#rnn-arr-teal)"/>
+    <text x="470" y="280" font-size="17" font-weight="bold" text-anchor="middle" fill="var(--col-teal)" font-style="italic">W<tspan font-size="13" dy="3">hh</tspan></text>
+
+    <!-- step 2 -->
+    <circle cx="620" cy="490" r="48" fill="var(--col-inp-bg)" stroke="var(--col-blue)" stroke-width="2.5"/>
+    <text x="620" y="498" font-size="26" fill="var(--col-blue)" text-anchor="middle" font-style="italic">x<tspan font-size="18" font-style="normal" dy="5">2</tspan></text>
+
+    <line x1="620" y1="441" x2="620" y2="338" stroke="var(--col-blue)" stroke-width="2.5" marker-end="url(#rnn-arr-blue)"/>
+    <text x="646" y="393" font-size="17" fill="var(--col-blue)" font-weight="bold" font-style="italic">W<tspan font-size="13" dy="3">xh</tspan></text>
+
+    <rect x="536" y="244" width="168" height="92" rx="11" fill="var(--col-hid-bg)" stroke="var(--col-green)" stroke-width="2.5"/>
+    <text x="620" y="276" font-size="26" fill="var(--col-green)" text-anchor="middle" font-style="italic">h<tspan font-size="18" font-style="normal" dy="5">2</tspan></text>
+    <text x="620" y="322" font-size="14" fill="var(--col-green)" text-anchor="middle">σ(Wxhx2 + Whhh1 + bh)</text>
+
+    <line x1="620" y1="244" x2="620" y2="183" stroke="var(--col-red)" stroke-width="2.5" marker-end="url(#rnn-arr-red)"/>
+    <text x="594" y="210" font-size="17" fill="var(--col-red)" font-weight="bold" text-anchor="middle" font-style="italic">W<tspan font-size="13" dy="3">hy</tspan></text>
+
+    <circle cx="620" cy="127" r="54" fill="var(--col-out-bg)" stroke="var(--col-red)" stroke-width="3"/>
+    <text x="620" y="116" font-size="24" fill="var(--col-red)" text-anchor="middle" font-style="italic">ŷ<tspan font-size="16" font-style="normal" dy="5">2</tspan></text>
+    <text x="620" y="152" font-size="14" fill="var(--col-red)" text-anchor="middle">σ(Whyh2 + by)</text>
+    <text x="620" y="50" font-size="15" fill="var(--col-red)" text-anchor="middle" font-style="italic">p(y2|h2)</text>
+
+    <text x="780" y="298" font-size="36" fill="var(--col-muted)" text-anchor="middle" opacity="0.4">···</text>
+    <text x="780" y="135" font-size="36" fill="var(--col-muted)" text-anchor="middle" opacity="0.4">···</text>
+  </svg>
+
+  <figcaption>
+    <strong>Figure:</strong> RNN (unrolled). Hidden state \(h_t = \sigma(\mathbf{W}_{xh}x_t + \mathbf{W}_{hh}h_{t-1} + b_h)\)
+    propagates recurrently through time, while outputs define
+    \(p(y_t\mid h_t)=\sigma(\mathbf{W}_{hy}h_t+b_y)\).
+  </figcaption>
+</figure>
+
+<h2>Gradient Flow Through Time</h2>
+
+<p>Training an RNN requires learning how information should persist across many steps. This immediately raises a question: <em>how does learning signal propagate backward through a long sequence?</em></p>
+
+<p>Because each hidden state depends on the previous one, gradients must travel through the entire temporal chain. The behavior of this backward flow determines whether the model can learn long-range dependencies.</p>
+
+<p>Assume a sequence of length $T$, with a loss defined at each step:</p>
+<div class="math-display">
+  $$L_{\text{sequence}} = \sum_{t=1}^{T} L_t .$$
+</div>
+<p>To study gradient propagation, it is sufficient to examine the contribution of a single future loss term $L_k$ ($k \ge t$) to an earlier hidden state $h_t$. The full gradient is obtained by summing such contributions.</p>
+
+<p>Our goal is therefore to understand how</p>
+<div class="math-display">
+  $$\frac{\partial L_k}{\partial h_t}$$
+</div>
+<p>changes as the temporal distance $(k-t)$ grows.</p>
+
+<p><strong>Backpropagation Through Time</strong></p>
+
+<p>Since hidden states form a temporal chain</p>
+<div class="math-display">
+  $$h_t \rightarrow h_{t+1} \rightarrow \cdots \rightarrow h_k,$$
+</div>
+<p>the chain rule yields</p>
+<div class="math-display">
+  $$\frac{\partial L_k}{\partial h_t} = \frac{\partial L_k}{\partial h_k} \prod_{j=t+1}^{k} \frac{\partial h_j}{\partial h_{j-1}} .$$
+</div>
+<p>Thus, gradients are obtained by repeatedly multiplying Jacobians — one for each recurrent step. The central question becomes: what happens when this multiplication is repeated many times?</p>
+
+<p><strong>Jacobian of a Recurrent Step</strong></p>
+
+<p>From the update equation,</p>
+<div class="math-display">
+  $$h_j = \phi_1(W_{hh}h_{j-1} + W_{xh}x_j + b_h),$$
+</div>
+<p>the Jacobian with respect to the previous hidden state is</p>
+<div class="math-display">
+  $$\frac{\partial h_j}{\partial h_{j-1}} = D_j W_{hh},$$
+</div>
+<p>where</p>
+<div class="math-display">
+  $$D_j = \mathrm{diag}\!\big(\phi_1'(a_j)\big), \qquad a_j = W_{hh}h_{j-1} + W_{xh}x_j + b_h.$$
+</div>
+<p>Substituting,</p>
+<div class="math-display">
+  $$\frac{\partial L_k}{\partial h_t} = \frac{\partial L_k}{\partial h_k} \prod_{j=t+1}^{k} D_j W_{hh}.$$
+</div>
+
+<p>The same transformation is therefore applied repeatedly as gradients move backward through time. This repeated reuse of the recurrent dynamics is the source of both the power and the instability of RNN training.</p>
+
+<p><strong>A Linearized View: Why Gradients Grow or Shrink</strong></p>
+
+<p>To build intuition, we first isolate the effect of recurrence itself. Suppose the activation derivatives vary slowly across time, so that locally the network behaves approximately linearly. In this regime, we may treat</p>
+<div class="math-display">
+  $$D_j \approx I,$$
+</div>
+<p>not as an exact assumption, but as a simplifying lens that reveals the dominant dynamics of recurrence.</p>
+
+<p>Under this approximation,</p>
+<div class="math-display">
+  $$\frac{\partial L_k}{\partial h_t} \approx \frac{\partial L_k}{\partial h_k} \, W_{hh}^{(k-t)}.$$
+</div>
+
+<p>The problem reduces to repeated powers of the recurrent matrix. If $W_{hh}$ is diagonalizable,</p>
+<div class="math-display">
+  $$W_{hh} = Q \Lambda Q^{-1}, \qquad \Lambda = \mathrm{diag}(\lambda_1,\ldots,\lambda_n),$$
+</div>
+<p>then each component aligned with eigenvector $i$ scales as</p>
+<div class="math-display">
+  $$\lambda_i^{(k-t)}.$$
+</div>
+
+<p>This immediately reveals the core phenomenon:</p>
+<ul>
+  <li>If $|\lambda_i| \lt 1$, gradients decay exponentially.</li>
+  <li>If $|\lambda_i| \gt 1$, gradients grow exponentially.</li>
+</ul>
+
+<p>Stable propagation requires eigenvalues whose magnitudes remain close to $1$, a condition that is difficult to maintain during training.</p>
+
+<p><strong>Returning to the Nonlinear Case</strong></p>
+
+<p>The linearized picture provides intuition, but the full network also includes activation derivatives. Taking norms and using submultiplicativity,</p>
+<div class="math-display">
+  $$\left\| \frac{\partial L_k}{\partial h_t} \right\| \le \left\| \frac{\partial L_k}{\partial h_k} \right\| \prod_{j=t+1}^{k} \|D_j\|\,\|W_{hh}\|.$$
+</div>
+
+<p>For common activations such as sigmoid or $\tanh$,</p>
+<div class="math-display">
+  $$|\phi_1'(x)| \le \alpha \lt 1,$$
+</div>
+<p>which implies $\|D_j\| \le \alpha$. Activation derivatives therefore introduce an additional contractive effect, reinforcing the tendency for gradients to shrink over long horizons.</p>
+
+<p>Combined with the recurrent dynamics, this leads to two characteristic pathologies:</p>
+<ul>
+  <li><strong>Vanishing gradients:</strong> early time steps receive almost no learning signal, making long-term dependencies difficult to learn.</li>
+  <li><strong>Exploding gradients:</strong> gradient norms grow uncontrollably, producing unstable parameter updates.</li>
+</ul>
+
+<p><strong>Why Exploding Gradients Are Easier to Handle</strong></p>
+
+<p>In practice, exploding gradients are more manageable than vanishing ones. Explosions manifest as sudden large norm spikes, making them detectable during training. A simple and widely used remedy is <em>gradient clipping</em>, which rescales gradients whenever they exceed a threshold $\tau$:</p>
+<div class="math-display">
+  $$g \leftarrow g \cdot \frac{\tau}{\|g\|} \qquad \text{if } \|g\| \gt \tau .$$
+</div>
+
+<p>Vanishing gradients, by contrast, are silent: the learning signal simply disappears, leaving the model unable to adjust parameters that influence distant past states.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Insight</div>
+  <div class="math-box-body">
+    <p>Backpropagation through time repeatedly applies the same recurrent transformation. Small deviations from unit magnitude accumulate exponentially: some directions shrink, others grow. As sequence length increases, gradients either vanish or explode, making long-range learning unstable in vanilla RNNs.</p>
+  </div>
+</div>
+
+<p>The limitation of vanilla RNNs is not representational power but optimization.</p>
+
+<p>A recurrent network can, in principle, model complex sequential dependencies using a fixed set of shared parameters. In practice, however, learning is constrained by unstable gradient flow and by the need to compress an ever-growing history into a finite-dimensional hidden state. These two issues — fragile optimization and memory compression — motivate the architectural developments that follow.</p>
+
+<h2>LSTM and GRU: Fixing the Memory</h2>
+
+<p>The core issue is that memory is updated multiplicatively at every step, so gradients must pass through repeated products. Long-range dependencies --- the kind that matter most in language --- are exactly what vanilla RNNs cannot learn. The LSTM was designed specifically to fix this.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Long Short-Term Memory (LSTM)</div>
+  <div class="math-box-body">
+    <p>The <strong>LSTM</strong> introduces a <strong>cell state</strong> $c_t$ alongside $h_t$, controlled by three learned gates:</p>
+    <div class="math-display">
+      $$
+      \begin{align*}
+        f_t &= \sigma(W_f [h_{t-1}, x_t] + b_f) \quad \text{(forget gate: what to erase from } c_t\text{)} \\
+        i_t &= \sigma(W_i [h_{t-1}, x_t] + b_i) \quad \text{(input gate: what new info to write)} \\
+        o_t &= \sigma(W_o [h_{t-1}, x_t] + b_o) \quad \text{(output gate: what to expose as } h_t\text{)} \\[4pt]
+        c_t &= f_t \odot c_{t-1} + i_t \odot \tanh(W_c [h_{t-1}, x_t] + b_c) \\
+        h_t &= o_t \odot \tanh(c_t)
+      \end{align*}
+      $$
+    </div>
+    <p>The cell state $c_t$ is updated by <strong>addition</strong> rather than multiplication. Gradients flowing through $c_t$ do not shrink exponentially, allowing the LSTM to learn dependencies spanning hundreds of steps. Both $h_t$ and $c_t$ are deterministic.</p>
+  </div>
+</div>
+
+<p>The <strong>Gated Recurrent Unit (GRU)</strong> is a streamlined variant that merges $c_t$ and $h_t$ into a single state with two gates instead of three. Computationally cheaper, and in practice often matches LSTM performance.</p>
+
+<p>LSTMs and GRUs dominated sequence modeling from their introduction through the mid-2010s, producing strong results in machine translation, speech recognition, and language modeling. Their fundamental limitation remains: processing position $t$ requires the output of position $t-1$. Training is inherently sequential and cannot be parallelized across the time dimension.</p>
+
+<p><strong>Linear accumulation revisited.</strong></p>
+<p>The LSTM brings back an idea that first appeared in NADE: a linear additive path for carrying information forward. RNNs replaced linear accumulation with nonlinear state updates to gain expressive power, but this came at a cost: gradients shrink as they pass through many transformations, making long-range dependencies hard to learn. The LSTM addresses this by separating two roles that vanilla RNNs conflate. The hidden state handles nonlinear computation at each step, while the cell state follows a controlled additive update, gated by what the model has learned to remember or forget, giving gradients a stable path to flow backward across many steps. The key difference from NADE is that the linearity is not fixed: the forget and input gates decide at each step how much of the additive path to use. Uncontrolled linearity limits what a model can represent; controlled linearity, combined with nonlinear computation elsewhere, is what makes long-range memory possible.</p>
+
+<h2>Bidirectional RNNs</h2>
+
+<p>A standard RNN reads left to right. At position $t$, the hidden state $h_t$ summarizes everything seen so far — $x_1, \ldots, x_t$ — and nothing after it. For generation this is unavoidable: you cannot condition on tokens you have not yet produced. But when the full input sequence is already available, discarding the right context is a waste.</p>
+
+<p>Consider labeling each word in a sentence with its part of speech. The word "bank" is ambiguous in isolation, but not in "the bank of the river" versus "the bank approved the loan." A left-to-right RNN processing "the bank" has not yet seen the disambiguating context. A model that could see both directions simultaneously would have no such problem.</p>
+
+<p>A <strong>bidirectional RNN</strong> runs two RNNs over the same sequence:</p>
+<div class="math-display">
+  $$
+  \begin{align*}
+      \overrightarrow{h}_t &= \text{RNN}\!\left(x_t,\, \overrightarrow{h}_{t-1}\right) \quad \text{(left to right)} \\
+      \overleftarrow{h}_t &= \text{RNN}\!\left(x_t,\, \overleftarrow{h}_{t+1}\right) \quad \text{(right to left)}
+  \end{align*}
+  $$
+</div>
+
+<p>The two hidden states are concatenated at each position:</p>
+<div class="math-display">
+  $$h_t = \left[\,\overrightarrow{h}_t \;;\; \overleftarrow{h}_t\,\right]$$
+</div>
+
+<p>Now $h_t$ encodes the full sequence context around position $t$ — everything to its left and everything to its right. This makes bidirectional RNNs the natural choice whenever the task is to <em>encode</em> an input rather than <em>generate</em> an output. We will see this distinction become critical in the encoder-decoder architecture below.</p>
+
+<h2>Stacked RNNs and LSTMs</h2>
+
+<p>A single RNN layer maps an input sequence to a sequence of hidden states. Those hidden states are themselves a sequence — so there is nothing stopping us from feeding them into another RNN.</p>
+
+<div class="math-display">
+  $$
+  \begin{align*}
+      h_t^{(1)} &= \text{RNN}^{(1)}\!\left(x_t,\, h_{t-1}^{(1)}\right) \\
+      h_t^{(2)} &= \text{RNN}^{(2)}\!\left(h_t^{(1)},\, h_{t-1}^{(2)}\right) \\
+                 &\;\;\vdots \\
+      h_t^{(L)} &= \text{RNN}^{(L)}\!\left(h_t^{(L-1)},\, h_{t-1}^{(L)}\right)
+  \end{align*}
+  $$
+</div>
+
+<p>Lower layers capture local, surface-level patterns; upper layers build more abstract representations over longer spans. The final output at each timestep is $h_t^{(L)}$, the top-layer hidden state. The same principle applies directly to LSTMs — each layer receives the hidden states of the layer below as its input sequence, and maintains its own cell state independently.</p>
+
+<h2>Sequence-to-Sequence Learning: The Encoder-Decoder Architecture</h2>
+
+<p>Every model so far models a single sequence: $p(x_1, \ldots, x_n)$. But many tasks involve two sequences — an input and an output that are related but distinct. Machine translation is the clearest example: given an English sentence of length $n$, produce a German sentence of length $m$, where $n \neq m$ in general and neither is known in advance.</p>
+
+<p>What we need is a conditional model:</p>
+<div class="math-display">
+  $$p(y_1, \ldots, y_m \mid x_1, \ldots, x_n)$$
+</div>
+
+<p>The natural way to build this is to split the job in two. One network reads the input and builds a representation of it. Another network generates the output, conditioned on that representation. This is the <strong>encoder-decoder</strong> architecture.</p>
+
+<p><strong>Encoder.</strong></p>
+<p>The encoder reads the source sequence $x_{1:n}$ and transforms it into a single fixed-length representation called the <strong>context vector</strong>. At each step the encoder updates its hidden state using the current input token and the previous state:</p>
+<div class="math-display">
+  $$h_t = f_W(x_t, h_{t-1})$$
+</div>
+
+<p>After the final token is processed, the last hidden state becomes the summary of the entire input:</p>
+<div class="math-display">
+  $$c = h_n$$
+</div>
+
+<p><strong>Decoder.</strong></p>
+<p>The decoder generates the output sequence one token at a time. Its hidden state depends on the previously generated token, the previous decoder state, and the context vector produced by the encoder:</p>
+<div class="math-display">
+  $$s_t = g_U(y_{t-1}, s_{t-1}, c)$$
+</div>
+
+<p>The probability of the next token is obtained by applying a softmax to the decoder state:</p>
+<div class="math-display">
+  $$p(y_t \mid y_{\lt t}, x_{1:n}) = \text{softmax}(W s_t + b)$$
+</div>
+
+<p>The model therefore factorizes the conditional probability of the output sequence as</p>
+<div class="math-display">
+  $$p(y_{1:m} \mid x_{1:n}) = \prod_{t=1}^{m} p(y_t \mid y_{\lt t}, x_{1:n})$$
+</div>
+
+<figure class="seq2seq-figure">
+<style>
+.seq2seq-figure{
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.seq2seq-figure svg{
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.seq2seq-figure figcaption{
+  margin-top: 1rem;
+  text-align: center;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+</style>
+    <style>
+  .seq2seq-wrap { width: 100%; }
+  .seq2seq-wrap svg { width: 100%; height: auto; overflow: visible; }
+
+  :root {
+    --sq-enc-fill:   #E6F1FB; --sq-enc-stroke:  #185FA5; --sq-enc-text:   #0C447C;
+    --sq-tok-fill:   #FAEEDA; --sq-tok-stroke:  #854F0B; --sq-tok-text:   #633806;
+    --sq-ctx-fill:   #EEEDFE; --sq-ctx-stroke:  #534AB7; --sq-ctx-text:   #3C3489;
+    --sq-dec-fill:   #E1F5EE; --sq-dec-stroke:  #0F6E56; --sq-dec-text:   #085041;
+    --sq-out-fill:   #FAECE7; --sq-out-stroke:  #993C1D; --sq-out-text:   #712B13;
+    --sq-out-label:  #993C1D;
+    --sq-tok-label:  #854F0B;
+    --sq-div:        #ccc;
+    --sq-dots:       #aaa;
+  }
+  [data-theme="dark"] {
+    --sq-enc-fill:   #0C447C; --sq-enc-stroke:  #85B7EB; --sq-enc-text:   #B5D4F4;
+    --sq-tok-fill:   #633806; --sq-tok-stroke:  #FAC775; --sq-tok-text:   #FAEEDA;
+    --sq-ctx-fill:   #3C3489; --sq-ctx-stroke:  #AFA9EC; --sq-ctx-text:   #CECBF6;
+    --sq-dec-fill:   #085041; --sq-dec-stroke:  #5DCAA5; --sq-dec-text:   #9FE1CB;
+    --sq-out-fill:   #712B13; --sq-out-stroke:  #F0997B; --sq-out-text:   #F5C4B3;
+    --sq-out-label:  #F0997B;
+    --sq-tok-label:  #FAC775;
+    --sq-div:        #444;
+    --sq-dots:       #666;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --sq-enc-fill:   #0C447C; --sq-enc-stroke:  #85B7EB; --sq-enc-text:   #B5D4F4;
+      --sq-tok-fill:   #633806; --sq-tok-stroke:  #FAC775; --sq-tok-text:   #FAEEDA;
+      --sq-ctx-fill:   #3C3489; --sq-ctx-stroke:  #AFA9EC; --sq-ctx-text:   #CECBF6;
+      --sq-dec-fill:   #085041; --sq-dec-stroke:  #5DCAA5; --sq-dec-text:   #9FE1CB;
+      --sq-out-fill:   #712B13; --sq-out-stroke:  #F0997B; --sq-out-text:   #F5C4B3;
+      --sq-out-label:  #F0997B;
+      --sq-tok-label:  #FAC775;
+      --sq-div:        #444;
+      --sq-dots:       #666;
+    }
+  }
+</style>
+
+
+<svg viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="sq-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+          markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- Section labels -->
+<text x="108" y="22" text-anchor="middle" font-size="13" font-weight="500" fill="var(--sq-enc-stroke)">Encoder</text>
+<text x="510" y="22" text-anchor="middle" font-size="13" font-weight="500" fill="var(--sq-dec-stroke)">Decoder</text>
+
+<!-- Dashed divider -->
+<line x1="268" y1="10" x2="268" y2="390" stroke="var(--sq-div)" stroke-width="1" stroke-dasharray="5 4"/>
+
+<!-- ── ENCODER TOKENS ── -->
+<rect x="24"  y="322" width="46" height="36" rx="5" fill="var(--sq-tok-fill)" stroke="var(--sq-tok-stroke)" stroke-width="0.5"/>
+<text x="47"  y="340" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-tok-text)">x₁</text>
+<text x="47"  y="368" text-anchor="middle" font-size="11" fill="var(--sq-tok-label)">the</text>
+
+<rect x="82"  y="322" width="46" height="36" rx="5" fill="var(--sq-tok-fill)" stroke="var(--sq-tok-stroke)" stroke-width="0.5"/>
+<text x="105" y="340" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-tok-text)">x₂</text>
+<text x="105" y="368" text-anchor="middle" font-size="11" fill="var(--sq-tok-label)">black</text>
+
+<text x="160" y="342" text-anchor="middle" font-size="16" fill="var(--sq-dots)">···</text>
+
+<rect x="192" y="322" width="46" height="36" rx="5" fill="var(--sq-tok-fill)" stroke="var(--sq-tok-stroke)" stroke-width="0.5"/>
+<text x="215" y="340" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-tok-text)">xₙ</text>
+<text x="215" y="368" text-anchor="middle" font-size="11" fill="var(--sq-tok-label)">rug</text>
+
+<!-- ── ENCODER HIDDEN STATES ── -->
+<rect x="24"  y="224" width="46" height="36" rx="5" fill="var(--sq-enc-fill)" stroke="var(--sq-enc-stroke)" stroke-width="0.5"/>
+<text x="47"  y="242" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-enc-text)">h₁</text>
+
+<rect x="82"  y="224" width="46" height="36" rx="5" fill="var(--sq-enc-fill)" stroke="var(--sq-enc-stroke)" stroke-width="0.5"/>
+<text x="105" y="242" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-enc-text)">h₂</text>
+
+<text x="160" y="244" text-anchor="middle" font-size="16" fill="var(--sq-dots)">···</text>
+
+<rect x="192" y="224" width="46" height="36" rx="5" fill="var(--sq-enc-fill)" stroke="var(--sq-enc-stroke)" stroke-width="0.5"/>
+<text x="215" y="242" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-enc-text)">hₙ</text>
+
+<!-- token → hidden -->
+<line x1="47"  y1="322" x2="47"  y2="262" stroke="var(--sq-enc-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="105" y1="322" x2="105" y2="262" stroke="var(--sq-enc-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="215" y1="322" x2="215" y2="262" stroke="var(--sq-enc-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+
+<!-- h→h arrows -->
+<line x1="70"  y1="242" x2="80"  y2="242" stroke="var(--sq-enc-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="128" y1="242" x2="148" y2="242" stroke="var(--sq-enc-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="172" y1="242" x2="190" y2="242" stroke="var(--sq-enc-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+
+<!-- ── CONTEXT VECTOR ── -->
+<rect x="282" y="284" width="42" height="36" rx="5" fill="var(--sq-ctx-fill)" stroke="var(--sq-ctx-stroke)" stroke-width="0.5"/>
+<text x="303" y="302" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-ctx-text)">c</text>
+
+<!-- hn → c (L-shaped) -->
+<path d="M238 242 L258 242 L258 302 L280 302" fill="none" stroke="var(--sq-ctx-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+
+<!-- ── DECODER STATES ── -->
+<rect x="282" y="148" width="42" height="36" rx="5" fill="var(--sq-dec-fill)" stroke="var(--sq-dec-stroke)" stroke-width="0.5"/>
+<text x="303" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-dec-text)">s₀</text>
+
+<rect x="346" y="148" width="42" height="36" rx="5" fill="var(--sq-dec-fill)" stroke="var(--sq-dec-stroke)" stroke-width="0.5"/>
+<text x="367" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-dec-text)">s₁</text>
+
+<rect x="410" y="148" width="42" height="36" rx="5" fill="var(--sq-dec-fill)" stroke="var(--sq-dec-stroke)" stroke-width="0.5"/>
+<text x="431" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-dec-text)">s₂</text>
+
+<rect x="474" y="148" width="42" height="36" rx="5" fill="var(--sq-dec-fill)" stroke="var(--sq-dec-stroke)" stroke-width="0.5"/>
+<text x="495" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-dec-text)">s₃</text>
+
+<rect x="538" y="148" width="42" height="36" rx="5" fill="var(--sq-dec-fill)" stroke="var(--sq-dec-stroke)" stroke-width="0.5"/>
+<text x="559" y="166" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-dec-text)">s₄</text>
+
+<!-- s→s arrows -->
+<line x1="324" y1="166" x2="344" y2="166" stroke="var(--sq-dec-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="388" y1="166" x2="408" y2="166" stroke="var(--sq-dec-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="452" y1="166" x2="472" y2="166" stroke="var(--sq-dec-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="516" y1="166" x2="536" y2="166" stroke="var(--sq-dec-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+
+<!-- ── CONTEXT RAIL ── -->
+<line x1="324" y1="302" x2="580" y2="302" stroke="var(--sq-ctx-stroke)" stroke-width="0.9"/>
+<line x1="358" y1="302" x2="358" y2="186" stroke="var(--sq-ctx-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="422" y1="302" x2="422" y2="186" stroke="var(--sq-ctx-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="486" y1="302" x2="486" y2="186" stroke="var(--sq-ctx-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="550" y1="302" x2="550" y2="186" stroke="var(--sq-ctx-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+
+<!-- ── DECODER INPUT TOKENS ── -->
+<rect x="346" y="322" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="367" y="340" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₀</text>
+<text x="367" y="368" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">[start]</text>
+
+<rect x="410" y="322" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="431" y="340" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₁</text>
+<text x="431" y="368" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">die</text>
+
+<rect x="474" y="322" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="495" y="340" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₂</text>
+<text x="495" y="368" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">schwarze</text>
+
+<rect x="538" y="322" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="559" y="340" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₃</text>
+<text x="559" y="368" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">katze</text>
+
+<!-- decoder input → state -->
+<line x1="367" y1="322" x2="367" y2="186" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="431" y1="322" x2="431" y2="186" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="495" y1="322" x2="495" y2="186" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="559" y1="322" x2="559" y2="186" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+
+<!-- ── DECODER OUTPUT TOKENS ── -->
+<text x="367" y="50" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">die</text>
+<rect x="346" y="54" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="367" y="72" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₁</text>
+
+<text x="431" y="50" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">schwarze</text>
+<rect x="410" y="54" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="431" y="72" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₂</text>
+
+<text x="495" y="50" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">katze</text>
+<rect x="474" y="54" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="495" y="72" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₃</text>
+
+<text x="559" y="50" text-anchor="middle" font-size="11" fill="var(--sq-out-label)">schläft</text>
+<rect x="538" y="54" width="42" height="36" rx="5" fill="var(--sq-out-fill)" stroke="var(--sq-out-stroke)" stroke-width="0.5"/>
+<text x="559" y="72" text-anchor="middle" dominant-baseline="central" font-size="13" font-style="italic" fill="var(--sq-out-text)">y₄</text>
+
+<!-- state → output -->
+<line x1="367" y1="148" x2="367" y2="92" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="431" y1="148" x2="431" y2="92" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="495" y1="148" x2="495" y2="92" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+<line x1="559" y1="148" x2="559" y2="92" stroke="var(--sq-out-stroke)" stroke-width="0.9" marker-end="url(#sq-arrow)"/>
+
+</svg>
+
+<figcaption>
+    <strong>Figure:</strong> Sequence-to-sequence encoder–decoder architecture translating the English sentence "the black cat sleeps on the rug" into German.
+ </figcaption>
+</figure>
+
+
+<h3>The bottleneck</h3>
+<p>There is a quiet problem in this architecture. The context vector $c$ is fixed-size. It does not matter whether the source sentence has 5 words or 50 — the encoder must compress everything into the same vector. For short sentences, this works well. For long sentences, it does not: information gets squeezed out, and translation quality degrades visibly with source length.</p>
+
+<p>The problem is not the LSTM — a more powerful encoder will not fix it. The problem is structural. A single vector is a hard bottleneck, and no encoder, however deep, can overcome a fixed-size information channel when the input is arbitrarily long.</p>
+
+<p>The fix is to stop forcing the decoder to read from a single summary. Instead, let the decoder look back at <em>all</em> the encoder hidden states $h_1, \ldots, h_n$ and decide, at each generation step, which parts of the source to focus on. That mechanism is <strong>attention</strong>, and it is the subject of the next section.</p>  
+
+
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

@@ -9,8 +9,8 @@
     <meta name="author" content="Yogesh">
     <meta name="date" content="2026-04-07">
     <meta name="order" content="1">
-    <meta name="status" content="draft">
-    <meta name="belongs_to" content="lib">
+    <meta name="status" content="live">
+    <meta name="belongs_to" content="">
     <meta name="keywords" content="generative models, taxonomy, autoregressive, normalizing flows, VAE, GAN, diffusion models, score-based models">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -20,7 +20,95 @@
 
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/articles.css">
+<style>
+  /* ============================================================
+   taxonomy.css
+   Specific styles for the taxonomy article structure.
+   ============================================================ */
 
+.tax-root { 
+  font-size: 1.4rem; 
+  font-weight: 600; 
+  color: var(--dark); 
+  margin-bottom: 1rem; 
+}
+
+.tax-branch-label { 
+  font-size: 1.2rem; 
+  font-weight: 600; 
+  color: var(--dark); 
+  margin: 2.5rem 0 0.2rem; 
+  padding-bottom: 0.3rem; 
+  border-bottom: 1px solid var(--border); 
+}
+
+.tax-desc { 
+  font-size: 0.9rem; 
+  color: var(--muted); 
+  font-style: italic; 
+  margin-bottom: 1rem; 
+  padding-left: 0.5rem; 
+}
+
+.tax-section { 
+  padding-left: 1.5rem; 
+  border-left: 2px solid var(--surface); 
+  margin: 1.5rem 0; 
+}
+
+.tax-section-title { 
+  font-size: 1.05rem; 
+  font-weight: 600; 
+  color: var(--text); 
+  margin-bottom: 0.5rem; 
+}
+
+.tax-dim { 
+  color: var(--muted); 
+  font-weight: 400; 
+  font-size: 0.9rem; 
+  font-style: italic; 
+}
+
+.tax-group { 
+  padding-left: 1.2rem; 
+  border-left: 1px dashed var(--border); 
+  margin-top: 0.8rem; 
+  margin-bottom: 1.2rem; 
+}
+
+.tax-group-title { 
+  font-size: 0.8rem; 
+  margin-bottom: 0.6rem; 
+}
+
+.tax-items { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 0.5rem; 
+}
+
+.tax-items span {
+  transition: border-color 0.2s, color 0.2s; /* standard hover transition */
+}
+
+.tax-items span:hover { 
+  border-color: var(--accent); 
+  color: var(--accent); 
+}
+
+/* ── Taxonomy Theme Transitions ── */
+.theme-transitioning .tax-root, 
+.theme-transitioning .tax-branch-label {
+  transition: color 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.theme-transitioning .tax-items span {
+  transition: 
+    border-color 350ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 350ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+</style>
     <script>
         (() => {
             const theme = localStorage.getItem("theme") || "light";

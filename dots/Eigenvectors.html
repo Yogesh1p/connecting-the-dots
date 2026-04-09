@@ -142,7 +142,7 @@
     These are the <strong>eigenvectors</strong>.
   </p>
 
-  <div class="math-box definition-box">
+  <div class="math-box">
     <div class="math-box-body">
       <p>If a nonzero vector \(x\) satisfies</p>
       <div class="math-display">
@@ -190,7 +190,7 @@
     \]
   </div>
 
-  <div class="math-box key-box">
+  <div class="math-box">
     <div class="math-box-label">Key Insight</div>
     <div class="math-box-body">
       <p>
@@ -231,26 +231,7 @@
 </section>
 
 
-<section id="eigen-animation">
-  <h3>Visual Intuition: Repeated Matrix Action</h3>
-  <div class="eigen-animation-wrap">
-    <div id="exponentLabel" class="stats">Matrix Power: $A^{1.00}$</div>
-<canvas id="eigenCanvas" width="360" height="360"></canvas>
-<div class="legend">
-    <div class="legend-item">
-        <span class="dot" style="background-color: var(--accent);"></span> 
-        <span>Column 1</span>
-    </div>
-    <div class="legend-item">
-        <span class="dot" style="background-color: var(--dark);"></span> 
-        <span>Column 2</span>
-    </div>
-</div>
-    <div class="controls-wrap">
-        <button class="restart-btn" onclick="resetAnimation()">Restart Animation</button>
-    </div>
-  </div>
-</section>
+
 
 
 
@@ -288,7 +269,7 @@
   <section id="definitions">
    
 
-    <div class="math-box definition-box">
+    <div class="math-box">
       <div class="math-box-body">
         <p>
           Let \(A \in \mathbb{R}^{n\times n}\). A non-zero vector
@@ -337,7 +318,7 @@
     is <strong>singular</strong>.
   </p>
 
-  <div class="math-box definition-box">
+  <div class="math-box">
     <div class="math-box-label">Key condition</div>
     <div class="math-box-body">
       <p>
@@ -371,7 +352,7 @@ to compute the corresponding eigenvectors.
 This leads to a simple and systematic
 <strong>3-step algorithm</strong>.
 </p>
-<div class="math-box key-box">
+<div class="math-box">
   <div class="math-box-label">3-Step Algorithm</div>
   <div class="math-box-body">
     <ol>
@@ -389,7 +370,7 @@ This leads to a simple and systematic
       </li>
     </ol>
 
-    <details class="proof-toggle" style="margin-top:1rem;">
+    <details class="toggle" style="margin-top:1rem;">
       <summary><strong>Worked Example</strong></summary>
 
       <p>Find the eigenvalues and eigenvectors of</p>
@@ -818,7 +799,7 @@ are the reciprocals of the eigenvalues of
     Multiplying by \(X^{-1}\) changes into the eigenvector basis:
   </p>
 
- <div class="math-box theorem-box">
+ <div class="math-box">
   <div class="math-box-label">Diagonalisation</div>
   <div class="math-box-body">
     <div class="math-display">
@@ -832,7 +813,7 @@ are the reciprocals of the eigenvalues of
       eigendirection.
     </p>
 
-    <details class="proof-toggle" style="margin-top:1rem;">
+    <details class="toggle" style="margin-top:1rem;">
       <summary><strong>When is this possible?</strong></summary>
 
       <p>
@@ -853,7 +834,7 @@ are the reciprocals of the eigenvalues of
       </p>
     </details>
 
-    <details class="proof-toggle" style="margin-top:1rem;">
+    <details class="toggle" style="margin-top:1rem;">
       <summary><strong>When is this not possible?</strong></summary>
 
       <p>Consider</p>
@@ -925,9 +906,7 @@ are the reciprocals of the eigenvalues of
 
 
 
-    <div class="math-box note-box">
-      <div class="math-box-label">Rank and eigenstructure</div>
-      <div class="math-box-body">
+
         <p>
           Rank tells you how many dimensions survive under \(A\),
           not which special directions survive unchanged.
@@ -939,8 +918,7 @@ are the reciprocals of the eigenvalues of
           </li>
           <li>Rank does <em>not</em> determine diagonalisability</li>
         </ul>
-      </div>
-    </div>
+
 
 
 <section id="symmetric-matrices">
@@ -952,18 +930,18 @@ are the reciprocals of the eigenvalues of
     Symmetry forces every eigenvalue to be <strong>real</strong>.
   </p>
 
-<div class="math-box theorem-box">
+<div class="math-box">
   <div class="math-box-label">Real eigenvalues</div>
   <div class="math-box-body">
-   <p class="theorem-statement">
+   <p >
   If \(S=S^T\) and \(Sx=\lambda x\), then
   \(\lambda\in\mathbb{R}\).
 </p>
 
-    <details class="proof-toggle">
+    <details class="toggle">
       <summary>Proof</summary>
 
-      <div class="proof-content">
+      
         <p>Start from</p>
 
         <div class="math-display">
@@ -1026,9 +1004,9 @@ are the reciprocals of the eigenvalues of
       </div>
     </details>
   </div>
-</div>
 
-<div class="math-box theorem-box">
+
+<div class="math-box">
   <div class="math-box-label">Orthogonal eigenvectors</div>
   <div class="math-box-body">
     <p>
@@ -1036,10 +1014,10 @@ are the reciprocals of the eigenvalues of
       <strong>distinct eigenvalues</strong> are always orthogonal.
     </p>
  
-    <details class="proof-toggle">
+    <details class="toggle">
       <summary>Proof</summary>
 
-      <div class="proof-content">
+      
     <p>
       Suppose
     </p>
@@ -1096,230 +1074,227 @@ are the reciprocals of the eigenvalues of
     </p>
   </div>
 </div>
-</div>
 
-<div class="math-box key-box">
-  <div class="math-box-label">Why symmetry never fails</div>
+
+<div class="math-box">
+  <div class="math-box-label">Symmetric matrices are always diagonalizable</div>
   <div class="math-box-body">
-    <p class="theorem-statement">
+    <p>
       Repeated eigenvalues may destroy diagonalisation for general
       matrices, but this never happens for symmetric matrices.
     </p>
 
-    <details class="proof-toggle">
+    <details class="toggle">
       <summary>Proof idea 1: perturbation intuition</summary>
-      <div class="proof-content">
-        <p>
-          Slightly perturb the matrix by adding a tiny diagonal term
-        </p>
+      
+      <p>
+        Slightly perturb the matrix by adding a tiny diagonal term
+      </p>
 
-        <div class="math-display">
-          \[
-          S+\operatorname{diag}(c,2c,\dots,nc)
-          \]
-        </div>
-
-        <p>
-          For very small \(c\), the repeated eigenvalues split apart.
-          The perturbed symmetric matrix now has distinct eigenvalues,
-          hence a full orthonormal eigenbasis.
-        </p>
-
-        <p>
-          As \(c\to 0\), these orthonormal eigenvectors converge to an
-          orthonormal basis for the original matrix.
-        </p>
-
-        <p>
-          This gives the right intuition, though by itself it is not a
-          fully rigorous proof.
-        </p>
+      <div class="math-display">
+        \[
+        S+\operatorname{diag}(c,2c,\dots,nc)
+        \]
       </div>
+
+      <p>
+        For very small \(c\), the repeated eigenvalues split apart.
+        The perturbed symmetric matrix now has distinct eigenvalues,
+        hence a full orthonormal eigenbasis.
+      </p>
+
+      <p>
+        As \(c\to 0\), these orthonormal eigenvectors converge to an
+        orthonormal basis for the original matrix.
+      </p>
+
+      <p>
+        This gives the right intuition, though by itself it is not a
+        fully rigorous proof.
+      </p>
     </details>
 
-    <details class="proof-toggle">
+    <details class="toggle">
       <summary>Proof 2: Schur factorization (rigorous)</summary>
-      <div class="proof-content">
-        <p>
-          Every square matrix admits the Schur factorization
-        </p>
+      
+      <p>
+        Every square matrix admits the Schur factorization
+      </p>
 
-        <div class="math-display">
-          \[
-          A=QTQ^T
-          \]
-        </div>
-
-        <p>
-          where \(Q\) is orthogonal and \(T\) is upper triangular.
-          Applying this to a symmetric matrix gives
-        </p>
-
-        <div class="math-display">
-          \[
-          S=QTQ^T
-          \]
-        </div>
-
-        <p>
-          Taking transposes and using \(S=S^T\):
-        </p>
-
-        <div class="math-display">
-          \[
-          T=Q^TSQ,\qquad T^T=Q^TS^TQ=T
-          \]
-        </div>
-
-        <p>
-          So \(T\) is both upper triangular and symmetric, which forces
-          it to be diagonal:
-        </p>
-
-        <div class="math-display">
-          \[
-          T=\Lambda
-          \]
-        </div>
-
-        <p>
-          Hence
-        </p>
-
-        <div class="math-display">
-          \[
-          S=Q\Lambda Q^T
-          \]
-        </div>
-
-        <p>
-          Therefore symmetric matrices always have a full orthonormal
-          eigenbasis.
-        </p>
+      <div class="math-display">
+        \[
+        A=QTQ^T
+        \]
       </div>
+
+      <p>
+        where \(Q\) is orthogonal and \(T\) is upper triangular.
+        Applying this to a symmetric matrix gives
+      </p>
+
+      <div class="math-display">
+        \[
+        S=QTQ^T
+        \]
+      </div>
+
+      <p>
+        Taking transposes and using \(S=S^T\):
+      </p>
+
+      <div class="math-display">
+        \[
+        T=Q^TSQ,\qquad T^T=Q^TS^TQ=T
+        \]
+      </div>
+
+      <p>
+        So \(T\) is both upper triangular and symmetric, which forces
+        it to be diagonal:
+      </p>
+
+      <div class="math-display">
+        \[
+        T=\Lambda
+        \]
+      </div>
+
+      <p>
+        Hence
+      </p>
+
+      <div class="math-display">
+        \[
+        S=Q\Lambda Q^T
+        \]
+      </div>
+
+      <p>
+        Therefore symmetric matrices always have a full orthonormal
+        eigenbasis.
+      </p>
     </details>
 
-<details class="proof-toggle">
-  <summary>Proof 3: one eigenvector at a time</summary>
-  <div class="proof-content">
-    <p>
-      Consider the quadratic form
-    </p>
+    <details class="toggle">
+      <summary>Proof 3: one eigenvector at a time</summary>
+      
+      <p>
+        Consider the quadratic form
+      </p>
 
-    <div class="math-display">
-      \[
-      f(x)=x^TSx
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        f(x)=x^TSx
+        \]
+      </div>
 
-    <p>
-      over all unit vectors \(\|x\|=1\).
-      Since the unit sphere is compact, \(f(x)\) attains a maximum at
-      some unit vector \(q_1\).
-    </p>
+      <p>
+        over all unit vectors \(\|x\|=1\).
+        Since the unit sphere is compact, \(f(x)\) attains a maximum at
+        some unit vector \(q_1\).
+      </p>
 
-    <p>
-      To maximize \(x^TSx\) subject to \(x^Tx=1\), use a Lagrange
-      multiplier:
-    </p>
+      <p>
+        To maximize \(x^TSx\) subject to \(x^Tx=1\), use a Lagrange
+        multiplier:
+      </p>
 
-    <div class="math-display">
-      \[
-      \nabla(x^TSx)=\lambda \nabla(x^Tx)
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        \nabla(x^TSx)=\lambda \nabla(x^Tx)
+        \]
+      </div>
 
-    <p>
-      Because \(S\) is symmetric,
-    </p>
+      <p>
+        Because \(S\) is symmetric,
+      </p>
 
-    <div class="math-display">
-      \[
-      2Sx=2\lambda x
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        2Sx=2\lambda x
+        \]
+      </div>
 
-    <p>
-      so
-    </p>
+      <p>
+        so
+      </p>
 
-    <div class="math-display">
-      \[
-      Sq_1=\lambda_1 q_1
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        Sq_1=\lambda_1 q_1
+        \]
+      </div>
 
-    <p>
-      Thus the maximizing direction is an eigenvector.
-    </p>
+      <p>
+        Thus the maximizing direction is an eigenvector.
+      </p>
 
-    <p>
-      Now search for the next maximum among unit vectors satisfying
-    </p>
+      <p>
+        Now search for the next maximum among unit vectors satisfying
+      </p>
 
-    <div class="math-display">
-      \[
-      x^Tq_1=0
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        x^Tq_1=0
+        \]
+      </div>
 
-    <p>
-      This constrained set is again compact, so the maximum exists at a
-      vector \(q_2\), which by the same Lagrange multiplier argument
-      satisfies
-    </p>
+      <p>
+        This constrained set is again compact, so the maximum exists at a
+        vector \(q_2\), which by the same Lagrange multiplier argument
+        satisfies
+      </p>
 
-    <div class="math-display">
-      \[
-      Sq_2=\lambda_2 q_2
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        Sq_2=\lambda_2 q_2
+        \]
+      </div>
 
-    <p>
-      Continue inductively: after finding
-      \(q_1,\dots,q_k\), maximize over unit vectors satisfying
-    </p>
+      <p>
+        Continue inductively: after finding
+        \(q_1,\dots,q_k\), maximize over unit vectors satisfying
+      </p>
 
-    <div class="math-display">
-      \[
-      x^Tq_1=\cdots=x^Tq_k=0
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        x^Tq_1=\cdots=x^Tq_k=0
+        \]
+      </div>
 
-    <p>
-      Each step produces a new eigenvector orthogonal to all previous
-      ones.
-    </p>
+      <p>
+        Each step produces a new eigenvector orthogonal to all previous
+        ones.
+      </p>
 
-    <p>
-      After \(n\) steps, we obtain an orthonormal basis
-    </p>
+      <p>
+        After \(n\) steps, we obtain an orthonormal basis
+      </p>
 
-    <div class="math-display">
-      \[
-      q_1,\dots,q_n
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        q_1,\dots,q_n
+        \]
+      </div>
 
-    <p>
-      consisting entirely of eigenvectors. Therefore
-    </p>
+      <p>
+        consisting entirely of eigenvectors. Therefore
+      </p>
 
-    <div class="math-display">
-      \[
-      S=Q\Lambda Q^T
-      \]
-    </div>
+      <div class="math-display">
+        \[
+        S=Q\Lambda Q^T
+        \]
+      </div>
 
-    <p>
-      which proves the spectral theorem.
-    </p>
-  </div>
-</details>
+      <p>
+        which proves the spectral theorem.
+      </p>
+    </details>
   </div>
 </div>
 
-<div class="math-box theorem-box">
+<div class="math-box">
   <div class="math-box-label">Spectral Theorem</div>
   <div class="math-box-body">
     <p>
@@ -1357,7 +1332,7 @@ are the reciprocals of the eigenvalues of
     <strong>rotate, stretch, rotate back</strong>.
   </p>
 
-  <div class="math-box key-box">
+  <div class="math-box">
     <div class="math-box-label">Geometric interpretation</div>
     <div class="math-box-body">
       <div class="math-display">
@@ -1384,7 +1359,7 @@ are the reciprocals of the eigenvalues of
     \]
   </div>
 
-  <div class="math-box definition-box">
+  <div class="math-box">
     <div class="math-box-label">Key consequences</div>
     <div class="math-box-body">
       <ul>
@@ -1399,7 +1374,7 @@ are the reciprocals of the eigenvalues of
     </div>
   </div>
 
-  <div class="math-box example-box">
+  <div class="math-box">
     <div class="math-box-label">Antisymmetric contrast</div>
     <div class="math-box-body">
       <p>
@@ -1414,7 +1389,7 @@ are the reciprocals of the eigenvalues of
  <section id="positive-definite-matrices">
   <h2>Positive Definite Matrices</h2>
 
-  <div class="math-box definition-box">
+  <div class="math-box">
     <div class="math-box-label">Positive Definite Matrix</div>
     <div class="math-box-body">
       <p>
@@ -1482,30 +1457,7 @@ are the reciprocals of the eigenvalues of
   </ul>
 </section>
 
-  <section id="cholesky">
-    <h2>Cholesky Factorisation</h2>
-
-    <p>
-      Every symmetric positive definite matrix admits a unique factorisation
-    </p>
-
-    <div class="math-display">
-      \[
-      S=R^TR
-      \]
-    </div>
-
-    <p>
-      where \(R\) is upper triangular with positive diagonal entries.
-    </p>
-
-    <ol>
-      <li>\(A_1\): rectangular, independent columns</li>
-      <li>\(A_2\): upper triangular Cholesky factor</li>
-      <li>\(A_3=Q\Lambda^{1/2}Q^T\): symmetric square root</li>
-    </ol>
-  </section>
-
+ 
 </section>
                     
                     </section>
