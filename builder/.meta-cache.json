@@ -35,7 +35,7 @@
     "part": "Transformer Foundations",
     "keywords": "autoregressive models, FVSBN, NADE, RNADE, MADE, masked autoencoder, density estimation, fixed-length models, binary vectors, MNIST, variable-length sequences, language modeling",
     "order": "2",
-    "status": "live",
+    "status": "draft",
     "belongs_to": "lib"
   },
   {
@@ -48,7 +48,7 @@
     "part": "Transformer Foundations",
     "keywords": "embeddings, word2vec, skipgram, CBOW",
     "order": "4",
-    "status": "draft",
+    "status": "hide",
     "belongs_to": "lib"
   },
   {
@@ -74,7 +74,7 @@
     "part": "Transformer Foundations",
     "keywords": "attention, cross-attention, self-attention, masked attention, scaled dot-product attention, multi-head attention, transformer, seq2seq bottleneck, queries keys values, autoregressive decoding",
     "order": "6",
-    "status": "live",
+    "status": "draft",
     "belongs_to": "lib"
   },
   {
@@ -87,7 +87,7 @@
     "part": "Transformer Foundations",
     "keywords": "chain rule, bayesian networks, markov models, generative modeling",
     "order": "1",
-    "status": "live",
+    "status": "draft",
     "belongs_to": "lib"
   },
   {
@@ -126,7 +126,7 @@
     "part": "Transformer Foundations",
     "keywords": "RNN, recurrent neural network, hidden state, BPTT, vanishing gradients, exploding gradients, LSTM, GRU, bidirectional RNN, stacked RNN, seq2seq, encoder decoder, sequence memory, attention bottleneck",
     "order": "5",
-    "status": "live",
+    "status": "draft",
     "belongs_to": "lib"
   },
   {
@@ -178,7 +178,7 @@
     "part": "Transformer Foundations",
     "keywords": "embeddings, word2vec, skipgram, CBOW",
     "order": "4",
-    "status": "live",
+    "status": "draft",
     "belongs_to": "lib"
   }
 ]

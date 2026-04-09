@@ -49,6 +49,7 @@ function createPageObject(file, content, readingTime, isLibrary = false) {
     part: getMeta(content, "part") || "Main",
     keywords: getMeta(content, "keywords") || "",
     order: parseInt(getMeta(content, "order")) || 999,
+    status: (getMeta(content, "status") || "draft").toLowerCase(), // <-- Added Status extraction here
     readingTime
   };
 }
@@ -84,8 +85,7 @@ function build() {
     } catch (e) {}
   }
 
-  // If the core metadata hasn't changed, ABORT immediately. 
-  // Do not recalculate reading time or overwrite HTML files.
+  // If the core metadata hasn't changed, ABORT immediately.
   if (JSON.stringify(currentMetaSnapshot) === JSON.stringify(previousMetaSnapshot)) {
     console.log(`⏩ No explicit <meta> changes detected. Ignored prose update.`);
     return;
@@ -107,11 +107,20 @@ function build() {
       content = updatedContent;
     }
 
-    if (getMeta(content, "status") !== "live") return;
-
+    // Generate the baseline page object for this file
     const page = createPageObject(file, content, readingTime);
-    dotsPages.push(page);
 
+    // 1. NEW LOGIC: If status is 'hide', completely skip this file.
+    if (page.status === "hide") {
+      return; 
+    }
+
+    // ONLY push "live" articles to your main dots feed
+    if (page.status === "live") {
+      dotsPages.push(page);
+    }
+
+    // Push ALL articles (Live AND Draft) to the library feed if they belong there
     if (getMeta(content, "belongs_to") === "lib") {
       libPages.push(createPageObject(file, content, readingTime, true));
     }

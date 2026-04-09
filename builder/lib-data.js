@@ -10,6 +10,7 @@ window.rawPages = [
     "part": "  ",
     "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive-definite-matrices, cholesky factorisation",
     "order": 4,
+    "status": "live",
     "readingTime": 11
   },
   {
@@ -22,6 +23,7 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "keywords": "autoregressive models, FVSBN, NADE, RNADE, MADE, masked autoencoder, density estimation, fixed-length models, binary vectors, MNIST, variable-length sequences, language modeling",
     "order": 2,
+    "status": "draft",
     "readingTime": 15
   },
   {
@@ -34,6 +36,7 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "keywords": "attention, cross-attention, self-attention, masked attention, scaled dot-product attention, multi-head attention, transformer, seq2seq bottleneck, queries keys values, autoregressive decoding",
     "order": 6,
+    "status": "draft",
     "readingTime": 16
   },
   {
@@ -46,7 +49,21 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "keywords": "chain rule, bayesian networks, markov models, generative modeling",
     "order": 1,
+    "status": "draft",
     "readingTime": 6
+  },
+  {
+    "url": "../dots/intro_lvm.html",
+    "book": "generative",
+    "title": "Introduction to Latent Variable Models",
+    "description": "The limitations of autoregressive models and the motivation for latent variable models, illustrated through the compass analogy.",
+    "date": "2026-04-09",
+    "chapter": "Latent Variable Models",
+    "part": " ",
+    "keywords": "latent variable models, autoregressive models, Bayesian inference",
+    "order": 1,
+    "status": "draft",
+    "readingTime": 2
   },
   {
     "url": "../dots/pos_enc.html",
@@ -58,6 +75,7 @@ window.rawPages = [
     "part": "Large Language Models",
     "keywords": "positional encoding, RoPE, sinusoidal embeddings, attention, transformer",
     "order": 5,
+    "status": "live",
     "readingTime": 8
   },
   {
@@ -70,7 +88,21 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "keywords": "RNN, recurrent neural network, hidden state, BPTT, vanishing gradients, exploding gradients, LSTM, GRU, bidirectional RNN, stacked RNN, seq2seq, encoder decoder, sequence memory, attention bottleneck",
     "order": 5,
+    "status": "draft",
     "readingTime": 13
+  },
+  {
+    "url": "../dots/test-page.html",
+    "book": "dots",
+    "title": "test page",
+    "description": "A brief description of this dot.",
+    "date": "2026-04-04",
+    "chapter": "New Chapter",
+    "part": "Main",
+    "keywords": "",
+    "order": 99,
+    "status": "draft",
+    "readingTime": 1
   },
   {
     "url": "../dots/vec_spaces.html",
@@ -82,6 +114,7 @@ window.rawPages = [
     "part": " ",
     "keywords": "vector spaces, subspaces, basis, dimension, rank, nullity, column space, row space, null space",
     "order": 3,
+    "status": "live",
     "readingTime": 7
   },
   {
@@ -94,6 +127,7 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "keywords": "embeddings, word2vec, skipgram, CBOW",
     "order": 4,
+    "status": "draft",
     "readingTime": 13
   }
 ];

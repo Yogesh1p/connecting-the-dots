@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="../css/base.css">
 
 <style>
+  
  .book-switcher {
   display: flex;
   justify-content: center;
@@ -316,7 +317,30 @@
     color: var(--muted);
     font-style: italic;
   }
+/* --- Draft Badge Only --- */
+  .status-badge {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.65rem; /* Slightly larger for readability */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25em 0.6em; /* Using ems keeps padding proportional */
+    border-radius: 6px;
+    margin-left: 0.75rem;
+    vertical-align: middle; /* Fixes the awkward lower hanging */
+    position: relative;
+    top: -1px; /* Optical adjustment to center it perfectly with lowercase letters */
+    display: inline-block;
+    line-height: 1; /* Prevents parent line-height from stretching the badge */
+  }
 
+  .status-draft {
+    background: color-mix(in srgb, var(--muted) 12%, var(--bg));
+    color: var(--muted);
+    border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
+  }
+  
+  /* (The CSS that dimmed the row titles has been deleted) */
   /* --- Mobile Optimizations & Menu Handoff --- */
   @media (max-width: 640px) {
     /* Hide Tabs on Mobile */
@@ -624,10 +648,23 @@ document.addEventListener("DOMContentLoaded", () => {
               .sort((a, b) => a.order - b.order)
               .forEach(page => {
                 totalSections++;
+                
+                // 1. Check the status
+                const status = (page.status || 'draft').toLowerCase();
+                
+                // 2. ONLY create a badge if the status is "draft"
+                const statusBadge = status === 'draft' 
+                  ? `<span class="status-badge status-draft">Draft</span>` 
+                  : '';
+
+                // 3. Output the row (Notice we removed the 'is-draft' row class)
                 rowsHtml += `
                   <div class="toc-row">
                     <a href="${page.url}">
-                      <span class="row-title">${page.title}</span>
+                      <span class="row-title">
+                        ${page.title}
+                        ${statusBadge}
+                      </span>
                     </a>
                   </div>
                 `;

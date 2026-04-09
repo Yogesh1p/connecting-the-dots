@@ -10,6 +10,7 @@ window.rawPages = [
     "part": "Large Language Models",
     "keywords": "LLM, transformer, scaling, attention, autoregressive modeling",
     "order": 8,
+    "status": "live",
     "readingTime": 40
   },
   {
@@ -22,43 +23,8 @@ window.rawPages = [
     "part": "  ",
     "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive-definite-matrices, cholesky factorisation",
     "order": 4,
+    "status": "live",
     "readingTime": 11
-  },
-  {
-    "url": "./Fixed-length.html",
-    "book": "generative",
-    "title": "Fixed-Length Autoregressive Models",
-    "description": "From FVSBN to NADE and MADE: how autoregressive density estimators scale from logistic regression to masked neural networks, and why fixed-length assumptions fail for language.",
-    "date": "2026-04-09",
-    "chapter": "Autoregressive Models",
-    "part": "Transformer Foundations",
-    "keywords": "autoregressive models, FVSBN, NADE, RNADE, MADE, masked autoencoder, density estimation, fixed-length models, binary vectors, MNIST, variable-length sequences, language modeling",
-    "order": 2,
-    "readingTime": 15
-  },
-  {
-    "url": "./attention.html",
-    "book": "generative",
-    "title": "Attention and the End of Recurrence",
-    "description": "From the seq2seq bottleneck to scaled dot-product attention, self-attention, masking, and multi-head attention—the core ideas that replace recurrence in Transformers.",
-    "date": "2026-04-09",
-    "chapter": "Autoregressive Models",
-    "part": "Transformer Foundations",
-    "keywords": "attention, cross-attention, self-attention, masked attention, scaled dot-product attention, multi-head attention, transformer, seq2seq bottleneck, queries keys values, autoregressive decoding",
-    "order": 6,
-    "readingTime": 16
-  },
-  {
-    "url": "./intro_ar.html",
-    "book": "generative",
-    "title": "Intro to Autoregression Models",
-    "description": "From exponential joint distributions to tractable autoregressive factorization",
-    "date": "2026-04-08",
-    "chapter": "Autoregressive Models",
-    "part": "Transformer Foundations",
-    "keywords": "chain rule, bayesian networks, markov models, generative modeling",
-    "order": 1,
-    "readingTime": 6
   },
   {
     "url": "./pos_enc.html",
@@ -70,19 +36,8 @@ window.rawPages = [
     "part": "Large Language Models",
     "keywords": "positional encoding, RoPE, sinusoidal embeddings, attention, transformer",
     "order": 5,
+    "status": "live",
     "readingTime": 8
-  },
-  {
-    "url": "./rnn.html",
-    "book": "generative",
-    "title": "Recurrent Neural Networks and Sequence Memory",
-    "description": "How recurrent neural networks model sequential dependencies, why gradients vanish or explode, and how LSTMs, GRUs, bidirectional networks, and encoder-decoder models address memory limitations.",
-    "date": "2026-04-09",
-    "chapter": "Autoregressive Models",
-    "part": "Transformer Foundations",
-    "keywords": "RNN, recurrent neural network, hidden state, BPTT, vanishing gradients, exploding gradients, LSTM, GRU, bidirectional RNN, stacked RNN, seq2seq, encoder decoder, sequence memory, attention bottleneck",
-    "order": 5,
-    "readingTime": 13
   },
   {
     "url": "./taxonomy.html",
@@ -94,6 +49,7 @@ window.rawPages = [
     "part": "Foundations",
     "keywords": "generative models, taxonomy, autoregressive, normalizing flows, VAE, GAN, diffusion models, score-based models",
     "order": 1,
+    "status": "live",
     "readingTime": 1
   },
   {
@@ -106,18 +62,7 @@ window.rawPages = [
     "part": " ",
     "keywords": "vector spaces, subspaces, basis, dimension, rank, nullity, column space, row space, null space",
     "order": 3,
+    "status": "live",
     "readingTime": 7
-  },
-  {
-    "url": "./word_rep.html",
-    "book": "generative",
-    "title": "Word Representation",
-    "description": "How words become vectors",
-    "date": "2026-04-04",
-    "chapter": "Autoregressive Models",
-    "part": "Transformer Foundations",
-    "keywords": "embeddings, word2vec, skipgram, CBOW",
-    "order": 4,
-    "readingTime": 13
   }
 ];
