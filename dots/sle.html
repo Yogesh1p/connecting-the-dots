@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Solving Linear Equations</title>
+    <meta name="book" content="linear-algebra">
+    <meta name="chapter" content="Linear Algebra Foundations">
+    <meta name="part" content=" ">
+    <meta name="title" content="Solving Linear Equations">
+    <meta name="description" content="How to solve linear equations using Gaussian elimination and matrix factorization">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-04">
+    <meta name="order" content="2">
+    <meta name="status" content="draft">
+    <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="pivot, LU factorization, Gaussian elimination, linear equations, back substitution">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="8">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+
+
+<h2>Vectors and Linear Equations</h2>
+
+<p>The central problem of linear algebra is solving systems of linear equations. To truly understand these systems, we must look at them through multiple lenses. We will begin with a simple system of two equations and two unknowns, and explore it from two fundamentally different geometric perspectives: the <strong>row picture</strong> and the <strong>column picture</strong>.</p>
+
+<div class="math-display">
+$$
+\begin{aligned}
+x - 2y &= 1 \\
+3x + 2y &= 11
+\end{aligned}
+$$
+</div>
+
+<h3>The Row Picture: Intersecting Constraints</h3>
+
+<p>When we read a system of equations horizontally, row by row, we are looking at a series of geometric constraints. In a two-dimensional plane, a linear equation like $x - 2y = 1$ describes a straight line. Every point $(x, y)$ that lies on this line is a solution to that specific equation. For instance, the points $(1, 0)$ and $(3, 1)$ both satisfy the first constraint.</p>
+
+<p>The second equation, $3x + 2y = 11$, produces a second, distinct line. To solve the <em>system</em> of equations means finding a single point that satisfies all constraints simultaneously. Geometrically, this is the exact point where the two lines intersect.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Important</div>
+  <div class="math-box-body">
+    <p>In the <strong>row picture</strong>, each equation represents a geometric boundary (a line in 2D, a plane in 3D). The solution to the system is the grand intersection of all these boundaries.</p>
+  </div>
+</div>
+
+<h3>The Column Picture: Blending Dimensions</h3>
+
+<p>Now, we undergo a profound shift in perspective. Instead of reading across the rows, we separate the system vertically into columns. We replace numbers with vectors, transforming the system into a single vector equation:</p>
+
+<div class="math-display">
+$$
+x \begin{bmatrix} 1 \\ 3 \end{bmatrix} + y \begin{bmatrix} -2 \\ 2 \end{bmatrix} = \begin{bmatrix} 1 \\ 11 \end{bmatrix}
+$$
+</div>
+
+<p>This is the <strong>column picture</strong>. The question has changed entirely. We are no longer looking for intersecting lines. Instead, we are asking: <em>How much of the first vector, and how much of the second vector, do we need to combine to reach our target vector?</em></p>
+
+<p>The unknowns $x$ and $y$ are now scaling factors (scalars). Finding the solution $x = 3$ and $y = 1$ means that if we take 3 steps in the direction of the first vector, and 1 step in the direction of the second, we will land exactly on the target vector $\begin{bmatrix} 1 \\ 11 \end{bmatrix}$. This blends the two most fundamental operations in linear algebra: scalar multiplication and vector addition.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition</div>
+  <div class="math-box-body">
+    <p>A <strong>linear combination</strong> involves multiplying vectors by scalars and adding the results together. The column picture reveals that solving a linear system is equivalent to finding the right linear combination of column vectors to produce the target vector $b$.</p>
+  </div>
+</div>
+
+<h3>The Matrix Equation: Extracting the Structure</h3>
+
+<p>To transition from algebra to linear algebra, we must separate the raw data of the system—the coefficients—from the variables. We do this by extracting the coefficients into a rectangular grid called a <strong>matrix</strong>.</p>
+
+<p>Consider our original system:</p>
+
+<div class="math-display">
+$$
+\begin{aligned}
+\mathbf{1}x \mathbf{- 2}y &= 1 \\
+\mathbf{3}x + \mathbf{2}y &= 11
+\end{aligned}
+$$
+</div>
+
+<p>We strip away the $x$ and $y$ to form the coefficient matrix, $A$. The unknowns form a column vector $x$, and the right-hand side forms a column vector $b$.</p>
+
+<div class="math-display">
+$$
+\underbrace{\begin{bmatrix} 1 & -2 \\ 3 & 2 \end{bmatrix}}_{A} \underbrace{\begin{bmatrix} x \\ y \end{bmatrix}}_{x} = \underbrace{\begin{bmatrix} 1 \\ 11 \end{bmatrix}}_{b}
+$$
+</div>
+
+<p>How does this matrix equation, $Ax = b$, give us back our original equations? The definition of matrix multiplication perfectly recreates them. When we multiply a matrix by a vector, we take the <strong>dot product</strong> of each row of the matrix with the column vector:</p>
+
+<ul>
+  <li><strong>Row 1:</strong> $(1 \cdot x) + (-2 \cdot y) = x - 2y$. This must equal the top value of $b$, which is $1$.</li>
+  <li><strong>Row 2:</strong> $(3 \cdot x) + (2 \cdot y) = 3x + 2y$. This must equal the bottom value of $b$, which is $11$.</li>
+</ul>
+
+<p>This is the elegant form $Ax = b$. By isolating the matrix $A$, we can study the pure geometry and structure of the system without being distracted by the variables.</p>
+<h3>Scaling Up to Three Dimensions</h3>
+
+<p>The true power of the column picture reveals itself when we scale up. Consider a system with three equations and three unknowns:</p>
+
+<div class="math-display">
+$$
+\begin{aligned}
+x + 2y + 3z &= 6 \\
+2x + 5y + 2z &= 4 \\
+6x - 3y + z &= 2
+\end{aligned}
+$$
+</div>
+
+<p>In the row picture, each equation now represents a two-dimensional plane embedded in three-dimensional space. The solution is the single point where all three planes meet. Visualizing three intersecting planes is mentally taxing. If we move to four dimensions, visualizing intersecting hyperplanes becomes impossible.</p>
+
+<details class="toggle">
+  <summary>See deeper intuition on higher dimensions</summary>
+  <p>This is why mathematicians heavily favor the column picture as dimensions scale. While drawing four intersecting 3D-hyperplanes in a 4D space breaks human intuition, the idea of scaling four specific vectors and adding them head-to-tail to reach a destination vector remains logically and algebraically straightforward. The column picture scales gracefully into $n$-dimensional spaces.</p>
+</details>
+
+<p>In the column picture, the 3x3 system is simply asking for a linear combination of three 3D vectors to reach the target vector. If we combine the columns with the correct weights $(x, y, z) = (0, 0, 2)$, we perfectly reach our destination. The algebra remains identical to the 2D case; only the size of the vectors has changed.</p>
+
+                    <h2>The Mechanics of Gaussian Elimination</h2>
+
+<p>While the row and column pictures provide crucial geometric intuition, relying on visual intersections breaks down as dimensions increase. To solve large systems computationally, we need a systematic, algebraic algorithm. This engine of linear algebra is called <strong>Gaussian elimination</strong>.</p>
+
+<p>The fundamental goal of elimination is to systematically subtract multiples of one equation from another to eliminate variables, transforming a complex, entangled system into a much simpler <strong>upper triangular system</strong>.</p>
+
+<h3>From A to U: The Forward Elimination Phase</h3>
+
+<p>Let's trace the algorithm on a 3 by 3 system. We start with our original system, which we will call $Ax = b$:</p>
+
+<div class="math-display">
+$$
+\begin{aligned}
+2x + 4y - 2z &= 2 \\
+4x + 9y - 3z &= 8 \\
+-2x - 3y + 7z &= 10
+\end{aligned}
+$$
+</div>
+
+<p>We process the system column by column, from left to right. Our tool for this is the <strong>pivot</strong>—the first non-zero entry in the row that does the eliminating. We use the pivot to clear out all entries directly below it.</p>
+<div class="math-box">
+  <div class="math-box-label">Definition: What is a Pivot?</div>
+  <div class="math-box-body">
+    <p>A <strong>pivot</strong> is the first non-zero entry in the current row you are using to perform elimination. It is the active "anchor" used to zero out the entries in the column directly below it.</p>
+ 
+        <p>Pivots <strong>cannot be zero</strong> (because we must divide by them to find multipliers).
+           </p>
+  </div>
+</div>
+<div class="math-box">
+  <div class="math-box-label">The Multiplier Rule</div>
+  <div class="math-box-body">
+    <p>To eliminate an entry, we subtract a multiple of the pivot row from the target row. The exact multiple is called the <strong>multiplier</strong> ($l$), calculated as:</p>
+    <p style="text-align: center; margin-top: 10px;">
+        $$
+        l = \frac{\text{entry to eliminate}}{\text{pivot}}
+        $$
+    </p>
+  </div>
+</div>
+
+<h4>Column 1: Eliminating $x$</h4>
+<p>Our first pivot is the <strong>2</strong> in the top-left corner ($a_{11}$). We need to eliminate the $4x$ in equation 2, and the $-2x$ in equation 3.</p>
+
+<ul>
+    <li><strong>Step 1:</strong> To eliminate $4x$, our multiplier is $l_{21} = 4 / 2 = 2$. We subtract 2 times equation 1 from equation 2. The $x$ term cancels out, leaving $y + z = 4$.</li>
+    <li><strong>Step 2:</strong> To eliminate $-2x$, our multiplier is $l_{31} = -2 / 2 = -1$. Subtracting -1 times equation 1 (which is exactly the same as <em>adding</em> equation 1) from equation 3 leaves $y + 5z = 12$.</li>
+</ul>
+
+<p>After clearing the first column, our new, equivalent system looks like this. Notice that $x$ has been entirely eliminated from the equations below the pivot:</p>
+
+<div class="math-display">
+$$
+\begin{aligned}
+2x + 4y - 2z &= 2 \\
+y + z &= 4 \\
+y + 5z &= 12
+\end{aligned}
+$$
+</div>
+
+<h4>Column 2: Eliminating $y$</h4>
+<p>We move down and to the right. The second equation now takes over as the working row. The new pivot is the coefficient of $y$, which is <strong>1</strong>. We use this pivot to eliminate the $y$ in the final equation below it.</p>
+
+<ul>
+    <li><strong>Step 3:</strong> To eliminate the $1y$ in equation 3, the multiplier is $l_{32} = 1 / 1 = 1$. Subtracting equation 2 from equation 3 yields $4z = 8$.</li>
+</ul>
+
+<h3>The Upper Triangular Goal ($Ux = c$)</h3>
+
+<p>The forward elimination phase is now complete. We have successfully transformed our original system $Ax = b$ into an upper triangular system, designated as $Ux = c$. Let's highlight the <strong>pivots</strong> that drove this entire process:</p>
+
+<div class="math-display">
+$$
+\begin{aligned}
+\bbox[, 3px, border:2px var(--accent)]{\mathbf{2}}x + 4y - 2z &= 2 \\
+\bbox[, 3px, border:2px var(--accent)]{\mathbf{1}}y + z &= 4 \\
+\bbox[, 3px, border:2px var(--accent)]{\mathbf{4}}z &= 8
+\end{aligned}
+$$
+</div>
+
+<p>Notice the shape of the coefficients on the left side: they form a neat geometric triangle. The pivots (<strong>2, 1, and 4</strong>) sit proudly along the main diagonal. These pivots were hidden within the original matrix $A$, and the sequential process of elimination brought them out.</p>
+<h3>Back Substitution: Solving the System</h3>
+
+<p>Why do we spend the computational effort to reach an upper triangular system? Because it is incredibly easy to solve from the bottom upwards. This final phase is called <strong>back substitution</strong>.</p>
+
+<ol>
+    <li>Start with the last equation: $4z = 8$ immediately gives us $z = 2$.</li>
+    <li>Move up to the second equation: $y + z = 4$. Since we know $z = 2$, this becomes $y + 2 = 4$, which reveals $y = 2$.</li>
+    <li>Move up to the first equation: $2x + 4y - 2z = 2$. Substituting our known values gives $2x + 8 - 4 = 2$, leading to $2x = -2$, and finally $x = -1$.</li>
+</ol>
+
+<p>The complete solution is $(x, y, z) = (-1, 2, 2)$. Geometrically, we have systematically discovered the exact 3D coordinate where all three original constraint planes intersect.</p>
+
+<div class="math-box">
+  <div class="math-box-label">When Elimination Breaks Down</div>
+  <div class="math-box-body">
+    <p>Elimination only succeeds if we can find a full set of $n$ non-zero pivots. Because we must divide by the pivot to calculate our multipliers, <strong>a pivot can never be zero</strong>. If a zero appears in a pivot position, the process halts. We must perform a <strong>row exchange</strong> (swapping the equation with one below it) to find a non-zero pivot. If no non-zero pivot can be found below, the matrix is <em>singular</em>—meaning the system has either no solutions (parallel planes) or infinitely many solutions (intersecting along a line).</p>
+  </div>
+</div>
+                    
+
+
+
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

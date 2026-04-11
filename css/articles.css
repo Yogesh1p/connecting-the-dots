@@ -160,6 +160,7 @@
    ───────────────────────────────────── */
 .toggle {
   margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .toggle summary {
@@ -167,8 +168,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.9rem;
+
+
   letter-spacing: 0.02em;
   cursor: pointer;
   transition: color 0.2s ease;
@@ -206,7 +207,7 @@
 .math-block {
   text-align: center;
   /* Adjust this single margin to control the exact spacing you want */
-  margin: 1.5rem 0; 
+  margin: 1rem 0; 
   overflow-x: auto;
   overflow-y: hidden;
   max-width: 100%;

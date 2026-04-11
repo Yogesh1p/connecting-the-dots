@@ -440,7 +440,7 @@
     <nav class="book-switcher" aria-label="Book selection">
       <button class="book-tab" data-book="generative">Generative Models</button>
       <button class="book-tab" data-book="linear-algebra">Linear Algebra</button>
-      <button class="book-tab coming-soon" disabled>Probability · soon</button>
+      <button class="book-tab" data-book="Stats">Stats</button>
     </nav>
 
     <div class="toc-book-header">
@@ -458,7 +458,7 @@
         <div class="book-dropdown-menu" role="menu">
           <button class="dropdown-item" data-book="generative" role="menuitem">Generative Models</button>
           <button class="dropdown-item" data-book="linear-algebra" role="menuitem">Linear Algebra</button>
-          <button class="dropdown-item coming-soon" role="menuitem" disabled>Probability · soon</button>
+          <button class="dropdown-item" data-book="Stats" role="menuitem">Stats</button>
         </div>
 
       </div>
@@ -509,6 +509,11 @@ const BOOK_CONFIG = {
     eyebrow: "Connecting the Dots ",
     title: "Linear Algebra",
     description: "Vectors, matrix transformations, eigenspaces, and the geometry behind modern machine learning."
+  },
+  Stats: {
+    eyebrow: "Connecting the Dots ",
+    title: "Stats",
+    description: "Distributions, expected values, Bayes' theorem, and the statistical foundations of uncertainty."
   }
 };
 
@@ -598,6 +603,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const partPriority = {
     "Transformer Foundations": 0,
     "Large Language Models": 1,
+    "Stats and Statistics Foundations": 0, // Added for Stats
     "Main": 2
   };
 

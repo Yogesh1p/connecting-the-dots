@@ -39,6 +39,19 @@
     "belongs_to": "lib"
   },
   {
+    "file": "Null_Space_from_Block_RREF.html",
+    "book": "linear-algebra",
+    "title": "Null Space from Block RREF",
+    "description": "A 4x4 rank 2 matrix example showing how the null space basis appears instantly from the block form [I F] as [-F; I].",
+    "date": "2026-04-11",
+    "chapter": "The Null Space",
+    "part": "Block Matrices and RREF",
+    "keywords": "null space, rref, rank 2, block matrix, special solutions, gilbert strang, linear algebra",
+    "order": "4",
+    "status": "live",
+    "belongs_to": null
+  },
+  {
     "file": "_template.html",
     "book": "generative",
     "title": "Word Representation",
@@ -75,6 +88,45 @@
     "keywords": "attention, cross-attention, self-attention, masked attention, scaled dot-product attention, multi-head attention, transformer, seq2seq bottleneck, queries keys values, autoregressive decoding",
     "order": "6",
     "status": "draft",
+    "belongs_to": "lib"
+  },
+  {
+    "file": "complete_solution.html",
+    "book": "linear-algebra",
+    "title": "The Complete Solution:&nbsp;$x = x_{p} + x_{n}$",
+    "description": "A deep geometric and computational treatment of solving Ax = b using elimination, particular solutions, null spaces, shifted hyperplanes, and rank-based solution classification.",
+    "date": "2026-04-11",
+    "chapter": "Solving Linear Systems",
+    "part": " ",
+    "keywords": "Ax=b, complete solution, particular solution, null space, shifted hyperplane, rank, free variables, linear algebra",
+    "order": "8",
+    "status": "live",
+    "belongs_to": "lib"
+  },
+  {
+    "file": "counting.html",
+    "book": "Stats",
+    "title": "Probability and Counting",
+    "description": "A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.",
+    "date": "2026-04-10",
+    "chapter": "Stats Foundation",
+    "part": " ",
+    "keywords": "probability, counting, permutations, combinations, bayes theorem, stars and bars, sample space",
+    "order": "1",
+    "status": "live",
+    "belongs_to": "lib"
+  },
+  {
+    "file": "dist.html",
+    "book": "Stats",
+    "title": "Common Probability Distributions",
+    "description": "A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.",
+    "date": "2026-04-10",
+    "chapter": "Stats Foundation",
+    "part": " ",
+    "keywords": "probability, distributions, statistics, normal distribution, binomial, poisson, exponential, PMF, PDF, CDF",
+    "order": "4",
+    "status": "live",
     "belongs_to": "lib"
   },
   {
@@ -126,6 +178,19 @@
     "part": "Transformer Foundations",
     "keywords": "RNN, recurrent neural network, hidden state, BPTT, vanishing gradients, exploding gradients, LSTM, GRU, bidirectional RNN, stacked RNN, seq2seq, encoder decoder, sequence memory, attention bottleneck",
     "order": "5",
+    "status": "draft",
+    "belongs_to": "lib"
+  },
+  {
+    "file": "sle.html",
+    "book": "linear-algebra",
+    "title": "Solving Linear Equations",
+    "description": "How to solve linear equations using Gaussian elimination and matrix factorization",
+    "date": "2026-04-04",
+    "chapter": "Linear Algebra Foundations",
+    "part": " ",
+    "keywords": "pivot, LU factorization, Gaussian elimination, linear equations, back substitution",
+    "order": "2",
     "status": "draft",
     "belongs_to": "lib"
   },

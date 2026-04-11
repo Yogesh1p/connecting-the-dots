@@ -40,6 +40,45 @@ window.rawPages = [
     "readingTime": 16
   },
   {
+    "url": "../dots/complete_solution.html",
+    "book": "linear-algebra",
+    "title": "The Complete Solution:&nbsp;$x = x_{p} + x_{n}$",
+    "description": "A deep geometric and computational treatment of solving Ax = b using elimination, particular solutions, null spaces, shifted hyperplanes, and rank-based solution classification.",
+    "date": "2026-04-11",
+    "chapter": "Solving Linear Systems",
+    "part": " ",
+    "keywords": "Ax=b, complete solution, particular solution, null space, shifted hyperplane, rank, free variables, linear algebra",
+    "order": 8,
+    "status": "live",
+    "readingTime": 6
+  },
+  {
+    "url": "../dots/counting.html",
+    "book": "Stats",
+    "title": "Probability and Counting",
+    "description": "A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.",
+    "date": "2026-04-10",
+    "chapter": "Stats Foundation",
+    "part": " ",
+    "keywords": "probability, counting, permutations, combinations, bayes theorem, stars and bars, sample space",
+    "order": 1,
+    "status": "live",
+    "readingTime": 6
+  },
+  {
+    "url": "../dots/dist.html",
+    "book": "Stats",
+    "title": "Common Probability Distributions",
+    "description": "A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.",
+    "date": "2026-04-10",
+    "chapter": "Stats Foundation",
+    "part": " ",
+    "keywords": "probability, distributions, statistics, normal distribution, binomial, poisson, exponential, PMF, PDF, CDF",
+    "order": 4,
+    "status": "live",
+    "readingTime": 4
+  },
+  {
     "url": "../dots/intro_ar.html",
     "book": "generative",
     "title": "Intro to Autoregression Models",
@@ -90,6 +129,19 @@ window.rawPages = [
     "order": 5,
     "status": "draft",
     "readingTime": 13
+  },
+  {
+    "url": "../dots/sle.html",
+    "book": "linear-algebra",
+    "title": "Solving Linear Equations",
+    "description": "How to solve linear equations using Gaussian elimination and matrix factorization",
+    "date": "2026-04-04",
+    "chapter": "Linear Algebra Foundations",
+    "part": " ",
+    "keywords": "pivot, LU factorization, Gaussian elimination, linear equations, back substitution",
+    "order": 2,
+    "status": "draft",
+    "readingTime": 8
   },
   {
     "url": "../dots/vec_spaces.html",
