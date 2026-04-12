@@ -9,7 +9,7 @@ window.rawPages = [
     "chapter": "Linear Algebra Foundations",
     "part": "  ",
     "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive-definite-matrices, cholesky factorisation",
-    "order": 4,
+    "order": 12,
     "status": "live",
     "readingTime": 11
   },
@@ -27,6 +27,32 @@ window.rawPages = [
     "readingTime": 15
   },
   {
+    "url": "../dots/Independence,Basis,Dimension.html",
+    "book": "linear-algebra",
+    "title": "Independence, Basis, and Dimension",
+    "description": "linear independence, spanning sets, basis, dimension, rank, and null space, showing how these concepts define the structure of vector spaces.",
+    "date": "2026-04-12",
+    "chapter": "Vector Spaces and Subspaces",
+    "part": " ",
+    "keywords": "linear independence, basis, dimension, vector spaces, spanning sets, null space, column space, rank, pivots, linear algebra",
+    "order": 8,
+    "status": "live",
+    "readingTime": 13
+  },
+  {
+    "url": "../dots/Null_Space_from_Block_RREF.html",
+    "book": "linear-algebra",
+    "title": "Null Space from Block RREF",
+    "description": "A 4x4 rank 2 matrix example showing how the null space basis appears instantly from the block form [I F] as [-F; I].",
+    "date": "2026-04-11",
+    "chapter": "Vector Spaces and Subspaces",
+    "part": " ",
+    "keywords": "null space, rref, rank 2, block matrix, special solutions, gilbert strang, linear algebra",
+    "order": 6,
+    "status": "draft",
+    "readingTime": 2
+  },
+  {
     "url": "../dots/attention.html",
     "book": "generative",
     "title": "Attention and the End of Recurrence",
@@ -42,7 +68,7 @@ window.rawPages = [
   {
     "url": "../dots/complete_solution.html",
     "book": "linear-algebra",
-    "title": "The Complete Solution:&nbsp;$x = x_{p} + x_{n}$",
+    "title": "The Complete Solution",
     "description": "A deep geometric and computational treatment of solving Ax = b using elimination, particular solutions, null spaces, shifted hyperplanes, and rank-based solution classification.",
     "date": "2026-04-11",
     "chapter": "Solving Linear Systems",
@@ -136,25 +162,12 @@ window.rawPages = [
     "title": "Solving Linear Equations",
     "description": "How to solve linear equations using Gaussian elimination and matrix factorization",
     "date": "2026-04-04",
-    "chapter": "Linear Algebra Foundations",
+    "chapter": "Solving Linear Systems",
     "part": " ",
     "keywords": "pivot, LU factorization, Gaussian elimination, linear equations, back substitution",
     "order": 2,
     "status": "draft",
     "readingTime": 8
-  },
-  {
-    "url": "../dots/vec_spaces.html",
-    "book": "linear-algebra",
-    "title": "Vector Spaces & Subspaces",
-    "description": " vector spaces, the column space, the null space, basis, dimension",
-    "date": "2026-04-04",
-    "chapter": "Linear Algebra Foundations",
-    "part": " ",
-    "keywords": "vector spaces, subspaces, basis, dimension, rank, nullity, column space, row space, null space",
-    "order": 3,
-    "status": "live",
-    "readingTime": 7
   },
   {
     "url": "../dots/word_rep.html",
