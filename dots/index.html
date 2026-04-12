@@ -159,24 +159,18 @@
     .dropdown-menu {
       position: absolute;
       top: calc(100% + 0.6rem);
-      
-      /* CHANGED: Anchor menus to the right edge so they expand inward */
       right: 0;
       left: auto;
-      
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(45, 36, 30, 0.08);
       min-width: 170px;
       z-index: 100;
-      
-      /* Hidden state */
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
       transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-      
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -201,8 +195,6 @@
       text-align: left;
       cursor: pointer;
       transition: background 0.2s, color 0.2s;
-      
-      /* Ensure long category names wrap nicely */
       white-space: normal;
       line-height: 1.4;
     }
@@ -297,7 +289,7 @@
       margin: 0 0 0.4rem 0;
       display: flex;
       align-items: center;
-      flex-wrap: wrap; /* Allows badge to wrap nicely on small screens */
+      flex-wrap: wrap; 
     }
 
     .status-badge {
@@ -341,23 +333,115 @@
 
     @keyframes rowIn  { to { opacity: 1; transform: none; } }
 
+    /* ═══════════════════════════════════════
+       PROGRESS MODAL
+    ═══════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: color-mix(in srgb, var(--bg) 85%, transparent);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-window {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+      transform: translateY(20px) scale(0.98);
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    [data-theme="dark"] .modal-window { box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+    .modal-overlay.active .modal-window { transform: translateY(0) scale(1); }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .month-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .month-row:last-child { border-bottom: none; }
+
+    .month-label {
+      font-weight: 500;
+      font-size: 1.05rem;
+    }
+
+    .month-stats {
+      text-align: right;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .stat-words {
+      font-size: 1rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .stat-details {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.2rem;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .layout { padding: 3rem 1.5rem; }
       .post-row { grid-template-columns: 1fr; padding: 1.5rem; gap: 1rem; }
       .row-arrow { display: none; }
       
-      /* Force all items on a single row */
       .controls-left { 
         width: 100%; 
-        flex-wrap: nowrap; /* Prevent wrapping */
-        gap: 0.5rem; /* Slightly tighter spacing on mobile */
+        flex-wrap: nowrap; 
+        gap: 0.5rem; 
       }
       
-      /* Search takes all available remaining space */
       .search-wrap { 
         flex: 1; 
-        min-width: 0; /* Allows flex child to shrink below its content size */
+        min-width: 0; 
       }
       
       .archive-search { 
@@ -375,29 +459,26 @@
     }
   </style>
 
-    <meta property="og:title" content="Connecting the Dots">
-    <meta property="og:description" content="">
-    <meta property="og:image" content="../assets/og/connecting-the-dots.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta name="twitter:card" content="summary_large_image">
-        <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                processEscapes: true
-            },
-            svg: {
-                fontCache: "global"
-            }
-        };
-    </script>
-    <script
-        id="MathJax-script"
-        async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
-    </script>
+  <meta property="og:title" content="Connecting the Dots">
+  <meta property="og:description" content="">
+  <meta property="og:image" content="../assets/og/connecting-the-dots.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  
+  <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: {
+            fontCache: "global"
+        }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 
 <body>
@@ -422,8 +503,7 @@
                 <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
               </svg>
             </button>
-            <div class="dropdown-menu" id="filterMenu">
-              </div>
+            <div class="dropdown-menu" id="filterMenu"></div>
           </div>
 
           <div class="dropdown-wrapper" id="sortDropdown">
@@ -433,17 +513,43 @@
                 <polyline points="19 12 12 19 5 12"></polyline>
               </svg>
             </button>
-            <div class="dropdown-menu" id="sortMenu">
-              </div>
+            <div class="dropdown-menu" id="sortMenu"></div>
           </div>
         </div>
         
-        <span class="tally" id="tally"></span>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span class="tally" id="tally"></span>
+          
+          <button id="progressBtn" class="chip icon-chip" aria-label="View Progress" title="Monthly Progress">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18"/>
+              <path d="M18 17V9"/>
+              <path d="M13 17V5"/>
+              <path d="M8 17v-3"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <section id="articlesList" class="articles-list"></section>
     </div>
   </main>
+
+  <div id="progressModal" class="modal-overlay">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="modal-title">Writing Velocity</h3>
+        <button id="closeModal" class="chip icon-chip" aria-label="Close">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="monthlyStatsContainer">
+        </div>
+    </div>
+  </div>
 
   <script src="../js/base.js"></script>
   <script src="../js/components.js"></script>
@@ -460,7 +566,6 @@
       const filterToggle = document.getElementById("filterToggle");
       const sortToggle   = document.getElementById("sortToggle");
 
-      // Fallback demo data
       const demo = [
         { title:"Eigenvectors and Diagonalisation",   description:"How to find eigenvectors and eigenvalues, and how to diagonalise matrices.", date:"2026-04-04", chapter:"Linear Algebra", readingTime:2, url:"#", keywords:"eigenvector eigenvalue matrix" },
         { title:"Vector Spaces & Subspaces",           description:"The formal structure behind vectors — what makes a space, and how subspaces carve it up.", date:"2026-04-04", chapter:"Linear Algebra", readingTime:7, url:"#", keywords:"vector space basis null" },
@@ -483,7 +588,6 @@
           </button>
         `).join("");
 
-        // CHANGED: Removed "Sort: " text from here
         sortMenu.innerHTML = sortModes.map((mode, i) => `
           <button class="dropdown-item ${i === sortIdx ? 'selected' : ''}" data-idx="${i}">
             ${sortLabels[i]}
@@ -544,10 +648,7 @@
         }
         
         list.innerHTML = items.map((a, i) => {
-          // 1. Determine the status (fallback to 'draft' if missing)
           const status = (a.status || 'draft').toLowerCase();
-          
-          // 2. Generate the badge ONLY if it's a draft
           const statusBadge = status === 'draft' 
             ? `<span class="status-badge status-draft">Draft</span>` 
             : '';
@@ -595,6 +696,70 @@
       searchInput.addEventListener("input", updateUI);
       renderDropdowns();
       updateUI();
+
+      // --- Monthly Progress Logic ---
+      const progressBtn = document.getElementById("progressBtn");
+      const progressModal = document.getElementById("progressModal");
+      const closeModal = document.getElementById("closeModal");
+      const statsContainer = document.getElementById("monthlyStatsContainer");
+
+      function generateMonthlyStats() {
+        const months = {};
+
+        articles.forEach(a => {
+          const d = new Date(a.date);
+          const monthKey = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+          const sortKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+          if (!months[sortKey]) {
+            months[sortKey] = { label: monthKey, time: 0, total: 0, drafts: 0 };
+          }
+          
+          months[sortKey].time += (a.readingTime || 0);
+          months[sortKey].total += 1;
+          if ((a.status || 'draft').toLowerCase() === 'draft') months[sortKey].drafts += 1;
+        });
+
+        const sortedKeys = Object.keys(months).sort((a, b) => b.localeCompare(a));
+        
+        if (sortedKeys.length === 0) {
+          statsContainer.innerHTML = `<p style="color:var(--muted); text-align:center; font-style:italic;">No data available yet.</p>`;
+          return;
+        }
+
+        let html = '';
+        sortedKeys.forEach(k => {
+          const m = months[k];
+          const words = m.time * 238; 
+          const published = m.total - m.drafts;
+          
+          html += `
+            <div class="month-row">
+              <div class="month-label">${m.label}</div>
+              <div class="month-stats">
+                <div class="stat-words">~${words.toLocaleString()} words</div>
+                <div class="stat-details">${m.total} dots (${published} pub, ${m.drafts} drf)</div>
+              </div>
+            </div>
+          `;
+        });
+
+        statsContainer.innerHTML = html;
+      }
+
+      progressBtn.addEventListener('click', () => {
+        generateMonthlyStats();
+        progressModal.classList.add('active');
+      });
+
+      closeModal.addEventListener('click', () => {
+        progressModal.classList.remove('active');
+      });
+
+      progressModal.addEventListener('click', (e) => {
+        if (e.target === progressModal) progressModal.classList.remove('active');
+      });
+
     });
   </script>
 </body>
