@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Central Limit Theorem & Maximum Entropy</title>
+
+<meta name="book" content="stats">
+<meta name="chapter" content="Limit Theorems">
+<meta name="part" content=" ">
+<meta name="title" content="The Central Limit Theorem & Maximum Entropy">
+<meta name="description" content="A deep dive into the Central Limit Theorem, the origin of the normal distribution equation, and how maximizing entropy leads directly to the Gaussian curve.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-14">
+<meta name="lessonorder" content="2">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="Central Limit Theorem, CLT, Normal Distribution, Gaussian, Maximum Entropy, Probability Density Function, Information Theory">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="reading_time" content="6">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<section id="central-limit-theorem">
+  <h2>The Central Limit Theorem: Order from Chaos</h2>
+
+  <p>
+    The Central Limit Theorem (CLT) is perhaps the most magical result in all of mathematics. It states that when independent random variables are added together, their properly normalized sum tends toward a normal distribution (a bell curve)—regardless of the original variables' underlying distribution. 
+  </p>
+
+  <p>
+    Imagine a <strong>Galton Board</strong>: a vertical board with interleaved rows of pegs. When you drop a single marble, it bounces left and right chaotically, its final resting place entirely unpredictable. But drop 10,000 marbles, and they will inevitably form a perfect, smooth bell curve at the bottom. Whether you are summing the rolls of a die, the heights of people, or the noise in an electrical signal, if you add enough of them together, the Gaussian shape always emerges.
+  </p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">The Central Limit Theorem (Classical)</div>
+    <div class="math-box-body">
+      <p>
+        Let $X_1, X_2, \dots, X_n$ be a sequence of independent and identically distributed (i.i.d.) random variables drawn from a population with expected value given by $\mu$ and finite variance given by $\sigma^2$. 
+      </p>
+      <p>
+        As the sample size $n$ approaches infinity, the probability distribution of the standardized sample mean approaches a standard normal distribution:
+      </p>
+      <div class="math-display">
+        $$
+        \sqrt{n}\left( \left(\frac{1}{n}\sum_{i=1}^n X_i\right) - \mu \right) \xrightarrow{d} \mathcal{N}(0, \sigma^2)
+        $$
+      </div>
+    </div>
+  </div>
+
+  <h3>1. The Anatomy of the Normal Distribution</h3>
+
+  <p>
+    The culmination of the CLT is the Probability Density Function (PDF) of the Normal Distribution. You have likely seen this imposing equation before. Let's look at it closely:
+  </p>
+
+  <div class="math-display">
+    $$
+    f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2}
+    $$
+  </div>
+
+  <p>
+    For many students, this formula feels pulled from thin air. Why $e$? Why is the variable squared? And most mysteriously, where does the $\sqrt{2\pi}$ come from in a problem that seems to have nothing to do with circles? 
+  </p>
+  <p>
+    To understand why nature prefers this exact mathematical form, we must step outside traditional statistics and look at the universe through the lens of <strong>Information Theory</strong>.
+  </p>
+
+  <h3>2. Maximum Entropy: Making No Assumptions</h3>
+
+  <p>
+    In information theory, <strong>Shannon Entropy</strong> measures the amount of uncertainty, surprise, or "chaos" in a probability distribution. The principle of maximum entropy states that the probability distribution which best represents the current state of knowledge is the one with the largest entropy, subject to known constraints. In simpler terms: it is the mathematical embodiment of "I don't know anything else."
+  </p>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Differential Entropy</div>
+    <div class="math-box-body">
+      <p>For a continuous probability density function $f(x)$, the differential entropy $H(f)$ is defined as:</p>
+      <div class="math-display">
+        $$
+        H(f) = -\int_{-\infty}^{\infty} f(x) \ln f(x) \, dx
+        $$
+      </div>
+    </div>
+  </div>
+
+  <p>
+    Suppose we are observing our marbles falling in the Galton board. We only know two physical facts about where they land:
+  </p>
+  <ol>
+    <li>They have a specific mean (average resting place), $\mu$.</li>
+    <li>They have a specific finite variance (spread), $\sigma^2$.</li>
+  </ol>
+  <p>
+    If we want to assume <em>absolutely nothing else</em> about the data, we must find the probability distribution $f(x)$ that maximizes the entropy $H(f)$ without breaking our two rules.
+  </p>
+
+  <h3>3. The Derivation: Step-by-Step</h3>
+
+  <p>
+    We have an optimization problem. We want to maximize $H(f)$, but we have three strict mathematical constraints that our function $f(x)$ must obey:
+  </p>
+
+  <div class="math-display">
+    $$
+    \begin{align*}
+    1. \quad &\int f(x) \, dx = 1 \quad \text{(Total probability must equal 100%)} \\
+    2. \quad &\int x f(x) \, dx = \mu \quad \text{(The mean constraint)} \\
+    3. \quad &\int (x-\mu)^2 f(x) \, dx = \sigma^2 \quad \text{(The variance constraint)}
+    \end{align*}
+    $$
+  </div>
+
+  <h4>Step 3.1: Enter Lagrange Multipliers</h4>
+  <p>
+    How do we maximize a function while forcing it to follow rules? We use a technique called <strong>Lagrange Multipliers</strong>. The idea is brilliant but simple: we combine our main goal (entropy) and our rules (constraints) into one "master equation" called the Lagrangian ($\mathcal{L}$). 
+  </p>
+  <p>
+    We do this by setting our constraints to equal zero, multiplying each by an unknown constant (the multipliers $\lambda_0, \lambda_1, \lambda_2$), and subtracting them from our entropy equation:
+  </p>
+
+  <div class="math-display">
+    $$
+    \mathcal{L} = -\int f(x)\ln f(x) dx - \lambda_0 \left(\int f(x) dx - 1\right) - \lambda_1 \left(\int x f(x) dx - \mu\right) - \lambda_2 \left(\int (x-\mu)^2 f(x) dx - \sigma^2\right)
+    $$
+  </div>
+
+  <p>
+    Because integrals are linear, we can pull everything into a single integral to look at the function inside (the integrand):
+  </p>
+
+  <div class="math-display">
+    $$
+    \text{Integrand} = -f(x)\ln f(x) - \lambda_0 f(x) - \lambda_1 x f(x) - \lambda_2 (x-\mu)^2 f(x)
+    $$
+  </div>
+
+  <h4>Step 3.2: The Calculus of Variations</h4>
+  <p>
+    In regular calculus, to find the maximum of a curve, you take the derivative and set it to zero. But here, we aren't looking for a single point $x$; we are looking for an entire <em>function</em> $f(x)$ that maximizes our master equation. This requires the <strong>Calculus of Variations</strong>.
+  </p>
+  <p>
+    Fortunately, because our integrand only depends on $f(x)$ and not its derivatives, the rule (known as the Euler-Lagrange equation) simplifies beautifully. We just treat $f(x)$ as a standard variable, take the partial derivative of the integrand with respect to $f(x)$, and set it to zero:
+  </p>
+
+  <div class="math-display">
+    $$
+    \frac{\partial}{\partial f(x)} \left[ -f(x)\ln f(x) - \lambda_0 f(x) - \lambda_1 x f(x) - \lambda_2(x-\mu)^2 f(x) \right] = 0
+    $$
+  </div>
+
+  <p>
+    Using the product rule on $-f(x)\ln f(x)$ gives us $-\ln f(x) - 1$. The $f(x)$ drops out of the other terms, leaving:
+  </p>
+
+  <div class="math-display">
+    $$
+    -\ln f(x) - 1 - \lambda_0 - \lambda_1 x - \lambda_2(x-\mu)^2 = 0
+    $$
+  </div>
+
+  <h4>Step 3.3: The Exponential Emerges</h4>
+  <p>
+    Now, we simply solve for $f(x)$. First, isolate the natural log:
+  </p>
+  <div class="math-display">
+    $$
+    \ln f(x) = -1 - \lambda_0 - \lambda_1 x - \lambda_2 (x-\mu)^2
+    $$
+  </div>
+  <p>
+    To get rid of the natural log, we raise $e$ to the power of both sides. And just like that, the famous bell curve shape appears!
+  </p>
+  <div class="math-display">
+    $$
+    f(x) = e^{-1 - \lambda_0 - \lambda_1 x - \lambda_2 (x-\mu)^2}
+    $$
+  </div>
+
+  <h4>Step 3.4: Solving for the Constants</h4>
+  <p>
+    We know variance is perfectly symmetrical around the mean $\mu$. For our resulting function to be symmetrical, the linear term $\lambda_1 x$ must be zero, meaning $\lambda_1 = 0$. We can also group the constant terms $e^{-1 - \lambda_0}$ into a single normalizing constant, $C$.
+  </p>
+
+  <div class="math-display">
+    $$
+    f(x) = C \cdot e^{-\lambda_2 (x-\mu)^2}
+    $$
+  </div>
+
+  <p>
+    Now we apply our original constraints to find $C$ and $\lambda_2$. First, the total probability must equal 1 ($\int f(x) dx = 1$). To integrate $e^{-x^2}$, we use the famous Gaussian integral, which mathematically requires squaring the function into two dimensions and converting it to polar coordinates. <strong>This conversion to polar coordinates introduces the circle area relation, explaining exactly why $\pi$ appears in our statistics!</strong>
+  </p>
+
+  <p>
+    Using the Gaussian integral result $\int e^{-x^2} dx = \sqrt{\pi}$, we enforce our constraint:
+  </p>
+  <div class="math-display">
+    $$
+    \int C e^{-\lambda_2 (x-\mu)^2} dx = 1 \implies C \sqrt{\frac{\pi}{\lambda_2}} = 1 \implies C = \sqrt{\frac{\lambda_2}{\pi}}
+    $$
+  </div>
+
+  <p>
+    Next, we apply the variance constraint $\int (x-\mu)^2 f(x) dx = \sigma^2$, which evaluates to:
+  </p>
+  <div class="math-display">
+    $$
+    \frac{1}{2\lambda_2} = \sigma^2 \implies \lambda_2 = \frac{1}{2\sigma^2}
+    $$
+  </div>
+
+  <h4>Step 3.5: The Final Equation</h4>
+  <p>
+    Substitute $\lambda_2 = \frac{1}{2\sigma^2}$ back into our equation for $C$:
+  </p>
+  <div class="math-display">
+    $$
+    C = \sqrt{\frac{1/(2\sigma^2)}{\pi}} = \frac{1}{\sigma\sqrt{2\pi}}
+    $$
+  </div>
+
+  <p>
+    Putting it all together, we arrive at the exact probability density function for the Normal Distribution:
+  </p>
+
+  <div class="math-display">
+    $$
+    f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+    $$
+  </div>
+
+  <p>
+    <strong>Conclusion:</strong> The normal distribution isn't just an arbitrary curve; it is the <em>most unbiased, maximum-entropy distribution possible</em> for a given mean and variance. As independent variables are added, convolution blends their underlying structures away, driving the system inevitably toward maximum entropy.
+  </p>
+
+  <h3>4. Visualizing the Convolution</h3>
+
+  <p>
+    When you add independent random variables, their probability distributions <em>convolve</em>. In the interactive simulator below, you can see this in action. Start with a completely uniform distribution, then increase the sample size ($N$). Notice how quickly the sharp edges smooth out into the Gaussian curve.
+  </p>
+<div class="clt-widget-container" style="background: var(--surface); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); margin: 3rem 0; font-family: 'Lora', serif;">
+  
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color-light);">
+    
+    <div style="flex: 1; min-width: 200px;">
+      <label for="dist-select" style="display: block; font-weight: 600; margin-bottom: 8px;">1. Parent Distribution</label>
+      <select id="dist-select" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg); color: var(--text); font-family: inherit; font-size: 16px;">
+        <option value="uniform">Uniform (Flat)</option>
+        <option value="skewed">Exponential (Right-Skewed)</option>
+        <option value="bimodal">Bimodal (Two Peaks)</option>
+      </select>
+      <p style="font-size: 14px; color: var(--muted); margin-top: 5px;">Shape of the original data.</p>
+    </div>
+
+    <div style="flex: 2; min-width: 250px;">
+      <label for="n-slider" style="display: block; font-weight: 600; margin-bottom: 8px;">
+        2. Sample Size (N = <span id="n-display" style="color: var(--accent);">1</span>)
+      </label>
+      <input type="range" id="n-slider" min="1" max="30" value="1" style="width: 100%; accent-color: var(--accent);">
+      <p style="font-size: 14px; color: var(--muted); margin-top: 5px;">Number of variables added together per sample.</p>
+    </div>
+
+  </div>
+
+  <div style="position: relative; width: 100%; height: 350px;">
+    <canvas id="clt-canvas" style="width: 100%; height: 100%;"></canvas>
+  </div>
+  
+  <p style="text-align: center; font-size: 14px; font-style: italic; color: var(--muted); margin-top: 15px;">
+    Showing a histogram of 10,000 sample means. The red line represents the theoretical Normal Distribution.
+  </p>
+
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('clt-canvas');
+  const ctx = canvas.getContext('2d');
+  const nSlider = document.getElementById('n-slider');
+  const nDisplay = document.getElementById('n-display');
+  const distSelect = document.getElementById('dist-select');
+
+  // Resize canvas to match display size for sharp rendering
+  function resizeCanvas() {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+    draw();
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  // Random Number Generators for Parent Distributions
+  const distributions = {
+    uniform: () => Math.random(),
+    skewed: () => {
+      let u = Math.random();
+      return -Math.log(1 - u) / 5; // Scaled exponential
+    },
+    bimodal: () => {
+      let u = Math.random();
+      return u < 0.5 ? 0.2 + (Math.random() * 0.2) : 0.6 + (Math.random() * 0.2);
+    }
+  };
+
+  function generateData(N, type) {
+    const numSamples = 10000;
+    const means = [];
+    let min = Infinity;
+    let max = -Infinity;
+    let sumTotal = 0;
+
+    for (let i = 0; i < numSamples; i++) {
+      let sum = 0;
+      for (let j = 0; j < N; j++) {
+        sum += distributions[type]();
+      }
+      let mean = sum / N;
+      means.push(mean);
+      if (mean < min) min = mean;
+      if (mean > max) max = mean;
+      sumTotal += mean;
+    }
+
+    const popMean = sumTotal / numSamples;
+    let varSum = 0;
+    for(let m of means) varSum += (m - popMean) ** 2;
+    const popStdDev = Math.sqrt(varSum / numSamples);
+
+    return { means, min: 0, max: 1, popMean, popStdDev };
+  }
+
+  function draw() {
+    const N = parseInt(nSlider.value);
+    const type = distSelect.value;
+    const data = generateData(N, type);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const numBins = 50;
+    const bins = new Array(numBins).fill(0);
+    const binWidth = (data.max - data.min) / numBins;
+
+    // Bin the data
+    data.means.forEach(val => {
+      let binIndex = Math.floor((val - data.min) / binWidth);
+      if (binIndex >= numBins) binIndex = numBins - 1;
+      if (binIndex >= 0) bins[binIndex]++;
+    });
+
+    const maxBinCount = Math.max(...bins);
+    
+    // Read CSS variables for colors (fallback to hex if not found)
+    const style = getComputedStyle(document.body);
+    const barColor = style.getPropertyValue('--highlight').trim() || '#e2e8f0';
+    const barBorder = style.getPropertyValue('--accent').trim() || '#3b82f6';
+    const curveColor = '#ef4444'; // Red for visibility
+
+    // Draw Histogram
+    const padding = 20;
+    const drawWidth = canvas.width - padding * 2;
+    const drawHeight = canvas.height - padding * 2;
+
+    bins.forEach((count, i) => {
+      const x = padding + (i / numBins) * drawWidth;
+      const height = (count / maxBinCount) * drawHeight;
+      const y = canvas.height - padding - height;
+      const w = drawWidth / numBins;
+
+      ctx.fillStyle = barColor;
+      ctx.fillRect(x, y, w, height);
+      ctx.strokeStyle = barBorder;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, w, height);
+    });
+
+    // Draw Theoretical Normal Curve overlay
+    if (N > 1 || type === 'uniform') {
+      ctx.beginPath();
+      ctx.strokeStyle = curveColor;
+      ctx.lineWidth = 3;
+      
+      for (let i = 0; i <= 100; i++) {
+        const xVal = data.min + (i / 100) * (data.max - data.min);
+        // Gaussian PDF formula
+        const exponent = -Math.pow(xVal - data.popMean, 2) / (2 * Math.pow(data.popStdDev, 2));
+        const pdf = (1 / (data.popStdDev * Math.sqrt(2 * Math.PI))) * Math.exp(exponent);
+        
+        // Scale PDF to match histogram height
+        const scaledY = pdf * (data.means.length * binWidth);
+        const yPixel = canvas.height - padding - ((scaledY / maxBinCount) * drawHeight);
+        const xPixel = padding + (i / 100) * drawWidth;
+
+        if (i === 0) ctx.moveTo(xPixel, yPixel);
+        else ctx.lineTo(xPixel, yPixel);
+      }
+      ctx.stroke();
+    }
+    
+    // Draw Axis
+    ctx.beginPath();
+    ctx.moveTo(padding, canvas.height - padding);
+    ctx.lineTo(canvas.width - padding, canvas.height - padding);
+    ctx.strokeStyle = style.getPropertyValue('--text').trim() || '#1e293b';
+    ctx.stroke();
+  }
+
+  // Event Listeners
+  nSlider.addEventListener('input', (e) => {
+    nDisplay.textContent = e.target.value;
+    draw();
+  });
+  
+  distSelect.addEventListener('change', draw);
+
+  // Initial draw
+  setTimeout(resizeCanvas, 100); 
+})();
+</script>
+  </section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if(typeof injectGiscusComments === 'function') {
+        injectGiscusComments('article-comments');
+    }
+  });
+        </script>
+
+    </main>
+
+</body>
+</html>

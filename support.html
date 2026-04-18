@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support · Connecting the Dots</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/base.css">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Lora', Georgia, serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .support-layout {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 6rem 2.5rem;
+      flex: 1;
+    }
+
+    /* ═══════════════════════════════════════
+       HEADER SECTION
+    ═══════════════════════════════════════ */
+    .support-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      display: block;
+      text-align: center;
+    }
+
+    .support-title {
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 400;
+      color: var(--dark);
+      margin: 0 0 1.5rem;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .support-desc {
+      font-size: 1.1rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    /* ═══════════════════════════════════════
+       PAYMENT OPTIONS
+    ═══════════════════════════════════════ */
+    .support-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .option-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 15px 45px rgba(45, 36, 30, 0.08);
+      transform: translateY(-2px);
+    }
+
+    [data-theme="dark"] .option-card:hover {
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+    }
+
+    .option-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .option-icon {
+      width: 24px;
+      height: 24px;
+      color: var(--accent);
+    }
+
+    .option-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin: 0;
+    }
+
+    .option-desc {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin: 0;
+      padding-left: 2.5rem; /* Aligns with text, past the icon */
+    }
+
+    /* Highlight Banner for zero-fee option */
+    .badge-zero-fee {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+      color: var(--accent);
+      padding: 0.3em 0.8em;
+      border-radius: 20px;
+    }
+
+    /* ═══════════════════════════════════════
+       UPI SPECIFIC STYLING
+    ═══════════════════════════════════════ */
+    .upi-section {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px dashed var(--border);
+    }
+
+    .qr-placeholder {
+      width: 100px;
+      height: 100px;
+      background: color-mix(in srgb, var(--bg) 50%, white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .qr-placeholder img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .upi-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .upi-id-box {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      padding: 0.6rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: fit-content;
+    }
+
+    .upi-id-box:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .copy-icon { width: 14px; height: 14px; }
+
+    .upi-mobile-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--accent);
+      color: var(--bg);
+      text-decoration: none;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      transition: opacity 0.2s;
+    }
+
+    .upi-mobile-btn:hover { opacity: 0.9; }
+
+    @media (min-width: 601px) { .upi-mobile-btn { display: none; } }
+    
+    @media (max-width: 600px) { 
+      .support-layout { padding: 4rem 1.5rem; }
+      .qr-placeholder { display: none; }
+      .upi-section { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div id="global-nav" data-root="../" data-sticky="true"></div>
+
+  <main class="support-layout">
+    <span class="support-eyebrow">Back the Research</span>
+    <h1 class="support-title">Keep the Dots Connecting</h1>
+    <p class="support-desc">
+      This manuscript is built without paywalls, ads, or tracking. If these interactive visualisations and essays have brought you value, consider fueling the late-night research and server costs.
+    </p>
+
+    <div class="support-grid">
+      
+      <div class="option-card">
+        <span class="badge-zero-fee">0% Fees</span>
+        <div class="option-header">
+          <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+            <line x1="2" y1="10" x2="22" y2="10"></line>
+          </svg>
+          <h2 class="option-title">UPI / Local Transfer</h2>
+        </div>
+        <p class="option-desc">The most efficient way to support from within India. No platform cuts.</p>
+        
+        <div class="upi-section">
+          <div class="qr-placeholder" style="background: white; padding: 5px;">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=3pyogesh@okicici&pn=ConnectingTheDots&cu=INR" alt="UPI QR Code" />
+          </div>
+          <div class="upi-details">
+            <div class="upi-id-box" id="copyUpiBtn" data-upi="3pyogesh@okicici">
+              <span id="upiText">3pyogesh@okicici</span>
+              <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </div>
+            <a href="upi://pay?pa=3pyogesh@okicici&pn=ConnectingTheDots&cu=INR" class="upi-mobile-btn">Pay via UPI App</a>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://github.com/sponsors/Yogesh1p" target="_blank" rel="noopener" class="option-card">
+        <span class="badge-zero-fee">0% Fees</span>
+        <div class="option-header">
+          <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+          </svg>
+          <h2 class="option-title">GitHub Sponsors</h2>
+        </div>
+        <p class="option-desc">Ideal for the global open-source and developer community.</p>
+      </a>
+
+      <a href="#" target="_blank" rel="noopener" class="option-card">
+        <div class="option-header">
+          <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <h2 class="option-title">Credit / Debit Card</h2>
+        </div>
+        <p class="option-desc">Secure international payments. (Coming soon).</p>
+      </a>
+
+    </div>
+  </main>
+
+  <script src="../js/base.js"></script>
+  <script>
+    // Script to copy UPI ID to clipboard
+    document.getElementById('copyUpiBtn').addEventListener('click', function() {
+      const upiId = this.getAttribute('data-upi');
+      navigator.clipboard.writeText(upiId).then(() => {
+        const textSpan = document.getElementById('upiText');
+        const originalText = textSpan.innerText;
+        textSpan.innerText = "Copied!";
+        textSpan.style.color = "var(--accent)";
+        
+        setTimeout(() => {
+          textSpan.innerText = originalText;
+          textSpan.style.color = "";
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Projections</title>
+
+<meta name="book" content="linear-algebra">
+<meta name="chapter" content="Orthogonality and Projections">
+<meta name="part" content=" ">
+<meta name="title" content="Projections">
+<meta name="description" content="Deriving the mathematics of orthogonal projections onto lines and n-dimensional subspaces using the normal equation and projection matrices.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-18">
+<meta name="chapterorder" content="2">
+<meta name="lessonorder" content="2">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="projections, orthogonal projection, projection matrix, least squares, normal equation, linear algebra">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="reading_time" content="5">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<section id="projections">
+
+
+  <p>
+    When a vector $b$ is projected onto a line, its projection $p$ is the part of $b$ that lies perfectly along that line. If $b$ is projected onto a plane, $p$ is the part in that plane. To calculate these projections, we use a projection matrix $P$, such that $p = Pb$.
+  </p>
+
+  <p>
+    Consider $b = (2, 3, 4)$. If we project it onto the $z$-axis, we get $p_1 = (0, 0, 4)$. If we drop it straight down onto the $xy$-plane, we get $p_2 = (2, 3, 0)$. The projection matrix $A$ picks out the $z$-component, while $P_2$ picks out the $x$ and $y$ components:
+  </p>
+
+  <div class="math-display">
+    $$
+    A = \begin{bmatrix} 0 & 0 & 0 \\ 0 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}, \quad P_2 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 0 \end{bmatrix}
+    $$
+  </div>
+
+  <p>
+    In this scenario, $p_1$ and $p_2$ are perpendicular, and their respective subspaces ($z$-axis and $xy$-plane) are orthogonal complements. The sum of the projections perfectly reconstructs the original vector: $p_1 + p_2 = b$. Equivalently, the projection matrices sum to the identity matrix: $A + P_2 = I$.
+  </p>
+
+  <h3>1. Projection Onto a Line</h3>
+
+  <p>
+    Let a line go through the origin in the direction of a vector $a$. We want to find the point $p$ along that line that is closest to a given vector $b$. The key to finding this closest point is orthogonality: the error vector linking $p$ to $b$ must be perpendicular to the line.
+  </p>
+
+  <p>
+    We define the error vector as $e = b - p$. Because $p$ must lie on the line defined by $a$, it is some scalar multiple of $a$. We will call this scalar $\hat{x}$, so $p = \hat{x}a$.
+  </p>
+
+  <p>
+    Since the error $e$ is perpendicular to $a$, their dot product is zero:
+  </p>
+
+  <div class="math-display">
+    $$
+    a^T (b - \hat{x}a) = 0 \implies a^T b - \hat{x} a^T a = 0
+    $$
+  </div>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The Projection Formula (1D)</div>
+    <div class="math-box-body">
+      <p>Solving for the scalar $\hat{x}$ gives:</p>
+      <div class="math-display">
+        $$
+        \hat{x} = \frac{a^T b}{a^T a}
+        $$
+      </div>
+      <p>The projection of $b$ onto the line through $a$ is the vector $p$:</p>
+      <div class="math-display">
+        $$
+        p = \hat{x}a = a \frac{a^T b}{a^T a}
+        $$
+      </div>
+    </div>
+  </div>
+
+  <p>
+    To find the projection matrix $P$, we rewrite the formula to isolate the matrix acting on $b$. By moving the scalar fraction to the right of $a$, we get $p = \frac{aa^T}{a^Ta} b$. 
+  </p>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">1D Projection Matrix</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$
+        P = \frac{aa^T}{a^T a}
+        $$
+      </div>
+      <p>
+        Notice that the numerator $aa^T$ is a column times a row (which creates a full matrix), while the denominator $a^Ta$ is a row times a column (which evaluates to a scalar number).
+      </p>
+    </div>
+  </div>
+
+  <p>
+    If you double the vector $a$, the matrix $P$ stays exactly the same, because projecting onto a line doesn't change if you stretch the basis vector defining that line. Furthermore, if you square the matrix, $P^2 = P$. Projecting a second time doesn't change anything; the vector is already on the line.
+  </p>
+
+  <h3>2. Projection Onto a Subspace</h3>
+
+  <p>
+    Now we move beyond projecting onto a single line. Suppose we want to project onto an $n$-dimensional subspace in $\mathbb{R}^m$, defined by linearly independent basis vectors $a_1, \dots, a_n$. We place these basis vectors into the columns of a matrix $A$.
+  </p>
+
+  <p>
+    The combinations in $\mathbb{R}^m$ are the vectors $Ax$ in the column space. We are looking for the specific combination $p = A\hat{x}$ that is closest to a given vector $b$.
+  </p>
+
+  <p>
+    Just like the 1D case, the error vector $e = b - A\hat{x}$ must be perpendicular to the subspace. This means $b - A\hat{x}$ must make a right angle with <em>every</em> basis vector $a_1, \dots, a_n$:
+  </p>
+
+  <div class="math-display">
+    $$
+    \begin{matrix} 
+    a_1^T(b - A\hat{x}) = 0 \\ 
+    \vdots \\ 
+    a_n^T(b - A\hat{x}) = 0 
+    \end{matrix}
+    $$
+  </div>
+
+  <p>
+    We can compactly write these $n$ equations by stacking the vectors $a_i^T$ as the rows of $A^T$. This yields the most important equation in data science and least squares:
+  </p>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The Normal Equation</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$
+        A^T (b - A\hat{x}) = 0 \implies A^T A \hat{x} = A^T b
+        $$
+      </div>
+      <p>
+        The matrix $A^T A$ is an $n \times n$ symmetric matrix. As long as the columns of $A$ are linearly independent, $A^T A$ is invertible.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    This normal equation beautifully mirrors the Fundamental Theorem of Linear Algebra. The error vector $b - A\hat{x}$ is perpendicular to the column space $C(A)$, which means it must live exactly in the left null space $N(A^T)$. Therefore, multiplying it by $A^T$ must yield zero.
+  </p>
+
+  <h3>3. The Subspace Projection Matrix</h3>
+
+  <p>
+    With the normal equation, we can compute everything in three logical steps:
+  </p>
+
+  <ol>
+    <li><strong>Find the coefficients $\hat{x}$:</strong> <br> $\hat{x} = (A^T A)^{-1} A^T b$</li>
+    <li><strong>Find the projection vector $p$:</strong> <br> $p = A\hat{x} = A(A^T A)^{-1} A^T b$</li>
+    <li><strong>Find the projection matrix $P$:</strong> <br> $P = A(A^T A)^{-1} A^T$</li>
+  </ol>
+
+  <p>
+    Compare this $m \times m$ matrix to the 1D formula $P = \frac{aa^T}{a^Ta}$. The number $a^Ta$ becomes the matrix $A^TA$. When it is a number, we divide by it. When it is a matrix, we invert it.
+  </p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Warning: Matrix Inversion</div>
+    <div class="math-box-body">
+      <p>
+        Do not attempt to simplify $(A^T A)^{-1}$ into $A^{-1} (A^T)^{-1}$. The matrix $A$ is rectangular ($m \times n$) and does not have an inverse. The inverse is only valid for the square product $A^T A$.
+      </p>
+    </div>
+  </div>
+
+  <div class="svg-container" style="text-align: center; margin: 3rem 0;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="auto" style="max-width: 600px; background: transparent;">
+      <defs>
+        <marker id="arrowHeadMuted" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="var(--muted)"/>
+        </marker>
+        <marker id="arrowHeadAccent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent)"/>
+        </marker>
+        <marker id="arrowHeadText" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="var(--text)"/>
+        </marker>
+      </defs>
+
+      <polygon points="100,450 500,350 700,450 300,550" fill="var(--surface)" fill-opacity="0.6" stroke="var(--muted)" stroke-width="1.5" />
+      <text x="120" y="520" font-family="Lora, serif" font-size="18" fill="var(--muted)" font-style="italic">Column Space C(A)</text>
+
+      <line x1="400" y1="450" x2="550" y2="150" stroke="var(--text)" stroke-width="3" marker-end="url(#arrowHeadText)" />
+      <text x="560" y="145" font-family="Lora, serif" font-size="22" font-weight="bold" fill="var(--text)">$b$</text>
+
+      <line x1="400" y1="450" x2="550" y2="400" stroke="var(--accent)" stroke-width="3" marker-end="url(#arrowHeadAccent)" />
+      <text x="560" y="420" font-family="Lora, serif" font-size="20" font-weight="bold" fill="var(--accent)">$p = A\hat{x}$</text>
+
+      <line x1="550" y1="400" x2="550" y2="150" stroke="var(--text)" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrowHeadText)" />
+      <text x="565" y="280" font-family="Lora, serif" font-size="20" font-style="italic" fill="var(--text)">$e = b - p$</text>
+
+      <polyline points="550,380 530,387 530,407" fill="none" stroke="var(--muted)" stroke-width="2" />
+      
+      <circle cx="400" cy="450" r="5" fill="var(--text)"/>
+      <text x="380" y="475" font-family="Lora, serif" font-size="18" fill="var(--text)">$0$</text>
+    </svg>
+  </div>
+
+  <h3>4. Why is $A^T A$ Invertible?</h3>
+
+  <p>
+    We rely heavily on $(A^T A)^{-1}$. This inversion is mathematically legal if and only if $A$ has linearly independent columns. Here is a quick proof of why:
+  </p>
+
+  <p>
+    Suppose $A^T A x = 0$. We want to prove this implies $x = 0$ (meaning the null space only contains the zero vector).
+  </p>
+
+  <div class="math-display">
+    $$
+    x^T A^T A x = x^T 0 = 0
+    $$
+  </div>
+
+  <p>
+    Notice that $x^T A^T$ is the transpose of $Ax$. Thus, we can rewrite the equation as:
+  </p>
+
+  <div class="math-display">
+    $$
+    (Ax)^T (Ax) = 0 \implies \|Ax\|^2 = 0
+    $$
+  </div>
+
+  <p>
+    If the length of a vector is zero, the vector itself must be zero. Therefore, $Ax = 0$. Since we assumed $A$ has independent columns, the only solution to $Ax = 0$ is $x = 0$. Because $x = 0$ is the only vector in the null space of $A^TA$, the matrix $A^TA$ is invertible.
+  </p>
+
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

@@ -238,7 +238,7 @@
   .toc-block > summary::-webkit-details-marker { display: none; }
 
   .ch-summary-title {
-    font-size: 1.55rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--dark);
     flex: 1;
@@ -506,21 +506,20 @@
         with interactive visualisations at every step.
       </p>
 
-      <div class="book-progress-hero" id="bookProgressHero">
-        <div class="progress-stat">
-          <span class="progress-num" id="lessonCount">—</span>
-          <span class="progress-label">Lessons</span>
-        </div>
+     <div class="book-progress-hero" id="bookProgressHero">
         <div class="progress-stat">
           <span class="progress-num" id="chapterCount">—</span>
           <span class="progress-label">Chapters</span>
+        </div>
+        <div class="progress-stat">
+          <span class="progress-num" id="lessonCount">—</span>
+          <span class="progress-label">Lessons</span>
         </div>
         <div class="progress-stat">
           <span class="progress-num" id="readingPath">—</span>
           <span class="progress-label">Reading Path</span>
         </div>
       </div>
-    </div>
 
     <div id="library-content">
       <div class="loading-state">Compiling Library...</div>
@@ -637,6 +636,36 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 5. Library Rendering Functions
+
+  // ── CHAPTER ORDER ──────────────────────────────────────────────────────────
+  // Add/reorder chapters here to control how they appear in the TOC.
+  // Any chapter not listed will appear at the bottom.
+  const CHAPTER_ORDER = {
+    "generative": [
+      "Introduction",
+      "Autoregressive Models",
+      "Latent Variable Models",
+      "Normalizing Flows",
+      "Variational Autoencoders",
+      "Generative Adversarial Networks",
+      "Diffusion Models",
+    ],
+    "linear-algebra": [
+      "Solving Linear Systems",
+      "Vector Spaces and Subspaces",
+      "Orthogonality and Projections",
+      "Matrix Factorizations",
+      "Eigenvalues and Eigenvectors",
+      "Singular Value Decomposition",
+    ],
+    "Stats": [
+      "Foundations of Probability",
+      "Distributions",
+      "Statistical Inference",
+      "Bayesian Thinking",
+    ],
+  };
+
   const partPriority = {
     "Transformer Foundations": 0,
     "Large Language Models": 1,
@@ -669,16 +698,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("library-content");
     let html = "";
 
+    // 1. Sort chapters using the manually defined CHAPTER_ORDER for the active book
+    const chapterList = CHAPTER_ORDER[activeBook] || [];
     Object.keys(library)
       .sort((a, b) => {
-        const getMinOrder = chapter => Math.min(...Object.values(library[chapter]).flat().map(page => page.order ?? 999));
-        return getMinOrder(a) - getMinOrder(b);
+        const ai = chapterList.indexOf(a);
+        const bi = chapterList.indexOf(b);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       })
       .forEach(chapter => {
         const parts = library[chapter];
         let rowsHtml = "";
         let totalSections = 0;
 
+        // 2. Sort the parts inside the chapter
         Object.keys(parts)
           .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
           .forEach(part => {
@@ -686,8 +719,10 @@ document.addEventListener("DOMContentLoaded", () => {
               rowsHtml += `<div class="toc-part">${part}</div>`;
             }
 
+            // 3. Sort the individual lessons by 'lessonorder'
             parts[part]
-              .sort((a, b) => a.order - b.order)
+              // Using lessonorder, falling back to 999 if missing
+              .sort((a, b) => (a.lessonorder ?? 999) - (b.lessonorder ?? 999))
               .forEach(page => {
                 totalSections++;
                 
@@ -711,7 +746,7 @@ document.addEventListener("DOMContentLoaded", () => {
           });
 
         html += `
-          <details class="toc-block" open>
+          <details class="toc-block" >
             <summary>
               <span class="ch-summary-title">${chapter}</span>
               <span class="ch-summary-count">${totalSections} Lessons</span>
