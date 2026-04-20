@@ -66,7 +66,7 @@ function estimateReadingTime(content) {
 function createPageObject(relativePath, content, readingTime) {
     const urlPath = relativePath.replace(/\\/g, '/');
     return {
-        url: `../Library/${urlPath}`,
+        url: `Library/${urlPath}`, // <--- Removed the ../ right here
         book: getMeta(content, "book") || "",
         title: getTitle(content),
         description: getMeta(content, "description") || "",
@@ -80,6 +80,7 @@ function createPageObject(relativePath, content, readingTime) {
         readingTime
     };
 }
+
 
 // --- Main Async Build Process ---
 
