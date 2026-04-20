@@ -56,7 +56,7 @@ function initGlobalNavigation(options = {}) {
   const NAV_LINKS = [
     { href: homePath, label: 'Home', section: 'home' },
     { href: root + 'Library/', label: 'Library', section: 'library' },
-    { href: root + 'support.html', label: 'Support ❤️', section: 'support' },
+    { href: root + 'support.html', label: 'Support', section: 'support' },
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', label: 'GitHub', target: '_blank' },
   ];
 
