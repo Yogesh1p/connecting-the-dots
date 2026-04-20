@@ -1,0 +1,365 @@
+  <meta name="reading_time" content="6">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta name="book" content="generative">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="part" content="Transformer Foundations">
+<meta name="title" content="Intro to Autoregression Models">
+<meta name="description" content="From exponential joint distributions to tractable autoregressive factorization">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-08">
+<meta name="lessonorder" content="1">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="chain rule, bayesian networks, markov models, generative modeling">
+<meta name="reading_time" content="5">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="1">
+
+    <meta property="og:title" content="Intro to Autoregression Models">
+    <meta property="og:description" content="From exponential joint distributions to tractable autoregressive factorization">
+    <meta property="og:image" content="../assets/og/intro-to-autoregression-models.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+
+<section class="article-body">
+  <p>In generative modeling, our goal is to move beyond mere prediction. We don't just want to guess a label y given x; we want to understand the very "soul" of the data. We want to learn the process that created the data in the first place.</p>
+
+  <h2>The Problem: Modeling Joint Distributions</h2>
+
+  <p>An image can be viewed as a collection of random variables, one per pixel. More generally, any observation can be represented as a vector.</p>
+
+  <p>Generative modeling asks a single question:</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Key Idea</div>
+    <div class="math-box-body">
+      <p><em>How do we model the joint distribution $p(x_1, x_2, \dots, x_n)$?</em></p>
+    </div>
+  </div>
+<p>If we possess a high-fidelity model of this distribution, we unlock three fundamental capabilities:</p>
+<ul>
+<li>Generation: We can sample new, synthetic data points that look like the original.</li>
+<li>Completion: We can condition on partial observations ($p(x_{unseen} \mid x_{observed})$) to "fill in the blanks."</li>
+<li>Representation: We can infer the hidden or latent structures that govern the raw inputs.</li>
+</ul>
+
+
+
+  <p>For simplicity, we start with binary variables for the first few models. (The same ideas extend to discrete or continuous settings.)</p>
+
+  <p>A direct approach is to represent the joint distribution explicitly as a <strong>lookup table</strong>: for every possible configuration of $x$, we store its probability.</p>
+
+  <p>If the variables are binary, there are $2^n$ possible configurations. Since probabilities must sum to one, the number of independent parameters is</p>
+
+  <div class="math-display">
+    $$ 2^n - 1. $$
+  </div>
+
+  <p>Thus the parameter complexity grows exponentially with $n$. For high-dimensional data such as images, this representation is computationally impossible.</p>
+
+  <p>The central challenge of generative modeling is therefore:</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Key Idea</div>
+    <div class="math-box-body">
+      <p><em>How can we represent the joint distribution without exponential cost?</em></p>
+    </div>
+  </div>
+
+  <h3>The Chain Rule</h3>
+
+  <p>A natural first step is to rewrite the joint distribution using the <strong>probability chain rule</strong>:</p>
+
+  <div class="math-display">
+    $$ p(x_1,\dots,x_n) = \prod_{i=1}^{n} p(x_i \mid x_1,\dots,x_{i-1}). $$
+  </div>
+
+  <p>This decomposition is always exact — no assumptions are introduced.</p>
+
+  <p>However, decomposition is not compression.</p>
+
+  <p>If each conditional distribution is represented as a lookup table, then for binary variables the total number of parameters becomes</p>
+
+  <div class="math-display">
+    $$ 1 + 2 + 4 + \cdots + 2^{n-1} = 2^n - 1, $$
+  </div>
+
+  <p>which is still exponential in $n$.</p>
+
+  <p>The chain rule changes the form of the problem but not its complexity. To make progress, we must introduce additional structure.</p>
+
+
+  <h2>Structural Assumptions</h2>
+
+  <p>The exponential cost arises because each variable is conditioned on <em>all</em> previous variables. In many real systems, however, only a small subset of those dependencies may actually matter.</p>
+
+  <p>This motivates a first strategy:</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Intuition</div>
+    <div class="math-box-body">
+      <p><em>Reduce complexity by restricting which variables each conditional depends on.</em></p>
+    </div>
+  </div>
+
+  <h3>Bayesian Networks</h3>
+
+  <div class="math-box">
+    <div class="math-box-label">Definition</div>
+    <div class="math-box-body">
+      <p>A <strong>Bayesian network</strong> is a directed graphical model in which the joint distribution factorizes as</p>
+      <div class="math-display">
+        $$ p(x_1,\dots,x_n) = \prod_{i=1}^{n} p(x_i \mid \mathrm{Parents}(x_i)). $$
+      </div>
+      <p>Each variable depends only on a designated set of <strong>parents</strong>.</p>
+    </div>
+  </div>
+
+  <p>If each variable has at most $k$ parents and variables are binary, each conditional table has $2^k$ entries. The total parameter count becomes</p>
+
+  <div class="math-display">
+    $$ O(n \cdot 2^k), $$
+  </div>
+
+  <p>which is linear in $n$ when $k$ is small.</p>
+
+  <p>Structural assumptions reduce complexity by limiting dependencies.</p>
+
+  <h3>The Markov Assumption</h3>
+
+  <p>We can push this idea to its extreme by assuming each variable depends only on the immediately preceding one.</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Definition</div>
+    <div class="math-box-body">
+      <p>The <strong>first-order Markov assumption</strong> states</p>
+      <div class="math-display">
+        $$ x_{i+1} \perp \{x_1,\dots,x_{i-1}\} \mid x_i. $$
+      </div>
+      <p>The joint distribution factorizes as</p>
+      <div class="math-display">
+        $$ p(x_{1:n}) = p(x_1)\prod_{i=1}^{n-1} p(x_{i+1}\mid x_i). $$
+      </div>
+      <p>Here each variable has only one parent, so only local transition probabilities are required.</p>
+    </div>
+  </div>
+
+  <p>The Markov assumption is a modeling choice: we intentionally restrict dependencies to obtain tractability.</p>
+
+  <p>Both Bayesian networks and Markov chains follow the same philosophy: reduce complexity by narrowing <em>what we condition on</em>.</p>
+
+  <h3>Why Structure Alone Is Not Enough</h3>
+
+  <p>Structural assumptions help, but they do not fully solve the problem.</p>
+
+  <p>Even when dependencies are sparse, lookup tables scale exponentially with the size of the conditioning context. If the parent set becomes large, tabular representations again become intractable.</p>
+
+  <p>This suggests a second, fundamentally different strategy.</p>
+
+
+  <h2>Parametric Modeling of Conditional Distributions</h2>
+
+  <p>Instead of reducing dependencies, we can change how conditionals are represented.</p>
+
+  <p>Lookup tables memorize a probability for every possible configuration. But we can instead <em>compute</em> probabilities using a parameterized function.</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Definition</div>
+    <div class="math-box-body">
+      <p>A <strong>parametric conditional model</strong> represents conditional probabilities using a parameterized function:</p>
+      <div class="math-display">
+        $$ p(x_i \mid x_{\lt i}) = f_{\theta_i}(x_{\lt i}). $$
+      </div>
+      <p>The parameters may be independent for each conditional or shared across conditionals.</p>
+    </div>
+  </div>
+
+  <p>The key difference is conceptual:</p>
+  <ul>
+    <li>Lookup tables memorize each context independently.</li>
+    <li>Functions share parameters and generalize across contexts.</li>
+  </ul>
+
+  <p>Complexity is now controlled by the function class rather than by the number of possible inputs.</p>
+
+  <p>This allows us to keep the full chain-rule factorization while avoiding exponential storage.</p>
+
+  <p>Generative models become tractable through two complementary design dimensions.</p>
+
+  <p><strong>1. Structural assumptions</strong> simplify the dependency structure by restricting which variables each conditional distribution depends on:</p>
+
+  <table class="math-table">
+    <thead>
+      <tr>
+        <th>Approach</th>
+        <th>Dependency</th>
+        <th>Parameters</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Raw chain rule</td>
+        <td>All previous variables</td>
+        <td>$O(2^n)$</td>
+      </tr>
+      <tr>
+        <td>Bayesian network</td>
+        <td>Small parent set ($k$ parents)</td>
+        <td>$O(n \cdot 2^k)$</td>
+      </tr>
+      <tr>
+        <td>Markov chain</td>
+        <td>Previous variable only</td>
+        <td>$O(n)$</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>2. Parametric modeling</strong> simplifies representation by replacing explicit probability tables with parameterized functions:</p>
+  <ul>
+    <li>Tabular models store probabilities independently for each context.</li>
+    <li>Parametric models compute probabilities using shared parameters.</li>
+  </ul>
+
+  <p>Structural assumptions control <em>which dependencies are modeled</em>, while parametric modeling controls <em>how conditional distributions are represented</em>.</p>
+
+  <p>These two dimensions are complementary rather than mutually exclusive. Modern generative models often combine both: structural assumptions define the factorization of the joint distribution, while parametric function approximation makes high-dimensional conditionals tractable.</p>
+
+
+  <h2>Autoregressive Models</h2>
+
+  <p>The name <strong>autoregressive</strong> originates from classical time-series analysis and is composed of two parts:</p>
+
+  <ul>
+    <li><strong>Regression</strong> refers to predicting a variable from other variables. In statistics, regression simply means modeling a quantity as a function of observed inputs.</li>
+    <li><strong>Auto</strong> means <em>self</em>. In an autoregressive model, the inputs used for prediction come from the same sequence being modeled.</li>
+  </ul>
+
+  <p>Combining the two ideas, an autoregressive model performs <em>self-regression</em>: each variable is predicted from previously observed variables in the same sequence. Conceptually, the model learns how the past explains the future.</p>
+
+  <p>Formally, this idea is expressed by modeling each element $x_i$ conditioned on the preceding elements $x_{\lt i}$.</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Definition</div>
+    <div class="math-box-body">
+      <p>An <strong>autoregressive model</strong> applies the chain rule factorization exactly:</p>
+      <div class="math-display">
+        $$ p(x_1, \dots, x_n) = \prod_{i=1}^{n} p(x_i \mid x_1, \dots, x_{i-1}) $$
+      </div>
+      <p>but represents each conditional with a <strong>learned function</strong> $f_{\theta_i}$ rather than a lookup table. No independence assumptions are introduced — the full dependency structure of the chain rule is preserved.</p>
+    </div>
+  </div>
+
+  <p>Sampling proceeds sequentially:</p>
+  <ol>
+    <li>Sample $x_1 \sim p(x_1)$</li>
+    <li>Sample $x_2 \sim f_{\theta_2}(x_1)$</li>
+    <li>Sample $x_3 \sim f_{\theta_3}(x_1, x_2)$</li>
+    <li>Continue until $x_n$</li>
+  </ol>
+
+  <p>By choosing a specific function class, we implicitly restrict which distributions the model can represent. But this is a far more flexible restriction than hard independence assumptions — and it scales gracefully as the function class becomes more expressive.</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Example</div>
+    <div class="math-box-body">
+      <p>Consider a sequence of binary variables $x_1, x_2, x_3$ with learned conditionals:</p>
+      <div class="math-display">
+        $$
+        \begin{align*}
+          p(x_1 = 1) &= 0.6 \\
+          p(x_2 = 1 \mid x_1) &= f_{\theta_2}(x_1) \\
+          p(x_3 = 1 \mid x_1, x_2) &= f_{\theta_3}(x_1, x_2)
+        \end{align*}
+        $$
+      </div>
+      <p>To sample a sequence:</p>
+      <ol>
+        <li>Draw $x_1$: get $x_1 = 1$ with probability 0.6</li>
+        <li>Feed $x_1$ into $f_{\theta_2}$ to obtain $p(x_2 = 1 \mid x_1)$, then sample $x_2$</li>
+        <li>Feed $(x_1, x_2)$ into $f_{\theta_3}$ to obtain $p(x_3 = 1 \mid x_1, x_2)$, then sample $x_3$</li>
+      </ol>
+      <p>At no point do we enumerate all $2^3 = 8$ configurations. The function does the work.</p>
+    </div>
+  </div>
+
+
+  
+</section>
+           
+                              
+
+
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

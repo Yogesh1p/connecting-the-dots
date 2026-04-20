@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fixed-Length Autoregressive Models</title>
+
+<meta name="book" content="generative">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="part" content="Transformer Foundations">
+<meta name="title" content="Fixed-Length Autoregressive Models">
+<meta name="description" content="From FVSBN to NADE and MADE: how autoregressive density estimators scale from logistic regression to masked neural networks, and why fixed-length assumptions fail for language.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-09">
+<meta name="lessonorder" content="4">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="autoregressive models, FVSBN, NADE, RNADE, MADE, masked autoencoder, density estimation, fixed-length models, binary vectors, MNIST, variable-length sequences, language modeling">
+<meta name="reading_time" content="15">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="1">
+
+    <meta property="og:title" content="Fixed-Length Autoregressive Models">
+    <meta property="og:description" content="From FVSBN to NADE and MADE: how autoregressive density estimators scale from logistic regression to masked neural networks, and why fixed-length assumptions fail for language.">
+    <meta property="og:image" content="../assets/og/fixed-length-autoregressive-models.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+
+<p>In our introduction to autoregressive models, we established that instead of storing $p(x_i \mid x_1, \dots, x_{i-1})$ as an impossibly large lookup table, we could <em>compute</em> it using a learned function $f_\theta$. But we never specified what $f_{\theta_i}$ actually looks like.</p>
+
+  <p>This article builds up the answer, starting from the simplest possible parameterization and progressively replacing its weaknesses with better ideas. We begin by exploring <strong>Fixed-Length Autoregressive Models</strong>. Throughout this section, we use MNIST as our running example: $28 \times 28 = 784$ binary pixels in raster scan order, $x_1, \dots, x_{784} \in \{0,1\}$.</p>
+
+
+                 <h2>Fixed-Length Autoregressive Models</h2>
+
+<p>We said that instead of storing $p(x_i \mid x_1, \dots, x_{i-1})$ as a lookup table, we could <em>compute</em> it using a learned function $f_\theta$. But we never said what $f_{\theta_i}$ actually looks like.</p>
+
+<p>This chapter builds up the answer --- starting from the simplest possible parameterization and progressively replacing its weaknesses with better ideas.</p>
+
+<p>This section covers fixed-length models. Throughout, we use MNIST as our running example: $28 \times 28 = 784$ binary pixels in raster scan order, $x_1, \dots, x_{784} \in \{0,1\}$.</p>
+
+<h2>FVSBN</h2>
+
+<p>A common and conceptually simple choice is to model each conditional distribution using logistic regression. In this setting, the conditional probability is parameterized as</p>
+
+<div class="math-display">
+  $$p_\theta(x_i = 1 \mid x_{\lt i}) = \sigma\!\left(W_i x_{\lt i} + b_i\right),$$
+</div>
+
+<p>where $\sigma(\cdot)$ denotes the logistic sigmoid function. So each variable is predicted using a sigmoid applied to a linear function of the previous variables. The name <strong>Fully Visible Sigmoid Belief Network (FVSBN)</strong> reflects three properties: the model defines probability directly over the observed variables (fully visible), each conditional distribution is parameterized with a sigmoid (logistic regression), and the joint distribution is factorized as a directed probabilistic model --- historically called a belief network.</p>
+
+<p>For a conditional depending on $m$ binary variables, a lookup table requires $2^m - 1$ independent parameters. If the conditional is instead represented by a parameterized function, such as a logistic function, the number of parameters grows only linearly with $m$. For example, a linear logistic parameterization requires $m+1$ parameters. The reduction in complexity comes from restricting the space of possible conditional distributions to those expressible by the chosen function.</p>
+
+<p class="caption"><strong>Figure:</strong> FVSBN: logistic regression per position. Each output $\hat{x}_i = \sigma(\alpha^0_i + \sum_{j\lt i} \alpha^j_i x_j) = p(x_i{=}1\mid x_{\lt i})$.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Fully Visible Sigmoid Belief Network (FVSBN)</div>
+  <div class="math-box-body">
+    <p>A <strong>Fully Visible Sigmoid Belief Network</strong> parameterizes each conditional as:</p>
+    <div class="math-display">
+      $$\hat{x}_i = p(x_i = 1 \mid x_{\lt i};\, \alpha^i) = \sigma\!\left(\alpha^i_0 + \sum_{j=1}^{i-1} \alpha^i_j\, x_j\right)$$
+    </div>
+    <p>where $\sigma(z) = 1/(1+e^{-z})$ and $\alpha^i$ are learned parameters for position $i$. The joint:</p>
+    <div class="math-display">
+      $$p(x_1, \dots, x_n) = \prod_{i=1}^{n} p(x_i \mid x_{\lt i})$$
+    </div>
+    <p><strong>Parameters:</strong> $1 + 2 + \cdots + n = O(n^2/2)$.</p>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Example: Evaluating and Sampling from FVSBN</div>
+  <div class="math-box-body">
+    <p>Define the conditional probabilities using the parameter matrix</p>
+    <div class="math-display">
+      $$\hat{x}_i = p(x_i = 1 \mid x_{\lt i};\, \alpha^i) = \sigma\!\left(\alpha^i_0 + \sum_{j=1}^{i-1} \alpha^i_j\, x_j\right).$$
+    </div>
+    <p>Collect the parameters into a lower--triangular matrix</p>
+    <div class="math-display">
+      $$A = \begin{bmatrix} \alpha^1_0 & 0 & 0 & 0 \\ \alpha^2_0 & \alpha^2_1 & 0 & 0 \\ \alpha^3_0 & \alpha^3_1 & \alpha^3_2 & 0 \\ \alpha^4_0 & \alpha^4_1 & \alpha^4_2 & \alpha^4_3 \end{bmatrix}, \qquad \tilde{x} = \begin{bmatrix} 1 \\ x_1 \\ x_2 \\ x_3 \end{bmatrix}.$$
+    </div>
+    <p>Then the vector of conditional probabilities can be written compactly as</p>
+    <div class="math-display">
+      $$\hat{\mathbf{x}} = \sigma(A \tilde{x}),$$
+    </div>
+    <p>where the sigmoid function is applied element-wise.</p>
+    <p>To evaluate $p(X_1=0,\, X_2=1,\, X_3=1,\, X_4=0)$:</p>
+    <ol>
+      <li>Compute all $\hat{x}_i$ using the matrix form above.</li>
+      <li>Multiply: $(1-\hat{x}_1) \times \hat{x}_2 \times \hat{x}_3 \times (1-\hat{x}_4)$</li>
+    </ol>
+    <p>To sample:</p>
+    <ol>
+      <li>Sample $x_1 \sim \text{Bernoulli}(\hat{x}_1)$</li>
+      <li>Sample $x_2 \sim \text{Bernoulli}(\hat{x}_2(x_1))$, and so on</li>
+    </ol>
+  </div>
+</div>
+
+<p><strong>The asymmetry of autoregressive models:</strong> Autoregressive models separate evaluation and generation in an important way. Given a known datapoint, the likelihood $p(x)$ can often be computed efficiently, since the conditional terms $p(x_i \mid x_{\lt i})$ are evaluated with inputs that are already known. In contrast, sampling is inherently sequential: each variable must be generated before later conditionals can be evaluated. This difference between efficient likelihood evaluation and sequential generation is a defining property of autoregressive modeling.</p>
+
+<p class="caption"><strong>Figure:</strong> Conditionals as logistic regression.</p>
+
+<p>Let the conditional distribution be parameterized by a function</p>
+<div class="math-display">
+  $$f_{\theta_i}(x_{\lt i}) = \sigma\!\left(\alpha^i_0 + \sum_{j=1}^{i-1} \alpha^i_j\, x_j\right),$$
+</div>
+<p>which is simply a logistic regression model for variable $x_i$.</p>
+
+<p>Then each conditional can be written compactly as</p>
+<div class="math-display">
+  $$p(x_i = 1 \mid x_{\lt i}) = f_{\theta_i}(x_{\lt i}).$$
+</div>
+
+<p>Using the autoregressive factorization, the joint distribution becomes</p>
+<div class="math-display">
+  $$p(x_1,\dots,x_n) = \prod_{i=1}^{n} p(x_i \mid x_{\lt i}) = \prod_{i=1}^{n} f_{\theta_i}(x_{\lt i}).$$
+</div>
+
+<p>FVSBN is valid but limited, since the function $f_\theta$ is a logistic regression and therefore models only linear dependencies. To obtain richer, more expressive conditionals, we next replace $f_\theta$ with neural networks.</p>
+
+<h2>NADE: Neural Autoregressive Distribution Estimators</h2>
+
+<p>NADE strengthens autoregressive modeling by replacing the linear conditional predictor of FVSBN with a one-hidden-layer neural network. For each position $i$, a hidden representation is computed and then mapped to a conditional probability:</p>
+<div class="math-display">
+  $$h_i = \sigma\!\left(A^i x_{\lt i} + c\right), \qquad \hat{x}_i = \sigma\!\left(\alpha^i h_i + b_i\right).$$
+</div>
+<p>The hidden layer allows the model to capture nonlinear interactions among observed variables, something a purely linear predictor cannot do.</p>
+
+<p><strong>The parameter-scaling problem.</strong></p>
+<p>Assigning a separate weight matrix $A^i \in \mathbb{R}^{d \times (i-1)}$ to every conditional is costly. Summing over all positions gives</p>
+<div class="math-display">
+  $$\sum_{i=1}^{n} d(i-1) = d\,\frac{n(n-1)}{2} = O(n^2 d)$$
+</div>
+<p>parameters for the input-to-hidden mappings alone. Beyond the raw count, this design is statistically wasteful: the inputs to adjacent conditionals differ by only a single observation, yet each position learns entirely independent features. There is no mechanism for the model to transfer what it learns about earlier variables to later ones.</p>
+
+<p><strong>Weight sharing as the key idea.</strong></p>
+<p>NADE resolves this by tying the input-to-hidden weights across all positions. A single shared matrix</p>
+<div class="math-display">
+  $$W \in \mathbb{R}^{d \times n}$$
+</div>
+<p>replaces the family $\{A^i\}$, and the $i$-th conditional uses only the first $i-1$ columns:</p>
+<div class="math-display">
+  $$h_i = \sigma\!\left(W_{:,\lt i}\,x_{\lt i} + c\right), \qquad \hat{x}_i = p(x_i = 1 \mid x_{\lt i}) = \sigma\!\left(\alpha^i h_i + b_i\right).$$
+</div>
+<p>Because the same column $W_{:,j}$ appears in every conditional that conditions on $x_j$, the model is forced to learn features that are useful across the entire sequence, not just at a single position. The input-to-hidden parameter count drops to $dn = O(nd)$, and the shared structure enables an efficient left-to-right recurrence: the pre-activation at position $i+1$ is obtained by augmenting the pre-activation at position $i$ with a single rank-one update, rather than recomputing from scratch.</p>
+
+<p class="caption"><strong>Figure:</strong> Neural Autoregressive Distribution Estimation (NADE). The input $\bm{x}$ is a 784-dimensional binary vector. Each hidden layer $\bm{h}_d$ receives only the inputs $x_1, \ldots, x_{d-1}$ (autoregressive masking), and produces the output $\hat{x}_d$ estimating the conditional probability $p(x_d = 1 \mid \bm{x}_{\lt d})$.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Neural Autoregressive Distribution Estimator (NADE)</div>
+  <div class="math-box-body">
+    <p><strong>NADE</strong> learns a single shared weight matrix $W \in \mathbb{R}^{d \times n}$ so that every conditional reuses the same input-to-hidden mapping:</p>
+    <div class="math-display">
+      $$h_i = \sigma\!\left(W_{:,\lt i}\,x_{\lt i} + c\right), \qquad \hat{x}_i = p(x_i = 1 \mid x_{\lt i}) = \sigma\!\left(\alpha^i h_i + b_i\right).$$
+    </div>
+    <p>Columns of $W$ are shared across positions, so hidden pre-activations can be updated incrementally from left to right. Compared with unshared FVSBN-style networks, NADE reduces input-to-hidden parameter count from $O(n^2 d)$ to $O(nd)$ while retaining nonlinear expressiveness.</p>
+  </div>
+</div>
+
+<p><strong>Extensions.</strong></p>
+<p>The NADE framework extends naturally beyond binary variables by modifying the output distribution while retaining the same autoregressive hidden representation.</p>
+
+<p><strong>Discrete variables.</strong></p>
+<p>For non-binary discrete random variables $x_i \in \{1,\dots,K\}$ (e.g., pixel intensities ranging from $0$ to $255$), the output $\hat{x}_i$ parameterizes a categorical distribution rather than a Bernoulli. The hidden representation is computed as</p>
+<div class="math-display">
+  $$h_i = \sigma(W_{\cdot,\lt i}x_{\lt i} + c),$$
+</div>
+<p>and the conditional distribution is modeled as</p>
+<div class="math-display">
+  $$p(x_i \mid x_{\lt i}) = \mathrm{Cat}(p_i^1,\dots,p_i^K),$$
+</div>
+<p>where</p>
+<div class="math-display">
+  $$\hat{x}_i = (p_i^1,\dots,p_i^K) = \mathrm{softmax}(A_i h_i + b_i).$$
+</div>
+<p>The softmax function generalizes the sigmoid by transforming a vector of real-valued scores into a valid probability distribution over $K$ outcomes, ensuring non-negativity and unit normalization.</p>
+
+<p><strong>Continuous variables (RNADE).</strong></p>
+<p>For real-valued variables $x_i \in \mathbb{R}$ (e.g., speech signals), each conditional can be modeled using a continuous distribution. A common choice is a mixture of Gaussians, giving rise to the Real-valued NADE (RNADE). In this case, the conditional distribution takes the form</p>
+<div class="math-display">
+  $$p(x_i \mid x_{\lt i}) = \sum_{j=1}^{K} \pi_i^j \, \mathcal{N}\!\left(x_i;\mu_i^j,\sigma_i^j\right),$$
+</div>
+<p>where $\pi_i^j$ are mixture weights and $(\mu_i^j,\sigma_i^j)$ are the mean and standard deviation of the $j$-th Gaussian component. These parameters are predicted from the hidden state:</p>
+<div class="math-display">
+  $$h_i = \sigma(W_{\cdot,\lt i}x_{\lt i} + c), \qquad \hat{x}_i = (\pi_i^1,\dots,\pi_i^K, \mu_i^1,\dots,\mu_i^K, \sigma_i^1,\dots,\sigma_i^K) = f(h_i).$$
+</div>
+<p>In practice, the standard deviations are typically parameterized using an exponential transform to ensure $\sigma_i^j \gt 0$. This extension allows NADE to model complex continuous densities while preserving the autoregressive factorization and efficient shared-parameter structure.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Remark: Hidden Units as Deterministic Features</div>
+  <div class="math-box-body">
+    <p>Although $h_i$ is commonly called a <em>hidden layer</em>, it is more precise to regard it as a <strong>deterministic feature vector</strong> derived from the observations. Given $x_{\lt i}$, the value of $h_i$ is fixed:</p>
+    <div class="math-display">
+      $$h_i = \sigma\!\left(W_{:,\lt i}\,x_{\lt i} + c\right).$$
+    </div>
+    <p>NADE therefore contains no latent random variables. The $h_i$ serve purely as nonlinear summaries of the observed context, used to parameterize each conditional distribution.</p>
+  </div>
+</div>
+
+<h2>Autoencoders: A Necessary Digression</h2>
+
+<p>Before MADE, we need to understand autoencoders --- and why they cannot be used as generative models without modification.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Autoencoder</div>
+  <div class="math-box-body">
+    <p>An <strong>autoencoder</strong> maps input $x$ through an encoder $f_\text{enc}$ to a representation $z$, then through a decoder $f_\text{dec}$ to a reconstruction $\hat{x}$:</p>
+    <div class="math-display">
+      $$z = f_\text{enc}(x), \qquad \hat{x} = f_\text{dec}(z), \qquad \mathcal{L} = \sum_{x \in \mathcal{D}} \sum_i \!\left[-x_i \log \hat{x}_i - (1-x_i)\log(1-\hat{x}_i)\right]$$
+    </div>
+    <p>The bottleneck at $z$ forces the network to learn a compressed representation. But a vanilla autoencoder is <strong>not</strong> a generative model: it does not define a distribution over $x$ we can sample from.</p>
+  </div>
+</div>
+
+<p class="caption"><strong>Figure:</strong> Autoencoder</p>
+
+<p>On the surface, FVSBN and NADE already look like autoencoders: they take $x$ as input and produce $\hat{x}$ with the same cross-entropy loss. The problem is that a standard autoencoder lets output $\hat{x}_i$ see input $x_i$ directly --- it can simply copy it, achieving zero reconstruction error while learning nothing useful.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Warning</div>
+  <div class="math-box-body">
+    <p><strong>The cheating problem:</strong> Output $\hat{x}_i$ must depend <em>only</em> on $x_1, \dots, x_{i-1}$ to be useful as a generative model. At generation time we do not have $x_i$ to copy --- that is what we are trying to produce. A standard autoencoder does not enforce this constraint.</p>
+  </div>
+</div>
+
+<h2>MADE: Masked Autoencoder for Distribution Estimation</h2>
+
+<p>An ordinary feed-forward autoencoder can be transformed into an autoregressive density estimator by masking its weight matrices. The goal is to preserve the autoregressive factorization</p>
+<div class="math-display">
+  $$p(x) = \prod_{i=1}^{n} p(x_i \mid x_{\lt i}),$$
+</div>
+<p>while computing all conditionals in a <strong>single forward pass</strong>.</p>
+
+<p><strong>Challenge.</strong></p>
+<p>A standard autoencoder is fully connected, meaning each output $\hat{x}_i$ depends on all inputs. This violates the autoregressive constraint, which requires $\hat{x}_i$ to depend only on variables preceding $x_i$ in a chosen ordering.</p>
+
+<p><strong>Key idea: masking as a structural constraint.</strong></p>
+<p>MADE enforces a directed acyclic graph (DAG) inside the autoencoder by introducing binary masks on the weight matrices. These masks remove invalid connections so that each output obeys autoregressive dependencies.</p>
+
+<p>Given an ordering (or permutation) $\pi$ of the variables, the joint distribution factorizes as</p>
+<div class="math-display">
+  $$p(x) = \prod_{i=1}^{n} p(x_{\pi_i} \mid x_{\pi_{\lt i}}).$$
+</div>
+<p>For example, if $\pi=(x_2,x_3,x_1)$, then</p>
+<div class="math-display">
+  $$p(x_1,x_2,x_3) = p(x_2)\,p(x_3 \mid x_2)\,p(x_1 \mid x_2,x_3).$$
+</div>
+<p>The output unit producing $\hat{x}_2$ is therefore not allowed to depend on any input, while the unit producing $p(x_3 \mid x_2)$ may depend only on $x_2$, and so forth.</p>
+
+<p><strong>Hidden-unit degrees.</strong></p>
+<p>Instead of manually designing masks, MADE assigns each hidden unit $k$ an integer degree</p>
+<div class="math-display">
+  $$m(k) \in \{1,\dots,n-1\}.$$
+</div>
+<p>The degree specifies the largest input index that the hidden unit is allowed to depend on. Intuitively, it determines how far into the input ordering the unit can ``see''.</p>
+
+<p class="caption"><strong>Figure:</strong> MADE: Masked Autoencoder for Distribution Estimation. Left: fully-connected autoencoder. Centre: binary masks applied via $\odot$. Right: resulting masked network with autoregressive order numbers shown in each unit.</p>
+
+<p><strong>Mask construction.</strong></p>
+<p>Masks are constructed using these degrees:</p>
+<ul>
+  <li>Input $\rightarrow$ hidden: a hidden unit with degree $m(k)$ connects only to inputs with index $j \le m(k)$.</li>
+  <li>Hidden $\rightarrow$ hidden: connections satisfy
+    <div class="math-display">
+      $$m(\text{prev}) \le m(\text{next}),$$
+    </div>
+    ensuring autoregressive consistency across layers.
+  </li>
+  <li>Hidden $\rightarrow$ output: output $\hat{x}_i$ receives connections only from hidden units with degree
+    <div class="math-display">
+      $$m \lt i.$$
+    </div>
+  </li>
+</ul>
+
+<p>These constraints guarantee that</p>
+<div class="math-display">
+  $$\hat{x}_i \text{ depends only on } x_{\lt i},$$
+</div>
+<p>so the network represents a valid autoregressive model.</p>
+
+<p><strong>Masked forward pass.</strong></p>
+<p>Once the degrees are assigned and the masks are constructed, the autoregressive constraints are baked directly into the network weights via the <strong>Hadamard product</strong> (element-wise multiplication, denoted $\odot$). For a single hidden layer, the masked forward pass is written as</p>
+<div class="math-display">
+  $$h(x) = g\!\left(b + (W \odot M^W)\,x\right),$$
+</div>
+<div class="math-display">
+  $$\hat{x} = \sigma\!\left(c + (V \odot M^V)\,h(x)\right),$$
+</div>
+<p>where $g$ is a nonlinear activation function, $\sigma$ denotes the sigmoid, $b$ and $c$ are bias vectors, and $W$, $V$ are the weight matrices for the input-to-hidden and hidden-to-output layers respectively. The binary matrices $M^W$ and $M^V$ are the masks derived from the degree assignments described above: an entry of $M^W_{k,j} = 1$ if and only if $m(k) \geq j$, and an entry of $M^V_{i,k} = 1$ if and only if $m(k) \lt i$. By zeroing out the corresponding entries in the weight matrices, the Hadamard product enforces the connectivity constraints structurally, so that no gradient or information can flow through a forbidden path. The entire responsibility of satisfying the autoregressive property therefore rests with $M^W$ and $M^V$, and the remaining parameters $W$, $V$, $b$, $c$ are free to be optimized by standard backpropagation without any additional constraints.</p>
+
+<p><strong>Computational structure.</strong></p>
+<p>NADE and MADE both exploit shared computations, but differ in how the autoregressive constraint is enforced. NADE computes conditionals through a left-to-right recurrence that incrementally updates hidden pre-activations across positions. MADE instead encodes the same autoregressive dependencies directly in the network connectivity via masks, allowing all outputs to be produced by a single masked forward pass without an explicit sequential recurrence.</p>
+
+<p><strong>Order-agnostic training.</strong></p>
+<p>Autoregressive models usually assume a fixed ordering of variables (e.g., raster scan for images). This introduces an artificial bias, since variables appearing early in the order cannot depend on later ones.</p>
+
+<p>MADE removes this limitation by randomly changing the variable ordering during training and regenerating the corresponding masks. Each ordering defines a different valid autoregressive factorization of the same joint distribution.</p>
+
+<p>Training across many orderings reduces reliance on any single ordering and encourages the model to learn more robust dependencies. This can be viewed as implicitly training an ensemble of autoregressive models while sharing the same parameters.</p>
+
+<p>An additional benefit is flexibility: by choosing an appropriate ordering, inference tasks such as imputing missing values become easier.</p>
+
+<p>At sampling time, however, a single ordering is chosen, and variables are generated sequentially according to that order.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Masked Autoencoder for Distribution Estimation (MADE)</div>
+  <div class="math-box-body">
+    <p><strong>MADE</strong> is an autoregressive model obtained by applying binary masks to the weight matrices of an autoencoder. Hidden units are assigned ordering degrees that determine allowed connections, ensuring that each output $\hat{x}_i$ depends only on preceding variables. This allows all conditional distributions to be computed in a single forward pass while preserving autoregressive structure.</p>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Example: MADE with ordering $x_2 \rightarrow x_3 \rightarrow x_1$</div>
+  <div class="math-box-body">
+    <p>Consider a binary vector</p>
+    <div class="math-display">
+      $$x=(x_1,x_2,x_3), \qquad x_i \in \{0,1\},$$
+    </div>
+    <p>and assume the autoregressive ordering</p>
+    <div class="math-display">
+      $$x_2 \rightarrow x_3 \rightarrow x_1.$$
+    </div>
+
+    <p><strong>Autoregressive factorization.</strong></p>
+    <p>The joint distribution becomes</p>
+    <div class="math-display">
+      $$p(x)=p(x_2)\,p(x_3 \mid x_2)\,p(x_1 \mid x_2,x_3).$$
+    </div>
+
+    <p><strong>Training (stochastic gradient descent).</strong></p>
+    <p>Given a training example $(x_1,x_2,x_3)$, MADE receives the full binary vector as input. Due to masking, the outputs represent the conditionals:</p>
+    <div class="math-display">
+      $$\hat{x}_2 = p(x_2), \qquad \hat{x}_3 = p(x_3 \mid x_2), \qquad \hat{x}_1 = p(x_1 \mid x_2,x_3).$$
+    </div>
+    <p>Each output is a Bernoulli probability rather than a reconstructed binary value. Parameters are updated using stochastic gradient descent by minimizing the negative log-likelihood (binary cross-entropy).</p>
+
+    <p><strong>Sampling (generation).</strong></p>
+    <p>After training, sampling follows the chosen ordering, requiring one forward pass per variable. We trace through each pass below.</p>
+
+    <p><em>Forward Pass 1.</em></p>
+    <p>The input is zero-initialised since nothing has been sampled yet:</p>
+    <div class="math-display">
+      $$\text{input} = [x_1, x_2, x_3] = [0,\, 0,\, 0].$$
+    </div>
+    <p>MADE runs forward. By construction of the masks, the output $\hat{x}_2$ has no dependencies. We read off $p(x_2)$ and sample</p>
+    <div class="math-display">
+      $$x_2 \sim \mathrm{Bernoulli}(p(x_2)), \qquad \text{e.g.}\ x_2 = 1.$$
+    </div>
+
+    <p><em>Forward Pass 2.</em></p>
+    <p>The sampled value of $x_2$ is inserted into the input:</p>
+    <div class="math-display">
+      $$\text{input} = [0,\, 1,\, 0].$$
+    </div>
+    <p>MADE runs forward again. The masks now allow $\hat{x}_3$ to attend to $x_2$. We read off $p(x_3 \mid x_2 = 1)$ and sample</p>
+    <div class="math-display">
+      $$x_3 \sim \mathrm{Bernoulli}(p(x_3 \mid x_2 = 1)), \qquad \text{e.g.}\ x_3 = 0.$$
+    </div>
+
+    <p><em>Forward Pass 3.</em></p>
+    <p>Both sampled values are inserted into the input:</p>
+    <div class="math-display">
+      $$\text{input} = [0,\, 1,\, 0].$$
+    </div>
+    <p>MADE runs forward a final time. The masks allow $\hat{x}_1$ to attend to both $x_2$ and $x_3$. We read off $p(x_1 \mid x_2 = 1,\, x_3 = 0)$ and sample</p>
+    <div class="math-display">
+      $$x_1 \sim \mathrm{Bernoulli}(p(x_1 \mid x_2 = 1,\, x_3 = 0)), \qquad \text{e.g.}\ x_1 = 1.$$
+    </div>
+
+    <p>The final sampled tuple is</p>
+    <div class="math-display">
+      $$(x_1, x_2, x_3) = (1, 1, 0),$$
+    </div>
+    <p>which forms a new generated example. Although MADE computes all conditionals in one forward pass during training, generation requires $D$ forward passes (one per variable) because each newly sampled variable changes the conditioning context. Only the output corresponding to the next variable in the ordering is read at each step; the remaining outputs are discarded.</p>
+  </div>
+</div>
+
+<h2>The Fixed-Length Ceiling</h2>
+
+<p>Every model in the previous section was designed for data with a <strong>fixed, known dimensionality</strong>. A $28\times28$ image always contains exactly 784 pixels. The model is therefore constructed with exactly $n$ variables: the masks are built for $n$ inputs, and the network produces $n$ conditional outputs.</p>
+
+<p>This design works well for images and audio segments, where the dimensionality is known in advance. Language, however, breaks this assumption. A sentence may contain 3 words or 3000. A paragraph, a document, or an entire codebase has no fixed length known at design time. If the number of variables is not known ahead of time, we cannot build an architecture that allocates one conditional distribution for each of them.</p>
+
+<p>Handling such data therefore requires a different architectural idea: instead of constructing $n$ separate conditional models, we need a single conditional model that can be applied repeatedly as the sequence grows.</p>
+
+<h2>Summary: Fixed-Length Models</h2>
+
+<div style="overflow-x: auto; margin-top: 20px; margin-bottom: 20px;">
+  <table style="width: 100%; border-collapse: collapse; text-align: left; border-top: 2px solid black; border-bottom: 2px solid black;">
+    <thead>
+      <tr style="border-bottom: 1px solid black;">
+        <th style="padding: 8px;"><strong>Model</strong></th>
+        <th style="padding: 8px;"><strong>Key idea</strong></th>
+        <th style="padding: 8px;"><strong>Parameters</strong></th>
+        <th style="padding: 8px;"><strong>Parallel training</strong></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 8px;">FVSBN</td>
+        <td style="padding: 8px;">Logistic regression per position</td>
+        <td style="padding: 8px;">$O(n^2)$</td>
+        <td style="padding: 8px;">✓</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px;">NADE</td>
+        <td style="padding: 8px;">Shared weights, $n$ passes</td>
+        <td style="padding: 8px;">$O(nd)$</td>
+        <td style="padding: 8px;">✓</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px;">MADE</td>
+        <td style="padding: 8px;">Masking, single pass</td>
+        <td style="padding: 8px;">$O(nd)$</td>
+        <td style="padding: 8px;">✓</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<h2>Variable-Length Autoregressive Models</h2>
+
+<p><strong>Machine Translation: From Images to Language</strong></p>
+
+<p>Language introduces two challenges that did not arise with images.</p>
+
+<p>First, sequences have variable length. A sentence may contain three words or three thousand, and the model must handle both cases with the same parameters.</p>
+
+<p>Second, language is symbolic rather than numerical. Pixels already live in a numeric space: each pixel value is an integer in $\{0,\dots,255\}$. Words, however, are discrete symbols without any inherent numerical representation.</p>
+
+<p>Before we can model sequences of words, we must therefore answer a more fundamental question:</p>
+
+<div class="math-box">
+  <div class="math-box-body" style="text-align: center;">
+    <p><em>How do we represent a word as a mathematical object?</em></p>
+  </div>
+</div>
+
+
+  <div class="math-box-body" style="text-align: center;">
+    <p>The next step is to turn discrete symbols into vectors that neural networks can operate on.</p>
+    <p style="margin-top: 12px;">
+      <a href="word_rep.html" style="font-weight: 600; text-decoration: none; color: inherit;">
+        Continue to: Words to Vectors →
+      </a>
+    </p>
+  </div>
+</div>
+
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

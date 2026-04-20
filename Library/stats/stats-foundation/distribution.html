@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Probability Distributions</title>
+   
+    <meta name="book" content="stats">
+    <meta name="part" content=" ">
+    <meta name="chapter" content="Stats Foundation">
+    <meta name="title" content="Common Probability Distributions">
+    <meta name="description" content="A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.">
+    <meta name="keywords" content="probability, distributions, statistics, normal distribution, binomial, poisson, exponential, PMF, PDF, CDF">
+    
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-10">
+    <meta name="order" content="4">
+    <meta name="status" content="live">
+    <meta name="belongs_to" content="lib">
+    <meta name="reading_time" content="4">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Flat typographic layout */
+        .dist-section {
+            margin-bottom: 4rem;
+        }
+        
+        .dist-section h2 {
+            color: var(--accent, #D48C70);
+            border-bottom: 1px solid var(--border, #E8DFD1);
+            padding-bottom: 0.5rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .math-block {
+            padding: 0.5rem 0 0.5rem 1rem;
+            margin: 1.5rem 0;
+            border-left: 2px solid var(--accent, #D48C70);
+            overflow-x: auto;
+            font-size: 1.05rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-item {
+            padding: 0.5rem 0;
+        }
+
+        .stat-item strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        /* Borderless chart wrapper */
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            height: 320px;
+            margin: 2.5rem auto 1rem auto;
+        }
+
+        [data-theme="dark"] .dist-section h2 {
+            border-color: var(--border, #2E2018);
+        }
+    </style>
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <meta property="og:title" content="Common Probability Distributions">
+    <meta property="og:description" content="A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.">
+    <meta property="og:image" content="../../../assets/og/common-probability-distributions.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    
+                    <section class="article-body">
+
+                        <p>If a distribution depends on parameters $\theta$, we write:</p>
+                        
+                            $$ X \sim \mathcal{D}(\theta) $$
+                        
+                        <p>This means $X$ follows the distribution $\mathcal{D}$ with parameter(s) $\theta$. The symbol " $\sim$ " is read as "is distributed as" or "follows".</p>
+
+                        <div class="dist-section">
+                            <h2>1. $X \sim \text{Bernoulli}(p)$</h2>
+                            <p><strong>(Bernoulli trial).</strong> An experiment that can result in either a "success" or a "failure" (but not both). A Bernoulli random variable can be thought of as the indicator of success: it equals 1 if success occurs and 0 if failure occurs. It is a discrete random variable that can take on only two possible values, 0 and 1.</p>
+                            
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>PMF (Probability Mass Function)</strong>
+                                    $$ P(X=x) = \begin{cases} p, & x=1 \\ 1-p, & x=0 \end{cases} $$
+                                    <em>Compact:</em> $P(X=x) = p^x(1-p)^{1-x}$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>CDF (Cumulative Distribution)</strong>
+                                    $$ F(x) = \begin{cases} 0, & x \lt 0 \\ 1-p, & 0 \le x \lt 1 \\ 1, & x \ge 1 \end{cases} $$
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>Mean & Variance</strong>
+                                    $E[X] = p$<br>
+                                    $\operatorname{Var}(X) = p(1-p)$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>Median & Mode</strong>
+                                    $\text{Mode/Median} = \begin{cases} 0, & p \lt \tfrac{1}{2} \\ \{0,1\}, & p = \tfrac{1}{2} \\ 1, & p \gt \tfrac{1}{2} \end{cases}$
+                                </div>
+                            </div>
+
+                            <p><em>Equivalencies:</em> $\text{Bernoulli}(p) \equiv \text{Binomial}(n=1,p)$</p>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-bernoulli"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>2. $X \sim \text{Binomial}(n,p)$</h2>
+                            <p>Suppose that $n$ independent Bernoulli trials are performed, each with the same success probability $p$. Let $X$ be the number of successes. We write $X \sim \text{Bin}(n,p)$, where $n$ is a positive integer and $0 &lt; p &lt; 1$.</p>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>PMF</strong>
+                                    $$ P(X=k)=\binom{n}{k}p^k(1-p)^{n-k} $$
+                                    <small>for $k=0,1,\dots,n$</small>
+                                </div>
+                                <div class="stat-item">
+                                    <strong>CDF</strong> (No closed-form)
+                                    $$ F(x)=\sum_{k=0}^{\lfloor x\rfloor}\binom{n}{k}p^k(1-p)^{n-k} $$
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>Mean & Variance</strong>
+                                    $E[X] = np$<br>
+                                    $\operatorname{Var}(X) = np(1-p)$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>Median & Mode</strong>
+                                    $m \in \{\lfloor np \rfloor, \lceil np \rceil\}$<br>
+                                    $\lfloor (n+1)p \rfloor$ <small>(if $(n+1)p \notin \mathbb{Z}$)</small>
+                                </div>
+                            </div>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-binomial"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>3. Uniform Distributions</h2>
+                            <p><strong>Discrete Uniform ($X \sim \text{DUnif}(C)$):</strong> Choose one number uniformly at random from a finite, nonempty set $C$. All values are equally likely.</p>
+                            <p><strong>Continuous Uniform ($X \sim \text{Uniform}(a,b)$):</strong> A random variable $X$ has equal probability density over every point in the continuous interval $[a, b]$.</p>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>PDF (Continuous)</strong>
+                                    $$ f(x) = \begin{cases} \frac{1}{b-a}, & a \le x \le b \\ 0, & \text{otherwise} \end{cases} $$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>CDF (Continuous)</strong>
+                                    $$ F(x)= \begin{cases} 0, & x \lt a \\ \frac{x-a}{b-a}, & a \le x \le b \\ 1, & x \gt b \end{cases} $$
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>Mean & Variance</strong>
+                                    $E[X] = \frac{a+b}{2}$<br>
+                                    $\operatorname{Var}(X) = \frac{(b-a)^2}{12}$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>Median & Mode</strong>
+                                    $\frac{a+b}{2}$<br>
+                                    Every point is equally likely (No unique mode).
+                                </div>
+                            </div>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-uniform"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>4. $X \sim \text{Exponential}(\lambda)$</h2>
+                            <p>A continuous distribution used for modeling <strong>waiting times</strong> between independent events that occur at a constant average rate $\lambda \gt 0$. It is uniquely characterized by its memoryless property.</p>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>PDF</strong>
+                                    $$ f(x) = \begin{cases} \lambda e^{-\lambda x}, & x \ge 0 \\ 0, & x \lt 0 \end{cases} $$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>CDF</strong>
+                                    $$ F(x)= \begin{cases} 1 - e^{-\lambda x}, & x \ge 0 \\ 0, & x \lt 0 \end{cases} $$
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>Mean & Variance</strong>
+                                    $E[X] = \frac{1}{\lambda}$<br>
+                                    $\operatorname{Var}(X) = \frac{1}{\lambda^2}$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>Median & Mode</strong>
+                                    $\frac{\ln 2}{\lambda}$<br>
+                                    $0$
+                                </div>
+                            </div>
+
+                            <div class="math-block">
+                                <strong>Survival Function:</strong> $S(x)=P(X \gt x)= e^{-\lambda x}$<br><br>
+                                <strong>Memoryless Property:</strong> $P(X \gt s + t \mid X \gt t) = P(X \gt s)$
+                            </div>
+                            <p><strong>Relationship with Poisson Process:</strong> If events occur according to a Poisson process with rate $\lambda$, the waiting time between events is $\text{Exponential}(\lambda)$.</p>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-exponential"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>5. $X \sim \text{Poisson}(\lambda)$</h2>
+                            <p>A discrete distribution used to model the <strong>number of events</strong> occurring in a fixed interval of time or space, when events happen independently and with a constant average rate $\lambda \gt 0$.</p>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>PMF</strong>
+                                    $$ P(X = k) = \frac{e^{-\lambda}\lambda^k}{k!} $$
+                                    <small>for $k = 0,1,2,\dots$</small>
+                                </div>
+                                <div class="stat-item">
+                                    <strong>CDF</strong>
+                                    $$ F(k) = \sum_{i=0}^{k} \frac{e^{-\lambda}\lambda^i}{i!} $$
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>Mean & Variance</strong>
+                                    $E[X] = \lambda$<br>
+                                    $\operatorname{Var}(X) = \lambda$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>Mode</strong>
+                                    $\lfloor \lambda \rfloor$ (if $\lambda \notin \mathbb{Z}$)
+                                </div>
+                            </div>
+                            
+                            <ul>
+                                <li><strong>Additivity:</strong> If $X_1 \sim \text{Poisson}(\lambda_1)$ and $X_2 \sim \text{Poisson}(\lambda_2)$ are independent, $X_1 + X_2 \sim \text{Poisson}(\lambda_1 + \lambda_2)$.</li>
+                                <li><strong>Approximation to Binomial:</strong> If $n$ is large, $p$ is small, and $\lambda = np$, then $\text{Binomial}(n,p) \approx \text{Poisson}(\lambda)$. Useful for rare-event modeling.</li>
+                            </ul>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-poisson"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>6 & 7. The Normal Distributions</h2>
+                            <p>A continuous, symmetric, bell-shaped distribution widely used due to the Central Limit Theorem. $X \sim \mathcal{N}(\mu, \sigma^2)$ where $\mu$ is the mean and $\sigma^2$ is the variance.</p>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>Standard Normal: $Z \sim \mathcal{N}(0,1)$</strong>
+                                    If $Z = \frac{X - \mu}{\sigma}$ then $Z$ is standard normal.
+                                    $$ \phi(z) = \frac{1}{\sqrt{2\pi}} e^{-z^2/2} $$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>General Normal PDF</strong>
+                                    $$ f(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left( -\frac{(x-\mu)^2}{2\sigma^2} \right) $$
+                                </div>
+                            </div>
+
+                            <div class="math-block">
+                                <strong>68–95–99.7 Rule (Empirical Rule):</strong><br>
+                                68% of observations lie in $\mu \pm \sigma$<br>
+                                95% lie in $\mu \pm 2\sigma$<br>
+                                99.7% lie in $\mu \pm 3\sigma$
+                            </div>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-normal"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>8. T-distribution & 9. Chi-squared</h2>
+                            
+                            <p><strong>T-distribution:</strong> Used instead of normal when the sample size is small and variance is unknown. It has heavier tails to account for extra uncertainty.</p>
+                            <div class="chart-wrapper">
+                                <canvas id="chart-t"></canvas>
+                            </div>
+
+                            <p style="margin-top: 2rem;"><strong>Chi-squared distribution:</strong> Models the variability of squared normal deviations. Used to study variance, goodness of fit, and independence.</p>
+                            <div class="chart-wrapper">
+                                <canvas id="chart-chi"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>Geometric & First Success Distributions</h2>
+                            <p><strong>Geometric ($X \sim \text{Geom}(p)$):</strong> The number of failures before the first successful trial. PMF is $P(X=k) = q^k p$ for $k=0,1,2,\dots$, where $q = 1-p$.</p>
+                            <p><strong>First Success ($Y \sim \text{FS}(p)$):</strong> The number of trials until the first successful trial, <em>including</em> the success. If $X \sim \text{Geom}(p)$, then $X + 1 \sim \text{FS}(p)$.</p>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-geom"></canvas>
+                            </div>
+                        </div>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === "function") {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const colors = {
+                accent: '#D48C70',
+                text: isDark ? '#C5B49A' : '#4A3F35',
+                grid: isDark ? '#3A281F' : '#EAD8CF',
+                fill: 'rgba(212, 140, 112, 0.2)',
+                altLine: isDark ? '#847769' : '#A0A0A0'
+            };
+
+            const factorial = (n) => n === 0 || n === 1 ? 1 : n * factorial(n - 1);
+            const choose = (n, k) => factorial(n) / (factorial(k) * factorial(n - k));
+
+            const baseChartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: colors.text }, grid: { color: colors.grid, drawBorder: false } },
+                    y: { ticks: { color: colors.text }, grid: { color: colors.grid, drawBorder: false } }
+                },
+                plugins: {
+                    legend: { labels: { color: colors.text, font: { family: 'Lora, serif' } } },
+                    tooltip: { backgroundColor: isDark ? '#2D241E' : '#FDFBF7', titleColor: colors.accent, bodyColor: colors.text, borderColor: colors.grid, borderWidth: 1 }
+                }
+            };
+
+            // 1. Bernoulli
+            new Chart(document.getElementById('chart-bernoulli').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Failure (0)', 'Success (1)'],
+                    datasets: [{
+                        label: 'Bernoulli PMF (p=0.5)',
+                        data: [0.5, 0.5],
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    ...baseChartOptions,
+                    scales: {
+                        x: baseChartOptions.scales.x,
+                        y: { ...baseChartOptions.scales.y, min: 0, max: 1 }
+                    }
+                }
+            });
+
+            // 2. Binomial
+            const binomLabels = Array.from({length: 21}, (_, i) => i);
+            const binomData = binomLabels.map(k => choose(20, k) * Math.pow(0.5, k) * Math.pow(0.5, 20 - k));
+            new Chart(document.getElementById('chart-binomial').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: binomLabels,
+                    datasets: [{
+                        label: 'Binomial PMF (n=20, p=0.5)',
+                        data: binomData,
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 1,
+                        borderRadius: 2
+                    }]
+                },
+                options: baseChartOptions
+            });
+
+            // 3. Uniform
+            new Chart(document.getElementById('chart-uniform').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    datasets: [{
+                        label: 'Uniform PDF (a=0, b=10)',
+                        data: Array(11).fill(0.1),
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0,
+                        stepped: 'middle'
+                    }]
+                },
+                options: { ...baseChartOptions, scales: { y: { min: 0, max: 0.2, ...baseChartOptions.scales.y } } }
+            });
+
+            // 4. Exponential
+            const expLabels = Array.from({length: 50}, (_, i) => (i / 10).toFixed(1));
+            const expData = expLabels.map(x => Math.exp(-x));
+            new Chart(document.getElementById('chart-exponential').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: expLabels,
+                    datasets: [{
+                        label: 'Exponential PDF (λ=1)',
+                        data: expData,
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }]
+                },
+                options: baseChartOptions
+            });
+
+            // 5. Poisson
+            const poisLabels = Array.from({length: 15}, (_, i) => i);
+            const poisData = poisLabels.map(k => (Math.pow(5, k) * Math.exp(-5)) / factorial(k));
+            new Chart(document.getElementById('chart-poisson').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: poisLabels,
+                    datasets: [{
+                        label: 'Poisson PMF (λ=5)',
+                        data: poisData,
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: baseChartOptions
+            });
+
+            // 6. Normal
+            const normLabels = Array.from({length: 81}, (_, i) => (-4 + (i * 0.1)).toFixed(1));
+            const normData = normLabels.map(x => (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * x * x));
+            new Chart(document.getElementById('chart-normal').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: normLabels,
+                    datasets: [{
+                        label: 'Standard Normal N(0,1)',
+                        data: normData,
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }]
+                },
+                options: baseChartOptions
+            });
+
+            // 8. T-Distribution
+            const tData = normLabels.map(x => 0.36755 * Math.pow(1 + (x * x) / 3, -2)); 
+            new Chart(document.getElementById('chart-t').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: normLabels,
+                    datasets: [
+                        {
+                            label: 'T-Distribution (df=3)',
+                            data: tData,
+                            borderColor: colors.accent,
+                            backgroundColor: colors.fill,
+                            borderWidth: 2,
+                            fill: true,
+                            pointRadius: 0,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Standard Normal',
+                            data: normData,
+                            borderColor: colors.altLine,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: baseChartOptions
+            });
+
+            // 9. Chi-squared
+            const chiLabels = Array.from({length: 80}, (_, i) => (i / 4).toFixed(1));
+            const chiData = chiLabels.map(x => 0.25 * x * Math.exp(-x / 2));
+            new Chart(document.getElementById('chart-chi').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: chiLabels,
+                    datasets: [{
+                        label: 'Chi-squared PDF (k=4)',
+                        data: chiData,
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.4
+                    }]
+                },
+                options: baseChartOptions
+            });
+
+            // 10. Geometric
+            const geomLabels = Array.from({length: 12}, (_, i) => i);
+            const geomData = geomLabels.map(k => Math.pow(0.6, k) * 0.4);
+            new Chart(document.getElementById('chart-geom').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: geomLabels,
+                    datasets: [{
+                        label: 'Geometric PMF (p=0.4)',
+                        data: geomData,
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: baseChartOptions
+            });
+        });
+    </script>
+
+</body>
+</html>

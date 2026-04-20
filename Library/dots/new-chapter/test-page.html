@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test page · Connecting the Dots</title>
+    <meta name="book" content="dots">
+    <meta name="chapter" content="New Chapter">
+    <meta name="part" content="Main">
+    <meta name="title" content="test page">
+    <meta name="description" content="A brief description of this dot.">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-04">
+    <meta name="order" content="99">
+    <meta name="status" content="hide">
+    <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+            svg: { fontCache: "global" }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        .studio-mode-active #global-nav { display: none; }
+        .studio-workspace {
+            display: none; grid-template-columns: 1fr 1fr; gap: 2rem;
+            height: 90vh; padding: 2rem; background: var(--bg);
+            max-width: 1600px; margin: 0 auto;
+        }
+        .studio-workspace.is-active { display: grid; }
+        .code-pane {
+            width: 100%; height: 100%; padding: 1.5rem;
+            font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; line-height: 1.6;
+            background: #1e1e1e; color: #d4d4d4; border: none; border-radius: 12px; resize: none; outline: none;
+        }
+        .preview-pane { height: 100%; overflow-y: auto; padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+        .studio-fab {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
+            padding: 0.8rem 1.5rem; background: var(--accent, #000); color: var(--bg, #fff);
+            border: 1px solid var(--border, transparent); border-radius: 50px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+        }
+        .studio-controls { position: absolute; top: 3rem; right: 3rem; display: flex; gap: 1rem; }
+    </style>
+  <meta name="reading_time" content="1">
+
+    <meta property="og:title" content="test page">
+    <meta property="og:description" content="A brief description of this dot.">
+    <meta property="og:image" content="../assets/og/test-page.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+    <div id="global-nav" data-root="../../../" data-sticky="false"></div>
+
+    <main class="page-wrap" id="standard-view">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+                    <div id="article-header"></div>
+                    <section class="article-body" id="main-content">
+                        <h2>Introduction</h2>
+                        <p>Start writing your dot here... (Math works: $x^2$)</p>
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <div class="studio-workspace" id="studio-view">
+        <textarea class="code-pane" id="source-editor"></textarea>
+        <div class="preview-pane article-body" id="live-preview"></div>
+        <div class="studio-controls">
+            <button class="studio-fab" id="btn-save" style="position: static;">Save to File</button>
+            <button class="studio-fab" id="btn-exit" style="position: static; background: #666;">Exit Studio</button>
+        </div>
+    </div>
+    <button id="btn-edit" class="studio-fab">Open Studio</button>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const btnEdit = document.getElementById('btn-edit');
+            const btnExit = document.getElementById('btn-exit');
+            const btnSave = document.getElementById('btn-save');
+            const standardView = document.getElementById('standard-view');
+            const studioView = document.getElementById('studio-view');
+            const sourceEditor = document.getElementById('source-editor');
+            const livePreview = document.getElementById('live-preview');
+            const mainContent = document.getElementById('main-content');
+            let mathJaxTimeout; let pristineSource = "";
+
+            try {
+                const response = await fetch(window.location.href);
+                const html = await response.text();
+                const match = html.match(/(<section\s+class="article-body"[^>]*>)([\s\S]*?)(<\/section>)/i);
+                pristineSource = match ? match[2] : mainContent.innerHTML;
+            } catch (e) { pristineSource = mainContent.innerHTML; }
+
+            btnEdit.addEventListener('click', () => {
+                document.body.classList.add('studio-mode-active');
+                standardView.style.display = 'none'; btnEdit.style.display = 'none';
+                studioView.classList.add('is-active');
+                sourceEditor.value = pristineSource.trim();
+                updatePreview();
+            });
+
+            sourceEditor.addEventListener('input', () => {
+                pristineSource = sourceEditor.value;
+                livePreview.innerHTML = sourceEditor.value;
+                clearTimeout(mathJaxTimeout);
+                mathJaxTimeout = setTimeout(() => { if (window.MathJax) MathJax.typesetPromise([livePreview]); }, 500);
+            });
+
+            function updatePreview() {
+                livePreview.innerHTML = sourceEditor.value;
+                if (window.MathJax) MathJax.typesetPromise([livePreview]);
+            }
+
+            btnExit.addEventListener('click', () => {
+                document.body.classList.remove('studio-mode-active');
+                studioView.classList.remove('is-active');
+                standardView.style.display = 'block'; btnEdit.style.display = 'block';
+                mainContent.innerHTML = pristineSource;
+                if (window.MathJax) MathJax.typesetPromise([mainContent]);
+            });
+
+            btnSave.addEventListener('click', async () => {
+                btnSave.textContent = "Saving...";
+                try {
+                    const response = await fetch(window.location.href);
+                    const rawSourceText = await response.text();
+                    const regex = /(<section\s+class="article-body"[^>]*>)([\s\S]*?)(<\/section>)/i;
+                    
+                    // Simple string concatenation protects against template literal breakages
+                    const finalHtml = rawSourceText.replace(regex, "$1\n" + pristineSource + "\n$3");
+                    
+                    if ('showSaveFilePicker' in window) {
+                        const handle = await window.showSaveFilePicker({ suggestedName: location.pathname.split('/').pop() });
+                        const writable = await handle.createWritable();
+                        await writable.write(finalHtml);
+                        await writable.close();
+                        btnSave.textContent = "Saved!";
+                        setTimeout(() => btnSave.textContent = "Save to File", 2000);
+                    }
+                } catch (err) {
+                    alert("Save failed. Are you using VS Code Live Server?");
+                } finally { if(btnSave.textContent === "Saving...") btnSave.textContent = "Save to File"; }
+            });
+        });
+    </script>

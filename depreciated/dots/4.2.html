@@ -17,7 +17,7 @@
 <meta name="belongs_to" content="lib">
 <meta name="keywords" content="projections, orthogonal projection, projection matrix, least squares, normal equation, linear algebra">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="reading_time" content="9">
+<meta name="reading_time" content="10">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -161,104 +161,116 @@
   $$P_1 + P_2 = I$$
 </div>
  
+<div class="derivation-container">
+  <h3>Deriving the Projection onto a Line</h3>
 
-<h3>Deriving the Projection onto a Line</h3>
+  <p>
+    Let a line pass through the origin in the direction of a vector $a$. We want to find the point $p$ on that line that is closest to our target vector $b$.
+  </p>
 
-<p>
-  Let a line pass through the origin in the direction of a vector $a$. We want to find the point $p$ on that line that is closest to our target vector $b$. Because $p$ must lie on the one-dimensional subspace created by $a$, it must be some scalar multiple of $a$. Let's call that unknown scalar $\hat{x}$:
-</p>
+  <p>
+    Geometrically, the projection $p$ lies entirely along the direction of $a$. We can capture this pure direction using a unit vector, $\hat{a} = \frac{a}{\|a\|}$. If we look at this through the lens of trigonometry, let $\theta$ be the angle between $b$ and $a$. The magnitude (or length) of the projection is exactly $\|b\| \cos \theta$, while the magnitude of the orthogonal error vector $e$ is given by $\|b\| \sin \theta$.
+  </p>
 
-<div class="math-display">
-  $$p = \hat{x}a$$
-</div>
+  <p>
+    Therefore, the projected vector $p$ is simply the magnitude multiplying our unit direction:
+  </p>
 
-<p>
-  The key to finding the closest point is not actually calculating angles or distances using trigonometry, but utilizing <strong>orthogonality</strong>. For $p$ to be the absolute closest approximation of $b$, the error vector ($e = b - p$) must drop straight down at a right angle to the line. Because the error is perpendicular to the line $a$, their dot product must be zero:
-</p>
-
-<div class="math-display">
-  $$a^T(b - p) = 0$$
-</div>
-
-<p>
-  Substitute $p = \hat{x}a$ into the equation and distribute the transpose:
-</p>
-
-<div class="math-display">
-  $$a^T(b - \hat{x}a) = 0$$
-   
-  $$a^Tb - \hat{x}(a^Ta) = 0$$
-</div>
-
-<p>
-  Move $\hat{x}(a^Ta)$ to the other side and divide to isolate $\hat{x}$. Notice that $a^Ta$ is just a scalar number (the length of $a$ squared), so we can easily divide by it:
-</p>
-
-<div class="math-box key-box">
-  <div class="math-box-label">The Scalar Multiplier & The Projected Vector</div>
-  <div class="math-box-body">
-    <div class="math-display">
-      $$\hat{x} = \frac{a^T b}{a^T a}, \quad p = a \frac{a^T b}{a^T a}$$
-    </div>
+  <div class="math-display">
+    $$p = (\|b\| \cos \theta) \hat{a}$$
   </div>
-</div>
 
-<p>
-  The numerator $a^T b$ measures how much $b$ aligns with $a$. The denominator $a^T a$ normalizes it. What happens if we scale our vectors? If we double the target vector $b$, the projection $p$ must also double. The formula confirms this: replacing $b$ with $2b$ simply factors out the $2$. However, what if we double the line's direction vector $a$? The projection <em>does not change at all</em>. The geometric line itself remains the same, and the formula reflects this: doubling $a$ multiplies the numerator by 4 and the denominator by 4, which cancel out completely.
-</p>
-
-<p>
-  By factoring out $b$, we reveal the 1D Projection Matrix $P$:
-</p>
-
-<div class="math-display">
-  $$P = \frac{aa^T}{a^T a}$$
-</div>
-
-<p>
-  Notice that $aa^T$ is a column multiplied by a row, resulting in a full-scale $n \times n$ matrix of rank 1. This matrix keeps only the component of any vector that lies along $a$ and removes everything else.
-</p>
-
-<figure class="diagram-figure">
+  <figure class="diagram-figure">
     <div class="svg-container">
-        <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="marker-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
-            </marker>
-            <marker id="marker-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
-            </marker>
-            <marker id="marker-arrow-box-label-bg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
-            </marker>
-            <marker id="marker-arrow-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dark)" />
-            </marker>
-          </defs>
-          
-          <line x1="20" y1="440" x2="700" y2="100" stroke="var(--muted)" stroke-width="3" stroke-dasharray="10,10"/>
-          <polygon points="380,260 362,269 353,251 371,242" fill="none" stroke="var(--muted)" stroke-width="3"/>
-          
-          <line x1="100" y1="400" x2="580" y2="160" stroke="var(--text)" stroke-width="5" marker-end="url(#marker-arrow-text)"/>
-          <text x="590" y="150" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--text)">a</text>
-          
-          <line x1="100" y1="400" x2="300" y2="100" stroke="var(--accent)" stroke-width="5" marker-end="url(#marker-arrow-accent)"/>
-          <text x="270" y="80" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--accent)">b</text>
-          
-          <line x1="100" y1="400" x2="380" y2="260" stroke="var(--box-label-bg)" stroke-width="6" marker-end="url(#marker-arrow-box-label-bg)"/>
-          <text x="390" y="310" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--box-label-bg)">p</text>
-          
-          <line x1="380" y1="260" x2="300" y2="100" stroke="var(--dark)" stroke-width="4" stroke-dasharray="8,8" marker-end="url(#marker-arrow-dark)"/>
-          <text x="360" y="170" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--dark)">e</text>
-        </svg>
+      <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="marker-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+          <marker id="marker-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
+          </marker>
+          <marker id="marker-arrow-box-label-bg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="marker-arrow-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dark)" />
+          </marker>
+        </defs>
+        
+        <line x1="20" y1="440" x2="700" y2="100" stroke="var(--muted)" stroke-width="3" stroke-dasharray="10,10"/>
+        
+        <polygon points="380,260 362,269 353,251 371,242" fill="none" stroke="var(--muted)" stroke-width="3"/>
+        
+        <line x1="100" y1="400" x2="580" y2="160" stroke="var(--text)" stroke-width="5" marker-end="url(#marker-arrow-text)"/>
+        <text x="590" y="150" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--text)">a</text>
+        
+        <line x1="100" y1="400" x2="380" y2="260" stroke="var(--box-label-bg)" stroke-width="6" marker-end="url(#marker-arrow-box-label-bg)"/>
+        <text x="390" y="300" font-family="'Lora', serif" font-size="32" font-style="italic" fill="var(--box-label-bg)">p</text>
+        <text x="210" y="325" font-family="'Lora', serif" font-size="22" fill="var(--box-label-bg)">||b|| cos(θ)</text>
+
+        <line x1="100" y1="400" x2="162.6" y2="368.7" stroke="var(--accent)" stroke-width="5" marker-end="url(#marker-arrow-accent)"/>
+        <text x="165" y="405" font-family="'Lora', serif" font-size="28" font-style="italic" fill="var(--accent)">â</text>
+
+        <line x1="100" y1="400" x2="300" y2="100" stroke="var(--accent)" stroke-width="5" marker-end="url(#marker-arrow-accent)"/>
+        <text x="260" y="80" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--accent)">b</text>
+        
+        <path d="M 133.3 350.1 A 60 60 0 0 1 153.7 373.2" fill="none" stroke="var(--text)" stroke-width="2"/>
+        <text x="155" y="355" font-family="'Lora', serif" font-size="24" font-style="italic" fill="var(--text)">θ</text>
+
+        <line x1="380" y1="260" x2="300" y2="100" stroke="var(--dark)" stroke-width="4" stroke-dasharray="8,8" marker-end="url(#marker-arrow-dark)"/>
+        <text x="360" y="150" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--dark)">e</text>
+        <text x="365" y="110" font-family="'Lora', serif" font-size="22" fill="var(--dark)">||b|| sin(θ)</text>
+      </svg>
     </div>
     <figcaption class="figure-caption">
-        <strong>Figure 1:</strong> Projection of vector $b$ onto the line formed by vector $a$. The error vector $e$ is perfectly orthogonal to the line.
+        <strong>Figure 1:</strong> Projection of vector $b$ onto the line formed by vector $a$. The error vector $e$ is orthogonal to the projection $p$.
     </figcaption>
-</figure>
- 
+  </figure>
 
+  <p>
+    While this trigonometric perspective is incredibly intuitive for 2D and 3D spaces, calculating angles in higher dimensions becomes cumbersome. Instead, linear algebra offers a more scalable and powerful tool: <strong>orthogonality</strong>. 
+  </p>
+
+  <p>
+    Because $p$ must lie on the one-dimensional subspace created by $a$, it must be some scalar multiple of $a$. Let's call that unknown scalar $\hat{x}$:
+  </p>
+
+  <div class="math-display">
+    $$p = \hat{x}a$$
+  </div>
+
+  <p>
+    For $p$ to be the absolute closest approximation of $b$, the error vector ($e = b - p$) must drop straight down at a right angle to the line. Because the error is perpendicular to the line $a$, their dot product must be zero:
+  </p>
+
+  <div class="math-display">
+    $$a^T(b - p) = 0$$
+  </div>
+
+  <p>
+    Substitute $p = \hat{x}a$ into the equation and distribute the transpose:
+  </p>
+
+  <div class="math-display">
+    $$a^T(b - \hat{x}a) = 0$$
+    
+    $$a^Tb - \hat{x}(a^Ta) = 0$$
+  </div>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The Scalar Multiplier, Projection, & Matrix P</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\hat{x} = \frac{a^T b}{a^T a}, \quad p = a \frac{a^T b}{a^T a}, \quad P = \frac{aa^T}{a^T a}$$
+      </div>
+    </div>
+  </div>
+
+  <p>
+    The numerator $a^T b$ measures how much $b$ aligns with $a$. The denominator $a^T a$ normalizes it. Notice that $aa^T$ is a column multiplied by a row, resulting in a full-scale $n \times n$ matrix of rank 1. This matrix keeps only the component of any vector that lies along $a$ and removes everything else.
+  </p>
+</div>
 <h3>Projection onto a Subspace $C(A)$</h3>
 
 <p>
@@ -448,14 +460,14 @@
 </p>
  
 
-<h3>Why $A^T A$ is Always Invertible</h3>
+<h3>The Projection Matrix: Full Rank vs. Redundant Data</h3>
 
 <p>
-  In our derivations, we heavily relied on taking the inverse of $A^T A$. But is it guaranteed to be invertible? The matrix $A^T A$ is invertible precisely when the columns of $A$ are linearly independent. 
+  To project a vector $b$ onto the column space of $A$, we rely heavily on the projection matrix formula $P = A(A^T A)^{-1} A^T$. However, this formula has a strict prerequisite: $A^T A$ must be invertible. 
 </p>
 
 <p>
-  If we assume there is some vector $x$ in its null space such that $A^T A x = 0$, we can multiply both sides by $x^T$:
+  <strong>The Ideal Case (Full Column Rank):</strong> The matrix $A^T A$ is guaranteed to be invertible precisely when the columns of $A$ are linearly independent. If we assume there is some vector $x$ in its null space such that $A^T A x = 0$, we can multiply both sides by $x^T$:
 </p>
 
 <div class="math-display">
@@ -463,7 +475,7 @@
 </div>
 
 <p>
-  Using the rules of transposes, we know that $(Ax)^T = x^T A^T$. We can substitute that in:
+  Using the rules of transposes, $(Ax)^T = x^T A^T$, which simplifies the equation to:
 </p>
 
 <div class="math-display">
@@ -471,12 +483,25 @@
 </div>
 
 <p>
-  The dot product of a vector with itself is its length squared. The length of a vector can only be zero if the vector itself is zero, meaning $Ax = 0$. 
+  Because the length squared of a vector is zero only if the vector itself is zero, $Ax = 0$. If $A$'s columns are independent, the only solution to $Ax = 0$ is $x = 0$. Therefore, $A^T A$ has no null space and is safely invertible.
 </p>
 
 <p>
-  If the columns of $A$ are independent, the only solution to $Ax = 0$ is $x = 0$. Because the only vector that solves $A^T A x = 0$ is the zero vector, the matrix has no null space. Therefore, $A^T A$ is mathematically guaranteed to be invertible.
+  <strong>The Redundant Case (Fat Matrices and Rank Deficiency):</strong> What happens if $A$ has more columns than rows? This creates a "fat" matrix. When you have more vectors than available dimensions, the columns are mathematically guaranteed to be linearly dependent. (The same applies if $A$ is a tall matrix but includes a column that is just a copy or multiple of another).
 </p>
+
+<p>
+  In these cases, $A$ provides redundant information and is not full column rank. If you attempt to compute $A^T A$, the resulting matrix will have a determinant of exactly zero. It is singular and has no inverse. The standard projection formula completely fails because it demands a true, independent basis.
+</p>
+
+<p>
+  <strong>Finding the Projection Anyway:</strong> Even if $A$ is fat or has redundant columns, projecting onto its column space is still a mathematically valid goal. To find $P$, you must bypass the failed inverse using one of two methods:
+</p>
+
+<ul>
+  <li><strong>Prune the Columns:</strong> Perform elimination to identify the independent pivot columns. Simply discard the extra, dependent columns to create a new matrix, $A_{basis}$. Since $A_{basis}$ now has full column rank, you can safely calculate $P = A_{basis}(A_{basis}^T A_{basis})^{-1} A_{basis}^T$.</li>
+  <li><strong>Use the Pseudoinverse:</strong> If you don't want to manually strip away data, you can replace the standard inverse with the Moore-Penrose pseudoinverse ($A^+$). The projection formula gracefully simplifies to $P = A A^+$, which automatically handles fat or singular matrices without breaking.</li>
+</ul>
 
 </section>
 

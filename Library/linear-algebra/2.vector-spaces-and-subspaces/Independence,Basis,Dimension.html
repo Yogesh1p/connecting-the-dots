@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<title>Independence, Basis, and Dimension</title>
+
+<meta name="book" content="linear-algebra">
+<meta name="chapter" content="Vector Spaces and Subspaces">
+<meta name="part" content=" ">
+<meta name="title" content="Independence, Basis, and Dimension">
+<meta name="description" content="linear independence, spanning sets, basis, dimension, rank, and null space, showing how these concepts define the structure of vector spaces.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-12">
+<meta name="chapterorder" content="2">
+<meta name="lessonorder" content="3">
+<meta name="status" content="live">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="linear independence, basis, dimension, vector spaces, spanning sets, null space, column space, rank, pivots, linear algebra">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <meta name="reading_time" content="14">
+
+    <meta property="og:title" content="Independence, Basis, and Dimension">
+    <meta property="og:description" content="linear independence, spanning sets, basis, dimension, rank, and null space, showing how these concepts define the structure of vector spaces.">
+    <meta property="og:image" content="../../../assets/og/independence-basis-and-dimension.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+<section id="independence-basis-dimension">
+
+
+  <p>
+    Every subspace has a true size — a single number that measures it completely. A matrix might have ten columns, but the column space they produce might only be three-dimensional. Finding that number is what this section is about.
+  </p>
+
+  <p>
+    The path runs through three ideas in sequence. <strong>Independence</strong> removes redundancy from a set of vectors. <strong>Spanning</strong> ensures the set reaches every corner of the space. A <strong>basis</strong> does both at once — it is the minimal complete description of a space. Count the vectors in any basis and you get the <strong>dimension</strong>. That is the true size.
+  </p>
+
+  <h3>1. Linear Independence</h3>
+
+  <p>
+    The core question is simple: does any vector in a set add something new, or can it be built from the others? If a vector is just a combination of the rest, it is redundant. A set with no redundant vectors is called <strong>linearly independent</strong>.
+  </p>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Definition: Linear Independence</div>
+    <div class="math-box-body">
+      <p>
+        Vectors $v_1, v_2, \dots, v_n$ are <strong>linearly independent</strong> if the only way to combine them into the zero vector is the trivial way — all coefficients zero:
+      </p>
+      <div class="math-display">
+        $$x_1 v_1 + x_2 v_2 + \dots + x_n v_n = 0 \implies x_1 = x_2 = \dots = x_n = 0.$$
+      </div>
+      <p>
+        When the vectors are columns of a matrix $A$, this is equivalent to saying the only solution to $Ax = 0$ is $x = 0$. The null space $N(A)$ contains only the zero vector.
+      </p>
+      <p>
+        If any non-zero coefficients produce the zero vector, the vectors are <strong>linearly dependent</strong>.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    Two concrete cases make the definition clear. The vectors $(1, 1)$ and $(-1, -1)$ are dependent — they lie on the same line through the origin, and the combination $1 \cdot (1,1) + 1 \cdot (-1,-1) = (0,0)$ uses non-zero coefficients. By contrast, $(1, 0)$ and $(0, 1)$ point in genuinely different directions: no non-zero combination of them produces zero, so they are independent.
+  </p>
+
+  <p>
+    A set containing the zero vector is always dependent, immediately. You can assign any non-zero coefficient to the zero vector and the sum is still zero — so the trivial combination is not the only one that works.
+  </p>
+
+  <h4>When dependence is guaranteed</h4>
+
+  <p>
+    If $A$ is $m \times n$ with $n > m$ — more columns than rows — then elimination produces at most $m$ pivots. The remaining $n - m$ columns are free. A free variable can be set to a non-zero value and solved for, giving a non-zero vector in the null space. So the columns are dependent. No exceptions.
+  </p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Theorem</div>
+    <div class="math-box-body">
+      <p>
+        Any $n$ vectors in $\mathbb{R}^m$ are linearly dependent if $n > m$. When there are more vectors than the dimension of the space they live in, dependence is unavoidable.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    This is why three vectors in $\mathbb{R}^2$ are always dependent, regardless of which three vectors you pick. And it is the exact reason why the columns of a matrix are independent only when rank $r = n$ — every column is a pivot column, there are no free variables, and the null space is $\{0\}$.
+  </p>
+
+  <h4>Testing independence: a worked example</h4>
+
+  <p>
+    Are the columns of this matrix independent?
+  </p>
+  <div class="math-display">
+    $$A = \begin{bmatrix} 1 & 3 & 3 \\ 2 & 6 & 9 \\ -1 & -3 & 3 \end{bmatrix}$$
+  </div>
+  <p>
+    Run elimination. Row 2 minus $2 \times$ Row 1, then Row 3 plus Row 1:
+  </p>
+  <div class="math-display">
+    $$A \to \begin{bmatrix} 1 & 3 & 3 \\ 0 & 0 & 3 \\ 0 & 0 & 6 \end{bmatrix} \to \begin{bmatrix} 1 & 3 & 3 \\ 0 & 0 & 3 \\ 0 & 0 & 0 \end{bmatrix}$$
+  </div>
+  <p>
+    Two pivots, not three. Column 2 is free. Setting $x_2 = 1$ and solving gives the special solution $x = (-3, 1, 0)$, which satisfies $Ax = 0$ with non-zero entries. The columns are <strong>dependent</strong>. The special solution reveals exactly how: column 2 equals $3 \times$ column 1.
+  </p>
+<p>
+    Two concrete cases make the definition clear. The vectors $(1, 1)$ and $(-1, -1)$ are dependent — they lie on the same line through the origin, and the combination $1 \cdot (1,1) + 1 \cdot (-1,-1) = (0,0)$ uses non-zero coefficients. By contrast, $(1, 0)$ and $(0, 1)$ point in genuinely different directions: no non-zero combination of them produces zero, so they are independent.
+  </p>
+
+  <p>
+    Think of linear independence as the requirement to explore something new. If you start with one random vector, you can move back and forth along it—you have a 1D space to explore. To take a step away from that line and discover something new, a second vector doesn't have to be perfectly perpendicular to the first. It just needs to have a <strong>component that is orthogonal</strong> to the line you are limited to. That orthogonal component is what pulls you out of 1D and grants you access to a 2D plane. 
+  </p>
+
+  <p>
+    To expand into 3D space, you need a third vector with a component orthogonal to that entire 2D plane. Any vector without that orthogonal component is redundant—it leaves you trapped in the space you can already span, making it linearly dependent.
+  </p>
+
+  <style>
+    .basis-visualizer {
+      width: 100%;
+      margin: 2rem 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--surface);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .basis-canvas-container {
+      width: 100%;
+      height: 400px;
+      position: relative;
+    }
+    .basis-canvas-container canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .basis-description-bar {
+      padding: 1.25rem;
+      background: var(--box-bg);
+      border-top: 1px solid var(--border);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    .basis-description-bar b {
+      color: var(--accent);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+
+  <div class="basis-visualizer">
+    <div class="basis-canvas-container" id="basis-canvas-container"></div>
+    <div class="basis-description-bar" id="basis-desc">
+      <div><b>Initializing space...</b></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById('basis-canvas-container');
+      const descEl = document.getElementById('basis-desc');
+      
+      const scene = new THREE.Scene();
+      
+      // Fetch dynamic colors from the theme
+      function getCSSColor(varName, defaultHex) {
+        const color = getComputedStyle(document.body).getPropertyValue(varName).trim();
+        return color ? color : defaultHex;
+      }
+      
+      scene.background = new THREE.Color(getCSSColor('--surface', '#F4EFE6'));
+      
+      const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(4, 3, 5);
+      camera.lookAt(0, 0, 0);
+      
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+      
+      const mathGroup = new THREE.Group();
+      scene.add(mathGroup);
+      
+      // Parse colors as hex for Three.js
+      function getHexColor(varName, fallback) {
+        let str = getCSSColor(varName, fallback);
+        if(str.startsWith('#')) return parseInt(str.replace('#', '0x'));
+        return parseInt(fallback.replace('#', '0x'));
+      }
+
+      const accentColor = getHexColor('--accent', '#D48C70');
+      const boxBorderColor = getHexColor('--box-border', '#D99A74');
+      const mutedColor = getHexColor('--muted', '#847769');
+      const textColor = getHexColor('--text', '#4A3F35');
+      
+      // --- THE FIX FOR THE AXES ---
+      const axesHelper = new THREE.AxesHelper(3);
+      // Disable the default Red/Green/Blue gradient
+      axesHelper.material.vertexColors = false; 
+      // Force it to use your text color
+      axesHelper.material.color.setHex(textColor); 
+      axesHelper.material.opacity = 0.15;
+      axesHelper.material.transparent = true;
+      mathGroup.add(axesHelper);
+      // -----------------------------
+      
+      // Geometry definitions
+      const origin = new THREE.Vector3(0, 0, 0);
+      const v1 = new THREE.Vector3(2, 0, 0);
+      const v2 = new THREE.Vector3(1, 0, -2);
+      const v3 = new THREE.Vector3(0.5, 2.5, -0.5);
+      
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-4, 0, 0), new THREE.Vector3(4, 0, 0)]);
+      const line1D = new THREE.Line(lineGeo, new THREE.LineBasicMaterial({ color: accentColor, transparent: true, opacity: 0 }));
+      mathGroup.add(line1D);
+      
+      const planeGeo = new THREE.PlaneGeometry(8, 8);
+      const plane2D = new THREE.Mesh(planeGeo, new THREE.MeshBasicMaterial({ color: boxBorderColor, transparent: true, opacity: 0, side: THREE.DoubleSide }));
+      plane2D.rotation.x = Math.PI / 2;
+      mathGroup.add(plane2D);
+      
+      const boxGeo = new THREE.BoxGeometry(6, 4, 6);
+      const edges = new THREE.EdgesGeometry(boxGeo);
+      const box3D = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: mutedColor, transparent: true, opacity: 0 }));
+      box3D.position.set(1, 1, -1);
+      mathGroup.add(box3D);
+      
+      const arrow1 = new THREE.ArrowHelper(v1.clone().normalize(), origin, v1.length(), accentColor, 0.3, 0.2);
+      const arrow2 = new THREE.ArrowHelper(v2.clone().normalize(), origin, v2.length(), boxBorderColor, 0.3, 0.2);
+      const arrow3 = new THREE.ArrowHelper(v3.clone().normalize(), origin, v3.length(), mutedColor, 0.3, 0.2);
+      
+      arrow1.scale.set(0,0,0);
+      arrow2.scale.set(0,0,0);
+      arrow3.scale.set(0,0,0);
+      
+      mathGroup.add(arrow1);
+      mathGroup.add(arrow2);
+      mathGroup.add(arrow3);
+
+      const descriptions = [
+        "<div><b>Starting in empty space...</b>No vectors yet. You are trapped at the origin.</div>",
+        "<div><b>1. Pick a random vector.</b>This is your first independent direction.</div>",
+        "<div><b>2. Span the vector.</b>By scaling it, you unlock a 1D line. You are trapped on this line.</div>",
+        "<div><b>3. Pick a new vector.</b>It must have an orthogonal component pointing away from the line.</div>",
+        "<div><b>4. Span both vectors.</b>You have expanded your reach to a flat 2D plane.</div>",
+        "<div><b>5. Pick a final vector.</b>It must point out of the plane, offering a new orthogonal component.</div>",
+        "<div><b>6. Span all three.</b>The basis is complete. You now have full access to expand into 3D space!</div>",
+        "<div><b>Resetting...</b></div>"
+      ];
+
+      let startTime = Date.now();
+      const phaseDuration = 7000; // 3 seconds per phase
+      const totalPhases = 8;
+      let lastPhase = -1;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        
+        let elapsed = Date.now() - startTime;
+        let phase = Math.floor(elapsed / phaseDuration) % totalPhases;
+
+        if (phase !== lastPhase) {
+          descEl.innerHTML = descriptions[phase];
+          lastPhase = phase;
+          // Dynamically check theme background in case it changes
+          scene.background.set(getCSSColor('--surface', '#F4EFE6'));
+        }
+
+        let t1 = phase >= 1 && phase < 7 ? 1 : 0;
+        let tLine = phase >= 2 && phase < 7 ? 0.4 : 0;
+        let t2 = phase >= 3 && phase < 7 ? 1 : 0;
+        let tPlane = phase >= 4 && phase < 7 ? 0.15 : 0;
+        let t3 = phase >= 5 && phase < 7 ? 1 : 0;
+        let tBox = phase >= 6 && phase < 7 ? 0.25 : 0;
+
+        arrow1.scale.lerp(new THREE.Vector3(t1,t1,t1), 0.1);
+        line1D.material.opacity += (tLine - line1D.material.opacity) * 0.1;
+        
+        arrow2.scale.lerp(new THREE.Vector3(t2,t2,t2), 0.1);
+        plane2D.material.opacity += (tPlane - plane2D.material.opacity) * 0.1;
+        
+        arrow3.scale.lerp(new THREE.Vector3(t3,t3,t3), 0.1);
+        box3D.material.opacity += (tBox - box3D.material.opacity) * 0.1;
+
+        mathGroup.rotation.y += 0.003;
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+    });
+  </script>
+  <p>
+    A set containing the zero vector is always dependent, immediately. You can assign any non-zero coefficient to the zero vector and the sum is still zero...
+  </p>
+  <h3>2. Spanning a Space</h3>
+
+  <p>
+    Independence removes redundancy, but it says nothing about reach. A set of two independent vectors in $\mathbb{R}^3$ covers a plane — it cannot reach every point in three-dimensional space. To describe a whole space, vectors must <strong>span</strong> it.
+  </p>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Definition: Spanning</div>
+    <div class="math-box-body">
+      <p>
+        Vectors $v_1, \dots, v_k$ <strong>span</strong> a space $S$ if every vector in $S$ can be written as a linear combination of those vectors. The columns of a matrix always span its column space.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    A spanning set does not need to be efficient. Three vectors can span $\mathbb{R}^2$ — one of them is just unnecessary. In fact, any spanning set that contains a dependent vector can have that vector removed and still span the same space. Spanning is about reach, not minimality.
+  </p>
+
+  <p>
+    The rows of $A$ span a subspace too: the <strong>row space</strong> $C(A^T)$, a subspace of $\mathbb{R}^n$. The columns span the column space in $\mathbb{R}^m$. Same numbers, different vectors, different spaces.
+  </p>
+
+  <p>
+    So we have two separate demands on a set of vectors: no redundancy (independence) and full reach (spanning). A <strong>basis</strong> is the set that satisfies both at once.
+  </p>
+
+  <h3>3. Basis</h3>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">Definition: Basis</div>
+    <div class="math-box-body">
+      <p>
+        A sequence of vectors $v_1, v_2, \dots, v_d$ is a <strong>basis</strong> for a vector space if:
+      </p>
+      <ol>
+        <li>The vectors are <strong>linearly independent</strong> — no redundancy.</li>
+        <li>The vectors <strong>span the space</strong> — full reach.</li>
+      </ol>
+      <p>
+        Every vector in the space is a <em>unique</em> combination of the basis vectors.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    The uniqueness follows directly from independence, and this algebraic proof translates to a beautiful geometric intuition. Imagine you want to reach a specific destination vector, $v$. If you have a true basis, those independent vectors provide a perfect coordinate system, guaranteeing there is exactly <strong>one unique path</strong> to get there.
+  </p>
+
+  <p>
+    What if there were two different ways to reach $v$? Suppose Path A uses scalars $a_1, \dots, a_d$ and Path B uses a different set of scalars $b_1, \dots, b_d$ to reach the exact same destination. 
+  </p>
+  <div class="math-display">
+    $$v = a_1 v_1 + \dots + a_d v_d \quad \text{(Path A)}$$
+    $$v = b_1 v_1 + \dots + b_d v_d \quad \text{(Path B)}$$
+  </div>
+
+  <p>
+    If you subtract Path B from Path A, geometrically this means you walk Path A forward to the destination, and then follow Path B <em>in reverse</em> back to the start. Because both paths connect the origin to the exact same spot, you create a closed loop and end up right back at the zero vector:
+  </p>
+  <div class="math-display">
+    $$0 = (a_1 - b_1)v_1 + \dots + (a_d - b_d)v_d$$
+  </div>
+
+  <p>
+    This brings us directly back to the definition of linear dependence! If the paths were genuinely different, the coefficients would be different (e.g., $a_1 - b_1 \neq 0$). You would have a non-trivial combination equaling zero — a redundant "round trip." But if the vectors are truly independent, the only way a combination can equal zero is if every single coefficient is zero. This forces $a_i - b_i = 0$, meaning $a_i = b_i$. Path A and Path B were the exact same path all along.
+  </p>
+
+  <h4>The standard basis and beyond</h4>
+
+  <p>
+    The most natural basis for $\mathbb{R}^3$ is the columns of the identity matrix:
+  </p>
+  <div class="math-display">
+    $$e_1 = \begin{bmatrix}1\\0\\0\end{bmatrix}, \quad e_2 = \begin{bmatrix}0\\1\\0\end{bmatrix}, \quad e_3 = \begin{bmatrix}0\\0\\1\end{bmatrix}$$
+  </div>
+  <p>
+    These are independent ($Ix = 0$ only when $x = 0$) and they span $\mathbb{R}^3$. But they are far from the only valid basis. The vectors $(1,1,0)$, $(0,1,1)$, and $(1,0,1)$ also form a basis for $\mathbb{R}^3$ — just a less obvious one. There are infinitely many choices.
+  </p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">The Invertibility Test</div>
+    <div class="math-box-body">
+      <p>
+        $n$ vectors in $\mathbb{R}^n$ form a basis if and only if they are the columns of an <strong>invertible $n \times n$ matrix</strong>. Invertibility, independence, and spanning $\mathbb{R}^n$ are all equivalent for square matrices.
+      </p>
+    </div>
+  </div>
+
+  <h4>Choosing a basis from a matrix: $A$ not $R$</h4>
+
+  <p>
+    When a matrix has dependent columns, elimination identifies which ones to keep. But there is a critical trap: the pivot columns of the echelon form $R$ are <em>not</em> the same vectors as the pivot columns of $A$. Row operations change the column space. The column space of $A$ and the column space of $R$ are generally different subspaces, even though they have the same dimension.
+  </p>
+
+  <p>
+    To see why: the columns of $R$ live in a rotated, scaled coordinate system produced by elimination. In the $QR$ factorization $A = QR$, the matrix $Q$ is an orthogonal matrix that rotates the column directions. So $C(A)$ and $C(R)$ have the same shape — same dimension, same number of independent directions — but they are tilted differently in space.
+  </p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Which columns to use as a basis</div>
+    <div class="math-box-body">
+      <p>
+        Use elimination on $A$ to find <em>which column numbers</em> are pivot columns. Then take those columns from the <strong>original matrix $A$</strong> — not from $R$. Those are the correct basis vectors for $C(A)$.
+      </p>
+      <p>
+        The row space is different: row operations <em>preserve</em> the row space, so the nonzero rows of $R$ directly give a valid basis for the row space of $A$.
+      </p>
+    </div>
+  </div>
+
+  <h3>4. Dimension</h3>
+
+  <p>
+    Bases are not unique — there are infinitely many for any space. Yet something stays fixed no matter which basis you pick: the number of vectors. This is the theorem that makes dimension well-defined.
+  </p>
+
+  <p>
+    Start with a concrete case. Two bases for $\mathbb{R}^2$: the standard basis $\{(1,0),\, (0,1)\}$ and the rotated basis $\{(1,1),\, (1,-1)\}$. Both have exactly 2 vectors. Could a third basis have 3 vectors? No — three vectors in $\mathbb{R}^2$ are always dependent by the theorem from Section 1, so they cannot form a basis. Could a basis have just 1 vector? No — one vector spans only a line, not the whole plane. The count is locked at 2. Always.
+  </p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Theorem: All Bases Have the Same Size</div>
+    <div class="math-box-body">
+      <p>
+        If $v_1, \dots, v_m$ and $w_1, \dots, w_n$ are both bases for the same vector space, then $m = n$.
+      </p>
+      <p>
+        <em>Proof sketch.</em> Suppose $n > m$. Since the $v$'s span the space, each $w_j$ is a combination of the $v$'s. Arrange these combinations as columns of a matrix: it has one row per $v$ and one column per $w$, making it $m \times n$ with $n > m$ — short and wide. By the theorem from Section 1, $Ax = 0$ has a non-zero solution. That solution gives a non-zero combination of the $w$'s equal to zero, contradicting their independence. So $n > m$ is impossible. By symmetry, $m > n$ is also impossible. Therefore $m = n$.
+      </p>
+    </div>
+  </div>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Definition: Dimension</div>
+    <div class="math-box-body">
+      <p>
+        The <strong>dimension</strong> of a vector space is the number of vectors in every basis for that space.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    A word on language: we say the <em>rank</em> of a matrix and the <em>dimension</em> of a subspace. "The dimension of a matrix" and "the rank of a space" have no meaning. What connects them is this: the dimension of the column space equals the rank of the matrix.
+  </p>
+
+  <p>
+    One practical consequence: if you know a space has dimension $d$ and you find $d$ independent vectors inside it, you are done. They automatically span the space and form a basis — no further checking needed.
+  </p>
+
+  <h3>5. The Fundamental Balance</h3>
+
+  <p>
+    For any $m \times n$ matrix $A$ with rank $r$, the column space and null space have dimensions that add up perfectly.
+  </p>
+
+  <h4>Column space $C(A)$</h4>
+  <p>
+    The pivot columns of $A$ are independent and span $C(A)$. There are $r$ of them:
+  </p>
+  <div class="math-display">
+    $$\dim C(A) = r$$
+  </div>
+
+  <h4>Null space $N(A)$</h4>
+  <p>
+    Each free variable produces one special solution to $Ax = 0$. Each special solution has a $1$ in its own free-variable position and $0$s in all others — so they are independent of each other. Together they span $N(A)$. There are $n - r$ free variables:
+  </p>
+  <div class="math-display">
+    $$\dim N(A) = n - r$$
+  </div>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The Fundamental Balance</div>
+    <div class="math-box-body">
+      <p>For any $m \times n$ matrix with rank $r$:</p>
+      <ul>
+        <li>$\dim C(A) = r$ &nbsp;&nbsp;— the pivot columns</li>
+        <li>$\dim N(A) = n - r$ &nbsp;&nbsp;— the free columns</li>
+      </ul>
+      <div class="math-display">
+        $$r + (n - r) = n$$
+      </div>
+      <p>
+        Every column is either a pivot column or a free column. No column is counted in both. The dimensions of the two subspaces partition the full input dimension $n$ exactly.
+      </p>
+    </div>
+  </div>
+
+  <h4>Worked example</h4>
+  <p>Let</p>
+  <div class="math-display">
+    $$A = \begin{bmatrix} 1 & 2 & 3 & 1 \\ 1 & 1 & 2 & 1 \\ 1 & 2 & 3 & 1 \end{bmatrix}$$
+  </div>
+  <p>
+    Elimination identifies columns 1 and 2 as pivot columns, so $r = 2$. Columns 3 and 4 are free.
+  </p>
+  <ul>
+    <li><strong>Basis for $C(A)$:</strong> columns 1 and 2 of $A$. &nbsp; $\dim C(A) = 2$.</li>
+    <li><strong>Basis for $N(A)$:</strong> the two special solutions below. &nbsp; $\dim N(A) = 4 - 2 = 2$.</li>
+  </ul>
+  <div class="math-display">
+    $$s_1 = \begin{bmatrix}-1\\-1\\1\\0\end{bmatrix}, \qquad s_2 = \begin{bmatrix}-1\\0\\0\\1\end{bmatrix}$$
+  </div>
+  <p>
+    Check: $2 + 2 = 4 = n$. The balance holds.
+  </p>
+
+  <h3>6. What the Null Space Actually Means</h3>
+
+  <p>
+    The null space has a clean algebraic definition — all $x$ with $Ax = 0$ — but it is worth building a geometric picture of what it actually represents. Two pictures are useful: one for $N(A)$ and one for $N(A^T)$.
+  </p>
+
+  <h4>The walking picture of $N(A)$</h4>
+
+  <p>
+    Think of each column of $A$ as a <em>step direction</em> in $\mathbb{R}^m$. There are $n$ such directions, one per column. The vector $x = (x_1, x_2, \dots, x_n)$ tells you how many steps to take in each direction — positive or negative. The product $Ax$ is then your final position after all those steps:
+  </p>
+  <div class="math-display">
+    $$Ax = x_1 \,\text{col}_1 + x_2 \,\text{col}_2 + \dots + x_n \,\text{col}_n$$
+  </div>
+
+  <p>
+    The null space is the set of all step combinations that bring you exactly back to the origin. You walk along the column directions, and no matter which free choices you make, you end up back where you started.
+  </p>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The null space as round trips</div>
+    <div class="math-box-body">
+      <p>
+        $N(A)$ is the set of all step counts $x$ such that the walk $x_1 \,\text{col}_1 + \dots + x_n \,\text{col}_n$ returns to the origin. Every vector in the null space describes a round trip through the column directions.
+      </p>
+      <p>
+        If the columns are independent, the only round trip is to take no steps at all — $x = 0$. There is no way to wander and come back.
+      </p>
+      <p>
+        If the columns are dependent, some columns are redundant directions — you can use them to cancel each other out and return to start. Each special solution is one such round trip: it pins one free variable to 1 and records the exact combination of steps that cancels to zero.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    This picture reframes dependence naturally. Dependence does not mean "some columns are bad." It means there exists a non-trivial round trip — some combination of steps cancels itself out. The free variables are exactly the choices that let you wander and return, and each special solution is one complete round trip.
+  </p>
+
+  <h4>The missing directions: $N(A^T)$</h4>
+
+  <p>
+    The column space $C(A)$ is a subspace of $\mathbb{R}^m$. If $r < m$, it does not fill all of $\mathbb{R}^m$ — some directions in the output space are completely unreachable, no matter how you choose $x$. These are directions perpendicular to every column of $A$.
+  </p>
+
+  <p>
+    A direction $y$ in $\mathbb{R}^m$ is unreachable if $y$ is orthogonal to every vector in $C(A)$. That means $y^T(Ax) = 0$ for every $x$, which gives $(A^T y)^T x = 0$ for every $x$, which forces $A^T y = 0$. So the missing directions — the ones you can never reach by combining the columns of $A$ — are exactly the null space of $A^T$.
+  </p>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The left null space as missing directions</div>
+    <div class="math-box-body">
+      <p>
+        The <strong>left null space</strong> $N(A^T)$ consists of all directions in $\mathbb{R}^m$ that are orthogonal to the entire column space $C(A)$. These are the output directions that $A$ cannot reach — the "blind spots" of the transformation.
+      </p>
+      <p>
+        $C(A)$ and $N(A^T)$ are <strong>orthogonal complements</strong> in $\mathbb{R}^m$: every vector in $\mathbb{R}^m$ can be uniquely split into a part in $C(A)$ and a part in $N(A^T)$, and these two parts are perpendicular. Their dimensions sum to $m$:
+      </p>
+      <div class="math-display">
+        $$\dim C(A) + \dim N(A^T) = r + (m - r) = m$$
+      </div>
+    </div>
+  </div>
+
+  <p>
+    The same relationship holds in the input space $\mathbb{R}^n$: the row space $C(A^T)$ and the null space $N(A)$ are orthogonal complements, and their dimensions sum to $n$. This gives the full picture of four subspaces — two in $\mathbb{R}^m$, two in $\mathbb{R}^n$, paired as perpendicular complements.
+  </p>
+
+ 
+
+  <h3>Going Further: Bases Beyond Column Vectors</h3>
+
+  <p>
+    Independence, spanning, and dimension are not properties of $\mathbb{R}^n$ specifically. They apply to any vector space — including spaces whose "vectors" are matrices or functions. The definitions are identical; only the objects change.
+  </p>
+
+  <h4>Matrix spaces</h4>
+  <p>
+    The space $M$ of all $2 \times 2$ matrices has dimension 4. A natural basis uses the four matrices with a single $1$ and zeros elsewhere:
+  </p>
+  <div class="math-display">
+    $$A_1 = \begin{bmatrix}1&0\\0&0\end{bmatrix}, \quad A_2 = \begin{bmatrix}0&1\\0&0\end{bmatrix}, \quad A_3 = \begin{bmatrix}0&0\\1&0\end{bmatrix}, \quad A_4 = \begin{bmatrix}0&0\\0&1\end{bmatrix}$$
+  </div>
+  <p>
+    Any $2 \times 2$ matrix is a unique combination $c_1 A_1 + c_2 A_2 + c_3 A_3 + c_4 A_4$. The full $n \times n$ matrix space has dimension $n^2$. Subspaces within it:
+  </p>
+  <ul>
+    <li>Upper triangular matrices: dimension $\tfrac{1}{2}n^2 + \tfrac{1}{2}n$.</li>
+    <li>Diagonal matrices: dimension $n$.</li>
+    <li>Symmetric matrices: dimension $\tfrac{1}{2}n^2 + \tfrac{1}{2}n$.</li>
+  </ul>
+
+  <h4>Function spaces</h4>
+  <p>
+    Solutions to second-order differential equations also form vector spaces of dimension 2 — because a second-order equation has two free constants. Three examples:
+  </p>
+  <ul>
+    <li>$y'' = 0$ &nbsp;→&nbsp; $y = cx + d$. &nbsp; Basis: $\{x,\, 1\}$.</li>
+    <li>$y'' = -y$ &nbsp;→&nbsp; $y = c\sin x + d\cos x$. &nbsp; Basis: $\{\sin x,\, \cos x\}$.</li>
+    <li>$y'' = y$ &nbsp;→&nbsp; $y = ce^x + de^{-x}$. &nbsp; Basis: $\{e^x,\, e^{-x}\}$.</li>
+  </ul>
+  <p>
+    The basis changes, but the dimension is always 2. The same theorem is at work: all bases for a given space contain the same number of vectors. That number is the dimension, and it is a property of the space itself — not of any particular basis you happen to choose.
+  </p>
+
+</section>
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

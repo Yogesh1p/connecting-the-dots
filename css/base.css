@@ -151,7 +151,72 @@ nav a:hover, nav a.active { color: var(--accent); }
   align-items: center;
   gap: 1rem;
 }
+/* ============================================================
+   SUPPORT HEART BUTTON
+   ============================================================ */
 
+.support-link {
+  display: flex;
+  align-items: center;
+  margin: 0 12px; /* Adds a little breathing room in the nav */
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+/* Ensure the SVG transitions smoothly */
+.support-link svg {
+  transition: transform 0.2s ease, fill 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(231, 76, 60, 0.2));
+}
+
+/* Hover effects */
+.support-link:hover {
+  opacity: 1;
+}
+
+/* Subtle continuous pulse animation on hover */
+.support-link:hover svg {
+  animation: heartbeat 1.2s ease-in-out infinite;
+  fill: #ff3b30; /* Brightens the red slightly on hover */
+}
+
+/* Active/Click state */
+.support-link:active svg {
+  transform: scale(0.9);
+}
+
+/* Heartbeat Keyframes */
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.15);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.15);
+  }
+  70% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* Keeps the heart bright red when currently on the support page */
+.support-link.active {
+  opacity: 1;
+}
+
+.support-link.active svg {
+  fill: #ff3b30; /* The bright hover red */
+  /* Optional: Uncomment the line below if you want it to constantly beat on the support page too! */
+  /* animation: heartbeat 1.5s ease-in-out infinite; */
+}
 /* ── Shared Icon Wrapper ── */
 .theme-toggle,
 .github-link {

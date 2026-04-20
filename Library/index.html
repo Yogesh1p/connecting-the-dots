@@ -17,27 +17,20 @@
                 displayMath: [['$$', '$$'], ['\\[', '\\]']],
                 processEscapes: true
             },
-            svg: {
-                fontCache: "global"
-            }
+            svg: { fontCache: "global" }
         };
     </script>
-    <script
-        id="MathJax-script"
-        async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
-    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <style>
-  /* Base Variables - assuming these are normally in base.css, 
-     adding fallbacks here just in case for the standalone snippet */
+  /* Base Variables Fallback */
 
- .book-switcher {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 0 0 3rem; 
-  flex-wrap: wrap;
-}
+  .book-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0 0 3rem; 
+    flex-wrap: wrap;
+  }
 
   .book-tab {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -55,28 +48,15 @@
     text-decoration: none;
   }
 
-  .book-tab:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  .book-tab.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--bg);
-  }
-
-  .book-tab.coming-soon {
-    opacity: 0.45;
-    cursor: default;
-    pointer-events: none;
-  }
+  .book-tab:hover { border-color: var(--accent); color: var(--accent); }
+  .book-tab.active { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .book-tab.coming-soon { opacity: 0.45; cursor: default; pointer-events: none; }
 
   /* --- Main Content Layout --- */
   .book-panel { display: block; }
 
   .toc-book-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     padding-bottom: 2rem;
     border-bottom: 1px solid var(--border);
   }
@@ -91,12 +71,7 @@
     margin-bottom: 0.6rem;
   }
 
-  /* --- Unified Title/Dropdown Wrapper --- */
-  .title-dropdown-wrapper {
-    position: relative; 
-    display: inline-block;
-    max-width: 100%;
-  }
+  .title-dropdown-wrapper { position: relative; display: inline-block; max-width: 100%; }
 
   .toc-book-title {
     font-size: clamp(2.4rem, 5vw, 3rem);
@@ -120,71 +95,33 @@
     flex-shrink: 0;
   }
 
-  /* Dropdown Menu Base */
-  .book-dropdown-menu {
-    display: none; 
-  }
-
+  .book-dropdown-menu { display: none; }
   .dropdown-item {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 0.85rem 1.2rem;
-    font-family: inherit;
-    font-size: 1rem;
-    color: var(--text);
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    display: block; width: 100%; text-align: left; padding: 0.85rem 1.2rem;
+    font-family: inherit; font-size: 1rem; color: var(--text); background: none;
+    border: none; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s, color 0.15s;
   }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover:not(.coming-soon) { background: var(--highlight); color: var(--accent); }
+  .dropdown-item.active { background: color-mix(in srgb, var(--accent) 8%, var(--bg)); color: var(--accent); font-weight: 600; }
+  .dropdown-item.coming-soon { opacity: 0.4; cursor: default; font-style: italic; }
 
-  .dropdown-item:last-child {
-    border-bottom: none;
-  }
-
-  .dropdown-item:hover:not(.coming-soon) {
-    background: var(--highlight);
-    color: var(--accent);
-  }
-
-  .dropdown-item.active {
-    background: color-mix(in srgb, var(--accent) 8%, var(--bg));
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .dropdown-item.coming-soon {
-    opacity: 0.4;
-    cursor: default;
-    font-style: italic;
-  }
-
-  /* --- Remaining Hero Styling --- */
   .toc-book-desc {
-    font-size: 1.15rem;
-    color: var(--muted);
-    font-style: italic;
-    line-height: 1.75;
-    max-width: 680px;
-    margin: 0.5rem 0 0 0;
+    font-size: 1.15rem; color: var(--muted); font-style: italic; line-height: 1.75; max-width: 680px; margin: 0.5rem 0 0 0;
   }
 
+  /* --- Transmorphic Search & Hero Styling --- */
   .book-progress-hero {
-    display: inline-grid;
-    grid-template-columns: repeat(3, auto);
+    display: inline-flex;
+    align-items: center;
     gap: 2rem;
     margin-top: 2rem;
-    padding: 1rem 1.25rem;
+    padding: 0.85rem 1.25rem;
     border: 1px solid var(--border);
-    border-radius: 18px;
+    border-radius: 20px;
     background: color-mix(in srgb, var(--surface) 96%, var(--accent) 1%);
-  }
-
-  .progress-stat:not(:last-child) {
-    padding-right: 2rem;
-    border-right: 1px solid var(--border);
+    box-sizing: border-box;
+    min-height: 68px; /* Prevents hero from jumping when search expands */
   }
 
   .progress-stat {
@@ -194,277 +131,211 @@
     min-width: 90px;
   }
 
-  .progress-num {
-    font-size: 1.7rem;
-    font-weight: 500;
-    color: var(--dark);
-    line-height: 1;
+  .progress-num { font-size: 1.7rem; font-weight: 500; color: var(--dark); line-height: 1; }
+  .progress-label { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+  /* Apply borders only between the specific elements */
+  .progress-stat:nth-child(1),
+  .progress-stat:nth-child(2) {
+    padding-right: 2rem;
+    border-right: 1px solid var(--border);
   }
 
-  .progress-label {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+  .progress-stat:nth-child(3) {
+    padding-right: 2rem;
+    border-right: 1px solid var(--border); /* Acts as separator for the search icon */
+  }
+
+  .expandable-search-wrapper {
+    display: flex;
+    align-items: center;
+  }
+
+  .expandable-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 42px; /* Starts as a circle */
+    height: 42px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 21px; /* Half of height to make it pill-shaped */
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  }
+
+  .expandable-search.is-open {
+    width: 260px; /* Expands to full width */
+    background: var(--bg);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 11px;
+    width: 18px;
+    height: 18px;
     color: var(--muted);
+    cursor: pointer;
+    z-index: 2;
+    transition: color 0.2s;
+  }
+
+  .expandable-search.is-open .search-icon {
+    color: var(--accent);
+    cursor: default; /* Remove pointer cursor when open */
+  }
+
+  .search-input {
+    width: 100%;
+    height: 100%;
+    padding: 0 1.25rem 0 40px; /* Make room for the icon */
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    opacity: 0;
+    pointer-events: none; /* Disable interaction when collapsed */
+    transition: opacity 0.2s 0.1s; /* Slight delay so it doesn't clip during expansion */
+  }
+
+  .expandable-search.is-open .search-input {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .search-input::placeholder { color: color-mix(in srgb, var(--muted) 60%, transparent); }
+
+  .search-results-meta {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: none;
   }
 
   /* --- TOC Blocks --- */
   .toc-block {
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    margin: 1.25rem 0;
-    overflow: hidden;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    background: var(--bg);
+    border: 1px solid var(--border); border-radius: 14px; margin: 1.25rem 0;
+    overflow: hidden; transition: border-color 0.2s ease, box-shadow 0.2s ease; background: var(--bg);
   }
-
-  .toc-block:hover {
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
-    box-shadow: var(--shadow-sm);
-  }
-
+  .toc-block:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); box-shadow: var(--shadow-sm); }
   .toc-block > summary {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.35rem 1.6rem;
-    background: color-mix(in srgb, var(--surface) 92%, var(--accent) 3%);
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
+    display: flex; align-items: center; gap: 1rem; padding: 1.35rem 1.6rem;
+    background: color-mix(in srgb, var(--surface) 92%, var(--accent) 3%); cursor: pointer; list-style: none; user-select: none;
   }
-
   .toc-block > summary::-webkit-details-marker { display: none; }
-
-  .ch-summary-title {
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--dark);
-    flex: 1;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-  }
-
+  .ch-summary-title { font-size: 1.15rem; font-weight: 600; color: var(--dark); flex: 1; letter-spacing: -0.02em; line-height: 1.2; }
   .ch-summary-count {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.72rem;
-    color: var(--muted);
-    background: var(--bg);
-    border: 1px solid var(--border);
-    padding: 0.25em 0.75em;
-    border-radius: 999px;
-    white-space: nowrap; /* Prevents awkward wrapping on mobile */
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.72rem; color: var(--muted);
+    background: var(--bg); border: 1px solid var(--border); padding: 0.25em 0.75em; border-radius: 999px; white-space: nowrap;
   }
-
-  .ch-summary-arrow {
-    width: 16px;
-    height: 16px;
-    color: var(--accent);
-    transition: transform 0.25s ease;
-    flex-shrink: 0;
-  }
-
-  details[open] .ch-summary-arrow {
-    transform: rotate(90deg);
-  }
+  .ch-summary-arrow { width: 16px; height: 16px; color: var(--accent); transition: transform 0.25s ease; flex-shrink: 0; }
+  details[open] .ch-summary-arrow { transform: rotate(90deg); }
 
   .toc-section-group { padding: 0.5rem 0 0.9rem; }
-
   .toc-part {
-    margin: 1.2rem 1.6rem 0.6rem;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    margin: 1.2rem 1.6rem 0.6rem; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.7rem;
+    font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 1rem;
   }
-
-  .toc-part::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .toc-row {
-    transition: all 0.15s ease;
-    border-left: 2px solid transparent;
-  }
-
-  /* OPTIMIZED: The link now dictates the padding to maximize the mobile tap target */
+  .toc-part::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .toc-row { transition: all 0.15s ease; border-left: 2px solid transparent; }
   .toc-row a {
-    display: flex;
-    align-items: baseline;
-    gap: 0.7rem;
-    padding: 0.85rem 2rem 0.85rem 2.8rem;
-    width: 100%;
-    box-sizing: border-box;
-    text-decoration: none;
-    color: inherit;
+    display: flex; align-items: baseline; gap: 0.7rem; padding: 0.85rem 2rem 0.85rem 2.8rem;
+    width: 100%; box-sizing: border-box; text-decoration: none; color: inherit;
   }
-
-  .toc-row:hover {
-    background: var(--highlight);
-    border-left-color: var(--accent);
-  }
-
-  .row-title {
-    font-size: 1.08rem;
-    color: var(--text);
-    flex: 1;
-    line-height: 1.55;
-    font-weight: 400;
-  }
-
+  .toc-row:hover { background: var(--highlight); border-left-color: var(--accent); }
+  .row-title { font-size: 1.08rem; color: var(--text); flex: 1; line-height: 1.55; font-weight: 400; }
   .toc-row:hover .row-title { color: var(--accent); }
 
- .toc-page {
-  max-width: 820px;
-  margin: 0 auto 6rem;
-  padding-top: 1.5rem; 
-  padding-left: 1.5rem; /* Viewport edge safety */
-  padding-right: 1.5rem;
-}
-
-  .loading-state {
-    text-align: center;
-    padding: 4rem;
-    color: var(--muted);
-    font-style: italic;
+  /* --- Deep Dive Section Styling --- */
+  .deep-dive-section {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--border);
+    background: color-mix(in srgb, var(--bg) 50%, transparent);
   }
+  
+  .deep-dive-header {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.5rem 2rem 0.5rem 2.8rem;
+    opacity: 0.7;
+  }
+  
+  .toc-row.is-deep-dive .row-title { font-size: 0.95rem; color: var(--muted); }
+  .toc-row.is-deep-dive:hover .row-title { color: var(--accent); }
+
+  .toc-page { max-width: 820px; margin: 0 auto 6rem; padding-top: 1.5rem; padding-left: 1.5rem; padding-right: 1.5rem; }
+  .loading-state { text-align: center; padding: 4rem; color: var(--muted); font-style: italic; }
+  .empty-state { text-align: center; padding: 3rem; color: var(--muted); font-family: -apple-system, sans-serif; }
 
   /* --- Draft Badge --- */
   .status-badge {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 0.65rem; 
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.25em 0.6em; 
-    border-radius: 6px;
-    margin-left: 0.75rem;
-    vertical-align: middle; 
-    position: relative;
-    top: -1px; 
-    display: inline-block;
-    line-height: 1; 
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.65rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; padding: 0.25em 0.6em; border-radius: 6px;
+    margin-left: 0.75rem; vertical-align: middle; position: relative; top: -1px; display: inline-block; line-height: 1; 
   }
-
-  .status-draft {
-    background: color-mix(in srgb, var(--muted) 12%, var(--bg));
-    color: var(--muted);
-    border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
-  }
+  .status-draft { background: color-mix(in srgb, var(--muted) 12%, var(--bg)); color: var(--muted); border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent); }
   
-  /* --- Mobile Optimizations & Menu Handoff --- */
+  /* --- Mobile Optimizations --- */
   @media (max-width: 640px) {
-    .toc-page {
-      padding-top: 2rem; 
-      padding-left: 1rem; /* Tighter padding for mobile */
-      padding-right: 1rem;
-    }
-
-    .book-switcher {
-      display: none; 
-    }
-
-    .toc-book-title {
-      cursor: pointer;
-      margin: 0; 
-      font-size: 2.2rem;
-    }
-
-    .title-dropdown-arrow {
-      display: block; 
-    }
-
-  .title-dropdown-wrapper {
-      display: block; /* Allows the menu to fill the width naturally */
-    }
-
+    .toc-page { padding-top: 2rem; padding-left: 1rem; padding-right: 1rem; }
+    .book-switcher { display: none; }
+    .toc-book-title { cursor: pointer; margin: 0; font-size: 2.2rem; }
+    .title-dropdown-arrow { display: block; }
+    .title-dropdown-wrapper { display: block; }
     .book-dropdown-menu {
-      display: none; /* Hides it completely from the document flow when closed */
-      position: relative; /* Key fix: this makes it push content down instead of floating */
-      top: 0;
-      width: 100%;
-      max-width: 100%;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem; 
-      background: transparent; /* Lets your dark mode surface colors breathe */
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: none; /* Removes the ugly floating shadow */
+      display: none; position: relative; top: 0; width: 100%; max-width: 100%; margin-top: 1rem; margin-bottom: 0.5rem; 
+      background: transparent; border: 1px solid var(--border); border-radius: 12px; box-shadow: none;
     }
-
-    .title-dropdown-wrapper.open .book-dropdown-menu {
-      display: block; /* Snaps open and pushes the description text down */
-      opacity: 1;
-      visibility: visible;
-      transform: none;
-    }
-  
-    .title-dropdown-wrapper.open .title-dropdown-arrow {
-      transform: rotate(180deg);
-    }
-
+    .title-dropdown-wrapper.open .book-dropdown-menu { display: block; opacity: 1; visibility: visible; transform: none; }
+    .title-dropdown-wrapper.open .title-dropdown-arrow { transform: rotate(180deg); }
+    
+    /* Modify Hero for Mobile */
     .book-progress-hero {
-      display: flex; 
+      flex-wrap: wrap; 
+      width: 100%; 
+      gap: 1rem; 
+      padding: 1.25rem 1rem; 
+    }
+    .progress-stat { flex: 1; text-align: center; }
+    
+    .progress-stat:nth-child(1),
+    .progress-stat:nth-child(2) { 
+      padding-right: 0.5rem; 
+      border-right: 1px solid var(--border); 
+    }
+    
+    .progress-stat:nth-child(3) { 
+      padding-right: 0.5rem; 
+      border-right: none; /* Drop the separator on mobile */
+    }
+
+    /* Drop Search Bar to its own row on mobile */
+    .expandable-search-wrapper {
       width: 100%;
-      box-sizing: border-box;
-      justify-content: space-between;
-      gap: 0.5rem;
-      padding: 1.25rem 1rem;
-    }
-    
-    .progress-stat {
-      min-width: auto;
-      flex: 1; 
-      text-align: center; /* Centers numbers and text nicely when constrained */
-    }
-
-    .progress-stat:not(:last-child) {
-      padding-right: 0.5rem;
-      padding-bottom: 0;
-      border-right: 1px solid var(--border);
-      border-bottom: none;
-    }
-
-    .progress-num { font-size: 1.4rem; }
-
-    .toc-block > summary { 
-      padding: 1rem; 
-      gap: 0.75rem; 
-    }
-    
-    .ch-summary-title { font-size: 1.25rem; }
-    
-    /* OPTIMIZED: Applied adjustments to the link container instead of the row container */
-    .toc-row a { 
-      padding: 0.9rem 1rem 0.9rem 1.5rem; 
-    }
-
-    .toc-book-eyebrow {
-      font-size: 0.53rem;       
-      letter-spacing: 0.15em;   
-      margin-bottom: 0.4rem;    
-    }
-  }
-
-  /* Handles very narrow screens (e.g., iPhone SE) */
-  @media (max-width: 380px) {
-    .book-progress-hero {
-      flex-wrap: wrap; /* Stack hero stats if needed */
       justify-content: center;
+      margin-top: 0.5rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border);
     }
-    .progress-stat:not(:last-child) {
-      border-right: none;
-      padding-right: 0;
-    }
+    .expandable-search.is-open { width: 100%; } /* Fill width when opened */
+
+    .toc-block > summary { padding: 1rem; gap: 0.75rem; }
+    .ch-summary-title { font-size: 1.25rem; }
+    .toc-row a { padding: 0.9rem 1rem 0.9rem 1.5rem; }
+    .deep-dive-header { padding-left: 1.5rem; }
+    .toc-book-eyebrow { font-size: 0.53rem; letter-spacing: 0.15em; margin-bottom: 0.4rem; }
   }
 </style>
 </head>
@@ -483,30 +354,25 @@
 
     <div class="toc-book-header">
       <div class="toc-book-eyebrow">Connecting the Dots · Book I</div>
-      
       <div class="title-dropdown-wrapper" id="bookDropdown">
-        
         <h1 class="toc-book-title book-dropdown-trigger" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
           <span id="currentBookName">Generative Models</span>
           <svg class="title-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </h1>
-        
         <div class="book-dropdown-menu" role="menu">
           <button class="dropdown-item" data-book="generative" role="menuitem">Generative Models</button>
           <button class="dropdown-item" data-book="linear-algebra" role="menuitem">Linear Algebra</button>
           <button class="dropdown-item" data-book="Stats" role="menuitem">Stats</button>
         </div>
-
       </div>
-
       <p class="toc-book-desc">
         Explicit likelihoods, latent variables, and modern generative architectures —
         with interactive visualisations at every step.
       </p>
 
-     <div class="book-progress-hero" id="bookProgressHero">
+      <div class="book-progress-hero" id="bookProgressHero">
         <div class="progress-stat">
           <span class="progress-num" id="chapterCount">—</span>
           <span class="progress-label">Chapters</span>
@@ -519,7 +385,20 @@
           <span class="progress-num" id="readingPath">—</span>
           <span class="progress-label">Reading Path</span>
         </div>
+        
+        <div class="expandable-search-wrapper">
+          <div class="expandable-search" id="searchContainer">
+            <svg class="search-icon" id="searchIconTrigger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="librarySearch" class="search-input" placeholder="Search lessons, topics..." autocomplete="off">
+          </div>
+        </div>
       </div>
+    </div>
+    
+    <div id="searchResultsMeta" class="search-results-meta"></div>
 
     <div id="library-content">
       <div class="loading-state">Compiling Library...</div>
@@ -535,6 +414,11 @@
 <script src="../js/components.js"></script>
 <script src="../builder/lib-data.js"></script>
 <script>
+// Prevent native browser scrolling from overriding our script
+if ('history' in window && 'scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
 const BOOK_CONFIG = {
   generative: {
     eyebrow: "Connecting the Dots ",
@@ -554,209 +438,201 @@ const BOOK_CONFIG = {
 };
 
 let activeBook = "generative"; 
+let currentSearchQuery = ""; 
 
-// --- NEW: Initialize Memory Storage ---
-// We use sessionStorage so memory persists even if the page is refreshed
 const bookMemory = JSON.parse(sessionStorage.getItem('bookMemory')) || {};
 
-// Function to snapshot the current state before we switch tabs
 function saveCurrentBookState() {
-  if (!activeBook) return;
-  
+  if (!activeBook || currentSearchQuery) return; 
   const openChapters = [];
-  // Find all <details> elements that are currently open
   document.querySelectorAll('details.toc-block[open]').forEach(details => {
     openChapters.push(details.dataset.chapter);
   });
-
-  // Save scroll position and open chapters
-  bookMemory[activeBook] = {
-    scrollY: window.scrollY,
-    openChapters: openChapters
-  };
+  bookMemory[activeBook] = { scrollY: window.scrollY, openChapters: openChapters };
   sessionStorage.setItem('bookMemory', JSON.stringify(bookMemory));
 }
 
-// Function to jump back to the saved scroll position
 function restoreScrollState() {
   const state = bookMemory[activeBook];
-  if (state && state.scrollY !== undefined) {
-    // requestAnimationFrame ensures the browser has painted the new DOM before scrolling
-    requestAnimationFrame(() => {
-      window.scrollTo(0, state.scrollY);
-    });
+  if (state && state.scrollY !== undefined && !currentSearchQuery) {
+    // Force a synchronous DOM reflow so the browser calculates the 
+    // physical height of the newly opened <details> tags instantly.
+    void document.body.offsetHeight; 
+    
+    // Scroll instantly without the 50ms delay
+    window.scrollTo({ top: state.scrollY, behavior: 'instant' }); 
   } else {
-    window.scrollTo(0, 0); // Jump to top if it's a new book
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 }
-// --------------------------------------
+
+// --- NEW: bfcache Handler ---
+// This ensures scroll state is restored when the user hits the "Back" button
+// and the browser serves the page from memory instead of reloading it.
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    restoreScrollState();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
-  
-  // 1. Determine Initial State
   const params = new URLSearchParams(window.location.search);
   const urlBook = params.get('book');
   const savedBook = localStorage.getItem('libraryActiveBook');
   
-  if (urlBook && BOOK_CONFIG[urlBook]) {
-    activeBook = urlBook;
-    localStorage.setItem('libraryActiveBook', activeBook);
-  } else if (savedBook && BOOK_CONFIG[savedBook]) {
+  if (urlBook && BOOK_CONFIG[urlBook]) { activeBook = urlBook; localStorage.setItem('libraryActiveBook', activeBook); } 
+  else if (savedBook && BOOK_CONFIG[savedBook]) {
     activeBook = savedBook;
-    const url = new URL(window.location);
-    url.searchParams.set('book', activeBook);
-    window.history.replaceState({}, '', url);
+    const url = new URL(window.location); url.searchParams.set('book', activeBook); window.history.replaceState({}, '', url);
   }
   
-  // 2. Setup Unified UI Elements
   const dropdownWrapper = document.getElementById('bookDropdown');
   const dropdownTrigger = dropdownWrapper.querySelector('.book-dropdown-trigger');
   const currentBookNameLabel = document.getElementById('currentBookName');
   const allSelectableBooks = document.querySelectorAll('.book-tab[data-book], .dropdown-item[data-book]');
+  
+  // --- Transmorphic Search Logic ---
+  const searchContainer = document.getElementById('searchContainer');
+  const searchIcon = document.getElementById('searchIconTrigger');
+  const searchInput = document.getElementById('librarySearch');
+  const searchResultsMeta = document.getElementById('searchResultsMeta');
+
+  // Open search on icon click
+  searchIcon.addEventListener('click', () => {
+    searchContainer.classList.add('is-open');
+    searchInput.focus();
+  });
+
+  // Close search if clicked outside and empty
+  searchInput.addEventListener('blur', () => {
+    if (searchInput.value.trim() === "") {
+      searchContainer.classList.remove('is-open');
+      currentSearchQuery = "";
+      buildLibrary(activeBook);
+    }
+  });
 
   function syncUI(bookKey) {
     const config = BOOK_CONFIG[bookKey];
     if (!config) return;
-
     currentBookNameLabel.textContent = config.title;
-    
     allSelectableBooks.forEach(el => {
-      if (el.dataset.book === bookKey) {
-        el.classList.add('active');
-      } else {
-        el.classList.remove('active');
-      }
+      if (el.dataset.book === bookKey) el.classList.add('active');
+      else el.classList.remove('active');
     });
   }
 
-  // 3. Attach click listeners to ALL book buttons
   allSelectableBooks.forEach(button => {
     button.addEventListener('click', () => {
       const targetBook = button.dataset.book;
-      
-      // Prevent unnecessary re-renders if clicking the active book
       if (targetBook === activeBook) return; 
-
-      // --- NEW: Save state right before switching ---
       saveCurrentBookState(); 
-      
       activeBook = targetBook;
-      
       syncUI(activeBook);
       localStorage.setItem('libraryActiveBook', activeBook);
+      const url = new URL(window.location); url.searchParams.set('book', activeBook); window.history.pushState({}, '', url);
       
-      const url = new URL(window.location);
-      url.searchParams.set('book', activeBook);
-      window.history.pushState({}, '', url);
-
+      // Reset search on book switch
+      searchInput.value = "";
+      currentSearchQuery = "";
+      searchContainer.classList.remove('is-open');
+      
       buildLibrary(activeBook);
-      
-      // --- NEW: Restore state right after building ---
       restoreScrollState();
-
       if (button.classList.contains('dropdown-item')) {
-        dropdownWrapper.classList.remove('open');
-        dropdownTrigger.setAttribute('aria-expanded', 'false');
+        dropdownWrapper.classList.remove('open'); dropdownTrigger.setAttribute('aria-expanded', 'false');
       }
     });
   });
 
-  // 4. Dropdown specific interactions
   dropdownTrigger.addEventListener('click', (e) => {
     if (window.innerWidth <= 640) {
-      e.stopPropagation();
-      const isOpen = dropdownWrapper.classList.contains('open');
-      dropdownWrapper.classList.toggle('open', !isOpen);
-      dropdownTrigger.setAttribute('aria-expanded', !isOpen);
+      e.stopPropagation(); const isOpen = dropdownWrapper.classList.contains('open');
+      dropdownWrapper.classList.toggle('open', !isOpen); dropdownTrigger.setAttribute('aria-expanded', !isOpen);
     }
   });
 
   document.addEventListener('click', (e) => {
     if (!dropdownWrapper.contains(e.target)) {
-      dropdownWrapper.classList.remove('open');
-      dropdownTrigger.setAttribute('aria-expanded', 'false');
+      dropdownWrapper.classList.remove('open'); dropdownTrigger.setAttribute('aria-expanded', 'false');
     }
   });
 
-  // 5. Library Rendering Functions
+  searchInput.addEventListener('input', (e) => {
+    currentSearchQuery = e.target.value.trim().toLowerCase();
+    buildLibrary(activeBook);
+  });
+
   const CHAPTER_ORDER = {
-    "generative": [
-      "Introduction",
-      "Autoregressive Models",
-      "Latent Variable Models",
-      "Normalizing Flows",
-      "Variational Autoencoders",
-      "Generative Adversarial Networks",
-      "Diffusion Models",
-    ],
-    "linear-algebra": [
-      "Solving Linear Systems",
-      "Vector Spaces and Subspaces",
-      "Orthogonality and Projections",
-      "Determinants",
-      "Eigenvalues and Eigenvectors",
-      "Singular Value Decomposition",
-    ],
-    "Stats": [
-      "Foundations of Probability",
-      "Distributions",
-      "Statistical Inference",
-      "Bayesian Thinking",
-    ],
+    "generative": ["Introduction", "Autoregressive Models", "Latent Variable Models", "Normalizing Flows", "Variational Autoencoders", "Generative Adversarial Networks", "Diffusion Models"],
+    "linear-algebra": ["Solving Linear Systems", "Vector Spaces and Subspaces", "Orthogonality and Projections", "Determinants", "Eigenvalues and Eigenvectors", "Singular Value Decomposition"],
+    "Stats": ["Foundations of Probability", "Distributions", "Statistical Inference", "Bayesian Thinking"],
   };
 
-  const partPriority = {
-    "Transformer Foundations": 0,
-    "Large Language Models": 1,
-    "Stats and Statistics Foundations": 0, 
-    "Main": 2
-  };
+  const partPriority = { "Transformer Foundations": 0, "Large Language Models": 1, "Stats and Statistics Foundations": 0, "Main": 2 };
 
   function buildLibrary(book = activeBook) {
     const library = {};
-    if (typeof rawPages === 'undefined') return; 
+    if (typeof window.rawPages === 'undefined') return; 
     
-    const filteredPages = rawPages.filter(page => page.book === book);
+    let filteredPages = window.rawPages.filter(page => page.book === book);
+    
+    updateHero(book, filteredPages);
+
+    if (currentSearchQuery) {
+        filteredPages = filteredPages.filter(page => {
+            return (page.title && page.title.toLowerCase().includes(currentSearchQuery)) ||
+                   (page.description && page.description.toLowerCase().includes(currentSearchQuery)) ||
+                   (page.chapter && page.chapter.toLowerCase().includes(currentSearchQuery)) ||
+                   (page.keywords && page.keywords.toLowerCase().includes(currentSearchQuery));
+        });
+        
+        searchResultsMeta.style.display = 'block';
+        searchResultsMeta.textContent = `Found ${filteredPages.length} result${filteredPages.length !== 1 ? 's' : ''}`;
+    } else {
+        searchResultsMeta.style.display = 'none';
+    }
 
     filteredPages.forEach(page => {
-      if (!library[page.chapter]) {
-        library[page.chapter] = {};
-      }
+      if (!library[page.chapter]) library[page.chapter] = {};
       const part = page.part?.trim() || "Main";
-      if (!library[page.chapter][part]) {
-        library[page.chapter][part] = [];
-      }
+      if (!library[page.chapter][part]) library[page.chapter][part] = [];
       library[page.chapter][part].push(page);
     });
 
-    renderLibrary(library);
-    updateHero(book, filteredPages);
+    renderLibrary(library, !!currentSearchQuery);
   }
 
-  function renderLibrary(library) {
+  function renderLibrary(library, isSearching) {
     const container = document.getElementById("library-content");
     let html = "";
     const chapterList = CHAPTER_ORDER[activeBook] || [];
-
-    // --- NEW: Fetch memory for the current book ---
     const currentState = bookMemory[activeBook] || { openChapters: [] };
 
-    Object.keys(library)
-      .sort((a, b) => {
+    const chapters = Object.keys(library);
+    
+    if (chapters.length === 0) {
+        container.innerHTML = `<div class="empty-state">No lessons found matching your search.</div>`;
+        return;
+    }
+
+    chapters.sort((a, b) => {
         const ai = chapterList.indexOf(a);
         const bi = chapterList.indexOf(b);
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       })
       .forEach(chapter => {
         const parts = library[chapter];
-        let rowsHtml = "";
+        let coreRowsHtml = "";
+        let deepDiveRowsHtml = "";
         let totalSections = 0;
 
         Object.keys(parts)
           .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
           .forEach(part => {
             if (part !== "Main" && part !== "undefined" && part.trim()) {
-              rowsHtml += `<div class="toc-part">${part}</div>`;
+              const partHeader = `<div class="toc-part">${part}</div>`;
+              coreRowsHtml += partHeader; 
             }
 
             parts[part]
@@ -764,27 +640,37 @@ document.addEventListener("DOMContentLoaded", () => {
               .forEach(page => {
                 totalSections++;
                 const status = (page.status || 'draft').toLowerCase();
-                const statusBadge = status === 'draft' 
-                  ? `<span class="status-badge status-draft">Draft</span>` 
-                  : '';
+                const statusBadge = status === 'draft' ? `<span class="status-badge status-draft">Draft</span>` : '';
+                
+                let displayTitle = page.title;
 
-                rowsHtml += `
-                  <div class="toc-row">
+                const rowHTML = `
+                  <div class="toc-row ${page.tier === 'deep-dive' ? 'is-deep-dive' : ''}">
                     <a href="${page.url}">
-                      <span class="row-title">
-                        ${page.title}
-                        ${statusBadge}
-                      </span>
+                      <span class="row-title">${displayTitle} ${statusBadge}</span>
                     </a>
                   </div>
                 `;
+
+                if (page.tier === 'deep-dive') {
+                    deepDiveRowsHtml += rowHTML;
+                } else {
+                    coreRowsHtml += rowHTML;
+                }
               });
           });
 
-        // --- NEW: Determine if this specific chapter was open previously ---
-        const isOpen = currentState.openChapters.includes(chapter) ? "open" : "";
+        if (deepDiveRowsHtml) {
+            deepDiveRowsHtml = `
+              <div class="deep-dive-section">
+                <div class="deep-dive-header">Supplementary & Deep Dives</div>
+                ${deepDiveRowsHtml}
+              </div>
+            `;
+        }
 
-        // --- NEW: Added data-chapter to help us identify it when saving state ---
+        const isOpen = (isSearching || currentState.openChapters.includes(chapter)) ? "open" : "";
+
         html += `
           <details class="toc-block" data-chapter="${chapter}" ${isOpen}>
             <summary>
@@ -795,7 +681,8 @@ document.addEventListener("DOMContentLoaded", () => {
               </svg>
             </summary>
             <div class="toc-section-group">
-              ${rowsHtml}
+              ${coreRowsHtml}
+              ${deepDiveRowsHtml}
             </div>
           </details>
         `;
@@ -817,9 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.addEventListener("popstate", () => {
-    // --- NEW: Save state before navigating history ---
     saveCurrentBookState(); 
-    
     const currentParams = new URLSearchParams(window.location.search);
     const poppedBook = currentParams.get('book') || localStorage.getItem('libraryActiveBook') || 'generative';
     
@@ -828,22 +713,20 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem('libraryActiveBook', activeBook);
       syncUI(activeBook);
       buildLibrary(activeBook);
-      
-      // --- NEW: Restore state after navigating history ---
       restoreScrollState(); 
     }
   });
 
-  // --- NEW: Save state if the user refreshes the page or closes the tab ---
-  window.addEventListener('beforeunload', () => {
-    saveCurrentBookState();
+  document.getElementById('library-content').addEventListener('click', (e) => {
+    if (e.target.closest('a')) saveCurrentBookState();
   });
 
-  // Initial Boot-up
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveCurrentBookState();
+  });
+
   syncUI(activeBook);
   buildLibrary();
-  
-  // --- NEW: Restore scroll on initial page load ---
   restoreScrollState();
 });
 </script>

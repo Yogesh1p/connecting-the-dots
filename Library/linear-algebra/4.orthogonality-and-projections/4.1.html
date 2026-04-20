@@ -23,8 +23,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="../css/base.css">
-    <link rel="stylesheet" href="../css/articles.css">
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
 
     <script>
         (() => {
@@ -35,9 +35,9 @@
         })();
     </script>
 
-    <script src="../js/base.js" defer></script>
-    <script src="../js/components.js" defer></script>
-    <script src="../js/article_components.js" defer></script>
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
 
     <script>
         window.MathJax = {
@@ -56,10 +56,17 @@
         async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
+
+    <meta property="og:title" content="Orthogonality of the Four Subspaces">
+    <meta property="og:description" content="A geometric and computational treatment of orthogonal subspaces, orthogonal complements, and the fundamental theorem of linear algebra.">
+    <meta property="og:image" content="../../../assets/og/orthogonality-of-the-four-subspaces.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 
-    <div id="global-nav" data-root="../" data-sticky="false"></div>
+    <div id="global-nav" data-root="../../../" data-sticky="false"></div>
 
     <main class="page-wrap">
         <div class="article-layout">
@@ -186,7 +193,19 @@
     <strong>$V = U \oplus U^\perp$</strong><br>
     <span style="color: var(--muted); font-style: italic;">Aside from the trivial combinations (the origin $\{0\}$ and the entire space $V$), these are the only possible combinations of proper complementary subspaces in their respective dimensions.</span>
   </p>
-  
+  <details class="toggle">
+  <summary>
+    <span><strong>Question:</strong> Can there be two complementary subspaces of dimension 2 in $\mathbb{R}^4$?</span>
+  </summary>
+  <div class="toggle-content" style="padding-top: 0.8rem; padding-left: 1.4rem; color: var(--text); line-height: 1.6;">
+    <p style="margin-top: 0;">
+      <strong>Yes!</strong> For two subspaces to be complementary, their dimensions just need to add up to the total space ($2 + 2 = 4$), and they must intersect <em>only</em> at the origin.
+    </p>
+    <p style="margin-bottom: 0;">
+      In 4D space, think of one 2D plane handling the first two coordinates $(x, y, 0, 0)$, and a second perpendicular plane handling the last two coordinates $(0, 0, z, w)$. They never cross paths except at exactly $(0,0,0,0)$.
+    </p>
+  </div>
+</details>
   <h3>2. The First Pair: Null Space and Row Space</h3>
 
   <p>

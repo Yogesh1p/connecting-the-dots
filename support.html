@@ -28,7 +28,7 @@
     .support-layout {
       max-width: 640px;
       margin: 0 auto;
-      padding: 6rem 2.5rem;
+      padding: 2.5rem 2.5rem;
       flex: 1;
     }
 
@@ -151,24 +151,35 @@
     }
 
     .qr-placeholder {
-      width: 100px;
-      height: 100px;
-      background: color-mix(in srgb, var(--bg) 50%, white);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--muted);
-      flex-shrink: 0;
-      overflow: hidden;
-    }
+  width: 100px;
+  height: 100px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  position: relative; /* Added so images can be stacked inside */
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 6px;
+}
 
-    .qr-placeholder img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
+.qr-placeholder img {
+  width: calc(100% - 12px); /* Accounts for the 6px padding on all sides */
+  height: calc(100% - 12px);
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  object-fit: contain;
+  border-radius: 4px;
+  transition: opacity 0.3s ease; /* Smooth, instant crossfade */
+}
+
+/* Light Theme (Default) States */
+.qr-img-light { opacity: 1; }
+.qr-img-dark { opacity: 0; pointer-events: none; }
+
+/* Dark Theme States */
+[data-theme="dark"] .qr-img-light { opacity: 0; pointer-events: none; }
+[data-theme="dark"] .qr-img-dark { opacity: 1; }
 
     .upi-details {
       display: flex;
@@ -225,12 +236,11 @@
       .qr-placeholder { display: none; }
       .upi-section { flex-direction: column; align-items: flex-start; gap: 1rem; }
     }
-
   </style>
 </head>
 <body>
 
-  <div id="global-nav" data-root="../" data-sticky="true"></div>
+  <div id="global-nav" data-root=""></div>
 
   <main class="support-layout">
     <span class="support-eyebrow">Back the Research</span>
@@ -253,9 +263,10 @@
         <p class="option-desc">The most efficient way to support from within India. No platform cuts.</p>
         
         <div class="upi-section">
-          <div class="qr-placeholder" style="background: white; padding: 5px;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=3pyogesh@okicici&pn=ConnectingTheDots&cu=INR" alt="UPI QR Code" />
-          </div>
+          <div class="qr-placeholder">
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=3pyogesh@okicici&pn=ConnectingTheDots&cu=INR&color=2D241E&bgcolor=F4EFE6&margin=0" alt="UPI QR Code" class="qr-img-light" />
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=3pyogesh@okicici&pn=ConnectingTheDots&cu=INR&color=C5B49A&bgcolor=1F1510&margin=0" alt="UPI QR Code" class="qr-img-dark" />
+</div>
           <div class="upi-details">
             <div class="upi-id-box" id="copyUpiBtn" data-upi="3pyogesh@okicici">
               <span id="upiText">3pyogesh@okicici</span>
@@ -277,29 +288,22 @@
         <p class="option-desc">Ideal for the global open-source and developer community.</p>
       </a>
 
-      <a href="#" target="_blank" rel="noopener" class="option-card">
-        <div class="option-header">
-          <svg class="option-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-          <h2 class="option-title">Credit / Debit Card</h2>
-        </div>
-        <p class="option-desc">Secure international payments. (Coming soon).</p>
-      </a>
-
     </div>
   </main>
 
   <script src="../js/base.js"></script>
+  <script src="../js/components.js"></script>
+
   <script>
-    // Script to copy UPI ID to clipboard
+    /* ============================================================
+       COPY UPI ID LOGIC
+       ============================================================ */
     document.getElementById('copyUpiBtn').addEventListener('click', function() {
       const upiId = this.getAttribute('data-upi');
       navigator.clipboard.writeText(upiId).then(() => {
         const textSpan = document.getElementById('upiText');
         const originalText = textSpan.innerText;
+        
         textSpan.innerText = "Copied!";
         textSpan.style.color = "var(--accent)";
         
@@ -307,8 +311,44 @@
           textSpan.innerText = originalText;
           textSpan.style.color = "";
         }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
       });
     });
+
+    /* ============================================================
+       DYNAMIC THEME QR CODE LOGIC
+       ============================================================ */
+    const qrImage = document.getElementById('upiQrImage');
+    const rootEl = document.documentElement;
+
+    function updateQrTheme() {
+      // Check if the HTML element has data-theme="dark"
+      const isDark = rootEl.getAttribute('data-theme') === 'dark';
+      
+      // Hex colors based on your specific CSS variables (without the '#')
+      // Light mode uses dark text on a surface background
+      // Dark mode uses light text on a dark surface background
+      const color = isDark ? 'C5B49A' : '2D241E';
+      const bgcolor = isDark ? '1F1510' : 'F4EFE6';
+      
+      // Update the QR image source dynamically
+      qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=3pyogesh@okicici&pn=ConnectingTheDots&cu=INR&color=${color}&bgcolor=${bgcolor}&margin=0`;
+    }
+
+    // 1. Set the initial QR code theme on page load
+    updateQrTheme();
+
+    // 2. Watch for theme changes (triggered by your components.js navbar toggle)
+    const themeObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'data-theme') {
+          updateQrTheme();
+        }
+      });
+    });
+
+    themeObserver.observe(rootEl, { attributes: true, attributeFilter: ['data-theme'] });
   </script>
 </body>
 </html>

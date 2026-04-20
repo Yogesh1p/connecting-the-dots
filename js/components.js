@@ -25,8 +25,9 @@ const getCurrentPath = () => window.location.pathname.toLowerCase();
 
 function getCurrentSection() {
   const path = getCurrentPath();
-  if (path.includes('/dots/')) return 'dots';
+
   if (path.includes('/library/')) return 'library';
+  if (path.includes('support.html')) return 'support';
   return 'home';
 }
 
@@ -51,10 +52,11 @@ function initGlobalNavigation(options = {}) {
     document.head.appendChild(favicon);
   }
 
+  // Added Support link to the mobile drawer menu
   const NAV_LINKS = [
     { href: homePath, label: 'Home', section: 'home' },
     { href: root + 'Library/', label: 'Library', section: 'library' },
-    { href: root + 'dots/', label: 'Dots', section: 'dots' },
+    { href: root + 'support.html', label: 'Support ❤️', section: 'support' },
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', label: 'GitHub', target: '_blank' },
   ];
 
@@ -111,11 +113,17 @@ function initGlobalNavigation(options = {}) {
 
       <div class="nav-center nav-desktop-only">
         <a href="${root}Library/" ${currentSection === 'library' ? 'style="color: var(--accent);"' : ''}>Library</a>
-        <a href="${root}dots/" ${currentSection === 'dots' ? 'style="color: var(--accent);"' : ''}>Dots</a>
       </div>
 
       <div class="nav-right nav-desktop-only">
         ${themeToggleHTML}
+        
+        <a href="${root}support.html" class="support-link" aria-label="Support Page" style="display:flex;align-items:center;margin:0 8px;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="var(--accent, #e74c3c)" stroke="none">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </a>
+
         <a href="https://github.com/Yogesh1p/connecting-the-dots" target="_blank" class="github-link">
           <img src="${root}assets/github.svg" class="github-icon" alt="GitHub">
         </a>
@@ -124,8 +132,6 @@ function initGlobalNavigation(options = {}) {
   `;
 }
 
-
-
 /* ============================================================
    DOM CONTENT LOADED LOGIC
    ============================================================ */
@@ -133,6 +139,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const navRoot = document.getElementById('global-nav');
   initGlobalNavigation({ sticky: navRoot?.dataset?.sticky !== 'false' });
   
+  // 0. SCROLL UP TO SHOW NAVIGATION LOGIC
+  const navEl = document.querySelector('nav');
+  if (navEl && navRoot?.dataset?.sticky !== 'false') {
+    let lastScrollY = window.scrollY;
+    
+    // Add smooth transition for hiding/showing
+    navEl.style.transition = 'transform 0.3s ease-in-out';
+    
+    window.addEventListener('scroll', () => {
+      const currentScrollY = window.scrollY;
+      
+      // Hide nav if scrolling down and past 60px. Show if scrolling up.
+      if (currentScrollY > lastScrollY && currentScrollY > 60) {
+        navEl.style.transform = 'translateY(-100%)';
+      } else {
+        navEl.style.transform = 'translateY(0)';
+      }
+      lastScrollY = currentScrollY;
+    }, { passive: true });
+  }
+
   // 1. SAFE HASH CLEANUP
   // Only scroll to hash if we are NOT on an article page (which handles its own scrolling)
   if (window.location.hash && !document.querySelector('.article-body')) {
@@ -162,10 +189,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Set initial meta colors
-const metaThemeColor = document.getElementById('theme-color-meta');
-if (metaThemeColor) {
-  metaThemeColor.setAttribute('content', savedTheme === 'dark' ? '#16100C' : '#FDFBF7');
-}
+  const metaThemeColor = document.getElementById('theme-color-meta');
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute('content', savedTheme === 'dark' ? '#16100C' : '#FDFBF7');
+  }
 
   document.addEventListener('click', (e) => {
     if (e.target.closest('.theme-toggle')) {

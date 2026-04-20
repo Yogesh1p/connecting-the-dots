@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="book" content="linear-algebra">
+    <meta name="chapter" content="Eigenvalues and Eigenvectors">
+    <meta name="part" content="  ">
+    <meta name="title" content="Positive Defnite Matrices">
+    <meta name="description" content="How to find eigenvectors and eigenvalues, and how to diagonalise matrices">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-07">
+    <meta name="date updated" content="2026-04-07">
+<meta name="lessonorder" content="3">
+    <meta name="status" content="live">
+        <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive definite matrices, cholesky factorisation">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="3">
+
+    <meta property="og:title" content="Eigenvectors, Diagonalisation, Spectral Theorem">
+    <meta property="og:description" content="How to find eigenvectors and eigenvalues, and how to diagonalise matrices">
+    <meta property="og:image" content="../assets/og/eigenvectors-diagonalisation-spectral-theorem.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+
+ <section id="positive-definite-matrices">
+  <h2>Positive Definite Matrices</h2>
+
+  <div class="math-box">
+    <div class="math-box-label">Positive Definite Matrix</div>
+    <div class="math-box-body">
+      <p>
+        A real matrix $A$ is called positive definite if:
+      </p>
+      <div class="math-display">
+        $$x^TAx>0\qquad \forall x\neq0$$
+      </div>
+    </div>
+  </div>
+
+  <p>
+    Positivity of the quadratic form is the definition itself. It depends <em>only</em> on the quadratic form, not on whether the matrix is symmetric, diagonalizable, or has real eigenvalues.
+  </p>
+
+  <h3>The Symmetric and Skew-Symmetric Parts</h3>
+  <p>
+    For any real matrix $A$, we can split it into a symmetric part $S=\frac{A+A^T}{2}$ and a skew-symmetric part $K=\frac{A-A^T}{2}$. 
+  </p>
+  <p>
+    The skew-symmetric part contributes nothing to the quadratic form because $x^TKx=0$. Therefore, the quadratic form depends entirely on $S$:
+  </p>
+  <div class="math-display">
+    $$x^TAx=x^T\left(\frac{A+A^T}{2}\right)x=x^TSx$$
+  </div>
+  <p>
+    This means $x^TAx>0$ for all nonzero $x$ if and only if its symmetric part $S$ is positive definite. $A$ itself does not need to be symmetric.
+  </p>
+  <p>
+    <strong>Note on Eigenvalues:</strong> For non-symmetric matrices, eigenvalues are irrelevant to the quadratic form. Even if a non-symmetric matrix has all positive eigenvalues ($\lambda_i>0$), it may not have enough eigenvectors to cover the basis, meaning it does not guarantee $x^TAx>0$. Conversely, a matrix can be positive definite yet have complex eigenvalues or negative real parts.
+  </p>
+
+  <h3>The Symmetric Case</h3>
+  <p>
+    If a matrix is symmetric ($A=S=S^T$) and all of its eigenvalues are positive, it possesses a full set of orthogonal eigenvectors. Any vector $x$ can be expressed as a combination of these eigenvectors, scaling strictly by the respective positive eigenvalues. 
+  </p>
+  <p>
+    Because of this, the spectral theorem gives us a remarkably clean rule for symmetric matrices:
+  </p>
+  <div class="math-display">
+    $$x^TSx>0\ \forall x\neq0 \quad\Longleftrightarrow\quad \lambda_i>0\ \forall i$$
+  </div>
+  <p>
+    Furthermore, for any real symmetric matrix $S$ (such as in an $LDL^T$ decomposition with no row exchanges), the signs of the eigenvalues perfectly match the signs of the pivots. The number of positive, negative, and zero eigenvalues exactly equals the number of positive, negative, and zero pivots, respectively.
+  </p>
+
+  <h3>Closure Under Addition</h3>
+  <p>
+    If $S$ and $T$ are symmetric positive definite $n\times n$ matrices, then their sum $S+T$ is also symmetric positive definite.
+  </p>
+  <p>
+    <strong>Proof:</strong><br>
+    First, $(S+T)^T = S^T+T^T = S+T$, so the sum is symmetric. <br>
+    Second, for any nonzero vector $x$, we know $x^T(S+T)x = x^TSx + x^TTx$. Since $S$ and $T$ are positive definite, both $x^TSx > 0$ and $x^TTx > 0$. Their sum is strictly positive, making $S+T$ positive definite.
+  </p>
+
+  <h3>Factorizations</h3>
+  <p>
+    If the columns of a matrix $A$ are independent, then $S=A^TA$ is always positive definite. A symmetric positive definite matrix $S$ can be factored in three standard ways:
+  </p>
+  <ul>
+    <li><strong>The Rectangular Factor ($A_1$):</strong> $S=A_1^TA_1$, where $A_1$ can be any matrix whose columns generate $S$ (common in least squares).</li>
+    <li><strong>The Cholesky Factor ($A_2$ or $R$):</strong> $S=A_2^TA_2$, where $A_2$ is upper triangular and square with positive diagonal entries. This decomposition exists <em>if and only if</em> $S$ is symmetric and positive definite.</li>
+    <li><strong>The Symmetric Square Root ($A_3$):</strong> $S=A_3^TA_3=A_3^2$, found using the eigendecomposition $A_3=Q\Lambda^{1/2}Q^T$. Here, $A_3$ is itself symmetric and positive definite.</li>
+  </ul>
+</section>
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

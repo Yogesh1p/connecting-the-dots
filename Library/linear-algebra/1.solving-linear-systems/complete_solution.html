@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Solving Ax = b — Complete Solution</title>
+
+<meta name="book" content="linear-algebra">
+<meta name="chapter" content="Solving Linear Systems">
+<meta name="part" content=" ">
+<meta name="title" content="The Complete Solution">
+<meta name="description" content="A deep geometric and computational treatment of solving Ax = b using elimination, particular solutions, null spaces, shifted hyperplanes, and rank-based solution classification.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-11">
+<meta name="chapterorder" content="1">
+<meta name="lessonorder" content="2">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="Ax=b, complete solution, particular solution, null space, shifted hyperplane, rank, free variables, linear algebra">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="reading_time" content="6">
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="1">
+
+    <meta property="og:title" content="The Complete Solution">
+    <meta property="og:description" content="A deep geometric and computational treatment of solving Ax = b using elimination, particular solutions, null spaces, shifted hyperplanes, and rank-based solution classification.">
+    <meta property="og:image" content="../../../assets/og/the-complete-solution.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+
+
+
+<section id="solving-ax-b">
+  <h2>Solving $Ax=b$: Solvability and the Complete Solution</h2>
+
+  <p>
+    When analyzing linear systems, a fundamental question arises: when does $Ax=b$ have solutions x, and how can we describe those solutions? In order to find all solutions to $Ax=b$ we first check that the equation is solvable, then find a particular solution.
+  </p>
+
+  <h3>1. Solvability Conditions on b</h3>
+
+  <p>
+    Before calculating a solution, we must ensure one actually exists. We know that $Ax=b$ is solvable exactly when b is in the column space $C(A)$. 
+  </p>
+  
+  <p>
+    One way to find out whether $Ax=b$ is solvable is to use elimination on the augmented matrix. The process of elimination reveals the underlying dependencies between the equations. If a combination of the rows of A gives the zero row, then the same combination of the entries of b must equal zero. If a row of A is completely eliminated, so is the corresponding entry in b. If these conditions are not met, the system has no solution.
+  </p>
+
+  <h3>2. Finding a Particular Solution ($x_p$)</h3>
+
+  <p>
+    Once we know the system is solvable, our next step is to find just one single solution that satisfies the equation. One way to find a particular solution to the equation $Ax=b$ is to set all free variables to zero, then solve for the pivot variables. 
+  </p>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The Particular Solution Algorithm</div>
+    <div class="math-box-body">
+      <ol>
+        <li>Perform elimination to find the reduced row echelon form (RREF).</li>
+        <li>Identify the free variables (columns without pivots) and the pivot variables (columns with pivots).</li>
+        <li>Set all free variables to $0$.</li>
+        <li>Solve the remaining simplified equations for the pivot variables.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>3. The Complete Solution ($x_{complete}$)</h3>
+
+  <p>
+    A particular solution gives us a starting point, but it may not be the <em>only</em> solution. We get the complete solution of the equation by adding the particular solution to all the vectors in the nullspace.
+  </p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Structure of the Complete Solution</div>
+    <div class="math-box-body">
+      <p>
+        The general solution to $Ax=b$ is given by $x_{complete}=x_{p}+x_{n}$, where $x_{n}$ is a generic vector in the nullspace.
+      </p>
+      <div class="math-display">
+        $$
+        x_{complete} = x_p + c_1 s_1 + c_2 s_2 + \dots + c_k s_k
+        $$
+      </div>
+      <p>
+        To see this, we add $Ax_{p}=b$ to $Ax_{n}=0$ and get $A(x_{p}+x_{n})=b$ for every vector $x_{n}$ in the nullspace.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    The nullspace component, $x_n$, is constructed by finding all combinations of the special solutions to the equation $Ax=0$. Because $Ax_n$ always evaluates to $0$, adding it to our particular solution does not change the right-hand side $b$.
+  </p>
+
+  <h3>4. The Big Picture: Rank and Solutions</h3>
+
+  <p>
+    The rank of a matrix equals the number of pivots of that matrix. The rank ($r$), compared to the number of rows ($m$) and columns ($n$), dictates the entire behavior of the system's solutions. If A is an m by n matrix of rank r, we know $r \le m$ and $r \le n$.
+  </p>
+
+  <h4>Full Column Rank ($r=n$)</h4>
+  <p>
+    If $r=n$ then from the previous lecture we know that the nullspace has dimension $n-r=0$ and contains only the zero vector. There are no free variables or special solutions. Because the nullspace is empty, there is no $x_n$ to add. Consequently, if $Ax=b$ has a solution, it is unique; there is either 0 or 1 solution.
+  </p>
+
+  <h4>Full Row Rank ($r=m$)</h4>
+  <p>
+    If $r=m$ then the reduced matrix $R=\begin{bmatrix}I & F\end{bmatrix}$ has no rows of zeros and so there are no requirements for the entries of b to satisfy. The equation $Ax=b$ is solvable for every b. Because there are $n-m$ free variables, there are $n-m$ special solutions to $Ax=0$. 
+  </p>
+
+  <h4>Full Row and Column Rank ($r=m=n$)</h4>
+  <p>
+    If $r=m=n$ is the number of pivots of A, then A is an invertible square matrix and R is the identity matrix. The nullspace has dimension zero, and $Ax=b$ has a unique solution for every b in $\mathbb{R}^{m}$.
+  </p>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Summary Table of Rank Outcomes</div>
+    <div class="math-box-body">
+      <p>If R is in row reduced form with pivot columns first (rref), the table below summarizes our results.</p>
+      <table style="width:100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-color);">
+            <th style="padding: 8px;">Rank Condition</th>
+            <th style="padding: 8px;">RREF Shape ($R$)</th>
+            <th style="padding: 8px;"># Solutions to $Ax=b$</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border-color-light);">
+            <td style="padding: 8px;">$r=m=n$</td>
+            <td style="padding: 8px;">$I$</td>
+            <td style="padding: 8px;">1</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-color-light);">
+            <td style="padding: 8px;">$r=n \lt m$</td>
+            <td style="padding: 8px;">$\begin{bmatrix}I \\ 0\end{bmatrix}$</td>
+            <td style="padding: 8px;">0 or 1</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-color-light);">
+            <td style="padding: 8px;">$r=m \lt n$</td>
+            <td style="padding: 8px;">$\begin{bmatrix}I & F\end{bmatrix}$</td>
+            <td style="padding: 8px;">infinitely many</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;">$r \lt m$, $r \lt n$</td>
+            <td style="padding: 8px;">$\begin{bmatrix}I & F \\ 0 & 0\end{bmatrix}$</td>
+            <td style="padding: 8px;">0 or infinitely many</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<h3>5. A Complete Solved Example</h3>
+
+  <p>
+    Let's walk through finding the complete solution for a specific system $Ax=b$. We will use the following $3 \times 4$ matrix $A$ and a right-hand side vector $b$:
+  </p>
+
+  <div class="math-display">
+    $$
+    A = \begin{bmatrix} 1 & 2 & 2 & 2 \\ 2 & 4 & 6 & 8 \\ 3 & 6 & 8 & 10 \end{bmatrix}, \quad b = \begin{bmatrix} 1 \\ 5 \\ 6 \end{bmatrix}
+    $$
+  </div>
+
+  <p>
+    Notice that the third row of $A$ is the sum of its first and second rows. For the system to be solvable, the same combination must apply to $b$: we need $b_3 = b_1 + b_2$. Checking our vector, $6 = 1 + 5$, so the condition is satisfied and a solution exists.
+  </p>
+
+  <h4>Step 1: Find the Particular Solution ($x_p$)</h4>
+  <p>
+    We set the free variables to zero. In this matrix, columns 2 and 4 have no pivots, so our free variables are $x_2 = 0$ and $x_4 = 0$. This simplifies our system to just the pivot variables:
+  </p>
+
+  <div class="math-display">
+    $$
+    \begin{matrix} 
+    x_1 + 2x_3 = 1 \\ 
+    2x_3 = 3 
+    \end{matrix}
+    $$
+  </div>
+
+  <p>
+    Solving this via back substitution yields $x_3 = 3/2$ and $x_1 = -2$. Putting it all together, our particular solution is:
+  </p>
+
+  <div class="math-display">
+    $$
+    x_p = \begin{bmatrix} -2 \\ 0 \\ 3/2 \\ 0 \end{bmatrix}
+    $$
+  </div>
+
+  <h4>Step 2: Find the Null Space ($x_n$)</h4>
+  <p>
+    The null space consists of all special solutions to $Ax=0$. By setting one free variable to $1$ and the others to $0$, we can solve for the two special solutions in this system:
+  </p>
+
+  <div class="math-display">
+    $$
+    s_1 = \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix}, \quad s_2 = \begin{bmatrix} 2 \\ 0 \\ -2 \\ 1 \end{bmatrix}
+    $$
+  </div>
+
+  <h4>Step 3: Combine for the Complete Solution</h4>
+  <p>
+    The general solution to $Ax=b$ is given by $x_{complete} = x_p + x_n$. We combine our particular solution with all possible linear combinations of our special solutions:
+  </p>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">Complete Solution</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$
+        x_{complete} = \begin{bmatrix} -2 \\ 0 \\ 3/2 \\ 0 \end{bmatrix} + c_1 \begin{bmatrix} -2 \\ 1 \\ 0 \\ 0 \end{bmatrix} + c_2 \begin{bmatrix} 2 \\ 0 \\ -2 \\ 1 \end{bmatrix}
+        $$
+      </div>
+    </div>
+  </div>
+
+  <h3>6. The Geometric Picture: A Shifted Plane</h3>
+
+  <p>
+    To truly grasp linear algebra, it helps to visualize where these solutions live. In our example, there are four unknowns, meaning our vectors exist in $\mathbb{R}^4$. 
+  </p>
+
+  <p>
+    First, consider the null space, $x_n$. Because there are two free variables (and two special solutions), all linear combinations of those vectors form a <strong>two-dimensional subspace</strong>—a flat plane that passes precisely through the origin (the zero vector).
+  </p>
+
+  <p>
+    Now, what happens when we add the particular solution $x_p$ to create the complete solution? We are taking that entire two-dimensional plane and <strong>shifting it away from the origin</strong> by the specific vector $x_p$. 
+  </p>
+
+<div class="svg-container" style="text-align: center; margin: 3rem 0;">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="auto" style="max-width: 700px; background: transparent;">
+    <defs>
+      <marker id="arrowHeadMuted" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="var(--muted)"/>
+      </marker>
+      <marker id="arrowHeadAccent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent)"/>
+      </marker>
+      <marker id="arrowHeadText" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="var(--text)"/>
+      </marker>
+    </defs>
+
+    <line x1="400" y1="450" x2="400" y2="80" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrowHeadMuted)"/>
+    <line x1="400" y1="450" x2="750" y2="450" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrowHeadMuted)"/>
+    <line x1="400" y1="450" x2="150" y2="575" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrowHeadMuted)"/>
+
+    <polygon points="200,480 500,380 650,470 350,570" fill="var(--surface)" fill-opacity="0.6" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4 4" />
+    
+    <text x="210" y="540" font-family="Lora, serif" font-size="16" font-style="italic" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round">Null Space Plane, N(A)</text>
+    <text x="210" y="540" font-family="Lora, serif" font-size="16" fill="var(--muted)" font-style="italic">Null Space Plane, N(A)</text>
+
+    <polygon points="280,280 580,180 730,270 430,370" fill="var(--highlight)" stroke="var(--accent)" stroke-width="1.5" />
+    
+    <text x="560" y="200" font-family="Lora, serif" font-size="18" font-weight="600" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round">Complete Solution Space</text>
+    <text x="560" y="200" font-family="Lora, serif" font-size="18" fill="var(--accent)" font-weight="600">Complete Solution Space</text>
+    
+    <text x="560" y="225" font-family="Lora, serif" font-size="16" font-style="italic" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round">x<tspan dy="0.2em" font-size="0.75em">p</tspan><tspan dy="-0.2em"> + N(A)</tspan></text>
+    <text x="560" y="225" font-family="Lora, serif" font-size="16" fill="var(--accent)" font-style="italic">x<tspan dy="0.2em" font-size="0.75em">p</tspan><tspan dy="-0.2em"> + N(A)</tspan></text>
+
+    <line stroke="var(--border)" stroke-width="1.5" stroke-dasharray="5 5">
+      <animate attributeName="x1" values="280; 520; 280" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y1" values="440; 460; 440" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="x2" values="360; 600; 360" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y2" values="240; 260; 240" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+    </line>
+
+    <line x1="480" y1="250" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="5 5">
+      <animate attributeName="x2" values="360; 600; 360" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y2" values="240; 260; 240" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+    </line>
+
+    <line x1="400" y1="450" stroke="var(--muted)" stroke-width="2.5" marker-end="url(#arrowHeadMuted)">
+      <animate attributeName="x2" values="280; 520; 280" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y2" values="440; 460; 440" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+    </line>
+    
+    <text font-family="Lora, serif" font-size="20" font-style="italic" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round">
+      <animate attributeName="x" values="220; 460; 220" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y" values="465; 485; 465" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      x<tspan dy="0.2em" font-size="0.75em">n</tspan>
+    </text>
+    <text font-family="Lora, serif" font-size="20" fill="var(--muted)" font-style="italic">
+      <animate attributeName="x" values="220; 460; 220" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y" values="465; 485; 465" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      x<tspan dy="0.2em" font-size="0.75em">n</tspan>
+    </text>
+
+    <line x1="400" y1="450" x2="480" y2="250" stroke="var(--accent)" stroke-width="3" marker-end="url(#arrowHeadAccent)"/>
+    <text x="420" y="340" font-family="Lora, serif" font-size="22" font-weight="bold" font-style="italic" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round">x<tspan dy="0.2em" font-size="0.75em">p</tspan></text>
+    <text x="420" y="340" font-family="Lora, serif" font-size="22" fill="var(--accent)" font-weight="bold" font-style="italic">x<tspan dy="0.2em" font-size="0.75em">p</tspan></text>
+
+    <line x1="400" y1="450" stroke="var(--text)" stroke-width="2.5" marker-end="url(#arrowHeadText)">
+      <animate attributeName="x2" values="360; 600; 360" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y2" values="240; 260; 240" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+    </line>
+    
+    <text font-family="Lora, serif" font-size="22" font-weight="bold" font-style="italic" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round">
+      <animate attributeName="x" values="275; 515; 275" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y" values="355; 375; 355" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      x
+    </text>
+    <text font-family="Lora, serif" font-size="22" fill="var(--text)" font-weight="bold" font-style="italic">
+      <animate attributeName="x" values="275; 515; 275" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      <animate attributeName="y" values="355; 375; 355" dur="6s" calcMode="spline" keyTimes="0; 0.5; 1" keySplines="0.4 0 0.2 1; 0.4 0 0.2 1" repeatCount="indefinite" />
+      x
+    </text>
+
+    <circle cx="400" cy="450" r="5" fill="var(--text)"/>
+    <text x="385" y="475" font-family="Lora, serif" font-size="18" stroke="var(--bg)" stroke-width="4" stroke-linejoin="round">0</text>
+    <text x="385" y="475" font-family="Lora, serif" font-size="18" fill="var(--text)">0</text>
+    
+  </svg>
+</div>
+
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Not a Subspace</div>
+    <div class="math-box-body">
+      <p>
+        Does the set of solutions to $Ax=b$ form a subspace? <strong>No.</strong> 
+      </p>
+      <p>
+        Because the new plane has been shifted, it no longer contains the zero vector (unless $b=0$). The complete solutions to $Ax=b$ form a plane <em>parallel</em> to the null space, anchored at $x_p$, creating a flat geometric structure that is explicitly not a formal subspace.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+                    
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  // Assuming base.js is already loaded in the <head> or above this
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>
