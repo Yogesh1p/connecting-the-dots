@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Singular Value Decomposition (SVD)</title>
+
+<meta name="book" content="linear-algebra">
+<meta name="chapter" content="The SVD and Applications">
+<meta name="part" content=" ">
+<meta name="title" content="The Singular Value Decomposition (SVD)">
+<meta name="description" content="Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the four fundamental subspaces, and finding the directions of maximum stretch.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-18">
+<meta name="chapterorder" content="3">
+<meta name="lessonorder" content="1">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="singular value decomposition, SVD, orthogonal basis, eigenvalues, low-rank approximation, fundamental subspaces, linear algebra">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="reading_time" content="9">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <style>
+    
+        /* ─────────────────────────────────────
+           Math display & Figures
+           ───────────────────────────────────── */
+        .math-display, .math-block { text-align: center; margin: 1rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; -webkit-overflow-scrolling: touch; }
+        .reading-content mjx-container[display="true"] { margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; padding: 0 !important; overflow-x: auto; overflow-y: hidden; }
+        mjx-container svg { fill: currentColor; color: currentColor; }
+        
+        .diagram-figure { margin: 2.5rem auto; display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; max-width: 650px; }
+        .svg-container { display: flex; justify-content: center; width: 100%; }
+        .svg-container svg { width: 100%; height: auto; }
+        .figure-caption { margin-top: 1rem; color: var(--text); font-size: 0.9em; line-height: 1.5; max-width: 90%; }
+
+        /* Interactive Widget Styling */
+        .interactive-container {
+            width: 100%; max-width: 500px; margin: 0 auto; padding: 1rem; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center;
+        }
+        canvas#svdCanvas { width: 100%; max-width: 450px; aspect-ratio: 1/1; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+        .widget-controls { width: 100%; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .widget-controls input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent); }
+        .widget-label { font-family: var(--font-serif, Lora, serif); font-size: 1.1rem; color: var(--dark); font-weight: 600; text-align: center; }
+        .widget-sublabel { font-size: 0.85rem; color: var(--muted); text-align: center; }
+    </style>
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+            svg: { fontCache: "global" }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<h2>The Final Factorization: SVD</h2>
+
+<p>
+    The Singular Value Decomposition (SVD) brings together everything we have studied about linear transformations, orthogonal matrices, and the four fundamental subspaces. Any matrix whatsoever can be broken down into:
+</p>
+
+<div class="math-display">
+    $$\text{Orthogonal Matrix} \times \text{Diagonal Matrix} \times \text{Orthogonal Matrix}$$
+</div>
+
+<p>
+    There are many ways to discover the SVD. We’ll follow the most geometric one: <strong>the search for maximum stretch</strong>. Along the way, you’ll see how the other perspectives—like matching bases and analyzing Gram matrices—naturally fall out.
+</p>
+
+<h3>The Philosophy: Why Eigenvectors Fail Us</h3>
+
+<p>
+    For symmetric square matrices, eigenvectors work beautifully because applying the matrix keeps the vector in the same space—the direction is preserved up to a scale ($Ax = \lambda x$). But for a general rectangular $m \times n$ matrix $A$, this idea breaks down. $A$ takes an input vector $v$ in $\mathbb{R}^n$ and outputs a vector $Av$ in $\mathbb{R}^m$. They don't live in the same dimension, so asking if $Av$ points in the "same direction" as $v$ is geometrically meaningless.
+</p>
+
+<p>
+    This is exactly why eigen-decomposition fails in general—but the SVD succeeds. Instead of insisting on one basis that works before and after, the SVD allows <em>two different bases</em>, one for each space. 
+</p>
+
+<div class="math-box key-box">
+    <div class="math-box-label">The Perfect Coordinates</div>
+    <div class="math-box-body">
+        <div class="math-display">
+            $$A v_i = \sigma_i\, u_i$$
+        </div>
+        <p>The SVD is not just a decomposition. It is the discovery of the <strong>perfect input coordinates</strong> (the $v_i$) and the <strong>perfect output coordinates</strong> (the $u_i$) in which the matrix $A$ becomes as simple as possible—purely diagonal scaling.</p>
+    </div>
+</div>
+
+<h3>The Search for Maximum Stretch</h3>
+
+<p>
+    We are looking for the directions that get stretched the most by $A$. So, which unit vector $v$ makes the length of the output, $\|Av\|$, as large as possible? Let's look at the squared length:
+</p>
+
+<div class="math-display">
+    $$\|A v\|_2^2 = (A v)^T (A v) = v^T A^T A v$$
+</div>
+
+<p>
+    Look at what just appeared: $A^T A$, the <strong>row Gram matrix</strong>. Even if $A$ is rectangular and messy, $A^T A$ is guaranteed to be a square, symmetric, positive semi-definite matrix. In linear algebra, a quadratic form like $v^T (A^T A) v$ is maximized exactly when $v$ is chosen to be the eigenvector of $A^T A$ corresponding to its largest eigenvalue:
+</p>
+
+<div class="math-display">
+    $$A^T A v = \lambda_{\max} v$$
+</div>
+
+<p>
+    These vectors $v$ are not the eigenvectors of $A$ (which don't exist for rectangular matrices), but the eigenvectors of $A^T A$. The maximum stretch we achieve is the square root of that eigenvalue. We call this stretch the <strong>singular value</strong>, $\sigma$:
+</p>
+
+<div class="math-display">
+    $$\sigma = \sqrt{\lambda_{\max}}, \qquad A^T A v = \sigma^2 v \quad \text{(Right singular vectors } v\text{)}$$
+</div>
+
+<p>
+    This vector $v$ is our first <strong>Right Singular Vector</strong>. It is called "right" because it will sit on the right side of the SVD factorization. We continue to the next-largest eigenvalue, finding the direction of second-greatest stretch, and so on through all $r$ non-zero eigenvalues.
+</p>
+
+<h3>What Happens After the Stretch?</h3>
+
+<p>
+    We have found our input directions $v$, and we know $A^T A v = \sigma^2 v$. But what happens to these vectors when they land in the column space? We defined our target relationship as $Av = \sigma u$. 
+</p>
+
+<p>
+    If $v$ is a direction of pure stretching, then its image $Av$ should also behave like a "pure direction" in the output space. That suggests $Av$ itself should be an eigenvector of something natural in the output space—namely the <strong>column Gram matrix</strong>, $AA^T$. 
+</p>
+
+<p>
+    Let's trace the math to verify this. Take our equation for $v$ and multiply both sides by $A$:
+</p>
+
+<div class="math-display">
+    $$A(A^T A v) = A(\sigma^2 v)$$
+</div>
+
+<p>
+    Regroup the parentheses on the left side:
+</p>
+
+<div class="math-display">
+    $$(A A^T)(A v) = \sigma^2 (A v)$$
+</div>
+
+<p>
+    Now, substitute our core definition $Av = \sigma u$ into both sides:
+</p>
+
+<div class="math-display">
+    $$(A A^T)(\sigma u) = \sigma^2 (\sigma u)$$
+</div>
+
+<p>
+    Cancel out a $\sigma$ from both sides:
+</p>
+
+<div class="math-display">
+    $$A A^T u = \sigma^2 u \quad \text{(Left singular vectors } u\text{)}$$
+</div>
+
+<p>
+    The output vector $u$ is exactly the eigenvector of $AA^T$ with the eigenvalue $\sigma^2$. We call $u$ the <strong>Left Singular Vector</strong>.
+</p>
+
+<h3>The Grand Synthesis: $A = U \Sigma V^T$</h3>
+
+<p>
+    The eigenbasis $V$ (from $A^T A$) gets mapped by $A$ into the eigenbasis $U$ (from $A A^T$), scaled by the singular values. In matrix form, this is $A V = U \Sigma$. Rearranging by multiplying by $V^T$ gives us the full singular value decomposition:
+</p>
+
+<div class="math-box key-box">
+    <div class="math-box-label">The Singular Value Decomposition</div>
+    <div class="math-box-body">
+        <div class="math-display">
+            $$A = U \Sigma V^T$$
+        </div>
+    </div>
+</div>
+
+<p>
+    Geometrically, every matrix transformation can be understood in three clean steps:
+</p>
+<ol>
+    <li><strong>$V^T$</strong>: rotate the input space so we are looking along the special directions $v_i$. (Mathematically, multiplying an input vector by $V^T$ takes the dot product with every basis vector $v_i$, projecting it into the $V$ coordinate system).</li>
+    <li><strong>$\Sigma$</strong>: stretch or compress along perpendicular axes. (No mixing at all).</li>
+    <li><strong>$U$</strong>: rotate the result into its final orientation.</li>
+</ol>
+
+<p>
+    The miracle of the SVD is that <strong>all the complexity of the matrix is captured by rotations plus independent scalings</strong>—no shearing, no entanglement.
+</p>
+
+<style>
+    .svd-widget-wrapper {
+        width: 100%;
+        max-width: 950px;
+        margin: 3rem auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Dual Canvas Layout */
+    .svd-comparison-layout {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3rem;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 2rem;
+    }
+    
+    .canvas-column {
+        flex: 1 1 320px;
+        max-width: 420px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .canvas-title {
+        font-family: var(--font-serif, Lora, serif);
+        font-size: 1.3rem;
+        color: var(--dark);
+        margin-bottom: 1rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    /* Explicit box styling so both canvases are identical */
+    canvas.svd-view { 
+        width: 100%; 
+        aspect-ratio: 1/1; 
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        outline: none;
+    }
+
+    /* Step Labels & Independent Controls */
+    .step-info {
+        margin-top: 1rem;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 0.95rem;
+        color: var(--muted);
+        line-height: 1.4;
+    }
+
+    .button-group { 
+        display: flex; 
+        justify-content: center; 
+        gap: 0.75rem; 
+        margin-top: 0.5rem; 
+    }
+
+    .svd-btn {
+        background: transparent; 
+        color: var(--text); 
+        border: 1px solid var(--border);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%; 
+        font-weight: 600; 
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s ease; 
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .svd-btn:hover:not(:disabled) { 
+        background: var(--bg); 
+        border-color: var(--accent); 
+        color: var(--accent);
+    }
+
+    .svd-btn:disabled { 
+        opacity: 0.25; 
+        cursor: not-allowed; 
+    }
+
+    /* Matrix Input Controls (Centered at bottom) */
+    .matrix-input-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        font-family: var(--font-serif, Lora, serif);
+        font-size: 1.2rem;
+        color: var(--dark);
+        background: var(--surface);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .matrix-brackets {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        position: relative;
+        padding: 0 0.5rem;
+    }
+
+    .matrix-brackets::before, .matrix-brackets::after {
+        content: '';
+        position: absolute;
+        top: -4px; bottom: -4px;
+        width: 8px;
+        border: 2px solid var(--dark);
+    }
+    .matrix-brackets::before { left: 0; border-right: none; }
+    .matrix-brackets::after { right: 0; border-left: none; }
+    
+    .matrix-input {
+        width: 50px;
+        text-align: center;
+        font-family: inherit;
+        font-size: 1.1rem;
+        padding: 4px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 4px;
+        color-scheme: light dark;
+    }
+    .matrix-input:focus { outline: 2px solid var(--accent); }
+
+    /* Forces the spin arrows to be light gray in dark mode */
+    [data-theme="dark"] .matrix-input::-webkit-inner-spin-button,
+    [data-theme="dark"] .matrix-input::-webkit-outer-spin-button {
+        filter: invert(80%);
+        opacity: 1;
+        cursor: pointer;
+    }
+</style>
+
+<div class="diagram-figure" style="max-width: 1000px;">
+    <div class="svd-widget-wrapper">
+        
+        <div class="svd-comparison-layout">
+            <div class="canvas-column">
+                <div class="canvas-title">Direct Transformation</div>
+                <canvas id="directCanvas" class="svd-view" width="500" height="500"></canvas>
+                <div class="step-info" id="directLabel">Start: Standard Basis (i, j)</div>
+                <div class="button-group">
+                    <button id="directPrev" class="svd-btn" disabled>&lt;</button>
+                    <button id="directNext" class="svd-btn">&gt;</button>
+                </div>
+            </div>
+            
+            <div class="canvas-column">
+                <div class="canvas-title">SVD Breakdown</div>
+                <canvas id="svdCanvas" class="svd-view" width="500" height="500"></canvas>
+                <div class="step-info" id="svdLabel">Start: Standard Basis (v₁, v₂)</div>
+                <div class="button-group">
+                    <button id="svdPrev" class="svd-btn" disabled>&lt;</button>
+                    <button id="svdNext" class="svd-btn">&gt;</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="matrix-input-container">
+            <span>A = </span>
+            <div class="matrix-brackets">
+                <input type="number" id="m_a" class="matrix-input" value="3" step="0.5">
+                <input type="number" id="m_b" class="matrix-input" value="1" step="0.5">
+                <input type="number" id="m_c" class="matrix-input" value="-1" step="0.5">
+                <input type="number" id="m_d" class="matrix-input" value="2" step="0.5">
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function() {
+    const directCanvas = document.getElementById('directCanvas');
+    const directCtx = directCanvas.getContext('2d');
+    
+    const svdCanvas = document.getElementById('svdCanvas');
+    const svdCtx = svdCanvas.getContext('2d');
+
+    const inputs = ['m_a', 'm_b', 'm_c', 'm_d'].map(id => document.getElementById(id));
+
+    const state = {
+        direct: { current: 0, target: 0, max: 1, labelEl: document.getElementById('directLabel') },
+        svd: { current: 0, target: 0, max: 3, labelEl: document.getElementById('svdLabel') }
+    };
+
+    let isAnimating = false;
+    let svdData = {};
+
+    const texts = {
+        direct: [
+            "Start: Standard vectors i and j on the unit circle.",
+            "End: The space transforms. i and j land directly on the columns of A."
+        ],
+        svd: [
+            "Start: The unit circle with orthogonal vectors v₁ and v₂.",
+            "Step 1: Pure rotation aligns orthogonal vectors with the axes (Vᵀ).",
+            "Step 2: Pure scaling stretches along the axes (Σ). No shearing occurs.",
+            "Step 3: Final rotation into the output orientation (U)."
+        ]
+    };
+
+    function computeSVD(a, b, c, d) {
+        const E = a*a + c*c;
+        const F = a*b + c*d;
+        const G = b*b + d*d;
+        const T = E + G;
+        const D = E*G - F*F;
+        const delta = Math.sqrt(Math.max(0, T*T - 4*D));
+
+        const l1 = (T + delta) / 2;
+        const l2 = (T - delta) / 2;
+
+        const s1 = Math.sqrt(Math.max(0, l1));
+        const s2 = Math.sqrt(Math.max(0, l2));
+
+        let theta = 0;
+        if (Math.abs(F) > 1e-10) {
+            theta = 0.5 * Math.atan2(2*F, E - G);
+        } else if (E < G) {
+            theta = Math.PI / 2;
+        }
+
+        const v1 = [Math.cos(theta), Math.sin(theta)];
+        let u1 = [a*v1[0] + b*v1[1], c*v1[0] + d*v1[1]];
+
+        const norm = Math.hypot(u1[0], u1[1]);
+        if (norm > 1e-10) { u1 = [u1[0]/norm, u1[1]/norm]; } else { u1 = [1, 0]; }
+        const phi = Math.atan2(u1[1], u1[0]);
+
+        return { a, b, c, d, theta, phi, s1, s2 };
+    }
+
+    function updateMatrices() {
+        const a = parseFloat(inputs[0].value) || 0;
+        const b = parseFloat(inputs[1].value) || 0;
+        const c = parseFloat(inputs[2].value) || 0;
+        const d = parseFloat(inputs[3].value) || 0;
+
+        svdData = computeSVD(a, b, c, d);
+        
+        state.direct.target = 0;
+        state.svd.target = 0;
+        updateUI();
+        startAnimation();
+    }
+
+    function updateUI() {
+        document.getElementById('directPrev').disabled = state.direct.target === 0;
+        document.getElementById('directNext').disabled = state.direct.target === state.direct.max;
+        state.direct.labelEl.innerText = texts.direct[state.direct.target];
+
+        document.getElementById('svdPrev').disabled = state.svd.target === 0;
+        document.getElementById('svdNext').disabled = state.svd.target === state.svd.max;
+        state.svd.labelEl.innerText = texts.svd[state.svd.target];
+    }
+
+    function bindControls(type, prevId, nextId) {
+        document.getElementById(prevId).addEventListener('click', () => {
+            if (state[type].target > 0) {
+                state[type].target--;
+                updateUI();
+                startAnimation();
+            }
+        });
+        document.getElementById(nextId).addEventListener('click', () => {
+            if (state[type].target < state[type].max) {
+                state[type].target++;
+                updateUI();
+                startAnimation();
+            }
+        });
+    }
+
+    bindControls('direct', 'directPrev', 'directNext');
+    bindControls('svd', 'svdPrev', 'svdNext');
+    inputs.forEach(input => input.addEventListener('input', updateMatrices));
+
+    function getTransformDirect(t) {
+        const { a, b, c, d } = svdData;
+        const factor = t; 
+        return [
+            1 + (a - 1) * factor, 0 + (b - 0) * factor,
+            0 + (c - 0) * factor, 1 + (d - 1) * factor
+        ];
+    }
+
+    function getTransformSVD(t) {
+        const { theta, phi, s1, s2 } = svdData;
+        let angle1 = 0, angle2 = 0, scale1 = 1, scale2 = 1;
+
+        if (t <= 1) {
+            angle1 = -theta * t;
+        } else if (t <= 2) {
+            angle1 = -theta;
+            const tt = t - 1;
+            scale1 = 1 + (s1 - 1) * tt;
+            scale2 = 1 + (s2 - 1) * tt;
+        } else {
+            angle1 = -theta;
+            scale1 = s1; scale2 = s2;
+            const tt = t - 2;
+            angle2 = phi * tt;
+        }
+
+        const cos1 = Math.cos(angle1); const sin1 = Math.sin(angle1);
+        const cos2 = Math.cos(angle2); const sin2 = Math.sin(angle2);
+
+        let m00 = cos1 * scale1; let m01 = -sin1 * scale2;
+        let m10 = sin1 * scale1; let m11 = cos1 * scale2;
+
+        return [
+            cos2 * m00 - sin2 * m10, cos2 * m01 - sin2 * m11,
+            sin2 * m00 + cos2 * m10, sin2 * m01 + cos2 * m11
+        ];
+    }
+
+    function drawArrow(ctx, startX, startY, endX, endY, color, textLabel, scale, isGhost = false) {
+        const headlen = 12 / scale; 
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const angle = Math.atan2(dy, dx);
+        
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = isGhost ? 1.5 / scale : 3.5 / scale;
+        
+        if (isGhost) ctx.setLineDash([4/scale, 4/scale]);
+        else ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        if (!isGhost) {
+            ctx.save();
+            ctx.translate(endX, endY);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-headlen, headlen * 0.4);
+            ctx.lineTo(-headlen, -headlen * 0.4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        if (textLabel) {
+            ctx.save();
+            ctx.translate(endX, endY);
+            const offset = 26 / scale;
+            ctx.translate(Math.cos(angle) * offset, Math.sin(angle) * offset);
+            ctx.scale(1, -1);
+            
+            ctx.font = (isGhost ? "italic 400 " : "italic 600 ") + (20/scale) + "px 'Lora', serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(textLabel, 0, 0);
+            ctx.restore();
+        }
+    }
+
+    function drawCanvas(ctx, transformMatrix, t, mode) {
+        const [m00, m01, m10, m11] = transformMatrix;
+        const { a, b, c, d, theta } = svdData;
+
+        const style = getComputedStyle(document.documentElement);
+        const textColor = style.getPropertyValue('--dark').trim() || '#2D241E';
+        const accentColor = style.getPropertyValue('--accent').trim() || '#D48C70';
+        const gridColor = style.getPropertyValue('--border').trim() || '#E8DFD1';
+
+        const maxStretchSVD = Math.max(Math.hypot(m00, m10), Math.hypot(m01, m11)) + 1;
+        const maxStretchDirect = Math.max(Math.hypot(a, c), Math.hypot(b, d)) + 1;
+        const maxStretch = Math.max(maxStretchSVD, maxStretchDirect);
+        const scale = (directCanvas.width / 2) / Math.max(4, maxStretch * 1.2);
+
+        ctx.clearRect(0, 0, directCanvas.width, directCanvas.height);
+        ctx.save();
+        ctx.translate(directCanvas.width / 2, directCanvas.height / 2);
+        ctx.scale(scale, -scale);
+
+        // 1. GHOST BACKGROUND (Grid opacity increased for visibility)
+        ctx.lineWidth = 1 / scale;
+        ctx.strokeStyle = gridColor;
+        ctx.globalAlpha = 0.5; 
+        ctx.beginPath();
+        for(let i = -15; i <= 15; i++) {
+            ctx.moveTo(i, -15); ctx.lineTo(i, 15);
+            ctx.moveTo(-15, i); ctx.lineTo(15, i);
+        }
+        ctx.stroke();
+        
+        // 2. TRANSFORMING GRID
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.6; 
+        ctx.beginPath();
+        for(let i = -15; i <= 15; i++) {
+            ctx.moveTo(m00*i + m01*-15, m10*i + m11*-15);
+            ctx.lineTo(m00*i + m01*15, m10*i + m11*15);
+            ctx.moveTo(m00*-15 + m01*i, m10*-15 + m11*i);
+            ctx.lineTo(m00*15 + m01*i, m10*15 + m11*i);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // 3. TRANSFORMING CIRCLE
+        ctx.beginPath();
+        for (let rad = 0; rad <= Math.PI * 2.05; rad += 0.05) {
+            const x = Math.cos(rad); const y = Math.sin(rad);
+            const tx = m00*x + m01*y; const ty = m10*x + m11*y;
+            if (rad === 0) ctx.moveTo(tx, ty); else ctx.lineTo(tx, ty);
+        }
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 3 / scale;
+        ctx.stroke();
+        ctx.fillStyle = accentColor;
+        ctx.globalAlpha = 0.15;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // 4. MAIN VECTORS
+        if (mode === 'direct') {
+            const tv1_x = m00 * 1 + m01 * 0; const tv1_y = m10 * 1 + m11 * 0;
+            const tv2_x = m00 * 0 + m01 * 1; const tv2_y = m10 * 0 + m11 * 1;
+
+            let label1 = t > 0.8 ? "A(i)" : "i"; 
+            let label2 = t > 0.8 ? "A(j)" : "j";
+
+            if (t > 0) {
+                ctx.globalAlpha = 0.5;
+                drawArrow(ctx, 0, 0, 1, 0, accentColor, 'i', scale, true);
+                drawArrow(ctx, 0, 0, 0, 1, textColor, 'j', scale, true);
+                ctx.globalAlpha = 1.0;
+            }
+
+            drawArrow(ctx, 0, 0, tv2_x, tv2_y, textColor, label2, scale, false);
+            drawArrow(ctx, 0, 0, tv1_x, tv1_y, accentColor, label1, scale, false);
+        } else {
+            const v1_x = Math.cos(theta); const v1_y = Math.sin(theta);
+            const v2_x = -Math.sin(theta); const v2_y = Math.cos(theta);
+
+            const tv1_x = m00 * v1_x + m01 * v1_y; const tv1_y = m10 * v1_x + m11 * v1_y;
+            const tv2_x = m00 * v2_x + m01 * v2_y; const tv2_y = m10 * v2_x + m11 * v2_y;
+
+            let label1 = "v₁"; let label2 = "v₂";
+            if (state.svd.target === 3 && t > 2.5) { label1 = "σ₁u₁"; label2 = "σ₂u₂"; }
+
+            if (t > 0) {
+                ctx.globalAlpha = 0.5;
+                drawArrow(ctx, 0, 0, v2_x, v2_y, textColor, 'v₂', scale, true);
+                drawArrow(ctx, 0, 0, v1_x, v1_y, accentColor, 'v₁', scale, true);
+                ctx.globalAlpha = 1.0;
+            }
+
+            drawArrow(ctx, 0, 0, tv2_x, tv2_y, textColor, label2, scale, false);
+            drawArrow(ctx, 0, 0, tv1_x, tv1_y, accentColor, label1, scale, false);
+        }
+
+        ctx.restore();
+    }
+
+    function drawAll() {
+        drawCanvas(directCtx, getTransformDirect(state.direct.current), state.direct.current, 'direct');
+        drawCanvas(svdCtx, getTransformSVD(state.svd.current), state.svd.current, 'svd');
+    }
+
+    function animateLoop() {
+        let animating = false;
+        
+        ['direct', 'svd'].forEach(key => {
+            const s = state[key];
+            if (Math.abs(s.current - s.target) > 0.005) {
+                s.current += (s.target - s.current) * 0.08;
+                animating = true;
+            } else {
+                s.current = s.target;
+            }
+        });
+
+        drawAll();
+
+        if (animating) {
+            requestAnimationFrame(animateLoop);
+        } else {
+            isAnimating = false;
+        }
+    }
+
+    function startAnimation() {
+        if (!isAnimating) {
+            isAnimating = true;
+            animateLoop();
+        }
+    }
+
+    updateMatrices();
+})();
+</script>
+
+
+<h3>Why $A^T A$ and $A A^T$ Were Inevitable</h3>
+
+<p>
+    If we want to verify how this connects back to our symmetric Gram matrices, we can just plug the SVD into $A^T A$ and $A A^T$:
+</p>
+
+<div class="math-display">
+    $$A^T A = (U\Sigma V^T)^T(U\Sigma V^T) = V \Sigma^T U^T U \Sigma V^T = V \Sigma^T \Sigma V^T$$
+</div>
+
+<div class="math-display">
+    $$A A^T = (U\Sigma V^T)(U\Sigma V^T)^T = U \Sigma V^T V \Sigma^T U^T = U \Sigma \Sigma^T U^T$$
+</div>
+
+<p>
+    Because $U$ and $V$ are orthogonal ($U^T U = I$ and $V^T V = I$), the equations collapse exactly to the standard symmetric diagonalizations — $V$ diagonalizes $A^T A$ and $U$ diagonalizes $A A^T$, with eigenvalues $\sigma_i^2$ in both cases.
+</p>
+
+<h3>The Ultimate Map of the Four Fundamental Subspaces</h3>
+
+<p>
+    The SVD doesn’t just tell us what these subspaces are — it gives the <strong>best possible orthonormal basis for each one</strong>, aligned exactly with how the matrix actually acts. Suppose $A$ is an $m \times n$ matrix of rank $r$.
+</p>
+
+<ul>
+    <li><strong>The Row Space $C(A^T)$:</strong> The first $r$ columns of $V$ ($v_1, \dots, v_r$) form an orthonormal basis for the row space.</li>
+    <li><strong>The Null Space $N(A)$:</strong> The remaining $n - r$ columns of $V$ ($v_{r+1}, \dots, v_n$) form an orthonormal basis for the null space. These are the vectors that $A$ crushes to zero — their singular values are $0$.</li>
+    <li><strong>The Column Space $C(A)$:</strong> The first $r$ columns of $U$ ($u_1, \dots, u_r$) form an orthonormal basis for the column space. These are precisely the directions that survive under the transformation.</li>
+    <li><strong>The Left Null Space $N(A^T)$:</strong> The remaining $m - r$ columns of $U$ ($u_{r+1}, \dots, u_m$) form an orthonormal basis for the left null space.</li>
+</ul>
+
+<details class="toggle">
+    <summary>Worked Example 1: A Full-Rank 2&times;2 Matrix</summary>
+    <div style="margin-top: 1rem;">
+        <p>
+            Let us take $A = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix}$. This matrix is invertible with rank 2, so we expect two non-zero singular values.
+        </p>
+
+        <p>
+            <strong>Step 1: Compute $A^T A$ and find the right singular vectors $V$.</strong>
+        </p>
+
+        <div class="math-display">
+            $$A^T A = \begin{bmatrix}4 & -3 \\ 4 & 3\end{bmatrix}\begin{bmatrix}4 & 4 \\ -3 & 3\end{bmatrix} = \begin{bmatrix}32 & 0 \\ 0 & 18\end{bmatrix}$$
+        </div>
+
+        <p>
+            $A^T A$ comes out diagonal. The eigenvalues are $\sigma_1^2 = 32$ and $\sigma_2^2 = 18$, read directly off the diagonal.
+        </p>
+
+        <p>
+            The eigenvectors (columns of $V$) are found from the null spaces of $(A^TA - \sigma_i^2 I)$. Here, the eigenvectors are along the directions $(1,1)$ and $(1,-1)$, which we normalize to unit vectors by dividing by $\sqrt{2}$:
+        </p>
+
+        <div class="math-display">
+            $$v_1 = \frac{1}{\sqrt{2}}\begin{bmatrix}1\\1\end{bmatrix}, \qquad v_2 = \frac{1}{\sqrt{2}}\begin{bmatrix}1\\-1\end{bmatrix}, \qquad V = \frac{1}{\sqrt{2}}\begin{bmatrix}1 & 1 \\ 1 & -1\end{bmatrix}$$
+        </div>
+
+        <p>
+            <strong>Step 2: Compute $A A^T$ and find the left singular vectors $U$.</strong>
+        </p>
+
+        <div class="math-display">
+            $$A A^T = \begin{bmatrix}4 & 4 \\ -3 & 3\end{bmatrix}\begin{bmatrix}4 & -3 \\ 4 & 3\end{bmatrix} = \begin{bmatrix}32 & 0 \\ 0 & 18\end{bmatrix}$$
+        </div>
+
+        <p>
+            Notice that $AA^T$ also comes out diagonal with eigenvalues $32$ and $18$. This is no accident: $A^T A$ and $AA^T$ always share the same non-zero eigenvalues. The eigenvectors of $AA^T$ give the columns of $U$: $u_1 = \begin{bmatrix}1\\0\end{bmatrix}$ and $u_2 = \begin{bmatrix}0\\1\end{bmatrix}$.
+        </p>
+
+        <p>
+            <strong>Step 3: Determine the correct signs using $Av_i = \sigma_i u_i$.</strong>
+        </p>
+
+        <p>
+            The sign of each $u_i$ must be consistent with $Av_i = \sigma_i u_i$. The eigenvectors of $AA^T$ only give us the direction — we must verify the sign against the actual transformation. Let's check $v_2$:
+        </p>
+
+        <div class="math-display">
+            $$A v_2 = \begin{bmatrix}4 & 4 \\ -3 & 3\end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix}1\\-1\end{bmatrix} = \frac{1}{\sqrt{2}}\begin{bmatrix}0\\-6\end{bmatrix} = \sqrt{18} \begin{bmatrix}0\\-1\end{bmatrix}$$
+        </div>
+
+        <p>
+            So $u_2 = \begin{bmatrix}0\\-1\end{bmatrix}$, not $\begin{bmatrix}0\\1\end{bmatrix}$. The sign flipped. Always determine $u_i = \frac{1}{\sigma_i}Av_i$ to get the correct sign, rather than reading it directly from the eigenvectors of $AA^T$.
+        </p>
+
+        <p>
+            <strong>The complete SVD:</strong>
+        </p>
+
+        <div class="math-display">
+            $$A = \begin{bmatrix}1 & 0 \\ 0 & -1\end{bmatrix} \begin{bmatrix}\sqrt{32} & 0 \\ 0 & \sqrt{18}\end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix}1 & 1 \\ 1 & -1\end{bmatrix}$$
+        </div>
+    </div>
+</details>
+
+<details class="toggle">
+    <summary>Worked Example 2: A Rank-1 Matrix</summary>
+    <div style="margin-top: 1rem;">
+        <p>
+            Let's solidify this with a singular $2 \times 2$ matrix with rank 1:
+        </p>
+
+        <div class="math-display">
+            $$A = \begin{bmatrix} 4 & 3 \\ 8 & 6 \end{bmatrix}$$
+        </div>
+
+        <p>
+            Because it's rank 1, the row space is spanned by the rows $[4, 3]$ and $[8, 6]$. Since $[8, 6] = 2[4, 3]$, they span the same 1D line — all multiples of $(4, 3)$. To find our first input vector $v_1$, we normalize it to a unit vector: $\|(4,3)\| = 5$, so $v_1 = (0.8, 0.6)$. The null space is the perpendicular line, giving us $v_2 = (0.6, -0.8)$. These form our matrix $V$.
+        </p>
+
+        <p>
+            The column space is also a 1D line — multiples of $(4, 8)$, or simplified, $(1, 2)$. Normalizing gives $u_1 = \bigl(\tfrac{1}{\sqrt{5}}, \tfrac{2}{\sqrt{5}}\bigr)$. The left null space is the perpendicular vector $u_2 = \bigl(\tfrac{2}{\sqrt{5}}, \tfrac{-1}{\sqrt{5}}\bigr)$. These form our matrix $U$, which we can write as $\frac{1}{\sqrt{5}}\begin{bmatrix}1 & 2 \\ 2 & -1\end{bmatrix}$.
+        </p>
+
+        <p>
+            For the singular value, we compute $A^T A$:
+        </p>
+
+        <div class="math-display">
+            $$A^T A = \begin{bmatrix}4 & 8 \\ 3 & 6\end{bmatrix}\begin{bmatrix}4 & 3 \\ 8 & 6\end{bmatrix} = \begin{bmatrix}80 & 60 \\ 60 & 45\end{bmatrix}$$
+        </div>
+
+        <p>
+            This rank-1 matrix has trace $= 80 + 45 = 125$. Since the rank is 1, one eigenvalue is $0$, so the non-zero eigenvalue must be the entire trace: $\lambda = 125$. The singular value is $\sigma_1 = \sqrt{125} = 5\sqrt{5}$, and $\sigma_2 = 0$. The zeros slot perfectly into $\Sigma$ for the null space dimensions:
+        </p>
+
+        <div class="math-display">
+            $$A = \frac{1}{\sqrt{5}}\begin{bmatrix}1 & 2 \\ 2 & -1\end{bmatrix} \begin{bmatrix}5\sqrt{5} & 0 \\ 0 & 0\end{bmatrix} \begin{bmatrix}0.8 & 0.6 \\ 0.6 & -0.8\end{bmatrix}$$
+        </div>
+
+        <p>
+            This means the entire matrix can be written as a single outer product: $A = \sigma_1 u_1 v_1^T$. A rank-1 matrix is nothing more than one direction in input space mapped to one direction in output space.
+        </p>
+    </div>
+</details>
+
+<h3>The Optimal Low-Rank Approximation</h3>
+
+<p>
+    Because the SVD separates the geometry (the orthogonal matrices $U$ and $V$) from the magnitude (the singular values $\sigma$), it gives us a profound way to compress information. If we carry out the matrix multiplication $A = U \Sigma V^T$ column by column, it expands into a sum of rank-one matrices:
+</p>
+
+<div class="math-display">
+    $$A = \sigma_1 u_1 v_1^T + \sigma_2 u_2 v_2^T + \dots + \sigma_r u_r v_r^T$$
+</div>
+
+<div class="math-display">
+    $$A = \sum_{i=1}^{r} \sigma_i u_i v_i^T$$
+</div>
+
+<p>
+    By convention, singular values are always sorted in descending order ($\sigma_1 \ge \sigma_2 \ge \dots$). The first term $\sigma_1 u_1 v_1^T$ contains the single most important piece of information in the matrix. The second term is the second most important.
+</p>
+
+<p>
+    If we want to compress a massive dataset, we simply stop the sum early. Truncating the small $\sigma_i$ terms throws away the mathematical "noise" and leaves us with the absolute best low-rank approximation of $A$ geometrically possible. Keeping only the first $k$ terms gives the closest rank-$k$ matrix to $A$ — not just intuitively, but <strong>provably optimal</strong> among all possible rank-$k$ matrices. This profound result is known as the Eckart–Young–Mirsky theorem, and it is the foundational algorithm powering everything from modern image compression to digital recommendation systems.
+</p>
+
+
+
+<p style="text-align: center; font-size: 1.1em; font-style: italic; margin-top: 2rem;">
+    <strong>In summary:</strong><br>
+    Eigen-decomposition is <em>"change basis &rarr; scale &rarr; return to the same basis."</em><br>
+    The SVD is <em>"change basis &rarr; scale &rarr; change to a different basis."</em>
+</p>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

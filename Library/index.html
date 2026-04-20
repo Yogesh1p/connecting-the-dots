@@ -534,7 +534,6 @@
 <script src="../js/base.js"></script>
 <script src="../js/components.js"></script>
 <script src="../builder/lib-data.js"></script>
-
 <script>
 const BOOK_CONFIG = {
   generative: {
@@ -545,7 +544,7 @@ const BOOK_CONFIG = {
   "linear-algebra": {
     eyebrow: "Connecting the Dots ",
     title: "Linear Algebra",
-    description: "Vectors, matrix transformations, eigenspaces, and the geometry behind modern machine learning."
+    description: "Vectors, matrix transformations, eigenspaces, and the geometry behind modern machine learning. To build intuition, drawing heavily from the lectures and books of Gilbert Strang."
   },
   Stats: {
     eyebrow: "Connecting the Dots ",
@@ -555,6 +554,42 @@ const BOOK_CONFIG = {
 };
 
 let activeBook = "generative"; 
+
+// --- NEW: Initialize Memory Storage ---
+// We use sessionStorage so memory persists even if the page is refreshed
+const bookMemory = JSON.parse(sessionStorage.getItem('bookMemory')) || {};
+
+// Function to snapshot the current state before we switch tabs
+function saveCurrentBookState() {
+  if (!activeBook) return;
+  
+  const openChapters = [];
+  // Find all <details> elements that are currently open
+  document.querySelectorAll('details.toc-block[open]').forEach(details => {
+    openChapters.push(details.dataset.chapter);
+  });
+
+  // Save scroll position and open chapters
+  bookMemory[activeBook] = {
+    scrollY: window.scrollY,
+    openChapters: openChapters
+  };
+  sessionStorage.setItem('bookMemory', JSON.stringify(bookMemory));
+}
+
+// Function to jump back to the saved scroll position
+function restoreScrollState() {
+  const state = bookMemory[activeBook];
+  if (state && state.scrollY !== undefined) {
+    // requestAnimationFrame ensures the browser has painted the new DOM before scrolling
+    requestAnimationFrame(() => {
+      window.scrollTo(0, state.scrollY);
+    });
+  } else {
+    window.scrollTo(0, 0); // Jump to top if it's a new book
+  }
+}
+// --------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
   
@@ -583,10 +618,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const config = BOOK_CONFIG[bookKey];
     if (!config) return;
 
-    // Update H1 Text
     currentBookNameLabel.textContent = config.title;
     
-    // Update active class on both Tabs AND Dropdown Items
     allSelectableBooks.forEach(el => {
       if (el.dataset.book === bookKey) {
         el.classList.add('active');
@@ -599,7 +632,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // 3. Attach click listeners to ALL book buttons
   allSelectableBooks.forEach(button => {
     button.addEventListener('click', () => {
-      activeBook = button.dataset.book;
+      const targetBook = button.dataset.book;
+      
+      // Prevent unnecessary re-renders if clicking the active book
+      if (targetBook === activeBook) return; 
+
+      // --- NEW: Save state right before switching ---
+      saveCurrentBookState(); 
+      
+      activeBook = targetBook;
       
       syncUI(activeBook);
       localStorage.setItem('libraryActiveBook', activeBook);
@@ -609,8 +650,10 @@ document.addEventListener("DOMContentLoaded", () => {
       window.history.pushState({}, '', url);
 
       buildLibrary(activeBook);
+      
+      // --- NEW: Restore state right after building ---
+      restoreScrollState();
 
-      // Close dropdown if a dropdown item was clicked
       if (button.classList.contains('dropdown-item')) {
         dropdownWrapper.classList.remove('open');
         dropdownTrigger.setAttribute('aria-expanded', 'false');
@@ -636,10 +679,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // 5. Library Rendering Functions
-
-  // ── CHAPTER ORDER ──────────────────────────────────────────────────────────
-  // Add/reorder chapters here to control how they appear in the TOC.
-  // Any chapter not listed will appear at the bottom.
   const CHAPTER_ORDER = {
     "generative": [
       "Introduction",
@@ -654,7 +693,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Solving Linear Systems",
       "Vector Spaces and Subspaces",
       "Orthogonality and Projections",
-      "Matrix Factorizations",
+      "Determinants",
       "Eigenvalues and Eigenvectors",
       "Singular Value Decomposition",
     ],
@@ -697,9 +736,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderLibrary(library) {
     const container = document.getElementById("library-content");
     let html = "";
-
-    // 1. Sort chapters using the manually defined CHAPTER_ORDER for the active book
     const chapterList = CHAPTER_ORDER[activeBook] || [];
+
+    // --- NEW: Fetch memory for the current book ---
+    const currentState = bookMemory[activeBook] || { openChapters: [] };
+
     Object.keys(library)
       .sort((a, b) => {
         const ai = chapterList.indexOf(a);
@@ -711,7 +752,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let rowsHtml = "";
         let totalSections = 0;
 
-        // 2. Sort the parts inside the chapter
         Object.keys(parts)
           .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
           .forEach(part => {
@@ -719,15 +759,11 @@ document.addEventListener("DOMContentLoaded", () => {
               rowsHtml += `<div class="toc-part">${part}</div>`;
             }
 
-            // 3. Sort the individual lessons by 'lessonorder'
             parts[part]
-              // Using lessonorder, falling back to 999 if missing
               .sort((a, b) => (a.lessonorder ?? 999) - (b.lessonorder ?? 999))
               .forEach(page => {
                 totalSections++;
-                
                 const status = (page.status || 'draft').toLowerCase();
-                
                 const statusBadge = status === 'draft' 
                   ? `<span class="status-badge status-draft">Draft</span>` 
                   : '';
@@ -745,8 +781,12 @@ document.addEventListener("DOMContentLoaded", () => {
               });
           });
 
+        // --- NEW: Determine if this specific chapter was open previously ---
+        const isOpen = currentState.openChapters.includes(chapter) ? "open" : "";
+
+        // --- NEW: Added data-chapter to help us identify it when saving state ---
         html += `
-          <details class="toc-block" >
+          <details class="toc-block" data-chapter="${chapter}" ${isOpen}>
             <summary>
               <span class="ch-summary-title">${chapter}</span>
               <span class="ch-summary-count">${totalSections} Lessons</span>
@@ -766,21 +806,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateHero(book, pages) {
     const config = BOOK_CONFIG[book];
-
     document.querySelector(".toc-book-eyebrow").textContent = config.eyebrow;
     document.querySelector(".toc-book-desc").textContent = config.description;
-
     document.getElementById("lessonCount").textContent = pages.length;
-
     const chapters = new Set(pages.map(p => p.chapter)).size;
     document.getElementById("chapterCount").textContent = chapters;
-
     const totalMinutes = pages.reduce((sum, p) => sum + (p.readingTime || 0), 0);
     document.getElementById("readingPath").textContent =
       totalMinutes >= 60 ? `${(totalMinutes / 60).toFixed(1)}h` : `${totalMinutes}m`;
   }
 
   window.addEventListener("popstate", () => {
+    // --- NEW: Save state before navigating history ---
+    saveCurrentBookState(); 
+    
     const currentParams = new URLSearchParams(window.location.search);
     const poppedBook = currentParams.get('book') || localStorage.getItem('libraryActiveBook') || 'generative';
     
@@ -789,11 +828,23 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem('libraryActiveBook', activeBook);
       syncUI(activeBook);
       buildLibrary(activeBook);
+      
+      // --- NEW: Restore state after navigating history ---
+      restoreScrollState(); 
     }
   });
 
+  // --- NEW: Save state if the user refreshes the page or closes the tab ---
+  window.addEventListener('beforeunload', () => {
+    saveCurrentBookState();
+  });
+
+  // Initial Boot-up
   syncUI(activeBook);
   buildLibrary();
+  
+  // --- NEW: Restore scroll on initial page load ---
+  restoreScrollState();
 });
 </script>
 </body>

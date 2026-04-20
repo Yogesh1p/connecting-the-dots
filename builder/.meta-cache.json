@@ -1,7 +1,7 @@
 [
   {
     "file": "4.1.html",
-    "lastModified": 1776485676018.7744,
+    "lastModified": 1776660561838.7349,
     "book": "linear-algebra",
     "title": "Orthogonality of the Four Subspaces",
     "lesson_order": "1",
@@ -11,10 +11,40 @@
   },
   {
     "file": "4.2.html",
-    "lastModified": 1776490486043.42,
+    "lastModified": 1776510044382.1448,
     "book": "linear-algebra",
-    "title": "Projections",
+    "title": "Projections onto Subspaces",
     "lesson_order": "2",
+    "part": " ",
+    "status": "draft",
+    "belongs_to": "lib"
+  },
+  {
+    "file": "4.3.html",
+    "lastModified": 1776657493128.6865,
+    "book": "linear-algebra",
+    "title": "Projection Matrices and Least Squares",
+    "lesson_order": "4",
+    "part": " ",
+    "status": "draft",
+    "belongs_to": "lib"
+  },
+  {
+    "file": "4.4.html",
+    "lastModified": 1776521735564.5337,
+    "book": "linear-algebra",
+    "title": "Orthogonal Matrices and Gram-Schmidt",
+    "lesson_order": "5",
+    "part": " ",
+    "status": "draft",
+    "belongs_to": "lib"
+  },
+  {
+    "file": "6.1.html",
+    "lastModified": 1776528605942.591,
+    "book": "linear-algebra",
+    "title": "The Singular Value Decomposition (SVD)",
+    "lesson_order": "1",
     "part": " ",
     "status": "draft",
     "belongs_to": "lib"
@@ -31,7 +61,7 @@
   },
   {
     "file": "Eigenvectors.html",
-    "lastModified": 1776140280180.4397,
+    "lastModified": 1776579244250.8623,
     "book": "linear-algebra",
     "title": "Eigenvectors, Diagonalisation, Spectral Theorem",
     "lesson_order": "3",

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Orthogonal Matrices and Gram-Schmidt</title>
+
+<meta name="book" content="linear-algebra">
+<meta name="chapter" content="Orthogonality and Projections">
+<meta name="part" content=" ">
+<meta name="title" content="Orthogonal Matrices and Gram-Schmidt">
+<meta name="description" content="Exploring orthonormal bases, the properties of orthogonal matrices (Q), and constructing them using the Gram-Schmidt process and A = QR factorization.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-18">
+<meta name="chapterorder" content="2">
+<meta name="lessonorder" content="5">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="orthogonal matrix, orthonormal basis, Gram-Schmidt, QR factorization">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="reading_time" content="7">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../css/base.css">
+    <link rel="stylesheet" href="../css/articles.css">
+
+    <style>
+        /* Semantic Figure Styling */
+        .diagram-figure {
+            margin: 2.5rem auto; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            max-width: 550px; 
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            width: 100%; 
+        }
+        .svg-container svg {
+            width: 100%; 
+            height: auto;
+        }
+        .figure-caption {
+            margin-top: 1rem;
+            color: var(--text);
+            font-size: 0.9em;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+    </style>
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../js/base.js" defer></script>
+    <script src="../js/components.js" defer></script>
+    <script src="../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+
+    <div id="global-nav" data-root="../" data-sticky="false"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<h2>The Perfect Basis: Orthonormal Vectors</h2>
+
+<p>
+  We have spent a lot of time projecting vectors and dealing with the messy calculations that arise when basis vectors are skewed or misaligned. Today, we clean up orthogonality by introducing the absolute best possible basis you can ask for in linear algebra: an <strong>orthonormal basis</strong>. 
+</p>
+
+<p>
+  Let's use the letter $q$ to represent these special vectors. A set of vectors $q_1, q_2, \dots, q_n$ is orthonormal if they meet two strict conditions:
+</p>
+
+<ol>
+  <li><strong>Orthogonal:</strong> Every vector is perfectly perpendicular to every other vector. Their dot products are zero: $q_i^T q_j = 0$ (for $i \neq j$).</li>
+  <li><strong>Normal:</strong> Every vector is a unit vector, meaning it has a length of exactly 1. The dot product of a vector with itself is one: $q_i^T q_i = 1$.</li>
+</ol>
+
+
+<h3>The Matrix $Q$</h3>
+
+<p>
+  Just as we packed standard basis vectors into a matrix $A$, let's pack our orthonormal vectors into the columns of a matrix $Q$:
+</p>
+
+<div class="math-display">
+  $$Q = \begin{bmatrix} | & | & & | \\ q_1 & q_2 & \dots & q_n \\ | & | & & | \end{bmatrix}$$
+</div>
+
+<p>
+  What happens when we analyze the core structure of this matrix by computing $Q^T Q$? Recall that the matrix $A^T A$ was central to all our projection formulas. Let's see what happens when $A$ is replaced by $Q$:
+</p>
+
+<div class="math-display">
+  $$Q^T Q = \begin{bmatrix} - & q_1^T & - \\ - & q_2^T & - \\ & \vdots & \\ - & q_n^T & - \end{bmatrix} \begin{bmatrix} | & | & & | \\ q_1 & q_2 & \dots & q_n \\ | & | & & | \end{bmatrix}$$
+</div>
+
+<p>
+  When you multiply a row of $Q^T$ by a column of $Q$, you are simply taking the dot product of two vectors. 
+  If you multiply row 1 by column 1, you get $q_1^T q_1$, which is 1. 
+  If you multiply row 1 by column 2, you get $q_1^T q_2$, which is 0 (because they are orthogonal). 
+  This pattern holds for the entire matrix. The ones line up perfectly down the diagonal, and zeroes fill every other spot.
+</p>
+
+<div class="math-box key-box">
+  <div class="math-box-label">The Defining Property of Q</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      $$Q^T Q = I$$
+    </div>
+  </div>
+</div>
+
+<p>
+  If $Q$ happens to be a square matrix, this property is even more powerful. For a square matrix, if $Q^T Q = I$, then the transpose is exactly the inverse: <strong>$Q^T = Q^{-1}$</strong>. Square matrices with orthonormal columns are formally called <strong>Orthogonal Matrices</strong>. (It would be more accurate to call them "Orthonormal Matrices," but history settled on "Orthogonal.")
+</p>
+
+
+<h3>Examples of Orthogonal Matrices</h3>
+
+<p>
+  Let's look at a few matrices that naturally possess this property.
+</p>
+
+<p><strong>1. Permutation Matrices:</strong> Any matrix that simply shuffles the standard identity matrix is orthogonal. Their columns are unit vectors, and they never share a 1 in the same row, making them perfectly perpendicular.</p>
+<div class="math-display">
+  $$Q = \begin{bmatrix} 0 & 0 & 1 \\ 1 & 0 & 0 \\ 0 & 1 & 0 \end{bmatrix}$$
+</div>
+
+<p><strong>2. Rotation Matrices:</strong> A 2D rotation matrix spins a vector without changing its length. Its columns are perpendicular unit vectors.</p>
+<div class="math-display">
+  $$Q = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}$$
+</div>
+
+<p><strong>3. Hadamard Matrices:</strong> These are matrices composed entirely of $1$s and $-1$s. To make them orthonormal, you just divide by the column length.</p>
+<div class="math-display">
+  $$Q = \frac{1}{2}\begin{bmatrix} 1 & 1 & 1 & 1 \\ 1 & -1 & 1 & -1 \\ 1 & 1 & -1 & -1 \\ 1 & -1 & -1 & 1 \end{bmatrix}$$
+</div>
+
+
+<h3>Why $Q$ Makes Math Easy</h3>
+
+<p>
+  The whole point of finding an orthonormal basis is to simplify computation. Look what happens to our massive projection formulas when we replace $A$ with $Q$. 
+</p>
+
+<p>
+  <strong>The Projection Matrix:</strong> The formula to project onto the column space of $A$ is $P = A(A^T A)^{-1} A^T$. If we substitute $Q$, the inner term $(Q^T Q)^{-1}$ collapses into $I^{-1}$, which is just $I$. The formula instantly shrinks:
+</p>
+<div class="math-display">
+  $$P = Q Q^T$$
+</div>
+
+<p>
+  <strong>The Normal Equation:</strong> To find the best-fit coefficients $\hat{x}$, we usually solve $A^T A \hat{x} = A^T b$. Substituting $Q$ leaves $I \hat{x} = Q^T b$. There is no system of equations to solve, and no matrix inversion required. You instantly get the answer:
+</p>
+<div class="math-display">
+  $$\hat{x} = Q^T b$$
+</div>
+<p>
+  This means the $i$-th component of $\hat{x}$ is simply the dot product of $q_i$ and $b$. When your basis is orthonormal, a projection is just a simple dot product. 
+</p>
+
+
+<h3>The Gram-Schmidt Process</h3>
+
+<p>
+  In reality, we are rarely handed a perfect $Q$ matrix. We usually start with a matrix $A$ containing independent, but non-orthogonal, columns $a, b, c$. We need an algorithm to force these independent vectors into an orthonormal basis $q_1, q_2, q_3$. This is the <strong>Gram-Schmidt Process</strong>.
+</p>
+
+<p>
+  The intuition is purely geometric. We accept the first vector as our starting direction. For every subsequent vector, we project it onto the directions we have already established, and <em>subtract</em> that projection. What is left over is the error vector $e$—which, as we know, is perfectly perpendicular to the established space.
+</p>
+
+<p><strong>Step 1: The First Vector</strong></p>
+<p>
+  Let capital $A, B, C$ represent our new orthogonal vectors (before we normalize them). The first vector has no predecessors, so we just take it as is.
+</p>
+<div class="math-display">
+  $$A = a$$
+</div>
+
+<p><strong>Step 2: The Second Vector</strong></p>
+<p>
+  The vector $b$ is not perpendicular to $A$. We need to remove the portion of $b$ that points in the $A$ direction. That portion is the projection of $b$ onto $A$.
+</p>
+<div class="math-display">
+  $$B = b - \text{projection of } b \text{ onto } A$$
+  $$B = b - \frac{A^T b}{A^T A} A$$
+</div>
+<p>
+  Vector $B$ is now perfectly orthogonal to $A$. 
+</p>
+
+<p><strong>Step 3: The Third Vector</strong></p>
+<p>
+  The vector $c$ has components in both the $A$ and $B$ directions. We subtract both projections. Because $A$ and $B$ are already orthogonal to each other, their projections don't interfere. 
+</p>
+<div class="math-display">
+  $$C = c - \frac{A^T c}{A^T A} A - \frac{B^T c}{B^T B} B$$
+</div>
+
+<p><strong>Step 4: Normalize</strong></p>
+<p>
+  We now have perfectly orthogonal vectors $A, B, C$. The final step (the "Schmidt" part) is to divide each by its own length to create unit vectors.
+</p>
+<div class="math-display">
+  $$q_1 = \frac{A}{\|A\|}, \quad q_2 = \frac{B}{\|B\|}, \quad q_3 = \frac{C}{\|C\|}$$
+</div>
+
+<div id="gram-schmidt-widget"></div>
+
+<p>
+  Let's look at a quick numerical example. Suppose we start with $a = (1, 1, 1)$ and $b = (1, 0, 2)$. 
+</p>
+<ul>
+  <li>$A = (1, 1, 1)$.</li>
+  <li>$B = (1, 0, 2) - \frac{3}{3}(1, 1, 1) = (0, -1, 1)$.</li>
+</ul>
+<p>
+  Check the math: $A \cdot B = (1)(0) + (1)(-1) + (1)(1) = 0$. They are orthogonal! Normalizing them gives us our $Q$ matrix:
+</p>
+<div class="math-display">
+  $$Q = \begin{bmatrix} 1/\sqrt{3} & 0 \\ 1/\sqrt{3} & -1/\sqrt{2} \\ 1/\sqrt{3} & 1/\sqrt{2} \end{bmatrix}$$
+</div>
+
+<h3>The $A = QR$ Factorization</h3>
+
+<p>
+  Just as Gaussian Elimination can be captured in the matrix formula $A = LU$, the Gram-Schmidt process can be captured in a matrix formula: <strong>$A = QR$</strong>.
+</p>
+
+<p>
+  We start with a matrix $A$. Gram-Schmidt produces a matrix $Q$ with the exact same column space. The connection between them is a matrix $R$. 
+</p>
+
+<div class="math-display">
+  $$A = Q R$$
+  $$\begin{bmatrix} | & | \\ a_1 & a_2 \\ | & | \end{bmatrix} = \begin{bmatrix} | & | \\ q_1 & q_2 \\ | & | \end{bmatrix} \begin{bmatrix} q_1^T a_1 & q_1^T a_2 \\ 0 & q_2^T a_2 \end{bmatrix}$$
+</div>
+
+<p>
+  The most crucial feature of $A = QR$ is that <strong>$R$ is always an upper triangular matrix</strong>. Why is the bottom-left entry zero? That entry represents the inner product $q_2^T a_1$. But the entire logic of Gram-Schmidt guarantees that later vectors ($q_2$) are constructed to be completely orthogonal to earlier vectors ($a_1$). Therefore, $q_2^T a_1 = 0$.
+</p>
+
+<p>
+  This factorization is a cornerstone of modern numerical linear algebra, providing a remarkably stable way to solve systems without the compounding rounding errors associated with normal elimination.
+</p>
+<h3>A Geometric Perspective: Elimination vs. Rotation</h3>
+
+<p>
+  To truly appreciate $A = QR$, we should compare it to the very first factorization we learned: Gaussian Elimination, which gives us $A = LU$. In both cases, we are breaking down $A$ to get to an upper triangular matrix ($U$ or $R$). But geometrically, they achieve this in entirely different ways.
+</p>
+
+<p>
+  When we performed row operations to turn $A$ into $U$, we applied "shearing" transformations. This warped our original vectors, meaning the column space was fundamentally changed: $C(A)$ is not the same as $C(U)$. 
+</p>
+
+<p>
+  Gram-Schmidt takes a much more elegant approach. If we rearrange $A = QR$ by multiplying both sides by $Q^T$, we get:
+</p>
+
+<div class="math-display">
+  $$Q^T A = R$$
+</div>
+
+<p>
+  Because $Q^T$ is an orthogonal matrix, multiplying a vector by it does not stretch, compress, or shear the space. Geometrically, multiplying by an orthogonal matrix is simply a <strong>rigid rotation</strong>. 
+</p>
+
+<p>
+  This means that to transform $A$ into the upper triangular matrix $R$, we haven't distorted the column space at all. Instead, we have taken the entire column space $C(A)$ and smoothly rotated it until our vectors lock into alignment with the standard coordinate axes. $R$ is simply the matrix $A$ viewed from the perfect, orthogonal perspective!
+</p>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

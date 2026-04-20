@@ -16,7 +16,7 @@ window.rawPages = [
   {
     "url": "../dots/4.2.html",
     "book": "linear-algebra",
-    "title": "Projections",
+    "title": "Projections onto Subspaces",
     "description": "Deriving the mathematics of orthogonal projections onto lines and n-dimensional subspaces using the normal equation and projection matrices.",
     "date": "2026-04-18",
     "chapter": "Orthogonality and Projections",
@@ -24,7 +24,46 @@ window.rawPages = [
     "part": " ",
     "keywords": "projections, orthogonal projection, projection matrix, least squares, normal equation, linear algebra",
     "status": "draft",
-    "readingTime": 5
+    "readingTime": 9
+  },
+  {
+    "url": "../dots/4.3.html",
+    "book": "linear-algebra",
+    "title": "Projection Matrices and Least Squares",
+    "description": "Applying projection matrices to solve unsolvable systems using the method of least squares and the normal equation.",
+    "date": "2026-04-18",
+    "chapter": "Orthogonality and Projections",
+    "lessonorder": 4,
+    "part": " ",
+    "keywords": "projections, least squares, linear regression, normal equation, orthogonal, linear algebra",
+    "status": "draft",
+    "readingTime": 7
+  },
+  {
+    "url": "../dots/4.4.html",
+    "book": "linear-algebra",
+    "title": "Orthogonal Matrices and Gram-Schmidt",
+    "description": "Exploring orthonormal bases, the properties of orthogonal matrices (Q), and constructing them using the Gram-Schmidt process and A = QR factorization.",
+    "date": "2026-04-18",
+    "chapter": "Orthogonality and Projections",
+    "lessonorder": 5,
+    "part": " ",
+    "keywords": "orthogonal matrix, orthonormal basis, Gram-Schmidt, QR factorization",
+    "status": "draft",
+    "readingTime": 7
+  },
+  {
+    "url": "../dots/6.1.html",
+    "book": "linear-algebra",
+    "title": "The Singular Value Decomposition (SVD)",
+    "description": "Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the four fundamental subspaces, and finding the directions of maximum stretch.",
+    "date": "2026-04-18",
+    "chapter": "The SVD and Applications",
+    "lessonorder": 1,
+    "part": " ",
+    "keywords": "singular value decomposition, SVD, orthogonal basis, eigenvalues, low-rank approximation, fundamental subspaces, linear algebra",
+    "status": "draft",
+    "readingTime": 9
   },
   {
     "url": "../dots/Eigenvectors.html",

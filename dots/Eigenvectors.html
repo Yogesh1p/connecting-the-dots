@@ -176,6 +176,194 @@
     <li>\(\lambda = 1\): unchanged</li>
     <li>\(\lambda = 0\): sent to the nullspace</li>
   </ul>
+  <style>
+    .minimal-eigen-wrap {
+        display: flex;
+        justify-content: center;
+        margin: 2rem 0;
+        width: 100%;
+    }
+    
+    /* Logical size locked by CSS. Physical pixels handled by JS for maximum sharpness. */
+    canvas#highResEigenCanvas {
+        width: 100%;
+        max-width: 400px;
+        background: transparent;
+        display: block;
+    }
+</style>
+
+<div class="minimal-eigen-wrap">
+    <canvas id="highResEigenCanvas"></canvas>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('highResEigenCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Logical base size for the canvas in CSS pixels
+    const LOGICAL_SIZE = 400;
+    
+    // Target Matrix A: [1.5, 0.5]
+    //                  [0.5, 1.5]
+    // Rank 2. Eigenvalues: 2 and 1.
+    const targetA = { m00: 1.5, m01: 0.5, m10: 0.5, m11: 1.5 };
+
+    // --- High DPI (Retina) Setup ---
+    function setupHighDPICanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        // Lock CSS size
+        canvas.style.width = LOGICAL_SIZE + 'px';
+        canvas.style.height = LOGICAL_SIZE + 'px';
+        // Multiply internal coordinate system by device pixel ratio
+        canvas.width = LOGICAL_SIZE * dpr;
+        canvas.height = LOGICAL_SIZE * dpr;
+        // Scale the context so drawing commands use logical CSS pixels
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    
+    setupHighDPICanvas();
+    // Listen for screen changes (e.g., dragging window to a different monitor)
+    window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener('change', setupHighDPICanvas);
+
+    // Generate background vectors
+    const numVectors = 24;
+    const baseVectors = [];
+    for(let i = 0; i < numVectors; i++) {
+        let angle = (i / numVectors) * 2 * Math.PI;
+        // Skip vectors that perfectly overlap our eigenvectors
+        if (Math.abs(angle % (Math.PI/4)) > 0.01) {
+            baseVectors.push([Math.cos(angle), Math.sin(angle)]);
+        }
+    }
+
+    // The two eigenspaces (4 directional vectors)
+    const norm = 1 / Math.sqrt(2);
+    const eigenVectors = [
+        [norm, norm],   // stretches to 2x
+        [-norm, -norm], // stretches to 2x
+        [-norm, norm],  // stays 1x
+        [norm, -norm]   // stays 1x
+    ];
+
+    // Upgraded sharp arrowhead drawing function
+    function drawSharpArrow(startX, startY, endX, endY, color, width, scale) {
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const angle = Math.atan2(dy, dx);
+        
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        // Note: Canvas stroke widths scale with the context scale
+        ctx.lineWidth = width / scale; 
+        
+        // Draw the shaft
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        // Draw the filled, crisp arrowhead
+        const headlen = 14 / scale; 
+        ctx.save();
+        ctx.translate(endX, endY);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-headlen, headlen * 0.35);
+        ctx.lineTo(-headlen * 0.75, 0); // slight indentation for a sharper look
+        ctx.lineTo(-headlen, -headlen * 0.35);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function animate(now) {
+        // 6 second loop for a gentle, easy-to-read pace
+        const duration = 6000;
+        const cycle = (now / duration) % 2; 
+        
+        let rawT = cycle < 1 ? cycle : 2 - cycle;
+        
+        // Add pauses at the ends
+        let t = 0;
+        if (rawT < 0.15) t = 0;
+        else if (rawT > 0.85) t = 1;
+        else t = (rawT - 0.15) / 0.7;
+        
+        t = easeInOutCubic(t);
+
+        const m00 = 1 + (targetA.m00 - 1) * t;
+        const m01 = 0 + (targetA.m01 - 0) * t;
+        const m10 = 0 + (targetA.m10 - 0) * t;
+        const m11 = 1 + (targetA.m11 - 1) * t;
+
+        // Fetch colors from your site theme
+        const style = getComputedStyle(document.documentElement);
+        const textColor = style.getPropertyValue('--text').trim() || '#666';
+        const accentColor = style.getPropertyValue('--accent').trim() || '#D48C70';
+        const borderColor = style.getPropertyValue('--border').trim() || '#E8DFD1';
+
+        // Set Math scale (Coordinate bounds are roughly -2.5 to 2.5)
+        const scale = LOGICAL_SIZE / 5; 
+
+        // Clear the logical area
+        ctx.clearRect(0, 0, LOGICAL_SIZE, LOGICAL_SIZE);
+        ctx.save();
+        
+        // Move to logical center and apply math coordinates
+        ctx.translate(LOGICAL_SIZE / 2, LOGICAL_SIZE / 2);
+        ctx.scale(scale, -scale);
+
+        // Draw faint background axes
+        ctx.lineWidth = 1.5 / scale;
+        ctx.strokeStyle = borderColor;
+        ctx.beginPath();
+        ctx.moveTo(-2.5, 0); ctx.lineTo(2.5, 0);
+        ctx.moveTo(0, -2.5); ctx.lineTo(0, 2.5);
+        ctx.stroke();
+
+        // Draw standard vectors (grey, thinner)
+        baseVectors.forEach(vec => {
+            const tx = m00 * vec[0] + m01 * vec[1];
+            const ty = m10 * vec[0] + m11 * vec[1];
+            ctx.globalAlpha = 0.35; 
+            drawSharpArrow(0, 0, tx, ty, textColor, 1.5, scale);
+        });
+
+        // Draw eigenvectors (accent color, thicker)
+        ctx.globalAlpha = 1.0;
+        eigenVectors.forEach(vec => {
+            const tx = m00 * vec[0] + m01 * vec[1];
+            const ty = m10 * vec[0] + m11 * vec[1];
+            
+            // Faint dashed line showing their infinite span
+            ctx.setLineDash([4/scale, 4/scale]);
+            ctx.lineWidth = 1.5 / scale;
+            ctx.globalAlpha = 0.2;
+            ctx.beginPath();
+            ctx.moveTo(-vec[0]*2.5, -vec[1]*2.5);
+            ctx.lineTo(vec[0]*2.5, vec[1]*2.5);
+            ctx.stroke();
+            
+            // Draw the actual solid eigenvector
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1.0;
+            drawSharpArrow(0, 0, tx, ty, accentColor, 3, scale);
+        });
+
+        ctx.restore();
+        requestAnimationFrame(animate);
+    }
+
+    requestAnimationFrame(animate);
+})();
+</script>
 </section>
 
 <section id="powers">
@@ -235,6 +423,355 @@
   <p>
     This happens because one eigenvalue remains dominant while the other decays.
   </p>
+  <style>
+    /* Single, clean bordered container */
+    .steady-state-wrap {
+        width: 100%;
+        max-width: 550px;
+        margin: 2.5rem auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden; 
+        display: flex;
+        flex-direction: column;
+    }
+
+    canvas#convergenceCanvas {
+        width: 100%;
+        aspect-ratio: 1/1;
+        display: block;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .power-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        background: var(--surface);
+    }
+
+    .power-btn {
+        background-color: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .power-btn:hover:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+        background-color: var(--bg);
+    }
+
+    .power-btn:disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+    }
+
+    .power-status {
+        font-family: var(--font-serif, Lora, serif);
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--dark);
+        text-align: center;
+    }
+</style>
+
+<div class="steady-state-wrap">
+    <canvas id="convergenceCanvas"></canvas>
+    <div class="power-controls">
+        <button id="prevBtn" class="power-btn" disabled>&lt;</button>
+        <div id="powerLabel" class="power-status">Matrix Power: A<sup>0</sup> (I)</div>
+        <button id="nextBtn" class="power-btn">&gt;</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('convergenceCanvas');
+    const ctx = canvas.getContext('2d');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const powerLabel = document.getElementById('powerLabel');
+    
+    const LOGICAL_SIZE = 550;
+    const MAX_STEPS = 10;
+    const ANIM_DURATION = 800; 
+
+    // Stochastic Matrix A
+    const A = { m00: 0.8, m01: 0.3, m10: 0.2, m11: 0.7 };
+    const STEADY_STATE = { x: 0.6, y: 0.4 };
+
+    // Precompute matrices A^0 through A^10
+    const powers = [];
+    let currentM = { m00: 1.0, m01: 0.0, m10: 0.0, m11: 1.0 }; 
+    powers.push(currentM);
+    
+    for (let i = 1; i <= MAX_STEPS; i++) {
+        let nextM = {
+            m00: currentM.m00 * A.m00 + currentM.m01 * A.m10,
+            m01: currentM.m00 * A.m01 + currentM.m01 * A.m11,
+            m10: currentM.m10 * A.m00 + currentM.m11 * A.m10,
+            m11: currentM.m10 * A.m01 + currentM.m11 * A.m11,
+        };
+        powers.push(nextM);
+        currentM = nextM;
+    }
+
+    let currentStep = 0;
+    let targetStep = 0;
+    let isAnimating = false;
+    let animStartTime = 0;
+
+    function setupHighDPICanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const displayWidth = canvas.parentElement.clientWidth;
+        canvas.style.width = displayWidth + 'px';
+        canvas.style.height = displayWidth + 'px';
+        canvas.width = LOGICAL_SIZE * dpr;
+        canvas.height = LOGICAL_SIZE * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    
+    setupHighDPICanvas();
+    window.addEventListener('resize', setupHighDPICanvas);
+
+    function drawSleekVector(x1, y1, x2, y2, color, scale, isFaint = false) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const length = Math.hypot(dx, dy);
+        if (length < 0.01) return;
+
+        const angle = Math.atan2(dy, dx);
+        const headLen = 12 / scale; 
+        const headWidth = 3.5 / scale;
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = isFaint ? 1 / scale : 1.5 / scale;
+        
+        if (isFaint) {
+            ctx.setLineDash([4/scale, 4/scale]);
+        } else {
+            ctx.setLineDash([]);
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2 - Math.cos(angle) * (headLen * 0.8), y2 - Math.sin(angle) * (headLen * 0.8));
+        ctx.stroke();
+
+        ctx.setLineDash([]); 
+
+        ctx.save();
+        ctx.translate(x2, y2);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);                      
+        ctx.lineTo(-headLen, headWidth);       
+        ctx.lineTo(-headLen * 0.75, 0);        
+        ctx.lineTo(-headLen, -headWidth);      
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawVectorLabel(x, y, label, valX, valY, color, scale, layout) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(1, -1); 
+        ctx.fillStyle = color;
+        
+        let offsetX = 0; let offsetY = 0;
+        
+        if (layout === "bottom-right") {
+            offsetX = 12; offsetY = 20; 
+            ctx.textAlign = "left"; ctx.textBaseline = "top";
+        } else if (layout === "top-left") {
+            offsetX = -12; offsetY = -20;
+            ctx.textAlign = "right"; ctx.textBaseline = "bottom";
+        }
+
+        ctx.font = `italic 600 ${14/scale}px 'Lora', serif`;
+        ctx.fillText(label, offsetX/scale, offsetY/scale);
+
+        ctx.font = `400 ${13/scale}px monospace`;
+        const numOffsetY = layout === "bottom-right" ? 18 : -18;
+        ctx.fillText(`[${valX.toFixed(2)}, ${valY.toFixed(2)}]`, offsetX/scale, (offsetY + numOffsetY)/scale);
+        
+        ctx.restore();
+    }
+
+    function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function render(M) {
+        const style = getComputedStyle(document.documentElement);
+        const textColor = style.getPropertyValue('--text').trim() || '#666';
+        const accentColor = style.getPropertyValue('--accent').trim() || '#D48C70';
+        const borderColor = style.getPropertyValue('--border').trim() || '#E8DFD1';
+        const darkColor = style.getPropertyValue('--dark').trim() || '#2D241E';
+
+        // FIX: Increased range to zoom out further
+        const range = 1.7;
+        const scale = LOGICAL_SIZE / range; 
+
+        ctx.clearRect(0, 0, LOGICAL_SIZE, LOGICAL_SIZE);
+        ctx.save();
+        
+        // FIX: Adjusted offsets to center the grid better within the new zoomed-out space
+        const offsetX = 0.35; 
+        const offsetY = 0.25; 
+        ctx.translate(LOGICAL_SIZE * (offsetX/range), LOGICAL_SIZE * (1 - offsetY/range));
+        ctx.scale(scale, -scale);
+
+        // --- 1. Background Grid & Axes ---
+        ctx.lineWidth = 1 / scale;
+        ctx.strokeStyle = borderColor;
+        ctx.beginPath();
+        // Extended grid lines to cover the wider viewport
+        for(let i = -1; i <= 3; i++) {
+            ctx.moveTo(i * 0.5, -0.2); ctx.lineTo(i * 0.5, 1.4);
+            ctx.moveTo(-0.3, i * 0.5); ctx.lineTo(1.4, i * 0.5);
+        }
+        ctx.stroke();
+
+        ctx.lineWidth = 1.5 / scale;
+        ctx.beginPath();
+        ctx.moveTo(-0.3, 0); ctx.lineTo(1.4, 0);
+        ctx.moveTo(0, -0.2); ctx.lineTo(0, 1.4);
+        ctx.stroke();
+
+        // --- 2. Invariant Features ---
+        // Markov Track line (x + y = 1)
+        ctx.strokeStyle = textColor;
+        ctx.setLineDash([4/scale, 4/scale]);
+        ctx.lineWidth = 1.2 / scale;
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.moveTo(-0.2, 1.2); ctx.lineTo(1.2, -0.2);
+        ctx.stroke();
+        
+        // Steady State Target Point
+        ctx.setLineDash([]);
+        ctx.fillStyle = textColor;
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.arc(STEADY_STATE.x, STEADY_STATE.y, 4/scale, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // Faint Target Vectors
+        ctx.globalAlpha = 0.2;
+        drawSleekVector(0, 0, STEADY_STATE.x, STEADY_STATE.y, accentColor, scale, true);
+        ctx.globalAlpha = 1.0;
+
+        // --- 3. Dynamic Columns ---
+        const cx1 = M.m00;
+        const cy1 = M.m10;
+        const cx2 = M.m01;
+        const cy2 = M.m11;
+
+        // Trace lines
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 1 / scale;
+        ctx.setLineDash([3/scale, 3/scale]);
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath(); ctx.moveTo(1, 0); ctx.lineTo(cx1, cy1); ctx.stroke();
+        
+        ctx.strokeStyle = darkColor;
+        ctx.beginPath(); ctx.moveTo(0, 1); ctx.lineTo(cx2, cy2); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1.0;
+
+        // Col 1 (Accent)
+        drawSleekVector(0, 0, cx1, cy1, accentColor, scale);
+        drawVectorLabel(cx1, cy1, "Col 1", cx1, cy1, accentColor, scale, "bottom-right");
+
+        // Col 2 (Dark)
+        drawSleekVector(0, 0, cx2, cy2, darkColor, scale);
+        drawVectorLabel(cx2, cy2, "Col 2", cx2, cy2, darkColor, scale, "top-left");
+
+        ctx.restore();
+    }
+
+    function updateUI() {
+        prevBtn.disabled = (currentStep === 0 && !isAnimating);
+        nextBtn.disabled = (currentStep === MAX_STEPS && !isAnimating);
+        
+        if (targetStep === 0) {
+            powerLabel.innerHTML = `Matrix Power: A<sup>0</sup> (I)`;
+        } else {
+            powerLabel.innerHTML = `Matrix Power: A<sup>${targetStep}</sup>`;
+        }
+    }
+
+    function loop(now) {
+        if (!isAnimating) {
+            render(powers[currentStep]);
+            requestAnimationFrame(loop);
+            return;
+        }
+
+        let elapsed = now - animStartTime;
+        let rawT = Math.min(elapsed / ANIM_DURATION, 1.0);
+        let t = easeInOutCubic(rawT);
+
+        const startM = powers[currentStep];
+        const endM = powers[targetStep];
+        
+        const currentM = {
+            m00: startM.m00 + (endM.m00 - startM.m00) * t,
+            m01: startM.m01 + (endM.m01 - startM.m01) * t,
+            m10: startM.m10 + (endM.m10 - startM.m10) * t,
+            m11: startM.m11 + (endM.m11 - startM.m11) * t,
+        };
+
+        render(currentM);
+
+        if (rawT >= 1.0) {
+            currentStep = targetStep;
+            isAnimating = false;
+            updateUI();
+        }
+
+        requestAnimationFrame(loop);
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (isAnimating || currentStep >= MAX_STEPS) return;
+        isAnimating = true;
+        targetStep = currentStep + 1;
+        animStartTime = performance.now();
+        updateUI();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (isAnimating || currentStep <= 0) return;
+        isAnimating = true;
+        targetStep = currentStep - 1;
+        animStartTime = performance.now();
+        updateUI();
+    });
+
+    updateUI();
+    requestAnimationFrame(loop);
+})();
+</script>
 </section>
 
 
