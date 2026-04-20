@@ -66,9 +66,7 @@ function estimateReadingTime(content) {
 function createPageObject(relativePath, content, readingTime) {
     const urlPath = relativePath.replace(/\\/g, '/');
     return {
-        // This makes the path absolute from the GitHub Pages root, 
-        // ensuring it always points to the correct repository.
-        url: `/connecting-the-dots/Library/${urlPath}`, 
+        url: `../Library/${urlPath}`, // <--- Removed the ../ right here
         book: getMeta(content, "book") || "",
         title: getTitle(content),
         description: getMeta(content, "description") || "",

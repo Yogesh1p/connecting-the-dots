@@ -1,7 +1,7 @@
 // AUTO-GENERATED FILE. DO NOT EDIT MANUALLY.
 window.rawPages = [
   {
-    "url": "/connecting-the-dots/Library/generative/autoregressive-models/Architecture_of_scale.html",
+    "url": "../Library/generative/autoregressive-models/Architecture_of_scale.html",
     "book": "generative",
     "title": "The Architecture of Scale",
     "description": "How we built the modern LLM from transformer foundations into scalable autoregressive systems.",
@@ -15,7 +15,7 @@ window.rawPages = [
     "readingTime": 40
   },
   {
-    "url": "/connecting-the-dots/Library/generative/autoregressive-models/Fixed-length.html",
+    "url": "../Library/generative/autoregressive-models/Fixed-length.html",
     "book": "generative",
     "title": "Fixed-Length Autoregressive Models",
     "description": "From FVSBN to NADE and MADE: how autoregressive density estimators scale from logistic regression to masked neural networks, and why fixed-length assumptions fail for language.",
@@ -29,7 +29,7 @@ window.rawPages = [
     "readingTime": 15
   },
   {
-    "url": "/connecting-the-dots/Library/generative/autoregressive-models/attention.html",
+    "url": "../Library/generative/autoregressive-models/attention.html",
     "book": "generative",
     "title": "Attention and the End of Recurrence",
     "description": "From the seq2seq bottleneck to scaled dot-product attention, self-attention, masking, and multi-head attention—the core ideas that replace recurrence in Transformers.",
@@ -43,7 +43,7 @@ window.rawPages = [
     "readingTime": 16
   },
   {
-    "url": "/connecting-the-dots/Library/generative/autoregressive-models/intro_ar.html",
+    "url": "../Library/generative/autoregressive-models/intro_ar.html",
     "book": "generative",
     "title": "Intro to Autoregression Models",
     "description": "From exponential joint distributions to tractable autoregressive factorization",
@@ -57,7 +57,7 @@ window.rawPages = [
     "readingTime": 6
   },
   {
-    "url": "/connecting-the-dots/Library/generative/autoregressive-models/pos_enc.html",
+    "url": "../Library/generative/autoregressive-models/pos_enc.html",
     "book": "generative",
     "title": "Position Representation",
     "description": "How positions are represented in the same vector space as embeddings using sinusoidal encodings and Rotary Positional Embeddings (RoPE).",
@@ -71,7 +71,7 @@ window.rawPages = [
     "readingTime": 8
   },
   {
-    "url": "/connecting-the-dots/Library/generative/autoregressive-models/rnn.html",
+    "url": "../Library/generative/autoregressive-models/rnn.html",
     "book": "generative",
     "title": "Recurrent Neural Networks and Sequence Memory",
     "description": "How recurrent neural networks model sequential dependencies, why gradients vanish or explode, and how LSTMs, GRUs, bidirectional networks, and encoder-decoder models address memory limitations.",
@@ -85,7 +85,7 @@ window.rawPages = [
     "readingTime": 13
   },
   {
-    "url": "/connecting-the-dots/Library/generative/autoregressive-models/word_rep.html",
+    "url": "../Library/generative/autoregressive-models/word_rep.html",
     "book": "generative",
     "title": "Word Representation",
     "description": "How words become vectors",
@@ -99,7 +99,7 @@ window.rawPages = [
     "readingTime": 13
   },
   {
-    "url": "/connecting-the-dots/Library/generative/latent-variable-models/intro_lvm.html",
+    "url": "../Library/generative/latent-variable-models/intro_lvm.html",
     "book": "generative",
     "title": "Introduction to Latent Variable Models",
     "description": "The limitations of autoregressive models and the motivation for latent variable models, illustrated through the compass analogy.",
@@ -113,7 +113,7 @@ window.rawPages = [
     "readingTime": 2
   },
   {
-    "url": "/connecting-the-dots/Library/generative/taxonomy/ai-timeline.html",
+    "url": "../Library/generative/taxonomy/ai-timeline.html",
     "book": "generative",
     "title": "AI Evolution Timeline — Connecting the Dots",
     "description": "",
@@ -127,7 +127,7 @@ window.rawPages = [
     "readingTime": 1
   },
   {
-    "url": "/connecting-the-dots/Library/generative/taxonomy/taxonomy.html",
+    "url": "../Library/generative/taxonomy/taxonomy.html",
     "book": "generative",
     "title": "Taxonomy of Generative Models",
     "description": "A comprehensive classification of generative AI models, including explicit likelihood, implicit likelihood, and score-based approaches.",
@@ -141,7 +141,7 @@ window.rawPages = [
     "readingTime": 1
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/1.solving-linear-systems/complete_solution.html",
+    "url": "../Library/linear-algebra/1.solving-linear-systems/complete_solution.html",
     "book": "linear-algebra",
     "title": "The Complete Solution",
     "description": "A deep geometric and computational treatment of solving Ax = b using elimination, particular solutions, null spaces, shifted hyperplanes, and rank-based solution classification.",
@@ -155,7 +155,7 @@ window.rawPages = [
     "readingTime": 6
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/1.solving-linear-systems/sle.html",
+    "url": "../Library/linear-algebra/1.solving-linear-systems/sle.html",
     "book": "linear-algebra",
     "title": "Solving Linear Equations",
     "description": "How to solve linear equations using Gaussian elimination and matrix factorization",
@@ -169,7 +169,7 @@ window.rawPages = [
     "readingTime": 8
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/2.vector-spaces-and-subspaces/Independence,Basis,Dimension.html",
+    "url": "../Library/linear-algebra/2.vector-spaces-and-subspaces/Independence,Basis,Dimension.html",
     "book": "linear-algebra",
     "title": "Independence, Basis, and Dimension",
     "description": "linear independence, spanning sets, basis, dimension, rank, and null space, showing how these concepts define the structure of vector spaces.",
@@ -183,7 +183,7 @@ window.rawPages = [
     "readingTime": 14
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/2.vector-spaces-and-subspaces/Null_Space_from_Block_RREF.html",
+    "url": "../Library/linear-algebra/2.vector-spaces-and-subspaces/Null_Space_from_Block_RREF.html",
     "book": "linear-algebra",
     "title": "Null Space from Block RREF",
     "description": "A 4x4 rank 2 matrix example showing how the null space basis appears instantly from the block form [I F] as [-F; I].",
@@ -197,7 +197,7 @@ window.rawPages = [
     "readingTime": 2
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/2.vector-spaces-and-subspaces/four_subspaces.html",
+    "url": "../Library/linear-algebra/2.vector-spaces-and-subspaces/four_subspaces.html",
     "book": "linear-algebra",
     "title": "The Four Fundamental Subspaces",
     "description": "A comprehensive breakdown of the four fundamental subspaces of a matrix: Row Space, Null Space, Column Space, and Left Null Space, culminating in the Big Picture diagram.",
@@ -211,7 +211,7 @@ window.rawPages = [
     "readingTime": 3
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/4.orthogonality-and-projections/4.1.html",
+    "url": "../Library/linear-algebra/4.orthogonality-and-projections/4.1.html",
     "book": "linear-algebra",
     "title": "Orthogonality of the Four Subspaces",
     "description": "A geometric and computational treatment of orthogonal subspaces, orthogonal complements, and the fundamental theorem of linear algebra.",
@@ -225,7 +225,7 @@ window.rawPages = [
     "readingTime": 6
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/4.orthogonality-and-projections/4.2.html",
+    "url": "../Library/linear-algebra/4.orthogonality-and-projections/4.2.html",
     "book": "linear-algebra",
     "title": "Projections onto Subspaces",
     "description": "Deriving the mathematics of orthogonal projections onto lines and n-dimensional subspaces using the normal equation and projection matrices.",
@@ -239,7 +239,7 @@ window.rawPages = [
     "readingTime": 10
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/4.orthogonality-and-projections/4.3.html",
+    "url": "../Library/linear-algebra/4.orthogonality-and-projections/4.3.html",
     "book": "linear-algebra",
     "title": "Projection Matrices and Least Squares",
     "description": "Applying projection matrices to solve unsolvable systems using the method of least squares and the normal equation.",
@@ -253,7 +253,7 @@ window.rawPages = [
     "readingTime": 7
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/4.orthogonality-and-projections/4.4.html",
+    "url": "../Library/linear-algebra/4.orthogonality-and-projections/4.4.html",
     "book": "linear-algebra",
     "title": "Orthogonal Matrices and Gram-Schmidt",
     "description": "Exploring orthonormal bases, the properties of orthogonal matrices (Q), and constructing them using the Gram-Schmidt process and A = QR factorization.",
@@ -267,7 +267,7 @@ window.rawPages = [
     "readingTime": 7
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/6.eigenvalues-and-eigenvectors/6.1.html",
+    "url": "../Library/linear-algebra/6.eigenvalues-and-eigenvectors/6.1.html",
     "book": "linear-algebra",
     "title": "Eigenvectors",
     "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
@@ -281,7 +281,7 @@ window.rawPages = [
     "readingTime": 6
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/6.eigenvalues-and-eigenvectors/6.2.html",
+    "url": "../Library/linear-algebra/6.eigenvalues-and-eigenvectors/6.2.html",
     "book": "linear-algebra",
     "title": "Diagonalisation, Spectral Theorem",
     "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
@@ -295,7 +295,7 @@ window.rawPages = [
     "readingTime": 5
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/6.eigenvalues-and-eigenvectors/6.3.html",
+    "url": "../Library/linear-algebra/6.eigenvalues-and-eigenvectors/6.3.html",
     "book": "linear-algebra",
     "title": "Positive Defnite Matrices",
     "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
@@ -309,7 +309,7 @@ window.rawPages = [
     "readingTime": 3
   },
   {
-    "url": "/connecting-the-dots/Library/linear-algebra/7.the-svd-and-applications/7.1.html",
+    "url": "../Library/linear-algebra/7.the-svd-and-applications/7.1.html",
     "book": "linear-algebra",
     "title": "The Singular Value Decomposition (SVD)",
     "description": "Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the four fundamental subspaces, and finding the directions of maximum stretch.",
@@ -323,7 +323,7 @@ window.rawPages = [
     "readingTime": 9
   },
   {
-    "url": "/connecting-the-dots/Library/stats/stats-foundation/central_limit_theorem.html",
+    "url": "../Library/stats/stats-foundation/central_limit_theorem.html",
     "book": "Stats",
     "title": "The Central Limit Theorem & Maximum Entropy",
     "description": "A deep dive into the Central Limit Theorem, the origin of the normal distribution equation, and how maximizing entropy leads directly to the Gaussian curve.",
@@ -337,7 +337,7 @@ window.rawPages = [
     "readingTime": 6
   },
   {
-    "url": "/connecting-the-dots/Library/stats/stats-foundation/counting.html",
+    "url": "../Library/stats/stats-foundation/counting.html",
     "book": "Stats",
     "title": "Probability and Counting",
     "description": "A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.",
@@ -351,7 +351,7 @@ window.rawPages = [
     "readingTime": 6
   },
   {
-    "url": "/connecting-the-dots/Library/stats/stats-foundation/distribution.html",
+    "url": "../Library/stats/stats-foundation/distribution.html",
     "book": "Stats",
     "title": "Common Probability Distributions",
     "description": "A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.",

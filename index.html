@@ -464,14 +464,19 @@ window.addEventListener('load', () => {
     const link  = svg.append('g').selectAll('line').data(sceneData.links).join('line').attr('class','graph-link');
     const node  = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle').attr('class',d=>`graph-node-${d.group}`).attr('r',d=>d.radius).call(makeDrag(d3sim));
     
-    const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
+const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
       .attr('r',d=>mob?Math.max(d.radius,22):d.radius)
       .attr('fill','transparent').attr('stroke','none')
       .style('cursor', d => d.url ? 'pointer' : 'grab') 
       .call(makeDrag(d3sim))
       .on('click', (e, d) => {
         if (e.defaultPrevented) return; 
-        if (d.url) window.location.href = d.url;
+        if (d.url) {
+          // If the URL starts with "../Library/", strip the "../" off.
+          // This keeps the link inside the connecting-the-dots folder.
+          let safeUrl = d.url.startsWith('../') ? d.url.substring(3) : d.url;
+          window.location.href = safeUrl;
+        }
       });
 
     const label = svg.append('g').selectAll('text').data(sceneData.nodes).join('text')
