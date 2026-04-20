@@ -3,7 +3,7 @@ const path = require("path");
 
 const projectRoot = __dirname;
 // Look in the new nested directory
-const libraryDir = path.join(projectRoot, "library"); 
+const libraryDir = path.join(projectRoot, "Library"); 
 const builderDir = path.join(projectRoot, "builder");
 const ogOutputDir = path.join(projectRoot, "assets", "og");
 const metaCachePath = path.join(builderDir, ".meta-cache.json");
@@ -66,7 +66,7 @@ function estimateReadingTime(content) {
 function createPageObject(relativePath, content, readingTime) {
     const urlPath = relativePath.replace(/\\/g, '/');
     return {
-        url: `../library/${urlPath}`,
+        url: `../Library/${urlPath}`,
         book: getMeta(content, "book") || "",
         title: getTitle(content),
         description: getMeta(content, "description") || "",
