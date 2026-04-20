@@ -324,7 +324,7 @@ window.rawPages = [
   },
   {
     "url": "../library/stats/stats-foundation/central_limit_theorem.html",
-    "book": "stats",
+    "book": "Stats",
     "title": "The Central Limit Theorem & Maximum Entropy",
     "description": "A deep dive into the Central Limit Theorem, the origin of the normal distribution equation, and how maximizing entropy leads directly to the Gaussian curve.",
     "date": "2026-04-14",
@@ -338,7 +338,7 @@ window.rawPages = [
   },
   {
     "url": "../library/stats/stats-foundation/counting.html",
-    "book": "stats",
+    "book": "Stats",
     "title": "Probability and Counting",
     "description": "A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.",
     "date": "2026-04-10",
@@ -352,7 +352,7 @@ window.rawPages = [
   },
   {
     "url": "../library/stats/stats-foundation/distribution.html",
-    "book": "stats",
+    "book": "Stats",
     "title": "Common Probability Distributions",
     "description": "A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.",
     "date": "2026-04-10",

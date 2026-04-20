@@ -267,7 +267,7 @@
   },
   {
     "relativePath": "linear-algebra/4.orthogonality-and-projections/4.2.html",
-    "lastModified": 1776686835237.062,
+    "lastModified": 1776695968441.8406,
     "book": "linear-algebra",
     "chapter": "Orthogonality and Projections",
     "title": "Projections onto Subspaces",
@@ -365,8 +365,8 @@
   },
   {
     "relativePath": "stats/stats-foundation/central_limit_theorem.html",
-    "lastModified": 1776692669763.2444,
-    "book": "stats",
+    "lastModified": 1776698126496.0757,
+    "book": "Stats",
     "chapter": "Stats Foundation",
     "title": "The Central Limit Theorem & Maximum Entropy",
     "description": "A deep dive into the Central Limit Theorem, the origin of the normal distribution equation, and how maximizing entropy leads directly to the Gaussian curve.",
@@ -379,8 +379,8 @@
   },
   {
     "relativePath": "stats/stats-foundation/counting.html",
-    "lastModified": 1776692617208.321,
-    "book": "stats",
+    "lastModified": 1776698122653.4897,
+    "book": "Stats",
     "chapter": "Stats Foundation",
     "title": "Probability and Counting",
     "description": "A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.",
@@ -393,8 +393,8 @@
   },
   {
     "relativePath": "stats/stats-foundation/distribution.html",
-    "lastModified": 1776692621764.5308,
-    "book": "stats",
+    "lastModified": 1776698118003.5693,
+    "book": "Stats",
     "chapter": "Stats Foundation",
     "title": "Common Probability Distributions",
     "description": "A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.",
