@@ -1,8 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 
+// --- CONFIGURATION ---
+// ✅ CORRECT for your GitHub Pages setup
+const SITE_URL = "https://yogesh1p.github.io/connecting-the-dots";
+
 const projectRoot = __dirname;
-// Look in the new nested directory
 const libraryDir = path.join(projectRoot, "Library"); 
 const builderDir = path.join(projectRoot, "builder");
 const ogOutputDir = path.join(projectRoot, "assets", "og");
@@ -66,7 +69,7 @@ function estimateReadingTime(content) {
 function createPageObject(relativePath, content, readingTime) {
     const urlPath = relativePath.replace(/\\/g, '/');
     return {
-        url: `../Library/${urlPath}`, // <--- Removed the ../ right here
+        url: `../Library/${urlPath}`, 
         book: getMeta(content, "book") || "",
         title: getTitle(content),
         description: getMeta(content, "description") || "",
@@ -94,7 +97,6 @@ async function build() {
         const stats = fs.statSync(filePath);
         const relativePath = path.relative(libraryDir, filePath);
         
-        // FIXED: Now actively tracking every piece of metadata in the cache
         return {
             relativePath,
             lastModified: stats.mtimeMs,
@@ -196,13 +198,39 @@ async function build() {
                 console.log(`✅ Generated OG: ${outputFilename}`);
             }
 
-            // D. Inject OG Tags if missing
-            if (!content.includes('og:image')) {
-                const relativeOgDir = path.relative(path.dirname(filePath), outputPath).replace(/\\/g, '/');
+            // D. Inject or Fix OG Tags (Using Absolute URLs)
+            
+            // Construct the absolute URL for the image and the specific page
+            const absoluteImageUrl = `${SITE_URL}/assets/og/${outputFilename}`;
+            const cleanUrlPath = relativePath.replace(/\\/g, '/');
+            const absolutePageUrl = `${SITE_URL}/Library/${cleanUrlPath}`;
+
+            const ogImageRegex = /<meta\s+property=["']og:image["']\s+content=["'][^"']*["']\s*\/?>/gi;
+            const ogUrlRegex = /<meta\s+property=["']og:url["']\s+content=["'][^"']*["']\s*\/?>/gi;
+
+            // If an og:image tag exists, update it to absolute. If not, insert the full block.
+            if (ogImageRegex.test(content)) {
                 
+                // Replace broken relative og:image with absolute URL
+                const updatedContent = content.replace(ogImageRegex, `<meta property="og:image" content="${absoluteImageUrl}">`);
+                if (content !== updatedContent) {
+                    content = updatedContent;
+                    fileChanged = true;
+                }
+
+                // Make sure og:url is present as well
+                if (ogUrlRegex.test(content)) {
+                    content = content.replace(ogUrlRegex, `<meta property="og:url" content="${absolutePageUrl}">`);
+                } else {
+                    content = content.replace('</head>', `    <meta property="og:url" content="${absolutePageUrl}">\n</head>`);
+                }
+                
+            } else {
+                // If it doesn't exist at all, inject the full block
                 const metaTags = `\n    <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
-    <meta property="og:image" content="${relativeOgDir}">
+    <meta property="og:url" content="${absolutePageUrl}">
+    <meta property="og:image" content="${absoluteImageUrl}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">`;

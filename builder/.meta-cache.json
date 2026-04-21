@@ -1,7 +1,7 @@
 [
   {
     "relativePath": "dots/new-chapter/_template.html",
-    "lastModified": 1776686086509.5774,
+    "lastModified": 1776739006337.5396,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "Word Representation",
@@ -15,7 +15,7 @@
   },
   {
     "relativePath": "dots/new-chapter/test-page.html",
-    "lastModified": 1776686086517.724,
+    "lastModified": 1776739006341.7444,
     "book": "dots",
     "chapter": "New Chapter",
     "title": "test page",
@@ -29,7 +29,7 @@
   },
   {
     "relativePath": "generative/autoregressive-models/Architecture_of_scale.html",
-    "lastModified": 1776687942660.966,
+    "lastModified": 1776739006342.9312,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "The Architecture of Scale",
@@ -43,7 +43,7 @@
   },
   {
     "relativePath": "generative/autoregressive-models/Fixed-length.html",
-    "lastModified": 1776686086508.1758,
+    "lastModified": 1776739006343.6958,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "Fixed-Length Autoregressive Models",
@@ -57,7 +57,7 @@
   },
   {
     "relativePath": "generative/autoregressive-models/attention.html",
-    "lastModified": 1776686086510.8628,
+    "lastModified": 1776739006344.6467,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "Attention and the End of Recurrence",
@@ -71,7 +71,7 @@
   },
   {
     "relativePath": "generative/autoregressive-models/intro_ar.html",
-    "lastModified": 1776686086513.627,
+    "lastModified": 1776739006345.1956,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "Intro to Autoregression Models",
@@ -85,7 +85,7 @@
   },
   {
     "relativePath": "generative/autoregressive-models/pos_enc.html",
-    "lastModified": 1776686086515.6155,
+    "lastModified": 1776739006346.064,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "Position Representation",
@@ -99,7 +99,7 @@
   },
   {
     "relativePath": "generative/autoregressive-models/rnn.html",
-    "lastModified": 1776686086516.6633,
+    "lastModified": 1776739006347.4211,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "Recurrent Neural Networks and Sequence Memory",
@@ -113,7 +113,7 @@
   },
   {
     "relativePath": "generative/autoregressive-models/word_rep.html",
-    "lastModified": 1776686086518.8667,
+    "lastModified": 1776739006348.381,
     "book": "generative",
     "chapter": "Autoregressive Models",
     "title": "Word Representation",
@@ -127,7 +127,7 @@
   },
   {
     "relativePath": "generative/latent-variable-models/intro_lvm.html",
-    "lastModified": 1776686086514.6108,
+    "lastModified": 1776739006348.9497,
     "book": "generative",
     "chapter": "Latent Variable Models",
     "title": "Introduction to Latent Variable Models",
@@ -155,7 +155,7 @@
   },
   {
     "relativePath": "generative/taxonomy/taxonomy.html",
-    "lastModified": 1776693242934.2937,
+    "lastModified": 1776739006349.589,
     "book": "generative",
     "chapter": "Detours",
     "title": "Taxonomy of Generative Models",
@@ -169,7 +169,7 @@
   },
   {
     "relativePath": "linear-algebra/1.solving-linear-systems/complete_solution.html",
-    "lastModified": 1776686834706.1824,
+    "lastModified": 1776738914356.459,
     "book": "linear-algebra",
     "chapter": "Solving Linear Systems",
     "title": "The Complete Solution",
@@ -183,7 +183,7 @@
   },
   {
     "relativePath": "linear-algebra/1.solving-linear-systems/sle.html",
-    "lastModified": 1776686834802.16,
+    "lastModified": 1776739006350.3887,
     "book": "linear-algebra",
     "chapter": "Solving Linear Systems",
     "title": "Solving Linear Equations",
@@ -197,7 +197,7 @@
   },
   {
     "relativePath": "linear-algebra/2.vector-spaces-and-subspaces/Independence,Basis,Dimension.html",
-    "lastModified": 1776686834887.6106,
+    "lastModified": 1776739006351.2197,
     "book": "linear-algebra",
     "chapter": "Vector Spaces and Subspaces",
     "title": "Independence, Basis, and Dimension",
@@ -211,7 +211,7 @@
   },
   {
     "relativePath": "linear-algebra/2.vector-spaces-and-subspaces/Null_Space_from_Block_RREF.html",
-    "lastModified": 1776686834969.3992,
+    "lastModified": 1776739006351.6687,
     "book": "linear-algebra",
     "chapter": "Vector Spaces and Subspaces",
     "title": "Null Space from Block RREF",
@@ -225,7 +225,7 @@
   },
   {
     "relativePath": "linear-algebra/2.vector-spaces-and-subspaces/four_subspaces.html",
-    "lastModified": 1776686835051.6543,
+    "lastModified": 1776739006351.9243,
     "book": "linear-algebra",
     "chapter": "Vector Spaces and Subspaces",
     "title": "The Four Fundamental Subspaces",
@@ -239,7 +239,7 @@
   },
   {
     "relativePath": "linear-algebra/2.vector-spaces-and-subspaces/vec_spaces.html",
-    "lastModified": 1776686193651.1968,
+    "lastModified": 1776739006352.289,
     "book": "linear-algebra",
     "chapter": "Vector Spaces and Subspaces",
     "title": "Vector Spaces & Subspaces",
@@ -253,7 +253,7 @@
   },
   {
     "relativePath": "linear-algebra/4.orthogonality-and-projections/4.1.html",
-    "lastModified": 1776686835147.68,
+    "lastModified": 1776739006352.8787,
     "book": "linear-algebra",
     "chapter": "Orthogonality and Projections",
     "title": "Orthogonality of the Four Subspaces",
@@ -267,7 +267,7 @@
   },
   {
     "relativePath": "linear-algebra/4.orthogonality-and-projections/4.2.html",
-    "lastModified": 1776695968441.8406,
+    "lastModified": 1776739006353.556,
     "book": "linear-algebra",
     "chapter": "Orthogonality and Projections",
     "title": "Projections onto Subspaces",
@@ -281,7 +281,7 @@
   },
   {
     "relativePath": "linear-algebra/4.orthogonality-and-projections/4.3.html",
-    "lastModified": 1776686835314.2625,
+    "lastModified": 1776739006353.7542,
     "book": "linear-algebra",
     "chapter": "Orthogonality and Projections",
     "title": "Projection Matrices and Least Squares",
@@ -295,7 +295,7 @@
   },
   {
     "relativePath": "linear-algebra/4.orthogonality-and-projections/4.4.html",
-    "lastModified": 1776686835399.521,
+    "lastModified": 1776739006354.1113,
     "book": "linear-algebra",
     "chapter": "Orthogonality and Projections",
     "title": "Orthogonal Matrices and Gram-Schmidt",
@@ -309,7 +309,7 @@
   },
   {
     "relativePath": "linear-algebra/6.eigenvalues-and-eigenvectors/6.1.html",
-    "lastModified": 1776686086504.4924,
+    "lastModified": 1776739006355.0635,
     "book": "linear-algebra",
     "chapter": "Eigenvalues and Eigenvectors",
     "title": "Eigenvectors",
@@ -323,7 +323,7 @@
   },
   {
     "relativePath": "linear-algebra/6.eigenvalues-and-eigenvectors/6.2.html",
-    "lastModified": 1776686086504.9219,
+    "lastModified": 1776739006355.5688,
     "book": "linear-algebra",
     "chapter": "Eigenvalues and Eigenvectors",
     "title": "Diagonalisation, Spectral Theorem",
@@ -337,7 +337,7 @@
   },
   {
     "relativePath": "linear-algebra/6.eigenvalues-and-eigenvectors/6.3.html",
-    "lastModified": 1776686086505.4653,
+    "lastModified": 1776739006355.9722,
     "book": "linear-algebra",
     "chapter": "Eigenvalues and Eigenvectors",
     "title": "Positive Defnite Matrices",
@@ -351,7 +351,7 @@
   },
   {
     "relativePath": "linear-algebra/7.the-svd-and-applications/7.1.html",
-    "lastModified": 1776687125403.9834,
+    "lastModified": 1776739006356.7415,
     "book": "linear-algebra",
     "chapter": "Singular Value Decomposition",
     "title": "The Singular Value Decomposition (SVD)",
@@ -365,7 +365,7 @@
   },
   {
     "relativePath": "stats/stats-foundation/central_limit_theorem.html",
-    "lastModified": 1776698126496.0757,
+    "lastModified": 1776739006357.4749,
     "book": "Stats",
     "chapter": "Stats Foundation",
     "title": "The Central Limit Theorem & Maximum Entropy",
@@ -379,7 +379,7 @@
   },
   {
     "relativePath": "stats/stats-foundation/counting.html",
-    "lastModified": 1776698122653.4897,
+    "lastModified": 1776739006358.2903,
     "book": "Stats",
     "chapter": "Stats Foundation",
     "title": "Probability and Counting",
@@ -393,7 +393,7 @@
   },
   {
     "relativePath": "stats/stats-foundation/distribution.html",
-    "lastModified": 1776698118003.5693,
+    "lastModified": 1776739006358.9482,
     "book": "Stats",
     "chapter": "Stats Foundation",
     "title": "Common Probability Distributions",
