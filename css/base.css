@@ -149,25 +149,35 @@ nav a:hover, nav a.active { color: var(--accent); }
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 1rem;
+  gap: 0.65rem;
 }
 /* ============================================================
    SUPPORT HEART BUTTON
    ============================================================ */
 
+
+
 .support-link {
   display: flex;
   align-items: center;
-  margin: 0 12px; /* Adds a little breathing room in the nav */
+  justify-content: center;
+  width: 32px;  /* Matches the invisible bounding box of the sun/github icons */
+  height: 32px;
+
   text-decoration: none;
+  color: var(--muted); /* Matches the sun's idle color */
   transition: opacity 0.2s ease;
   cursor: pointer;
 }
 
-/* Ensure the SVG transitions smoothly */
+/* Ensure the SVG transitions smoothly and matches dimensions */
 .support-link svg {
-  transition: transform 0.2s ease, fill 0.2s ease;
-  filter: drop-shadow(0 2px 4px rgba(231, 76, 60, 0.2));
+  width: 20px;       /* Shrinks it down to match the sun exactly */
+  height: 20px;
+  stroke-width: 2.1; /* Perfectly matches the sun's stroke weight */
+  display: block;
+  transition: transform 0.2s ease, fill 0.2s ease, stroke 0.2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
 }
 
 /* Hover effects */
@@ -178,7 +188,9 @@ nav a:hover, nav a.active { color: var(--accent); }
 /* Subtle continuous pulse animation on hover */
 .support-link:hover svg {
   animation: heartbeat 1.2s ease-in-out infinite;
-  fill: #ff3b30; /* Brightens the red slightly on hover */
+  /* Uses your accent variable instead of hardcoded red */
+  fill: var(--accent); 
+  stroke: var(--accent); /* Ensures the outline matches the fill on hover */
 }
 
 /* Active/Click state */
@@ -206,16 +218,6 @@ nav a:hover, nav a.active { color: var(--accent); }
   100% {
     transform: scale(1);
   }
-}
-/* Keeps the heart bright red when currently on the support page */
-.support-link.active {
-  opacity: 1;
-}
-
-.support-link.active svg {
-  fill: #ff3b30; /* The bright hover red */
-  /* Optional: Uncomment the line below if you want it to constantly beat on the support page too! */
-  /* animation: heartbeat 1.5s ease-in-out infinite; */
 }
 /* ── Shared Icon Wrapper ── */
 .theme-toggle,
