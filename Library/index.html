@@ -124,11 +124,36 @@
     min-height: 68px; /* Prevents hero from jumping when search expands */
   }
 
+ /* Base element transitions */
+  .book-progress-hero,
+  .progress-num,
+  .progress-label,
+  .expandable-search-wrapper,
+  .expandable-search,
+  .search-input {
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Staggered transition for stats */
   .progress-stat {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
     min-width: 90px;
+    /* Prevent crowding/jumping during width animations */
+    white-space: nowrap; 
+    overflow: hidden;
+    /* FADE IN DELAY: Wait 0.15s before showing stats when search closes */
+    transition: opacity 0.3s ease 0.15s, transform 0.3s ease 0.15s; 
+  }
+
+  /* Active Hero styling on transmorph */
+  .book-progress-hero.search-active .progress-stat {
+    opacity: 0;
+    transform: scale(0.85); /* Slightly deeper scale down */
+    pointer-events: none; 
+    /* FADE OUT INSTANTLY: Hide stats immediately when search opens */
+    transition: opacity 0.15s ease 0s, transform 0.15s ease 0s; 
   }
 
   .progress-num { font-size: 1.7rem; font-weight: 500; color: var(--dark); line-height: 1; }
@@ -286,12 +311,40 @@
     margin-left: 0.75rem; vertical-align: middle; position: relative; top: -1px; display: inline-block; line-height: 1; 
   }
   .status-draft { background: color-mix(in srgb, var(--muted) 12%, var(--bg)); color: var(--muted); border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent); }
-  
+/* --- Mobile Optimizations --- */
   /* --- Mobile Optimizations --- */
   @media (max-width: 640px) {
-    .toc-page { padding-top: 2rem; padding-left: 1rem; padding-right: 1rem; }
+    /* --- 1. OVERRIDE BASE.CSS CONSTRAINTS --- */
+    body, html { margin: 0; padding: 0; overflow-x: hidden; }
+    
+    .page-wrap { 
+      padding-left: 0 !important; 
+      padding-right: 0 !important; 
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+
+    /* Edge-to-edge layout with a slim 1rem gutter */
+    .toc-page { 
+      padding-top: 1.5rem; 
+      padding-left: 1rem; 
+      padding-right: 1rem; 
+      margin: 0;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
     .book-switcher { display: none; }
-    .toc-book-title { cursor: pointer; margin: 0; font-size: 2.2rem; }
+    
+    /* Scaled down headers */
+    .toc-book-eyebrow { font-size: 0.5rem; letter-spacing: 0.15em; margin-bottom: 0.4rem; }
+    .toc-book-title { cursor: pointer; margin: 0; font-size: 1.6rem; } /* Reduced */
+    .toc-book-desc { font-size: 0.9rem; line-height: 1.4; margin-top: 0.4rem; } /* Reduced */
+
     .title-dropdown-arrow { display: block; }
     .title-dropdown-wrapper { display: block; }
     .book-dropdown-menu {
@@ -301,41 +354,98 @@
     .title-dropdown-wrapper.open .book-dropdown-menu { display: block; opacity: 1; visibility: visible; transform: none; }
     .title-dropdown-wrapper.open .title-dropdown-arrow { transform: rotate(180deg); }
     
-    /* Modify Hero for Mobile */
+    /* --- ULTRA-SLIM HERO --- */
     .book-progress-hero {
-      flex-wrap: wrap; 
+      position: relative; 
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap; 
       width: 100%; 
-      gap: 1rem; 
-      padding: 1.25rem 1rem; 
+      padding: 0.6rem; 
+      margin-top: 1.25rem;
+      border-radius: 12px;
+      min-height: 50px; 
+      align-items: center;
+      gap: 0;
+      box-sizing: border-box;
     }
-    .progress-stat { flex: 1; text-align: center; }
+    
+    .progress-stat { 
+      flex: 1; 
+      min-width: 0; 
+      text-align: center; 
+      padding: 0 0.25rem;
+      gap: 0;
+    }
+    
+    .progress-num { font-size: 1.05rem; } /* Scaled down */
+    
+    .progress-label {
+      font-size: 0.5rem; /* Scaled down */
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis; 
+    }
     
     .progress-stat:nth-child(1),
-    .progress-stat:nth-child(2) { 
-      padding-right: 0.5rem; 
-      border-right: 1px solid var(--border); 
+    .progress-stat:nth-child(2) { border-right: 1px solid var(--border); padding-right: 0.25rem; }
+    .progress-stat:nth-child(3) { border-right: none; padding-right: 0.25rem; }
+
+    /* --- SEARCH BAR: Anchored Right --- */
+    .expandable-search-wrapper {
+      width: auto; margin-top: 0; padding-top: 0; padding-left: 0.5rem;
+      border-top: none; border-left: 1px solid var(--border); justify-content: center;
     }
     
-    .progress-stat:nth-child(3) { 
-      padding-right: 0.5rem; 
-      border-right: none; /* Drop the separator on mobile */
+    .expandable-search { height: 32px; width: 32px; }
+    
+    /* Override desktop positioning to anchor icon on the right */
+    .search-icon {
+      left: auto !important; 
+      right: 8px !important;
+    }
+    
+    .search-input {
+      padding: 0 32px 0 1rem !important; /* Make room for icon on the right */
     }
 
-    /* Drop Search Bar to its own row on mobile */
-    .expandable-search-wrapper {
+    /* Expanding over the hero, anchoring to the right */
+    .expandable-search.is-open { 
+      position: absolute;
+      top: 0;
+      right: 0; 
+      left: auto;
       width: 100%;
-      justify-content: center;
-      margin-top: 0.5rem;
-      padding-top: 1rem;
-      border-top: 1px dashed var(--border);
+      height: 100%;
+      border-radius: 12px;
+      z-index: 10;
     }
-    .expandable-search.is-open { width: 100%; } /* Fill width when opened */
 
-    .toc-block > summary { padding: 1rem; gap: 0.75rem; }
-    .ch-summary-title { font-size: 1.25rem; }
-    .toc-row a { padding: 0.9rem 1rem 0.9rem 1.5rem; }
-    .deep-dive-header { padding-left: 1.5rem; }
-    .toc-book-eyebrow { font-size: 0.53rem; letter-spacing: 0.15em; margin-bottom: 0.4rem; }
+    .book-progress-hero.search-active .expandable-search-wrapper {
+        padding-top: 0; border-top: none; margin-top: 0;
+    }
+
+    /* --- TOC BLOCKS & TYPOGRAPHY POLISH --- */
+    .toc-block { 
+      margin: 1rem 0; 
+      border-radius: 12px; 
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    /* Tighter padding on the block header */
+    .toc-block > summary { padding: 0.85rem 1rem; gap: 0.75rem; }
+    
+    /* Reduced Chapter Titles */
+    .ch-summary-title { font-size: 1.05rem; } 
+    .ch-summary-count { font-size: 0.65rem; }
+    
+    /* More room for lesson titles to stretch */
+    .toc-row a { padding: 0.75rem 1rem 0.75rem 1rem; } 
+    .row-title { font-size: 0.95rem; } /* Scaled down slightly */
+    
+    .deep-dive-header { padding-left: 1rem; font-size: 0.6rem; }
   }
 </style>
 </head>

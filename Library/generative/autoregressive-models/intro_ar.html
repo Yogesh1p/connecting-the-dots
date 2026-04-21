@@ -1,4 +1,3 @@
-  <meta name="reading_time" content="6">
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,10 +10,10 @@
 <meta name="author" content="Yogesh">
 <meta name="date" content="2026-04-08">
 <meta name="lessonorder" content="1">
-<meta name="status" content="draft">
+<meta name="status" content="live">
 <meta name="belongs_to" content="lib">
 <meta name="keywords" content="chain rule, bayesian networks, markov models, generative modeling">
-<meta name="reading_time" content="5">
+<meta name="reading_time" content="6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
@@ -78,8 +77,12 @@
                     <section class="article-body">
 
 <section class="article-body">
-  <p>In generative modeling, our goal is to move beyond mere prediction. We don't just want to guess a label y given x; we want to understand the very "soul" of the data. We want to learn the process that created the data in the first place.</p>
-
+    <p>In most machine learning, the goal is prediction: given some input, produce an output. Given an image, predict a label. Given a sentence, predict sentiment. The model learns a mapping, and the mapping is all it needs.</p>
+ 
+  <p>Generative modeling asks something different. Instead of learning to map inputs to outputs, we want to learn the process that <em>produced</em> the data in the first place. We want a model of the data itself — not a derived quantity like a label, but the raw distribution from which observations are drawn.</p>
+ 
+  <p>This is a harder goal. But it comes with a payoff: a model that understands the data-generating process can do things a discriminative model cannot.</p>
+ 
   <h2>The Problem: Modeling Joint Distributions</h2>
 
   <p>An image can be viewed as a collection of random variables, one per pixel. More generally, any observation can be represented as a vector.</p>
@@ -316,28 +319,329 @@
 
   <p>By choosing a specific function class, we implicitly restrict which distributions the model can represent. But this is a far more flexible restriction than hard independence assumptions — and it scales gracefully as the function class becomes more expressive.</p>
 
-  <div class="math-box">
-    <div class="math-box-label">Example</div>
-    <div class="math-box-body">
-      <p>Consider a sequence of binary variables $x_1, x_2, x_3$ with learned conditionals:</p>
-      <div class="math-display">
-        $$
-        \begin{align*}
-          p(x_1 = 1) &= 0.6 \\
-          p(x_2 = 1 \mid x_1) &= f_{\theta_2}(x_1) \\
-          p(x_3 = 1 \mid x_1, x_2) &= f_{\theta_3}(x_1, x_2)
-        \end{align*}
-        $$
-      </div>
-      <p>To sample a sequence:</p>
-      <ol>
-        <li>Draw $x_1$: get $x_1 = 1$ with probability 0.6</li>
-        <li>Feed $x_1$ into $f_{\theta_2}$ to obtain $p(x_2 = 1 \mid x_1)$, then sample $x_2$</li>
-        <li>Feed $(x_1, x_2)$ into $f_{\theta_3}$ to obtain $p(x_3 = 1 \mid x_1, x_2)$, then sample $x_3$</li>
-      </ol>
-      <p>At no point do we enumerate all $2^3 = 8$ configurations. The function does the work.</p>
+  <style>
+  .ar-flow-container {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 40px 20px;
+    background: var(--surface);
+    margin: 40px 0;
+    font-family: inherit;
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    overflow: hidden;
+  }
+
+  .ar-nodes-layer {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 60px;
+  }
+
+  .ar-sequence-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+  }
+
+  .ar-node {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    border: 2px dashed var(--muted);
+    color: transparent; 
+    opacity: 0.5;
+    position: relative;
+  }
+
+  /* When the model is actively building this token */
+  .ar-node.building {
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    background: var(--highlight);
+    transform: translateY(-6px) scale(1.1);
+    opacity: 1;
+    box-shadow: 0 4px 12px var(--highlight);
+  }
+
+  /* Once the token is fully generated */
+  .ar-node.filled {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    color: var(--text);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .ar-model-core {
+    padding: 12px 32px;
+    background: var(--box-bg);
+    border: 1px solid var(--box-border);
+    border-radius: 6px;
+    font-size: 1.2rem;
+    color: var(--box-label-text);
+    font-weight: 500;
+    box-shadow: 0 4px 10px var(--highlight);
+    transition: all 0.3s ease;
+  }
+
+  /* When the model is computing */
+  .ar-model-core.pulsing {
+    transform: scale(1.05);
+    background: var(--box-label-bg);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  /* SVG Layer */
+  .ar-svg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .ar-path {
+    fill: none;
+    stroke-linecap: round;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  /* Context flowing INTO the model (top to bottom) */
+  .ar-path.flow-in {
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-dasharray: 6;
+    animation: anim-flow-in 1s linear infinite;
+    opacity: 0.5;
+  }
+
+  /* Generation flowing OUT of the model (bottom to top) */
+  .ar-path.flow-out {
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-dasharray: 8;
+    animation: anim-flow-out 0.6s linear infinite;
+    opacity: 1;
+  }
+
+  /* FIX: Both animations must use NEGATIVE offsets to move FORWARD along the SVG path.
+     Since flow-in is drawn top-to-bottom, negative goes down.
+     Since flow-out is drawn bottom-to-top, negative goes up.
+  */
+  @keyframes anim-flow-in {
+    to { stroke-dashoffset: -12; }
+  }
+  @keyframes anim-flow-out {
+    to { stroke-dashoffset: -16; }
+  }
+
+  .ar-controls-footer {
+    position: relative;
+    z-index: 2;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .ar-math-status {
+    min-height: 30px;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .ar-btn-group {
+    display: flex;
+    gap: 12px;
+  }
+
+  .ar-btn-elegant {
+    background: var(--box-label-bg);
+    color: var(--bg);
+    border: none;
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    font-family: inherit;
+  }
+
+  .ar-btn-elegant:hover { opacity: 0.9; }
+  .ar-btn-elegant:disabled {
+    background: var(--border);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  .ar-btn-elegant.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .ar-btn-elegant.secondary:hover { background: var(--bg); }
+</style>
+
+<div class="ar-flow-container" id="ar-container">
+  <svg class="ar-svg-layer" id="ar-svg"></svg>
+
+  <div class="ar-nodes-layer">
+    <div class="ar-sequence-row" id="ar-row">
+      <div class="ar-node" id="n-1">x₁</div>
+      <div class="ar-node" id="n-2">x₂</div>
+      <div class="ar-node" id="n-3">x₃</div>
+      <div class="ar-node" id="n-4">x₄</div>
+      <div class="ar-node" id="n-5">x₅</div>
+    </div>
+    
+    <div class="ar-model-core" id="ar-model">
+      $f_\theta$ (Autoregressive Function)
     </div>
   </div>
+
+  <div class="ar-controls-footer">
+    <div class="ar-math-status" id="ar-math-status">
+      Ready to generate sequence.
+    </div>
+    <div class="ar-btn-group">
+      <button class="ar-btn-elegant" id="ar-step" onclick="stepArFlow()">Sample Next Token</button>
+      <button class="ar-btn-elegant secondary" onclick="resetArFlow()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let arStep = 0;
+  const arTotal = 5;
+  let isAnimating = false;
+
+  function updateArMath(text) {
+      const el = document.getElementById('ar-math-status');
+      el.innerHTML = text;
+      if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([el]).catch(err => console.log(err));
+      }
+  }
+
+  function getCenterCoords(element, container) {
+      const rect = element.getBoundingClientRect();
+      const contRect = container.getBoundingClientRect();
+      return {
+          x: (rect.left - contRect.left) + rect.width / 2,
+          y: (rect.top - contRect.top) + rect.height / 2
+      };
+  }
+
+  function drawBezier(svg, start, end, type) {
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const controlY1 = start.y + (end.y - start.y) * 0.5;
+      const controlY2 = start.y + (end.y - start.y) * 0.5;
+      const d = `M ${start.x} ${start.y} C ${start.x} ${controlY1}, ${end.x} ${controlY2}, ${end.x} ${end.y}`;
+      
+      path.setAttribute("d", d);
+      path.setAttribute("class", `ar-path ${type}`);
+      svg.appendChild(path);
+  }
+
+  function clearSvg() {
+      document.getElementById('ar-svg').innerHTML = '';
+  }
+
+  async function stepArFlow() {
+      if (arStep >= arTotal || isAnimating) return;
+      isAnimating = true;
+      arStep++;
+
+      const container = document.getElementById('ar-container');
+      const svg = document.getElementById('ar-svg');
+      const model = document.getElementById('ar-model');
+      const targetNode = document.getElementById(`n-${arStep}`);
+      
+      clearSvg();
+      const modelCenter = getCenterCoords(model, container);
+      
+      // Step 1: Context flows IN (Only if past the first token)
+      if (arStep === 1) {
+          // No flow-in lines drawn for x1, as it has no dependencies!
+          updateArMath(`$x_1 \\sim p(x_1)$`);
+      } else {
+          let context = [];
+          for(let i=1; i<arStep; i++) {
+              context.push(`x_${i}`);
+              const prevNode = document.getElementById(`n-${i}`);
+              const prevCenter = getCenterCoords(prevNode, container);
+              drawBezier(svg, prevCenter, modelCenter, 'flow-in');
+          }
+          updateArMath(`$x_${arStep} \\sim f_{\\theta}(${context.join(', ')})$`);
+      }
+
+      // Step 2: Model Computes
+      await new Promise(r => setTimeout(r, 300));
+      model.classList.add('pulsing');
+      
+      // Step 3: Output flows OUT to build the new variable
+      const targetCenter = getCenterCoords(targetNode, container);
+      drawBezier(svg, {x: modelCenter.x, y: modelCenter.y - 20}, {x: targetCenter.x, y: targetCenter.y + 20}, 'flow-out');
+      
+      targetNode.classList.add('building');
+
+      // Step 4: Token locks in
+      await new Promise(r => setTimeout(r, 700));
+      model.classList.remove('pulsing');
+      targetNode.classList.remove('building');
+      targetNode.classList.add('filled');
+      
+      // Step 5: Check completion
+      if (arStep === arTotal) {
+          document.getElementById('ar-step').disabled = true;
+          setTimeout(() => {
+              clearSvg();
+              updateArMath(`Joint Distribution Factored: $p(x_{1:5}) = \\prod_{i=1}^{5} p(x_i \\mid x_{\\lt i})$`);
+          }, 800);
+      }
+      
+      isAnimating = false;
+  }
+
+  function resetArFlow() {
+      if(isAnimating) return;
+      arStep = 0;
+      clearSvg();
+      document.getElementById('ar-step').disabled = false;
+      document.getElementById('ar-model').classList.remove('pulsing');
+      updateArMath(`Ready to generate sequence.`);
+      
+      for(let i=1; i<=arTotal; i++) {
+          const node = document.getElementById(`n-${i}`);
+          node.className = 'ar-node';
+      }
+  }
+
+  window.addEventListener('resize', () => {
+      if (arStep > 0 && arStep < arTotal && !isAnimating) {
+          clearSvg();
+      }
+  });
+</script>
 
 
   

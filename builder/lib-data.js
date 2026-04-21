@@ -1,4 +1,4 @@
-// AUTO-GENERATED FILE. DO NOT EDIT MANUALLY.
+// AUTO-GENERATED
 window.rawPages = [
   {
     "url": "../Library/generative/autoregressive-models/Architecture_of_scale.html",
@@ -53,7 +53,7 @@ window.rawPages = [
     "part": "Transformer Foundations",
     "tier": "core",
     "keywords": "chain rule, bayesian networks, markov models, generative modeling",
-    "status": "draft",
+    "status": "live",
     "readingTime": 6
   },
   {
@@ -99,21 +99,7 @@ window.rawPages = [
     "readingTime": 13
   },
   {
-    "url": "../Library/generative/latent-variable-models/intro_lvm.html",
-    "book": "generative",
-    "title": "Introduction to Latent Variable Models",
-    "description": "The limitations of autoregressive models and the motivation for latent variable models, illustrated through the compass analogy.",
-    "date": "2026-04-09",
-    "chapter": "Latent Variable Models",
-    "lessonorder": 999,
-    "part": " ",
-    "tier": "core",
-    "keywords": "latent variable models, autoregressive models, Bayesian inference",
-    "status": "draft",
-    "readingTime": 2
-  },
-  {
-    "url": "../Library/generative/taxonomy/ai-timeline.html",
+    "url": "../Library/generative/detour/ai-timeline.html",
     "book": "generative",
     "title": "AI Evolution Timeline — Connecting the Dots",
     "description": "",
@@ -127,7 +113,7 @@ window.rawPages = [
     "readingTime": 1
   },
   {
-    "url": "../Library/generative/taxonomy/taxonomy.html",
+    "url": "../Library/generative/detour/taxonomy.html",
     "book": "generative",
     "title": "Taxonomy of Generative Models",
     "description": "A comprehensive classification of generative AI models, including explicit likelihood, implicit likelihood, and score-based approaches.",
@@ -139,6 +125,20 @@ window.rawPages = [
     "keywords": "generative models, taxonomy, autoregressive, normalizing flows, VAE, GAN, diffusion models, score-based models",
     "status": "live",
     "readingTime": 1
+  },
+  {
+    "url": "../Library/generative/latent-variable-models/intro_lvm.html",
+    "book": "generative",
+    "title": "Introduction to Latent Variable Models",
+    "description": "The limitations of autoregressive models and the motivation for latent variable models, illustrated through the compass analogy.",
+    "date": "2026-04-09",
+    "chapter": "Latent Variable Models",
+    "lessonorder": 999,
+    "part": " ",
+    "tier": "core",
+    "keywords": "latent variable models, autoregressive models, Bayesian inference",
+    "status": "draft",
+    "readingTime": 2
   },
   {
     "url": "../Library/linear-algebra/1.solving-linear-systems/complete_solution.html",

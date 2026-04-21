@@ -1,8 +1,8 @@
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 // --- CONFIGURATION ---
-// ✅ CORRECT for your GitHub Pages setup
 const SITE_URL = "https://yogesh1p.github.io/connecting-the-dots";
 
 const projectRoot = __dirname;
@@ -15,6 +15,10 @@ if (!fs.existsSync(ogOutputDir)) fs.mkdirSync(ogOutputDir, { recursive: true });
 if (!fs.existsSync(builderDir)) fs.mkdirSync(builderDir, { recursive: true });
 
 // --- Helper Functions ---
+
+function getHash(content) {
+    return crypto.createHash('md5').update(content).digest('hex');
+}
 
 function getAllHtmlFiles(dirPath, arrayOfFiles = []) {
     const files = fs.readdirSync(dirPath);
@@ -84,32 +88,16 @@ function createPageObject(relativePath, content, readingTime) {
     };
 }
 
-
-// --- Main Async Build Process ---
-
 async function build() {
-    console.log("🔍 Scanning library directories...");
+    console.log("🔍 Scanning library for changes...");
     const files = getAllHtmlFiles(libraryDir);
 
-    // 1. GATHER METADATA & FILE MODIFICATION TIME
+    // 1. GATHER SNAPSHOT (Using content hash to detect markup changes)
     const currentSnapshot = files.map(filePath => {
         const content = fs.readFileSync(filePath, "utf8");
-        const stats = fs.statSync(filePath);
-        const relativePath = path.relative(libraryDir, filePath);
-        
         return {
-            relativePath,
-            lastModified: stats.mtimeMs,
-            book: getMeta(content, "book"),
-            chapter: getMeta(content, "chapter"),
-            title: getTitle(content),
-            description: getMeta(content, "description"),
-            lesson_order: getMeta(content, "lessonorder"),
-            part: getMeta(content, "part"),
-            tier: getMeta(content, "tier"), 
-            keywords: getMeta(content, "keywords"),
-            status: getMeta(content, "status"),
-            date: getMeta(content, "date")
+            path: path.relative(libraryDir, filePath),
+            hash: getHash(content) // This catches meta tag injections
         };
     });
 
@@ -121,23 +109,19 @@ async function build() {
 
     const force = process.argv.includes("--force");
     if (!force && JSON.stringify(currentSnapshot) === JSON.stringify(previousSnapshot)) {
-        console.log(`⏩ No changes detected. Build skipped. (Use node build --force to override)`);
+        console.log(`⏩ Library is up to date. Build skipped.`);
         return;
     }
 
-    if (force) console.log(`⚡ Force build triggered. Rewriting everything...`);
-
-    // 3. PREPARE OG GENERATION TOOLS
-    console.log('🖼️  Fetching fonts and initializing Satori...');
+    // 3. PREPARE OG GENERATION
+    console.log('🖼️  Initializing Satori and Fonts...');
     const { default: satori } = await import('satori');
     const { html } = await import('satori-html');
     const { Resvg } = await import('@resvg/resvg-js');
 
     const fontResponse = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/lora/files/lora-latin-700-normal.woff');
-    if (!fontResponse.ok) throw new Error(`Failed to fetch font: ${fontResponse.statusText}`);
     const fontData = await fontResponse.arrayBuffer();
 
-    // 4. PROCEED WITH FULL BUILD
     const libPages = [];
 
     for (const filePath of files) {
@@ -146,7 +130,7 @@ async function build() {
             let fileChanged = false;
             const relativePath = path.relative(libraryDir, filePath);
 
-            // A. Sync Reading Time
+            // A. Reading Time
             const readingTime = estimateReadingTime(content);
             const contentWithReadingTime = syncReadingTime(content, readingTime);
             if (contentWithReadingTime !== content) {
@@ -154,36 +138,32 @@ async function build() {
                 fileChanged = true;
             }
 
-            // Skip hidden files
             if ((getMeta(content, "status") || "").toLowerCase() === "hide") continue;
 
-            // B. Extract properties for OG Image
             const title = getTitle(content);
             const chapter = getMeta(content, "chapter") || "Connecting the Dots";
-            const author = getMeta(content, "author") || "Yogesh";
             const description = getMeta(content, "description") || "";
             
-            // Skip template files
             if (title.includes('template') || relativePath.includes('_template')) continue;
 
+            // B. OG Image Generation
             const outputFilename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
             const outputPath = path.join(ogOutputDir, outputFilename);
 
-            // C. Generate OG Image (if missing or force)
             if (force || !fs.existsSync(outputPath)) {
                 const markup = html`
-                    <div style="display: flex; flex-direction: column; justify-content: space-between; width: 1200px; height: 630px; background-color: #FDFBF7; padding: 80px 100px; border: 1px solid #E8DFD1;">
+                    <div style="display: flex; flex-direction: column; justify-content: space-between; width: 1200px; height: 630px; background-color: #FDFBF7; padding: 80px 100px; border: 20px solid #F4EFE6;">
                         <div style="display: flex; flex-direction: column;">
-                            <div style="font-size: 32px; color: #D48C70; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 24px;">
+                            <div style="font-size: 32px; color: #D48C70; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 24px; font-weight: bold;">
                                 ${chapter}
                             </div>
-                            <div style="font-size: 88px; color: #2D241E; line-height: 1.1; letter-spacing: -2px; max-width: 1000px;">
+                            <div style="font-size: 82px; color: #2D241E; line-height: 1.1; letter-spacing: -2px; max-width: 1000px;">
                                 ${title}
                             </div>
                         </div>
-                        <div style="display: flex; border-top: 2px solid #E8DFD1; padding-top: 30px; justify-content: space-between; align-items: center; width: 100%;">
-                            <div style="font-size: 32px; color: #4A3F35;">${author}</div>
-                            <div style="font-size: 32px; color: #847769;">Connecting the Dots</div>
+                        <div style="display: flex; border-top: 2px solid #E8DFD1; padding-top: 40px; justify-content: space-between; align-items: center; width: 100%;">
+                            <div style="font-size: 32px; color: #4A3F35;">Yogesh</div>
+                            <div style="font-size: 28px; color: #847769; background: #F4EFE6; padding: 8px 20px; border-radius: 4px;">Connecting the Dots</div>
                         </div>
                     </div>
                 `;
@@ -195,51 +175,36 @@ async function build() {
 
                 const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } });
                 fs.writeFileSync(outputPath, resvg.render().asPng());
-                console.log(`✅ Generated OG: ${outputFilename}`);
+                console.log(`✅ OG Generated: ${outputFilename}`);
             }
 
-            // D. Inject or Fix OG Tags (Using Absolute URLs)
-            
-            // Construct the absolute URL for the image and the specific page
+            // C. Meta Tag Injection Logic
             const absoluteImageUrl = `${SITE_URL}/assets/og/${outputFilename}`;
-            const cleanUrlPath = relativePath.replace(/\\/g, '/');
-            const absolutePageUrl = `${SITE_URL}/Library/${cleanUrlPath}`;
+            const absolutePageUrl = `${SITE_URL}/Library/${relativePath.replace(/\\/g, '/')}`;
 
-            const ogImageRegex = /<meta\s+property=["']og:image["']\s+content=["'][^"']*["']\s*\/?>/gi;
-            const ogUrlRegex = /<meta\s+property=["']og:url["']\s+content=["'][^"']*["']\s*\/?>/gi;
-
-            // If an og:image tag exists, update it to absolute. If not, insert the full block.
-            if (ogImageRegex.test(content)) {
-                
-                // Replace broken relative og:image with absolute URL
-                const updatedContent = content.replace(ogImageRegex, `<meta property="og:image" content="${absoluteImageUrl}">`);
-                if (content !== updatedContent) {
-                    content = updatedContent;
-                    fileChanged = true;
-                }
-
-                // Make sure og:url is present as well
-                if (ogUrlRegex.test(content)) {
-                    content = content.replace(ogUrlRegex, `<meta property="og:url" content="${absolutePageUrl}">`);
-                } else {
-                    content = content.replace('</head>', `    <meta property="og:url" content="${absolutePageUrl}">\n</head>`);
-                }
-                
-            } else {
-                // If it doesn't exist at all, inject the full block
+            const hasOg = /property=["']og:image["']/i.test(content);
+            
+            if (!hasOg) {
                 const metaTags = `\n    <meta property="og:title" content="${title}">
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${absolutePageUrl}">
     <meta property="og:image" content="${absoluteImageUrl}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">`;
                 
                 content = content.replace('</head>', `${metaTags}\n</head>`);
                 fileChanged = true;
+            } else {
+                // Update existing tags if they aren't absolute or are incorrect
+                const updatedContent = content
+                    .replace(/content=["'][^"']*?og\/[^"']*?["']/gi, `content="${absoluteImageUrl}"`)
+                    .replace(/property=["']og:url["']\s+content=["'][^"']*["']/gi, `property="og:url" content="${absolutePageUrl}"`);
+                
+                if (updatedContent !== content) {
+                    content = updatedContent;
+                    fileChanged = true;
+                }
             }
 
-            // E. Save file if modifications occurred
             if (fileChanged) {
                 fs.writeFileSync(filePath, content, "utf8");
             }
@@ -247,19 +212,26 @@ async function build() {
             libPages.push(createPageObject(relativePath, content, readingTime));
 
         } catch (err) {
-            console.error(`❌ Failed processing ${filePath}:`, err.message);
+            console.error(`❌ Error in ${filePath}:`, err.message);
         }
     }
 
-    // 5. FINALIZE BUILD
+    // 4. SAVE FINAL DATA & UPDATE CACHE
+    // We save the JSON data
     fs.writeFileSync(
         path.join(builderDir, "lib-data.js"),
-        `// AUTO-GENERATED FILE. DO NOT EDIT MANUALLY.\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n`,
+        `// AUTO-GENERATED\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n`,
         "utf8"
     );
 
-    fs.writeFileSync(metaCachePath, JSON.stringify(currentSnapshot, null, 2), "utf8");
-    console.log(`\n🎉 Task complete. Built data for ${libPages.length} library lessons.`);
+    // CRITICAL: Generate NEW snapshot AFTER file writes are done
+    const finalSnapshot = files.map(filePath => ({
+        path: path.relative(libraryDir, filePath),
+        hash: getHash(fs.readFileSync(filePath, "utf8"))
+    }));
+
+    fs.writeFileSync(metaCachePath, JSON.stringify(finalSnapshot, null, 2), "utf8");
+    console.log(`\n✨ Build Complete. Processed ${libPages.length} pages.`);
 }
 
 build().catch(console.error);
