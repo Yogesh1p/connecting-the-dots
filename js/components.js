@@ -282,7 +282,7 @@ window.injectGiscusComments = function(containerId) {
     'data-category': 'Dots',
     'data-category-id': 'DIC_kwDORe41-s4C4NaS',
     'data-mapping': 'pathname',
-    'data-strict': '1',
+    'data-strict': '0',
     'data-reactions-enabled': '1',
     'data-emit-metadata': '0',
     'data-input-position': 'bottom',
