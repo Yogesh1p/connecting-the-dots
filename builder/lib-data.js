@@ -43,6 +43,20 @@ window.rawPages = [
     "readingTime": 16
   },
   {
+    "url": "../Library/generative/autoregressive-models/attention_approximation.html",
+    "book": "generative",
+    "title": "Attention Approximation",
+    "description": "The Cost of Attention and How to Reduce It--From the quadratic bottleneck of full attention to sparse patterns, low-rank decompositions, kernel approximations, IO-aware exact computation, and recurrent hybrids—the landscape of attention approximation.",
+    "date": "2026-04-22",
+    "chapter": "Autoregressive Models",
+    "lessonorder": 2,
+    "part": "Large Language Models",
+    "tier": "core",
+    "keywords": "attention approximation, sparse attention, linear attention, Linformer, Performer, FAVOR+, FlashAttention, Mamba, RWKV, BigBird, Longformer, random features, kernel methods, sliding window attention, state space models",
+    "status": "draft",
+    "readingTime": 22
+  },
+  {
     "url": "../Library/generative/autoregressive-models/intro_ar.html",
     "book": "generative",
     "title": "Intro to Autoregression Models",
@@ -63,7 +77,7 @@ window.rawPages = [
     "description": "How positions are represented in the same vector space as embeddings using sinusoidal encodings and Rotary Positional Embeddings (RoPE).",
     "date": "2026-04-03",
     "chapter": "Autoregressive Models",
-    "lessonorder": 999,
+    "lessonorder": 1,
     "part": "Large Language Models",
     "tier": "core",
     "keywords": "positional encoding, RoPE, sinusoidal embeddings, attention, transformer",

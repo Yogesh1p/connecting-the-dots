@@ -17,7 +17,11 @@
   },
   {
     "path": "generative/autoregressive-models/attention.html",
-    "hash": "1a7e760f30b537363b054a5c0e438b99"
+    "hash": "4492e276629359643a540861d12cac7d"
+  },
+  {
+    "path": "generative/autoregressive-models/attention_approximation.html",
+    "hash": "16d0eddce14d9939f26fbca8c073faeb"
   },
   {
     "path": "generative/autoregressive-models/intro_ar.html",
@@ -25,7 +29,7 @@
   },
   {
     "path": "generative/autoregressive-models/pos_enc.html",
-    "hash": "e12aff9c5632f3645586675fdd0d9f6d"
+    "hash": "d884af6aad25656ef16d23db572dd98a"
   },
   {
     "path": "generative/autoregressive-models/rnn.html",

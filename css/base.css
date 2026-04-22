@@ -449,7 +449,7 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
   background: transparent;
   text-align: left;
   cursor: pointer;
-  padding: 10px 0; 
+padding: 8px 12px;
   font-size: 0.96rem;
   font-weight: 400;
   line-height: 1.5;
@@ -463,10 +463,20 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
   will-change: transform; 
 }
 
+/* Update your hover state */
 .toc-item:hover {
-  color: var(--accent);
+  color: var(--text); /* Replaced var(--accent) so it doesn't clash */
   opacity: 1;
-  transform: translateX(6px);
+
+  /* Optional: Adds a very subtle background for better hover feedback */
+  background: color-mix(in srgb, var(--text) 5%, transparent); 
+  border-radius: 6px; 
+}
+
+/* Ensure the currently active item keeps its accent color even if hovered */
+.toc-item.toc-bold:hover {
+  color: var(--accent);
+  background: transparent; 
 }
 
 .toc-bold { color: var(--accent); opacity: 1; font-weight: 600; }

@@ -147,6 +147,19 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     
     document.body.appendChild(container);
+
+    // --- NEW: Auto-scroll TOC to active item on hover ---
+    container.addEventListener("mouseenter", () => {
+      const activeItem = container.querySelector(".toc-item.toc-bold");
+      if (activeItem) {
+        activeItem.scrollIntoView({ 
+          behavior: 'auto', 
+          block: 'center' 
+        });
+      }
+    });
+    // ----------------------------------------------------
+
     container.addEventListener("click", (e) => {
       const btn = e.target.closest(".toc-item");
       if (btn) navigateTo(parseInt(btn.dataset.index));
@@ -222,9 +235,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }, { passive: true });
 
   // Restore immediately—don't wait for images
-if (document.readyState === 'complete') {
-  restoreProgress();
-} else {
-  window.addEventListener('load', restoreProgress);
-}
+  if (document.readyState === 'complete') {
+    restoreProgress();
+  } else {
+    window.addEventListener('load', restoreProgress);
+  }
 });

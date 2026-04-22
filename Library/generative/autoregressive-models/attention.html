@@ -324,64 +324,72 @@
       $$A = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right).$$
     </div>
 
-    <div style="overflow-x: auto; margin-top: 20px; margin-bottom: 20px;">
-      <table style="width: 100%; border-collapse: collapse; text-align: center; border-top: 2px solid black; border-bottom: 2px solid black;">
-        <thead>
-          <tr style="border-bottom: 1px solid black;">
-            <th style="padding: 8px;"></th>
-            <th style="padding: 8px;">The</th>
-            <th style="padding: 8px;">black</th>
-            <th style="padding: 8px;">cat</th>
-            <th style="padding: 8px;">sleeps</th>
-            <th style="padding: 8px;">on</th>
-            <th style="padding: 8px;">the</th>
-            <th style="padding: 8px;">rug</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="text-align: left; padding: 8px;">Die</td>
-            <td style="background-color: rgba(0,0,0,0.18); padding: 8px;">0.62</td>
-            <td style="background-color: rgba(0,0,0,0.04); padding: 8px;">0.05</td>
-            <td style="background-color: rgba(0,0,0,0.03); padding: 8px;">0.04</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.03); padding: 8px;">0.03</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-          </tr>
-          <tr>
-            <td style="text-align: left; padding: 8px;">schwarze</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.03</td>
-            <td style="background-color: rgba(0,0,0,0.20); padding: 8px;">0.68</td>
-            <td style="background-color: rgba(0,0,0,0.04); padding: 8px;">0.05</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.03); padding: 8px;">0.03</td>
-          </tr>
-          <tr>
-            <td style="text-align: left; padding: 8px;">Katze</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.04); padding: 8px;">0.05</td>
-            <td style="background-color: rgba(0,0,0,0.22); padding: 8px;"><strong>0.70</strong></td>
-            <td style="background-color: rgba(0,0,0,0.03); padding: 8px;">0.03</td>
-            <td style="background-color: rgba(0,0,0,0.03); padding: 8px;">0.03</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-          </tr>
-          <tr>
-            <td style="text-align: left; padding: 8px;">schläft</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.02</td>
-            <td style="background-color: rgba(0,0,0,0.03); padding: 8px;">0.03</td>
-            <td style="background-color: rgba(0,0,0,0.06); padding: 8px;">0.06</td>
-            <td style="background-color: rgba(0,0,0,0.25); padding: 8px;"><strong>0.72</strong></td>
-            <td style="background-color: rgba(0,0,0,0.04); padding: 8px;">0.05</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.03</td>
-            <td style="background-color: rgba(0,0,0,0.02); padding: 8px;">0.04</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+<div style="overflow-x: auto; margin: 24px 0; background: var(--box-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+  
+  <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px;">
+    
+    <thead>
+      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
+        <th style="padding: 10px;"></th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">The</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">black</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">cat</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">sleeps</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">on</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">the</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">rug</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600; color: var(--text);">Die</td>
+        <td style="background: rgba(var(--accent-rgb), 0.35); padding: 10px; border-radius: 6px;">0.62</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+      </tr>
+
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">schwarze</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.38); padding: 10px; border-radius: 6px;">0.68</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+      </tr>
+
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">Katze</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.42); padding: 10px; border-radius: 6px;"><strong>0.70</strong></td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+      </tr>
+
+      <tr>
+        <td style="text-align: left; padding: 10px; font-weight: 600;">schläft</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.10); padding: 10px;">0.06</td>
+        <td style="background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 6px;"><strong>0.72</strong></td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
 
     <p>Each row corresponds to a decoder query, and each column corresponds to an encoder key. The rows form probability distributions over the source positions.</p>
 
