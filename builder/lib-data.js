@@ -197,6 +197,20 @@ window.rawPages = [
     "readingTime": 8
   },
   {
+    "url": "../Library/linear-algebra/10.Applications/google_search.html",
+    "book": "linear-algebra",
+    "title": "Google search",
+    "description": "How Google",
+    "date": "2026-04-07",
+    "chapter": "Applications",
+    "lessonorder": 2,
+    "part": "  ",
+    "tier": "core",
+    "keywords": "markov matrix, pagerank, steady state, perron-frobenius, eigenvectors, google, damping factor",
+    "status": "live",
+    "readingTime": 10
+  },
+  {
     "url": "../Library/linear-algebra/2.vector-spaces-and-subspaces/Independence,Basis,Dimension.html",
     "book": "linear-algebra",
     "title": "Independence, Basis, and Dimension",
@@ -306,7 +320,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive definite matrices, cholesky factorisation",
     "status": "live",
-    "readingTime": 6
+    "readingTime": 10
   },
   {
     "url": "../Library/linear-algebra/6.eigenvalues-and-eigenvectors/6.2.html",

@@ -118,7 +118,7 @@
         async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
-  <meta name="reading_time" content="6">
+  <meta name="reading_time" content="10">
 
     <meta property="og:title" content="Eigenvectors, Diagonalisation, Spectral Theorem">
     <meta property="og:description" content="How to find eigenvectors and eigenvalues, and how to diagonalise matrices">
@@ -1065,12 +1065,151 @@ This leads to a simple and systematic
     </details>
   </div>
 </div>
-    <p><strong>Key checks.</strong></p>
-    <ul>
-      <li>\(\lambda_1+\cdots+\lambda_n=\operatorname{tr}(A)\)</li>
-      <li>\(\lambda_1\cdot\lambda_2\cdots\lambda_n=\det(A)\)</li>
-    </ul>
+ <section id="trace-det-properties">
+  <h3>Built-in Checkpoints: The Trace and Determinant</h3>
 
+  <p>
+    When you calculate eigenvalues, how do you know if you made a mistake? Fortunately, every matrix comes with two built-in "sanity checks." By just looking at the original matrix, you can instantly know the <strong>sum</strong> and the <strong>product</strong> of its eigenvalues.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Two Fundamental Identities</div>
+    <div class="math-box-body">
+      <p>For any $n \times n$ matrix $A$ with eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_n$:</p>
+      <ul>
+        <li><strong>The Sum Check:</strong> The sum of the eigenvalues equals the sum of the main diagonal (the Trace).<br> $\sum \lambda_i = \operatorname{tr}(A)$</li>
+        <li><strong>The Product Check:</strong> The product of the eigenvalues equals the Determinant.<br> $\prod \lambda_i = \det(A)$</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>
+    These aren't just lucky coincidences. They are an inevitable consequence of how polynomials work. The characteristic polynomial $p(\lambda)$ acts as a bridge, connecting the <strong>matrix entries</strong> on one side to the <strong>eigenvalues</strong> on the other. Let's see how this bridge is built.
+  </p>
+
+  <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
+
+  <h4>The Intuition: The $2 \times 2$ Stepping Stone</h4>
+  <p>
+    The easiest way to see this connection is to build the characteristic polynomial for a generic $2 \times 2$ matrix from two completely different perspectives.
+  </p>
+
+  <p>Let $A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$. Its eigenvalues are $\lambda_1$ and $\lambda_2$.</p>
+
+  <p><strong>Perspective 1: Building from the Matrix</strong></p>
+  <div class="math-display">
+    $$ p(\lambda) = \det \begin{bmatrix} a-\lambda & b \\ c & d-\lambda \end{bmatrix} $$
+  </div>
+  <div class="math-display">
+    $$ p(\lambda) = (a-\lambda)(d-\lambda) - bc $$
+  </div>
+  <div class="math-display">
+    $$ p(\lambda) = \lambda^2 - (a+d)\lambda + (ad-bc) $$
+  </div>
+  <p>Look closely at those coefficients. $(a+d)$ is exactly the <strong>Trace</strong>. $(ad-bc)$ is exactly the <strong>Determinant</strong>. So, for any $2 \times 2$ matrix:</p>
+  <div class="math-display">
+    $$ p(\lambda) = \lambda^2 - \operatorname{tr}(A)\lambda + \det(A) $$
+  </div>
+
+  <p><strong>Perspective 2: Building from the Roots</strong></p>
+  <p>If $\lambda_1$ and $\lambda_2$ are the roots of this polynomial, basic algebra tells us we can also factor it as:</p>
+  <div class="math-display">
+    $$ p(\lambda) = (\lambda_1 - \lambda)(\lambda_2 - \lambda) $$
+  </div>
+  <div class="math-display">
+    $$ p(\lambda) = \lambda^2 - (\lambda_1 + \lambda_2)\lambda + (\lambda_1 \lambda_2) $$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The "Aha!" Moment</div>
+    <div class="math-box-body">
+      <p>Both perspectives describe the exact same polynomial $p(\lambda)$. Therefore, their coefficients must match perfectly:</p>
+      <ul>
+        <li>Comparing the $\lambda$ coefficients: $\lambda_1 + \lambda_2 = \operatorname{tr}(A)$</li>
+        <li>Comparing the constant terms: $\lambda_1 \lambda_2 = \det(A)$</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
+
+  <h4>The General Proof ($n \times n$)</h4>
+
+  <p>
+    This exact same logic scales to a matrix of any size $n$. We write the characteristic polynomial $p(\lambda)$ in two ways:
+  </p>
+  <div class="math-display">
+    $$ \text{Matrix Form: } \quad p(\lambda) = \det(A - \lambda I) $$
+  </div>
+  <div class="math-display">
+    $$ \text{Root Form: } \quad p(\lambda) = (\lambda_1 - \lambda)(\lambda_2 - \lambda) \cdots (\lambda_n - \lambda) $$
+  </div>
+
+  <h5>1. Proving the Product equals the Determinant</h5>
+  <p>
+    How do you isolate the constant term of <em>any</em> polynomial? You simply plug in zero. Let's evaluate $p(0)$ for both forms.
+  </p>
+  <ul>
+    <li><strong>Matrix Form:</strong> $p(0) = \det(A - 0I) = \mathbf{\det(A)}$</li>
+    <li><strong>Root Form:</strong> $p(0) = (\lambda_1 - 0)(\lambda_2 - 0) \cdots (\lambda_n - 0) = \mathbf{\lambda_1 \lambda_2 \cdots \lambda_n}$</li>
+  </ul>
+  <p>Since both equal $p(0)$, they must equal each other:</p>
+  <div class="math-display">
+    $$ \det(A) = \prod_{i=1}^{n} \lambda_i $$
+  </div>
+
+  <h5>2. Proving the Sum equals the Trace</h5>
+  <p>
+    To find the sum, we have to look at the coefficient of the $\lambda^{n-1}$ term.
+  </p>
+  <p><strong>From the Root Form:</strong></p>
+  <p>
+    If you multiply out $(\lambda_1 - \lambda)(\lambda_2 - \lambda) \cdots (\lambda_n - \lambda)$, you get $(-1)^n \lambda^n$ as the highest-order term. The next term, containing $\lambda^{n-1}$, is formed by multiplying $n-1$ of the $-\lambda$'s with exactly one of the $\lambda_i$ constants. Adding all these combinations together gives:
+  </p>
+  <div class="math-display">
+    $$ (-1)^{n-1} (\lambda_1 + \lambda_2 + \dots + \lambda_n) \lambda^{n-1} $$
+  </div>
+
+  <p><strong>From the Matrix Form:</strong></p>
+  <p>
+    Where do the $\lambda$'s live inside $\det(A - \lambda I)$? They only exist on the main diagonal.
+  </p>
+  <div class="math-display">
+    $$
+    \begin{vmatrix}
+    a_{11}-\lambda & a_{12} & \cdots \\
+    a_{21} & a_{22}-\lambda & \cdots \\
+    \vdots & \vdots & \ddots
+    \end{vmatrix}
+    $$
+  </div>
+  <p>
+    When calculating a large determinant, the only way to multiply enough $\lambda$'s together to reach $\lambda^n$ or $\lambda^{n-1}$ is to multiply the elements strictly down the main diagonal. Any other permutation in the determinant grabs too many off-diagonal numbers (which don't have $\lambda$), meaning the power of $\lambda$ falls to $n-2$ or lower.
+  </p>
+  <p>
+    So, the highest powers of $\lambda$ come <em>exclusively</em> from expanding that diagonal product:
+  </p>
+  <div class="math-display">
+    $$ (a_{11}-\lambda)(a_{22}-\lambda) \cdots (a_{nn}-\lambda) $$
+  </div>
+  <p>
+    Expanding this product (just like we did with the roots) gives a $\lambda^{n-1}$ coefficient of:
+  </p>
+  <div class="math-display">
+    $$ (-1)^{n-1} (a_{11} + a_{22} + \dots + a_{nn}) \lambda^{n-1} $$
+  </div>
+  
+  <p><strong>The Conclusion:</strong></p>
+  <p>We equate the $\lambda^{n-1}$ coefficients from both perspectives:</p>
+  <div class="math-display">
+    $$ (-1)^{n-1}(\lambda_1 + \lambda_2 + \dots + \lambda_n) = (-1)^{n-1}(a_{11} + a_{22} + \dots + a_{nn}) $$
+  </div>
+  <p>Cancel out the $(-1)^{n-1}$, remember that the sum of the diagonal is the trace, and the proof is complete:</p>
+  <div class="math-display">
+    $$ \sum_{i=1}^{n} \lambda_i = \operatorname{tr}(A) \quad \blacksquare $$
+  </div>
+
+</section>
     <p><strong>Consequences of \(A\vec{x}=\lambda\vec{x}\).</strong></p>
     <div class="math-display">
       \[
@@ -1082,11 +1221,38 @@ This leads to a simple and systematic
 
     <p><strong>A warning on matrix addition.</strong></p>
     <p>
-      Because \((A+cI)\vec{x} = (\lambda+c)\vec{x}\), you might intuitively think that the eigenvalues of \(A+B\) are just the eigenvalues of \(A\) plus the eigenvalues of \(B\). <strong>This is false.</strong>
+      Because $(A+cI)\vec{x} = (\lambda+c)\vec{x}$, you might intuitively think that the eigenvalues of $A+B$ are just the eigenvalues of $A$ plus the eigenvalues of $B$. <strong>This is false.</strong>
     </p>
     <p>
-      Adding a multiple of the identity matrix (\(cI\)) works because the identity matrix doesn't change the direction of any vector—the eigenvectors of \(A\) are identical to the eigenvectors of \(A+cI\). But a general matrix \(B\) will have entirely different eigenvectors. Because \(A\) and \(B\) do not share the same eigenvectors, you cannot simply add their eigenvalues together.
+      Adding a multiple of the identity matrix ($cI$) works because the identity matrix doesn't change the direction of any vector—the eigenvectors of $A$ are identical to the eigenvectors of $A+cI$. But a general matrix $B$ will have entirely different eigenvectors. Because $A$ and $B$ do not share the same eigenvectors, you cannot simply add their eigenvalues together.
     </p>
+
+    <details class="toggle">
+      <summary><strong>What if $A$ and $B$ share an eigenvector?</strong></summary>
+      <p>
+        We saw that adding $cI$ works perfectly because the identity matrix shares <em>all</em> its eigenvectors with $A$. But what if a general matrix $B$ happens to share just <em>one</em> specific eigenvector $\vec{x}$ with $A$?
+      </p>
+      <p>
+        Suppose $A\vec{x} = \lambda_A\vec{x}$ and $B\vec{x} = \lambda_B\vec{x}$. If we apply the combined matrix $(A+B)$ to this specific shared vector:
+      </p>
+      <div class="math-display">
+        $$ (A+B)\vec{x} = A\vec{x} + B\vec{x} = \lambda_A\vec{x} + \lambda_B\vec{x} = (\lambda_A + \lambda_B)\vec{x} $$
+      </div>
+      <p>
+        The algebra holds! For that <strong>shared direction only</strong>, the eigenvector survives the addition, and its new eigenvalue is exactly the sum: $\lambda_A + \lambda_B$.
+      </p>
+      <p>
+        This same logic applies effortlessly to matrix multiplication. If we apply the product $AB$ to that shared vector:
+      </p>
+      <div class="math-display">
+        $$ (AB)\vec{x} = A(B\vec{x}) = A(\lambda_B\vec{x}) = \lambda_B(A\vec{x}) = \lambda_B(\lambda_A\vec{x}) = (\lambda_A\lambda_B)\vec{x} $$
+      </div>
+      <p>
+        This reveals a profound geometric truth: when matrices share an eigenvector, their transformations align perfectly along that specific axis, allowing their eigenvalues to simply add or multiply as if they were standard numbers.
+      </p>
+    </details>
+
+ 
 
     <p><strong>What if the transformation is applied twice?</strong></p>
 <p>

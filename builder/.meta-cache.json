@@ -64,6 +64,10 @@
     "hash": "84b3482647304c7353e87e2fb6f64b4a"
   },
   {
+    "path": "linear-algebra/10.Applications/google_search.html",
+    "hash": "a51fc927fd4d8a0b60b0fc420ffa13dd"
+  },
+  {
     "path": "linear-algebra/2.vector-spaces-and-subspaces/Independence,Basis,Dimension.html",
     "hash": "5dfb07d25caf23ca8872ee0e936e552e"
   },
@@ -97,7 +101,7 @@
   },
   {
     "path": "linear-algebra/6.eigenvalues-and-eigenvectors/6.1.html",
-    "hash": "18cff0a583923645b9e0c5b3bdba9373"
+    "hash": "2b57637092af149dbeb2bf7c088874fa"
   },
   {
     "path": "linear-algebra/6.eigenvalues-and-eigenvectors/6.2.html",
