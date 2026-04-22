@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <meta name="chapter_order" content="2">
+    <meta name="book_slug" content="generative">
+<title>Attention Approximation</title>
+
+<meta name="book" content="Generative Models">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="part" content="Transformer Foundations">
+<meta name="title" content="Attention Approximation">
+<meta name="description" content="The Cost of Attention and How to Reduce It--From the quadratic bottleneck of full attention to sparse patterns, low-rank decompositions, kernel approximations, IO-aware exact computation, and recurrent hybrids—the landscape of attention approximation.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-22">
+<meta name="lessonorder" content="9">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="attention approximation, sparse attention, linear attention, Linformer, Performer, FAVOR+, FlashAttention, Mamba, RWKV, BigBird, Longformer, random features, kernel methods, sliding window attention, state space models">
+<meta name="reading_time" content="22">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+<style>
+    .series-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Subtle hover effect for the whole card */
+.series-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.series-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.series-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  color: var(--text) !important; /* Forces match with article text */
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Ensures link never turns purple */
+.series-link:visited {
+  color: var(--text) !important;
+}
+
+.link-icon {
+  color: var(--accent);
+  transition: transform 0.2s ease;
+}
+
+/* Arrow slides right when you hover the title */
+.series-link:hover .link-icon {
+  transform: translateX(5px);
+}
+
+.series-link:hover .link-title {
+  color: var(--accent);
+}
+</style>
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <meta property="og:title" content="The Cost of Attention and How to Reduce It">
+    <meta property="og:description" content="From the quadratic bottleneck of full attention to sparse patterns, low-rank decompositions, kernel approximations, IO-aware exact computation, and recurrent hybrids—the landscape of attention approximation.">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/01.generative-models/02.autoregressive-models/09.attention-approximation.html">
+
+    <meta property="og:title" content="The Cost of Attention and How to Reduce It">
+    <meta property="og:description" content="From the quadratic bottleneck of full attention to sparse patterns, low-rank decompositions, kernel approximations, IO-aware exact computation, and recurrent hybrids—the landscape of attention approximation.">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/01.generative-models/02.autoregressive-models/09.attention-approximation.html">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/attention-approximation.png">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<div class="series-card">
+  <div class="series-info">
+    <span class="series-label">CONTINUATION FROM</span>
+    <a href="attention.html" class="series-link">
+      <span class="link-title">Attention Mechanisms</span>
+      <svg class="link-icon" viewBox="0 0 24 24" width="20" height="20">
+        <path d="M5 12h14m-7-7 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+</div>
+<h2>The Quadratic Problem</h2>
+
+<p>Attention derives its expressive power from being unrestricted: every token attends to every other token. For a sequence of length $n$, this requires computing the matrix $QK^\top \in \mathbb{R}^{n \times n}$. Consequently, both the computational cost and the memory footprint scale as $O(n^2)$.</p>
+
+<p>This scaling becomes significant even at moderate sequence lengths. For $n = 512$, the attention matrix contains $2.6 \times 10^5$ entries. For $n = 4096$, it increases to $1.68 \times 10^7$. For $n = 32768$, it exceeds $10^9$. More generally, increasing the sequence length by a factor of $k$ increases the cost by a factor of $k^2$.</p>
+
+<p>The implication is immediate. The limitation in modern Transformer systems is not the ability to model dependencies, but the cost of computing them. As $n$ grows, the quadratic term dominates, constraining context length, increasing latency, and placing significant pressure on memory.</p>
+
+<p>This phenomenon is referred to as the <em>quadratic bottleneck</em>. It is a direct consequence of the assumption that all pairwise interactions must be computed explicitly.</p>
+
+<p>This raises a natural question: is it necessary to compute all $n^2$ interactions, or is there structure in attention that can be exploited to reduce this cost?</p>
+
+<div style="overflow-x: auto; margin: 24px 0; background: var(--box-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+  
+  <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px;">
+    
+    <thead>
+      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
+        <th style="padding: 10px;"></th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">The</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">black</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">cat</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">sleeps</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">on</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">the</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">rug</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600; color: var(--text);">Die</td>
+        <td style="background: rgba(var(--accent-rgb), 0.35); padding: 10px; border-radius: 6px;">0.62</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+      </tr>
+
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">schwarze</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.38); padding: 10px; border-radius: 6px;">0.68</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+      </tr>
+
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">Katze</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.42); padding: 10px; border-radius: 6px;"><strong>0.70</strong></td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+      </tr>
+
+      <tr>
+        <td style="text-align: left; padding: 10px; font-weight: 600;">schläft</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.10); padding: 10px;">0.06</td>
+        <td style="background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 6px;"><strong>0.72</strong></td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+<p>Looking at the table, a clear pattern emerges. Although the attention matrix $A = \text{softmax}(QK^\top)$ is formally dense, most of its entries are very small. Each token assigns significant weight to only a few relevant tokens—for example, <em>Die</em> aligns strongly with <em>The</em>, <em>Katze</em> with <em>cat</em>, and <em>schläft</em> with <em>sleeps</em>—while the remaining values are close to zero.</p>
+
+<p>This reveals an important property of self-attention: despite computing all $n^2$ interactions, only a small subset meaningfully contributes to the final representation. In practice, self-attention behaves as an <em>effectively sparse</em> system, where most of the mass is concentrated in a few entries per row.</p>
+
+<p>This observation motivates a natural question: if only a small fraction of interactions matter, is it necessary to compute all of them?</p>
+
+<h2>From Encoder–Decoder to Decoder-Only Attention</h2>
+
+<p>In encoder–decoder Transformers, attention operates over two sequences: the encoder processes the entire input, and the decoder attends to both previously generated tokens and the encoded representation. This allows flexible alignment between input and output sequences, as seen in translation tasks.</p>
+
+<p>In contrast, decoder-only models operate under a stricter constraint: each token can attend only to tokens that come before it. Despite this limitation, the same sparsity pattern persists—each token still focuses on only a small subset of prior tokens.</p>
+
+<p>Consider the sequence “i was walking through the park yesterday evening when i suddenly saw a dog chasing a ball and it was extremely”. The next word is likely something like <em>fast</em>, and this prediction depends primarily on the word <em>chasing</em> in the middle of the sentence, which signals motion. Most of the surrounding context—such as <em>walking</em>, <em>park</em>, or <em>yesterday evening</em>—adds little to this specific prediction.</p>
+
+<div style="overflow-x: auto; margin: 24px 0; background: var(--box-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+  
+  <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px;">
+    
+    <thead>
+      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
+        <th style="padding: 10px;"></th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">i</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">was</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">walking</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">through</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">the</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">park</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">yesterday</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">evening</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">when</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">i</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">saw</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">a</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">dog</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">chasing</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">a</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">ball</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">and</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">it</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">was</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">extremely</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td style="text-align: left; padding: 10px; font-weight: 600;">fast</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.02); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.02); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.02); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.01); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.08); padding: 10px;">0.06</td>
+        <td style="background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 6px;"><strong>0.48</strong></td>
+        <td style="background: rgba(var(--accent-rgb), 0.02); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.10); padding: 10px;">0.08</td>
+        <td style="background: rgba(var(--accent-rgb), 0.02); padding: 10px;">0.01</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.20); padding: 10px;">0.20</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Here, the prediction of <em>fast</em> depends primarily on the word <em>chasing</em>, which appears in the middle of the sequence and encodes the key semantic signal. A few nearby tokens such as <em>dog</em>, <em>ball</em>, and the immediate context <em>extremely</em> also contribute. However, most of the sentence—despite being fully attended to—has negligible influence. This highlights an important property of self-attention: even across long sequences, only a small subset of tokens meaningfully affect the prediction, while the majority receive very low attention weights, reinforcing the idea of effective sparsity.</p>
+
+
+<h2>Sparse Attention: Only Attend Where It Matters</h2>
+
+<p>The core idea of sparse attention is to fix, for each query position, a subset of key positions it is permitted to attend to. All other attention weights are forced to zero — or equivalently, never computed at all. The computational cost becomes $O(n \cdot s)$ where $s$ is the number of attended positions per query, rather than $O(n^2)$.</p>
+
+<p>The question is how to choose these subsets.</p>
+
+<h3>Local Windows</h3>
+
+<p>The simplest pattern is a sliding local window: each token attends only to the $w$ tokens immediately surrounding it. This is the attention analogue of a convolutional receptive field. Within the window, attention is fully computed. Outside it, nothing is computed.</p>
+
+<p>Formally, token $i$ attends to positions $j$ satisfying</p>
+<div class="math-display">
+  $$|i - j| \le \left\lfloor w/2 \right\rfloor.$$
+</div>
+
+<p>Each query attends to exactly $w$ keys, so the total cost is $O(nw)$. For a fixed window size, this is linear in sequence length.</p>
+
+<p>The obvious limitation is that tokens separated by more than $w$ positions cannot interact directly. Information about a word at position $1$ can only reach position $n$ by propagating through intermediate positions across multiple layers. With $L$ layers and window size $w$, the effective receptive field grows as $O(Lw)$. For long documents this may be insufficient, or may require very many layers.</p>
+
+
+
+<h3>Strided Patterns</h3>
+
+<p>One way to extend reach without extending the window is to intersperse a strided pattern. In addition to local attention, some tokens also attend to positions that are multiples of a stride $\delta$ away:</p>
+<div class="math-display">
+  $$j \equiv 0 \pmod{\delta}.$$
+</div>
+
+<p>A small number of "global" tokens — strided anchors — collect and redistribute long-range information. The local tokens handle nearby context; the strided tokens propagate information across the sequence. This two-tier structure is the basis of the pattern used in the original sparse Transformer.</p>
+
+<h3>Global Tokens</h3>
+
+<p>A complementary idea is to designate a small set of positions as globally attending: they attend to and are attended to by every other position, regardless of local or strided patterns. These global tokens serve as a summary bus — any token that needs long-range information can route it through a global token.</p>
+
+<p>The global tokens might correspond to special symbols prepended to the input (as in the $\texttt{[CLS]}$ token of BERT-style models), or they might be selected dynamically based on content.</p>
+
+<h3>Longformer</h3>
+
+<p>Longformer combines all three components: a local sliding window for most tokens, task-specific global tokens (for example, the $\texttt{[CLS]}$ token for classification, or question tokens for question answering), and the understanding that the combination provides $O(n)$ complexity while enabling both local and global information flow.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Longformer Attention Pattern</div>
+  <div class="math-box-body">
+    <p>For a sequence of length $n$, Longformer assigns each token $i$ an attention neighbourhood</p>
+    <div class="math-display">
+      $$\mathcal{N}(i) = \underbrace{\{j : |i-j| \le w/2\}}_{\text{local window}} \cup \underbrace{G}_{\text{global tokens}}$$
+    </div>
+    <p>where $G \subset \{1,\dots,n\}$ is a small set of globally attending positions. Tokens in $G$ additionally attend to all positions:</p>
+    <div class="math-display">
+      $$\mathcal{N}(g) = \{1,\dots,n\} \quad \text{for } g \in G.$$
+    </div>
+    <p>Total attention operations: $O(nw + |G| \cdot n) = O(n)$ for fixed $w$ and $|G|$.</p>
+  </div>
+</div>
+
+<h3>BigBird</h3>
+
+<p>BigBird adds a third component to the Longformer pattern: a random sparse component. Each token also attends to a small number of randomly selected positions.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: BigBird Attention Pattern</div>
+  <div class="math-box-body">
+    <p>BigBird attention combines three components for each query position $i$:</p>
+    <div class="math-display">
+      $$\mathcal{N}(i) = \underbrace{\{j : |i-j| \le w/2\}}_{\text{local}} \cup \underbrace{G}_{\text{global}} \cup \underbrace{R_i}_{\text{random}}$$
+    </div>
+    <p>where $R_i$ is a set of $r$ positions sampled uniformly at random (fixed after sampling, not re-sampled per forward pass). The random component ensures that, with high probability, any two positions are connected by a short path through the attention graph, preserving the expressive properties of full attention theoretically.</p>
+  </div>
+</div>
+
+<p>The theoretical contribution of BigBird is to show that the combination of local, global, and random attention is a universal approximator — in a precise graph-theoretic sense — and that it can simulate any function that full attention can. The random component, even though small, closes the connectivity gaps that local and global patterns leave.</p>
+
+<h3>The Limitation of Fixed Patterns</h3>
+
+<p>All sparse attention methods based on fixed structural patterns share a common weakness: the pattern is decided before seeing the input. The model cannot choose to attend long-range for one sentence and locally for another. The sparsity structure is a hard prior baked into the architecture.</p>
+
+<p>Content-based sparse attention — where the model dynamically selects which positions to attend to based on the actual representations — is more flexible but introduces a different problem: finding the top-$k$ most relevant keys for each query efficiently, without computing all $n$ dot products. This leads to approximate nearest-neighbour approaches, which are explored in more specialised literature.</p>
+
+
+<h2>The Low-Rank Observation</h2>
+
+<p>Sparse attention reduces cost by zeroing out attention weights. A different approach is to ask whether the full attention matrix, even when all weights are non-zero, has useful structure that permits a more compact representation.</p>
+
+<p>Empirical studies of trained Transformers consistently find that the attention matrices in many layers are approximately low-rank: the matrix $A = \mathrm{softmax}(QK^\top / \sqrt{d_k})$ can be well approximated by a product of two thin matrices. This makes intuitive sense — the information that needs to flow between positions can often be described in a space of dimension much smaller than $n$.</p>
+
+<p>If the attention matrix $A \in \mathbb{R}^{n \times n}$ can be approximated as $A \approx \tilde{A}_1 \tilde{A}_2^\top$ where $\tilde{A}_1, \tilde{A}_2 \in \mathbb{R}^{n \times k}$ for some $k \ll n$, then the output</p>
+<div class="math-display">
+  $$AV \approx \tilde{A}_1 (\tilde{A}_2^\top V)$$
+</div>
+<p>can be computed in $O(nk)$ rather than $O(n^2)$ — first compute $\tilde{A}_2^\top V \in \mathbb{R}^{k \times d_v}$, then multiply by $\tilde{A}_1$. If $k$ is small, this is a large saving.</p>
+
+<p>The practical challenge is how to obtain a good low-rank approximation without first forming the full $n \times n$ matrix.</p>
+
+
+<h2>Linformer: Project the Keys and Values</h2>
+
+<p>Linformer takes a direct approach. Rather than approximating the attention matrix after it is formed, it reduces the dimensionality of the keys and values <em>before</em> the dot product is computed.</p>
+
+<p>Introduce two learned projection matrices $E, F \in \mathbb{R}^{k \times n}$ that project the $n$ key and value vectors down to $k$ representatives:</p>
+<div class="math-display">
+  $$\tilde{K} = E K \in \mathbb{R}^{k \times d_k}, \qquad \tilde{V} = F V \in \mathbb{R}^{k \times d_v}.$$
+</div>
+
+<p>Attention is then computed between the $n$ queries and only $k$ keys:</p>
+<div class="math-display">
+  $$\mathrm{LinformerAttention}(Q,K,V) = \mathrm{softmax}\!\left(\frac{Q\tilde{K}^\top}{\sqrt{d_k}}\right)\tilde{V}.$$
+</div>
+
+<p>The attention matrix is now $n \times k$ rather than $n \times n$. Total cost: $O(nk)$. If $k$ is chosen as a fixed constant (or grows as $O(\log n)$), the complexity is linear in sequence length.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Linformer Attention</div>
+  <div class="math-box-body">
+    <p>Let $E, F \in \mathbb{R}^{k \times n}$ be learned projection matrices. Define projected keys and values:</p>
+    <div class="math-display">
+      $$\tilde{K} = EK, \qquad \tilde{V} = FV.$$
+    </div>
+    <p>Linformer attention is</p>
+    <div class="math-display">
+      $$\mathrm{Attention}(Q, \tilde{K}, \tilde{V}) = \mathrm{softmax}\!\left(\frac{Q\tilde{K}^\top}{\sqrt{d_k}}\right)\tilde{V}.$$
+    </div>
+    <p>The $n \times n$ attention matrix is replaced by an $n \times k$ matrix, reducing complexity from $O(n^2)$ to $O(nk)$.</p>
+  </div>
+</div>
+
+<p>The justification rests on the Johnson–Lindenstrauss lemma: a random projection from $\mathbb{R}^n$ to $\mathbb{R}^k$ with $k = O(\log n / \epsilon^2)$ approximately preserves pairwise distances with high probability. Linformer's learned projections are more powerful than random ones, but the same intuition applies: the $n$ key vectors can be faithfully summarised by $k$ projected representatives.</p>
+
+<p>The limitation is that $E$ and $F$ are fixed for a given sequence length. This makes Linformer poorly suited to variable-length inputs at test time — the projections must be relearned or interpolated for new lengths. This is a practical constraint that has limited adoption.</p>
+
+
+<h2>Kernel Attention: Linearising the Softmax</h2>
+
+<p>The quadratic cost of attention does not come from the queries, keys, or values individually. It comes from the $n \times n$ matrix that arises when every query is compared with every key. If this matrix could somehow be avoided — if the computation could be reorganised so that the keys and values are aggregated first and then queried — the cost would become linear.</p>
+
+<p>To see why this is possible in principle, write the attention output at position $i$ as</p>
+<div class="math-display">
+  $$\mathrm{Attn}(q_i, K, V)_i = \frac{\sum_{j} \exp(q_i^\top k_j / \sqrt{d_k})\, v_j}{\sum_{j} \exp(q_i^\top k_j / \sqrt{d_k})}.$$
+</div>
+
+<p>The softmax function $\exp(q^\top k / \sqrt{d_k})$ is the obstacle. It couples $q_i$ and $k_j$ in a way that prevents independent aggregation.</p>
+
+<p>But what if the exponential could be decomposed as a product of two functions, one depending only on the query and one depending only on the key?</p>
+<div class="math-display">
+  $$\exp\!\left(\frac{q^\top k}{\sqrt{d_k}}\right) \approx \phi(q)^\top \phi(k)$$
+</div>
+<p>for some feature map $\phi : \mathbb{R}^{d_k} \to \mathbb{R}^r$. If such a decomposition existed, the attention output becomes</p>
+<div class="math-display">
+  $$\mathrm{Attn}(q_i, K, V) \approx \frac{\phi(q_i)^\top \left(\sum_{j} \phi(k_j) v_j^\top\right)}{\phi(q_i)^\top \left(\sum_{j} \phi(k_j)\right)}.$$
+</div>
+
+<p>The key insight is that the sums $\sum_j \phi(k_j) v_j^\top$ and $\sum_j \phi(k_j)$ do not depend on $i$. They can be computed once by iterating over the sequence, and then each query $q_i$ can retrieve its output via a single inner product. The total cost is $O(nr)$ where $r$ is the dimension of the feature map.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Linear (Kernel) Attention</div>
+  <div class="math-box-body">
+    <p>Let $\phi : \mathbb{R}^{d_k} \to \mathbb{R}^r$ be a feature map such that $\phi(q)^\top \phi(k) \approx \exp(q^\top k / \sqrt{d_k})$. Linear attention is defined as</p>
+    <div class="math-display">
+      $$\mathrm{LinearAttn}(q_i, K, V) = \frac{\phi(q_i)^\top S}{\phi(q_i)^\top z}$$
+    </div>
+    <p>where</p>
+    <div class="math-display">
+      $$S = \sum_{j=1}^n \phi(k_j) v_j^\top \in \mathbb{R}^{r \times d_v}, \qquad z = \sum_{j=1}^n \phi(k_j) \in \mathbb{R}^r.$$
+    </div>
+    <p>$S$ and $z$ are computed once in $O(nr)$. Each query then retrieves its output in $O(r)$. Total complexity: $O(nr)$, linear in sequence length.</p>
+  </div>
+</div>
+
+<p>This reformulation transforms attention from a matrix operation into something that looks much more like a recurrent computation: maintain a running summary $(S, z)$, update it for each new key-value pair, and query it for each output. This recurrent interpretation will reappear when we discuss Mamba and RWKV.</p>
+
+<p>The central question is: what should $\phi$ be?</p>
+
+
+<h2>Random Features and FAVOR+</h2>
+
+<p>The Gaussian kernel $\exp(x^\top y)$ arises naturally from the dot-product attention formula. The theory of random features, developed by Rahimi and Recht, provides a classical way to approximate shift-invariant kernels using random projections.</p>
+
+<p>For the specific kernel $k(q, k) = \exp(q^\top k)$, the standard random features construction applies the identity</p>
+<div class="math-display">
+  $$\exp(q^\top k) = \mathbb{E}_{\omega \sim \mathcal{N}(0,I)}\!\left[\exp\!\left(\omega^\top q - \tfrac{1}{2}\|q\|^2\right)\exp\!\left(\omega^\top k - \tfrac{1}{2}\|k\|^2\right)\right].$$
+</div>
+
+<p>Sampling $r$ random vectors $\omega_1,\dots,\omega_r \sim \mathcal{N}(0,I)$ and defining</p>
+<div class="math-display">
+  $$\phi(x) = \frac{1}{\sqrt{r}} \left(\exp(\omega_1^\top x - \tfrac{1}{2}\|x\|^2),\, \dots,\, \exp(\omega_r^\top x - \tfrac{1}{2}\|x\|^2)\right)$$
+</div>
+<p>gives an unbiased estimator: $\mathbb{E}[\phi(q)^\top\phi(k)] = \exp(q^\top k)$.</p>
+
+<p>But this estimator can take negative values and has high variance. Negative values are problematic because attention weights must be non-negative for the weighted average to be interpretable.</p>
+
+<p>The Performer paper introduced FAVOR+ (Fast Attention Via positive Orthogonal Random features), which addresses both issues.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: FAVOR+ Feature Map</div>
+  <div class="math-box-body">
+    <p>Let $\omega_1,\dots,\omega_r$ be random vectors drawn from $\mathcal{N}(0, I_{d_k})$ and then orthogonalised (using the Gram–Schmidt process or a random orthogonal matrix scaled by $\sqrt{d_k/r}$). Define the positive feature map</p>
+    <div class="math-display">
+      $$\phi(x) = \frac{\exp(-\|x\|^2/2)}{\sqrt{r}} \Big(\exp(\omega_1^\top x),\, \dots,\, \exp(\omega_r^\top x)\Big).$$
+    </div>
+    <p>Then $\mathbb{E}[\phi(q)^\top\phi(k)] = \exp(q^\top k / \sqrt{d_k})$, all entries of $\phi$ are strictly positive, and the orthogonality of the $\omega_i$ reduces variance compared to i.i.d.\ sampling.</p>
+  </div>
+</div>
+
+<p>The positive entries guarantee that attention weights approximate true probabilities. The orthogonal random features reduce the variance of the estimator, meaning fewer random features $r$ are needed to achieve a given approximation quality. In practice, $r = O(d_k \log d_k)$ features suffice for a good approximation.</p>
+
+<p>The Performer therefore achieves $O(nr)$ attention with $r \ll n$, providing a theoretically grounded approximation to full softmax attention with guaranteed positive weights and controlled error.</p>
+
+<p><strong>The trade-off.</strong> Random feature approximations introduce stochastic error. The approximation is unbiased but not exact, and the variance is non-zero. For tasks where the sharpness of attention patterns matters — where a few positions must receive nearly all the weight — the approximation may be significantly worse than full attention. The softmax can produce very peaked distributions; the random feature estimate tends to smooth these out.</p>
+
+
+<h2>FlashAttention: Exact Attention, Faster</h2>
+
+<p>All the methods discussed so far approximate attention. FlashAttention takes a different stance: it computes <em>exact</em> attention but reorganises the computation to avoid the bottleneck that makes full attention slow in practice.</p>
+
+<p>The bottleneck is not floating-point operations. Modern GPUs can perform matrix multiplications at extraordinary speed. The bottleneck is memory bandwidth — the cost of reading and writing data between different levels of the GPU's memory hierarchy.</p>
+
+<p>A GPU has two main memory regions relevant here. High bandwidth memory (HBM, sometimes called global memory) is large — tens of gigabytes — but relatively slow to access. On-chip SRAM (shared memory and registers) is tiny — a few megabytes per streaming multiprocessor — but extremely fast.</p>
+
+<p>Standard attention proceeds as follows. The full $n \times n$ matrix $S = QK^\top / \sqrt{d_k}$ is computed and written to HBM. The softmax is applied row-wise, requiring reading $S$ back from HBM. The result $P = \mathrm{softmax}(S)$ is written to HBM again. Finally, $O = PV$ is computed by reading $P$ and $V$ from HBM.</p>
+
+<p>Every pass requires moving the $n \times n$ matrix in and out of HBM. For large $n$ this dominates the runtime even though the arithmetic cost is modest. Standard attention is <em>memory-bound</em>, not compute-bound.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Key Insight: FlashAttention</div>
+  <div class="math-box-body">
+    <p>FlashAttention computes exact attention without ever materialising the full $n \times n$ attention matrix in HBM. It achieves this through two ideas:</p>
+    <ul>
+      <li><strong>Tiling.</strong> The query, key, and value matrices are partitioned into blocks small enough to fit in on-chip SRAM. Attention is computed block by block, entirely within SRAM.</li>
+      <li><strong>Online softmax.</strong> Softmax requires the row maximum and row sum to normalise. FlashAttention maintains running statistics $(m_i, \ell_i)$ — the current maximum and sum — and updates them as each block of keys is processed, without storing the full row.</li>
+    </ul>
+  </div>
+</div>
+
+<p>The online softmax correction works as follows. Suppose the row score for query $i$ and key block $t$ yields raw scores $s^{(t)}$. Maintaining</p>
+<div class="math-display">
+  $$m_i^{(t)} = \max(m_i^{(t-1)},\, \max_j s_{ij}^{(t)})$$
+</div>
+<p>and</p>
+<div class="math-display">
+  $$\ell_i^{(t)} = e^{m_i^{(t-1)} - m_i^{(t)}} \ell_i^{(t-1)} + \sum_j e^{s_{ij}^{(t)} - m_i^{(t)}}$$
+</div>
+<p>allows the running output accumulator to be rescaled correctly as new blocks are processed. At the end of all blocks, the accumulated output is divided by $\ell_i^{(\text{final})}$ to obtain the true softmax-normalised result.</p>
+
+<p>The arithmetic complexity remains $O(n^2)$ — FlashAttention does not reduce the number of floating-point operations. What it reduces is memory reads and writes. The $n \times n$ matrix is never stored; only $O(n)$ memory is needed for the tiled blocks and running statistics. HBM accesses drop from $O(n^2)$ to $O(n)$.</p>
+
+<div class="math-box">
+  <div class="math-box-label">FlashAttention: Complexity Summary</div>
+  <div class="math-box-body">
+    <p>Let $M$ denote the SRAM capacity (in elements). FlashAttention achieves:</p>
+    <div class="math-display">
+      $$\text{FLOPs} = O(n^2 d), \qquad \text{HBM accesses} = O\!\left(\frac{n^2 d^2}{M}\right).$$
+    </div>
+    <p>Standard attention requires $O(n^2)$ HBM accesses to store and reload the $n \times n$ matrix. FlashAttention reduces this by a factor of $M/d$. In practice this yields a 2–4× wall-clock speedup for typical sequence lengths, with larger gains as sequence length grows.</p>
+    <p>The output is <strong>mathematically identical</strong> to standard attention — FlashAttention is not an approximation.</p>
+  </div>
+</div>
+
+<p>FlashAttention 2 further improved performance by reducing non-matrix-multiplication FLOPs, changing the parallelisation strategy to reduce communication between thread blocks, and achieving close to theoretical peak GPU throughput. FlashAttention 3 extended this to newer hardware with asynchronous memory pipelines.</p>
+
+<p>The broader lesson is that algorithmic complexity alone does not determine wall-clock performance. An $O(n^2)$ algorithm that is memory-efficient can be faster in practice than an $O(n \log n)$ algorithm that thrashes memory. Hardware awareness is part of algorithm design.</p>
+
+
+<h2>Sliding Window and Recurrent Hybrids</h2>
+
+<p>The kernel-based reformulation of attention — maintaining a running summary $(S, z)$ updated token by token — looks structurally identical to a recurrent neural network. This is not a coincidence. It reveals a deep connection between the attention mechanism and recurrent computation.</p>
+
+<p>Both compute a sequence of outputs from a sequence of inputs. Attention does so by attending over the entire past simultaneously, at cost $O(n^2)$ for training but $O(n)$ per step at inference (once all keys are cached). A pure recurrence compresses the past into a fixed-size hidden state, doing so at $O(n)$ for training and $O(1)$ per step for inference. The two paradigms make opposite trade-offs.</p>
+
+<p>Recent architectures have explored whether the best properties of both can be combined.</p>
+
+<h3>Sliding Window Attention</h3>
+
+<p>The simplest hybrid is to restrict attention to a sliding window of the $w$ most recent tokens, which we saw as a component of sparse attention. During inference on long sequences, only the last $w$ key-value pairs need to be kept in the KV cache — the cache does not grow without bound. This makes long-document inference tractable even without changing the fundamental attention computation.</p>
+
+<h3>Mamba and Structured State Spaces</h3>
+
+<p>State space models (SSMs) are a classical family of sequence models from control theory. A linear SSM transforms an input sequence $x_1,\dots,x_n$ into an output sequence via a hidden state:</p>
+<div class="math-display">
+  $$h_t = A h_{t-1} + B x_t, \qquad y_t = C h_t.$$
+</div>
+
+<p>The matrices $A$, $B$, $C$ are the parameters of the model. For a fixed choice of these matrices, the computation can be expressed equivalently as a convolution over the input sequence — which is highly parallelisable during training — or as a recurrence — which is $O(1)$ per step during inference. This duality is the key advantage of SSMs over Transformers.</p>
+
+<p>The limitation of classical SSMs is that $A$, $B$, $C$ are fixed regardless of the input content. The model applies the same dynamics to every input sequence. This is unlike attention, where the weights depend on the actual content of the input.</p>
+
+<p>Mamba introduces <em>selective</em> state spaces: the matrices $B$, $C$, and especially a discretisation parameter $\Delta$ are made functions of the current input $x_t$. The model can choose, at each step, how much of the current input to absorb into the state and how much of the state to forget, based on what the input actually contains.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Mamba: Selective State Space Model</div>
+  <div class="math-box-body">
+    <p>For input $x_t \in \mathbb{R}^d$, Mamba computes input-dependent parameters:</p>
+    <div class="math-display">
+      $$B_t = \mathrm{Linear}_B(x_t), \quad C_t = \mathrm{Linear}_C(x_t), \quad \Delta_t = \mathrm{softplus}(\mathrm{Linear}_\Delta(x_t)).$$
+    </div>
+    <p>The fixed matrix $A$ is discretised using $\Delta_t$ to give $\bar{A}_t, \bar{B}_t$ (via zero-order hold or Euler discretisation). The hidden state evolves as</p>
+    <div class="math-display">
+      $$h_t = \bar{A}_t h_{t-1} + \bar{B}_t x_t, \qquad y_t = C_t h_t.$$
+    </div>
+    <p>Because $B_t$, $C_t$, $\Delta_t$ depend on $x_t$, the model can selectively retain or discard information based on content — analogous to gating in LSTMs, but operating over a structured state space. Training cost: $O(n)$ via a parallel scan algorithm. Inference cost: $O(1)$ per step.</p>
+  </div>
+</div>
+
+<p>The parallel scan algorithm is the key to efficient training. A scan is an operation of the form $h_t = f(h_{t-1}, x_t)$ computed for all $t$ simultaneously. When $f$ is associative (which holds for the linear SSM update), the scan can be parallelised using a divide-and-conquer tree reduction in $O(\log n)$ depth and $O(n)$ total work.</p>
+
+<p>Mamba therefore achieves both training parallelism and $O(1)$ inference per step — the same two properties that made Transformers attractive for training and RNNs attractive for inference, but previously not available in the same model.</p>
+
+<p>The trade-off is expressiveness. Mamba's hidden state has fixed size $d_{\text{state}}$, which must compress all relevant past context. Attention, by contrast, retains the exact representations of all past tokens (in the KV cache) and can retrieve any of them precisely. For tasks that require precise recall of distant tokens — such as copying information from early in a long document — attention has an inherent advantage. For tasks that require integrating information over long sequences without needing exact recall, Mamba's compressed state may suffice.</p>
+
+<h3>RWKV: The Recurrent Reinterpretation of Attention</h3>
+
+<p>RWKV (Receptance Weighted Key Value) approaches the problem from the opposite direction: starting from Transformers and rewriting attention in a form that can be computed as a linear recurrence.</p>
+
+<p>In standard linear attention, the output at position $i$ is</p>
+<div class="math-display">
+  $$y_i = \frac{\sum_{j \le i} \phi(q_i)^\top \phi(k_j)\, v_j}{\sum_{j \le i} \phi(q_i)^\top \phi(k_j)}.$$
+</div>
+
+<p>If $\phi$ is chosen to be a simple elementwise exponential (after suitable transformations), this expression can be rewritten as a recurrence. RWKV adds an exponential decay factor $w$ that causes older information to be downweighted:</p>
+<div class="math-display">
+  $$y_t = \frac{e^{u + k_t} v_t + \sum_{j < t} e^{(t-1-j)w + k_j} v_j}{e^{u + k_t} + \sum_{j < t} e^{(t-1-j)w + k_j}}$$
+</div>
+
+<p>where $u$ is a per-channel parameter that up-weights the current token relative to past ones. This is equivalent to maintaining a pair of running accumulators $(a_t, b_t)$ updated at each step — a linear recurrence.</p>
+
+<div class="math-box">
+  <div class="math-box-label">RWKV: WKV Operator</div>
+  <div class="math-box-body">
+    <p>Define running accumulators</p>
+    <div class="math-display">
+      $$a_t = e^{-w} a_{t-1} + e^{k_{t-1}} v_{t-1}, \qquad b_t = e^{-w} b_{t-1} + e^{k_{t-1}}.$$
+    </div>
+    <p>The output at step $t$ is</p>
+    <div class="math-display">
+      $$y_t = \frac{e^{u+k_t} v_t + a_t}{e^{u+k_t} + b_t}.$$
+    </div>
+    <p>This can be computed in a single pass over the sequence with $O(1)$ work per step. During training, a parallel scan computes all $y_t$ simultaneously in $O(n)$ with $O(\log n)$ depth.</p>
+  </div>
+</div>
+
+<p>Like Mamba, RWKV achieves $O(n)$ training via a parallel scan and $O(1)$ inference per step. Unlike Mamba, it is derived directly from the attention framework rather than from control theory, which makes it easier to reason about in terms familiar from Transformers. The decay factor $w$ gives it a temporal prior: recent tokens are weighted more heavily than distant ones unless the keys actively compensate.</p>
+
+<p>RWKV 4 and later versions use more sophisticated channel-mixing layers and time-mixing formulations that increase expressiveness, while preserving the linear recurrence structure.</p>
+
+
+<h2>Comparing the Strategies</h2>
+
+<p>The five strategies surveyed here attack the quadratic bottleneck from different angles. It is worth collecting their properties side by side.</p>
+
+<div style="overflow-x: auto; margin-top: 20px; margin-bottom: 20px;">
+  <table style="width: 100%; border-collapse: collapse; text-align: left; border-top: 2px solid black; border-bottom: 2px solid black; font-size: 0.92em;">
+    <thead>
+      <tr style="border-bottom: 1px solid black;">
+        <th style="padding: 10px 8px;">Method</th>
+        <th style="padding: 10px 8px;">Train complexity</th>
+        <th style="padding: 10px 8px;">Inference (per step)</th>
+        <th style="padding: 10px 8px;">Exact attention?</th>
+        <th style="padding: 10px 8px;">Key trade-off</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+        <td style="padding: 8px;"><strong>Full attention</strong></td>
+        <td style="padding: 8px;">$O(n^2 d)$</td>
+        <td style="padding: 8px;">$O(n d)$</td>
+        <td style="padding: 8px;">Yes</td>
+        <td style="padding: 8px;">Quadratic cost, unbounded KV cache</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+        <td style="padding: 8px;"><strong>Sparse (Longformer, BigBird)</strong></td>
+        <td style="padding: 8px;">$O(n w d)$</td>
+        <td style="padding: 8px;">$O(w d)$</td>
+        <td style="padding: 8px;">Within pattern</td>
+        <td style="padding: 8px;">Fixed structure, no content-adaptive routing</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+        <td style="padding: 8px;"><strong>Linformer</strong></td>
+        <td style="padding: 8px;">$O(n k d)$</td>
+        <td style="padding: 8px;">$O(k d)$</td>
+        <td style="padding: 8px;">No (low-rank approx.)</td>
+        <td style="padding: 8px;">Fixed $n$ at train time; poor generalisation to new lengths</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+        <td style="padding: 8px;"><strong>Performer (FAVOR+)</strong></td>
+        <td style="padding: 8px;">$O(n r d)$</td>
+        <td style="padding: 8px;">$O(r d)$</td>
+        <td style="padding: 8px;">No (random approx.)</td>
+        <td style="padding: 8px;">Variance on peaked distributions; stochastic error</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+        <td style="padding: 8px;"><strong>FlashAttention</strong></td>
+        <td style="padding: 8px;">$O(n^2 d)$</td>
+        <td style="padding: 8px;">$O(n d)$</td>
+        <td style="padding: 8px;">Yes (exact)</td>
+        <td style="padding: 8px;">Memory-efficient; still quadratic FLOPs</td>
+      </tr>
+      <tr style="border-bottom: 1px solid rgba(0,0,0,0.1);">
+        <td style="padding: 8px;"><strong>Mamba</strong></td>
+        <td style="padding: 8px;">$O(n d)$</td>
+        <td style="padding: 8px;">$O(d_{\text{state}})$</td>
+        <td style="padding: 8px;">No (compressed state)</td>
+        <td style="padding: 8px;">Fixed-size state; lossy for exact recall</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px;"><strong>RWKV</strong></td>
+        <td style="padding: 8px;">$O(n d)$</td>
+        <td style="padding: 8px;">$O(d)$</td>
+        <td style="padding: 8px;">No (decay + linear)</td>
+        <td style="padding: 8px;">Recency bias; limited long-range recall</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>No single method dominates. FlashAttention is the dominant choice for practical training of standard Transformers because it is exact and the hardware savings are large. Sparse attention patterns such as those in Longformer are the preferred approach when the task has clear local structure and the document lengths demand linear scaling. Mamba and RWKV are preferred when constant-time inference matters more than exact recall.</p>
+
+<p>For most production large language models trained today, the combination of FlashAttention (for exact efficient computation during training) with grouped-query attention (a reduction in the number of KV heads) and sliding window caching (for inference) represents the practical state of the art.</p>
+
+
+<h2>The Recall–Efficiency Trade-off</h2>
+
+<p>A unifying principle runs through all these methods. The fundamental tension is between two desiderata:</p>
+
+<p><strong>Exact recall.</strong> Given a query, can the model retrieve precise information from an arbitrary past position? Full attention answers yes: every key-value pair is explicitly stored and the match is exact. Compressed-state methods (Mamba, RWKV) answer no: past information is blended into a fixed-size state, and specific tokens cannot be precisely recovered once they are absorbed.</p>
+
+<p><strong>Computational efficiency.</strong> Full attention is quadratic in sequence length. Every method that achieves linear complexity either restricts which positions attend to which, approximates the softmax, or compresses the past — all of which reduce recall fidelity.</p>
+
+<p>This is not merely an engineering trade-off. It reflects something fundamental about sequence modelling. Maintaining a lossless record of all past tokens costs memory proportional to sequence length. Compressing the past into a fixed state is lossy. There is no free lunch: perfect recall and constant-time computation are incompatible.</p>
+
+<p>Current models navigate this trade-off with hybrid architectures — combining full attention (or FlashAttention) for moderate-length contexts where exactness matters, with recurrent or sparse components for extending to very long sequences where some loss of precision is acceptable. The appropriate balance depends on the task, the available hardware, and the sequence lengths that matter.</p>
+
+<p>The Transformer achieved its dominance in part because standard attention, though quadratic, is embarrassingly parallelisable and maps cleanly onto modern GPU hardware. The successor architectures that achieve linear complexity must also achieve comparable hardware utilisation to compete in practice. This hardware–algorithm co-design is an active frontier, and the landscape continues to change.</p>
+
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

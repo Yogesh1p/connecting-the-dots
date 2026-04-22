@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="chapter_order" content="5">
+    <meta name="book_slug" content="linear-algebra">
+    <meta name="book" content="Linear Algebra">
+    <meta name="chapter" content="Eigenvalues and Eigenvectors">
+    <meta name="part" content="  ">
+    <meta name="title" content="Diagonalisation, Spectral Theorem">
+    <meta name="description" content="How to find eigenvectors and eigenvalues, and how to diagonalise matrices">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-07">
+    <meta name="date updated" content="2026-04-07">
+<meta name="lessonorder" content="2">
+    <meta name="status" content="live">
+        <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive definite matrices, cholesky factorisation">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="5">
+
+    <meta property="og:title" content="Eigenvectors, Diagonalisation, Spectral Theorem">
+    <meta property="og:description" content="How to find eigenvectors and eigenvalues, and how to diagonalise matrices">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/diagonalisation-spectral-theorem.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                    <section class="article-body">
+
+<section id="diagonalisation">
+  <h2>Diagonalisation</h2>
+
+  <p>
+    When a matrix has enough independent eigenvectors, the linear
+    transformation can be expressed in its natural coordinate system:
+    the basis formed by its eigenvectors.
+  </p>
+
+
+  <p><strong>Key idea :</strong></p>
+
+    <p>
+      In the eigenvector basis, the matrix no longer mixes coordinates.
+      Each eigendirection scales independently by its own eigenvalue.
+    </p>
+
+    <div class="math-display">
+      \[
+      AX = X\Lambda
+      \]
+    </div>
+
+    <div class="math-display">
+      \[
+      \Lambda=
+      \begin{bmatrix}
+      \lambda_1 & 0 & \cdots & 0\\
+      0 & \lambda_2 & \cdots & 0\\
+      \vdots & \vdots & \ddots & \vdots\\
+      0 & 0 & \cdots & \lambda_n
+      \end{bmatrix}
+      \]
+    </div>
+
+
+
+<p>
+  For a \(2\times2\) matrix, this columnwise scaling becomes:
+</p>
+
+  <div class="math-display">
+  \[
+  A
+  \begin{bmatrix}
+  \vec{x}_1 & \vec{x}_2
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  \lambda_1\vec{x}_1 & \lambda_2\vec{x}_2
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  \vec{x}_1 & \vec{x}_2
+  \end{bmatrix}
+  \begin{bmatrix}
+  \lambda_1 & 0\\
+  0 & \lambda_2
+  \end{bmatrix}
+  \]
+</div>
+
+  <p>
+    If the eigenvectors are linearly independent, \(X\) is invertible.
+    Multiplying by \(X^{-1}\) changes into the eigenvector basis:
+  </p>
+
+ <div class="math-box">
+  <div class="math-box-label">Diagonalisation</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      \[
+      A=X\Lambda X^{-1}
+      \]
+    </div>
+
+    <p>
+      In this basis, the matrix acts independently along each
+      eigendirection.
+    </p>
+
+    <details class="toggle" style="margin-top:1rem;">
+      <summary><strong>When is this possible?</strong></summary>
+
+      <p>
+        A matrix is diagonalizable exactly when it has
+        \(n\) linearly independent eigenvectors.
+      </p>
+
+      <div class="math-display">
+        \[
+        \sum_i \mathrm{GM}(\lambda_i)=n
+        \]
+      </div>
+
+      <p>
+        Equivalently, for every eigenvalue,
+        \(\mathrm{GM}(\lambda)=\mathrm{AM}(\lambda)\).
+        Distinct eigenvalues always guarantee this.
+      </p>
+    </details>
+
+    <details class="toggle" style="margin-top:1rem;">
+      <summary><strong>When is this not possible?</strong></summary>
+
+      <p>Consider</p>
+
+      <div class="math-display">
+        \[
+        A=
+        \begin{bmatrix}
+        2 & 1\\
+        0 & 2
+        \end{bmatrix}
+        \]
+      </div>
+
+      <p>
+        Its characteristic polynomial is
+        \((2-\lambda)^2\), so the eigenvalue
+        \(\lambda=2\) has
+        \(\mathrm{AM}(2)=2\).
+      </p>
+
+      <p>
+        But solving \((A-2I)x=0\) gives only one
+        independent eigenvector direction:
+      </p>
+
+      <div class="math-display">
+        \[
+        \mathrm{GM}(2)=1
+        \]
+      </div>
+
+      <p>
+        Since
+        \(\mathrm{GM}(2)=1<2=\mathrm{AM}(2)\),
+        the matrix does <strong>not</strong> have enough
+        eigenvectors, so it is
+        <strong>not diagonalizable</strong>.
+      </p>
+    </details>
+  </div>
+</div>
+  
+  <p>
+    The real power of diagonalisation appears when taking powers:
+  </p>
+
+  <div class="math-display">
+    \[
+    A^k=X\Lambda^kX^{-1}
+    \]
+  </div>
+
+  <p>
+    So instead of multiplying the full matrix repeatedly, we only raise
+    each eigenvalue on the diagonal:
+  </p>
+
+  <div class="math-display">
+    \[
+    \Lambda^k=
+    \operatorname{diag}(\lambda_1^k,\dots,\lambda_n^k)
+    \]
+  </div>
+
+
+</section>
+
+
+
+
+
+        <p>
+          Rank tells you how many dimensions survive under \(A\),
+          not which special directions survive unchanged.
+        </p>
+        <ul>
+          <li>
+            If \(\operatorname{rank}(A)=r\), then nullity is \(n-r\),
+            giving \(n-r\) eigenvectors with \(\lambda=0\)
+          </li>
+          <li>Rank does <em>not</em> determine diagonalisability</li>
+        </ul>
+
+
+
+<section id="symmetric-matrices">
+  <h2>Symmetric Matrices and the Spectral Theorem</h2>
+
+  <p>
+    The first remarkable fact about a real symmetric matrix
+    \(S=S^T\) is that its eigenvalues can never be complex.
+    Symmetry forces every eigenvalue to be <strong>real</strong>.
+  </p>
+
+<div class="math-box">
+  <div class="math-box-label">Real eigenvalues</div>
+  <div class="math-box-body">
+   <p >
+  If \(S=S^T\) and \(Sx=\lambda x\), then
+  \(\lambda\in\mathbb{R}\).
+</p>
+
+    <details class="toggle">
+      <summary>Proof</summary>
+
+      
+        <p>Start from</p>
+
+        <div class="math-display">
+          \[
+          Sx=\lambda x
+          \]
+        </div>
+
+        <p>
+          Since \(S\) is real,
+        </p>
+
+        <div class="math-display">
+          \[
+          \overline{S}=S
+          \]
+        </div>
+
+        <p>
+          taking conjugates gives
+        </p>
+
+        <div class="math-display">
+          \[
+          S\bar{x}=\bar{\lambda}\bar{x}
+          \]
+        </div>
+
+        <p>
+          Multiply on the left by \(\bar{x}^T\):
+        </p>
+
+        <div class="math-display">
+          \[
+          \bar{x}^TSx=\lambda\bar{x}^Tx
+          \]
+        </div>
+
+        <p>
+          By symmetry, the same left-hand side also equals
+        </p>
+
+        <div class="math-display">
+          \[
+          \bar{x}^TSx=\bar{\lambda}\bar{x}^Tx
+          \]
+        </div>
+
+        <p>
+          Since \(\bar{x}^Tx>0\),
+        </p>
+
+        <div class="math-display">
+          \[
+          \lambda=\bar{\lambda}
+          \]
+        </div>
+
+        <p>Hence \(\lambda\) is real.</p>
+      </div>
+    </details>
+  </div>
+
+
+<div class="math-box">
+  <div class="math-box-label">Orthogonal eigenvectors</div>
+  <div class="math-box-body">
+    <p>
+      Eigenvectors of a real symmetric matrix corresponding to
+      <strong>distinct eigenvalues</strong> are always orthogonal.
+    </p>
+ 
+    <details class="toggle">
+      <summary>Proof</summary>
+
+      
+    <p>
+      Suppose
+    </p>
+
+    <div class="math-display">
+      \[
+      Sx=\lambda_1x,\qquad Sy=\lambda_2y
+      \]
+    </div>
+
+    <p>
+      where \(\lambda_1\neq\lambda_2\).
+      Take the dot product of the first equation with \(y\):
+    </p>
+
+    <div class="math-display">
+      \[
+      y^TSx=\lambda_1 y^Tx
+      \]
+    </div>
+
+    <p>
+      Using symmetry \(S^T=S\), we may shift \(S\) to the other side:
+    </p>
+
+    <div class="math-display">
+      \[
+      y^TSx=x^TS^Ty=x^TSy=\lambda_2 x^Ty
+      \]
+    </div>
+
+    <p>
+      Therefore
+    </p>
+
+    <div class="math-display">
+      \[
+      \lambda_1 x^Ty=\lambda_2 x^Ty
+      \]
+    </div>
+
+    <p>
+      Since \(\lambda_1\neq\lambda_2\), this forces
+    </p>
+
+    <div class="math-display">
+      \[
+      x^Ty=0
+      \]
+    </div>
+
+    <p>
+      So the eigenvectors are perpendicular.
+    </p>
+  </div>
+</div>
+
+
+<div class="math-box">
+  <div class="math-box-label">Symmetric matrices are always diagonalizable</div>
+  <div class="math-box-body">
+    <p>
+      Repeated eigenvalues may destroy diagonalisation for general
+      matrices, but this never happens for symmetric matrices.
+    </p>
+
+    <details class="toggle">
+      <summary>Proof idea 1: perturbation intuition</summary>
+      
+      <p>
+        Slightly perturb the matrix by adding a tiny diagonal term
+      </p>
+
+      <div class="math-display">
+        \[
+        S+\operatorname{diag}(c,2c,\dots,nc)
+        \]
+      </div>
+
+      <p>
+        For very small \(c\), the repeated eigenvalues split apart.
+        The perturbed symmetric matrix now has distinct eigenvalues,
+        hence a full orthonormal eigenbasis.
+      </p>
+
+      <p>
+        As \(c\to 0\), these orthonormal eigenvectors converge to an
+        orthonormal basis for the original matrix.
+      </p>
+
+      <p>
+        This gives the right intuition, though by itself it is not a
+        fully rigorous proof.
+      </p>
+    </details>
+
+    <details class="toggle">
+      <summary>Proof 2: Schur factorization (rigorous)</summary>
+      
+      <p>
+        Every square matrix admits the Schur factorization
+      </p>
+
+      <div class="math-display">
+        \[
+        A=QTQ^T
+        \]
+      </div>
+
+      <p>
+        where \(Q\) is orthogonal and \(T\) is upper triangular.
+        Applying this to a symmetric matrix gives
+      </p>
+
+      <div class="math-display">
+        \[
+        S=QTQ^T
+        \]
+      </div>
+
+      <p>
+        Taking transposes and using \(S=S^T\):
+      </p>
+
+      <div class="math-display">
+        \[
+        T=Q^TSQ,\qquad T^T=Q^TS^TQ=T
+        \]
+      </div>
+
+      <p>
+        So \(T\) is both upper triangular and symmetric, which forces
+        it to be diagonal:
+      </p>
+
+      <div class="math-display">
+        \[
+        T=\Lambda
+        \]
+      </div>
+
+      <p>
+        Hence
+      </p>
+
+      <div class="math-display">
+        \[
+        S=Q\Lambda Q^T
+        \]
+      </div>
+
+      <p>
+        Therefore symmetric matrices always have a full orthonormal
+        eigenbasis.
+      </p>
+    </details>
+
+    <details class="toggle">
+      <summary>Proof 3: one eigenvector at a time</summary>
+      
+      <p>
+        Consider the quadratic form
+      </p>
+
+      <div class="math-display">
+        \[
+        f(x)=x^TSx
+        \]
+      </div>
+
+      <p>
+        over all unit vectors \(\|x\|=1\).
+        Since the unit sphere is compact, \(f(x)\) attains a maximum at
+        some unit vector \(q_1\).
+      </p>
+
+      <p>
+        To maximize \(x^TSx\) subject to \(x^Tx=1\), use a Lagrange
+        multiplier:
+      </p>
+
+      <div class="math-display">
+        \[
+        \nabla(x^TSx)=\lambda \nabla(x^Tx)
+        \]
+      </div>
+
+      <p>
+        Because \(S\) is symmetric,
+      </p>
+
+      <div class="math-display">
+        \[
+        2Sx=2\lambda x
+        \]
+      </div>
+
+      <p>
+        so
+      </p>
+
+      <div class="math-display">
+        \[
+        Sq_1=\lambda_1 q_1
+        \]
+      </div>
+
+      <p>
+        Thus the maximizing direction is an eigenvector.
+      </p>
+
+      <p>
+        Now search for the next maximum among unit vectors satisfying
+      </p>
+
+      <div class="math-display">
+        \[
+        x^Tq_1=0
+        \]
+      </div>
+
+      <p>
+        This constrained set is again compact, so the maximum exists at a
+        vector \(q_2\), which by the same Lagrange multiplier argument
+        satisfies
+      </p>
+
+      <div class="math-display">
+        \[
+        Sq_2=\lambda_2 q_2
+        \]
+      </div>
+
+      <p>
+        Continue inductively: after finding
+        \(q_1,\dots,q_k\), maximize over unit vectors satisfying
+      </p>
+
+      <div class="math-display">
+        \[
+        x^Tq_1=\cdots=x^Tq_k=0
+        \]
+      </div>
+
+      <p>
+        Each step produces a new eigenvector orthogonal to all previous
+        ones.
+      </p>
+
+      <p>
+        After \(n\) steps, we obtain an orthonormal basis
+      </p>
+
+      <div class="math-display">
+        \[
+        q_1,\dots,q_n
+        \]
+      </div>
+
+      <p>
+        consisting entirely of eigenvectors. Therefore
+      </p>
+
+      <div class="math-display">
+        \[
+        S=Q\Lambda Q^T
+        \]
+      </div>
+
+      <p>
+        which proves the spectral theorem.
+      </p>
+    </details>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Spectral Theorem</div>
+  <div class="math-box-body">
+    <p>
+      Every real symmetric matrix \(S=S^T\) admits an orthogonal
+      diagonalization.
+      There exists an orthogonal matrix \(Q\) whose columns are
+      orthonormal eigenvectors of \(S\), such that
+    </p>
+
+    <div class="math-display">
+      \[
+      S = Q\Lambda Q^T
+      \]
+    </div>
+
+    <p>
+      where \(\Lambda\) is the diagonal matrix of real eigenvalues.
+    </p>
+  </div>
+</div>
+
+  <p>
+    This is the symmetric version of diagonalisation.
+    The eigenvector matrix becomes orthogonal:
+  </p>
+
+  <div class="math-display">
+    \[
+    Q^TQ=I,\qquad Q^{-1}=Q^T
+    \]
+  </div>
+
+  <p>
+    So the matrix action becomes:
+    <strong>rotate, stretch, rotate back</strong>.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Geometric interpretation</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        \[
+        S = Q\Lambda Q^T
+        \]
+      </div>
+      <p>
+        First rotate into the eigenvector coordinates,
+        then stretch each orthogonal axis by its eigenvalue,
+        then rotate back.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    Expanding the matrix product column-by-row gives the
+    <strong>spectral expansion</strong>:
+  </p>
+
+  <div class="math-display">
+    \[
+    S=\lambda_1 q_1 q_1^T+\cdots+\lambda_n q_n q_n^T
+    \]
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Key consequences</div>
+    <div class="math-box-body">
+      <ul>
+        <li>All eigenvalues of \(S\) are real</li>
+        <li>All symmetric matrices are diagonalizable</li>
+        <li>Repeated eigenvalues still give enough eigenvectors</li>
+        <li>
+          The number of positive eigenvalues equals the number of
+          positive pivots
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Antisymmetric contrast</div>
+    <div class="math-box-body">
+      <p>
+        If \(A=-A^T\), the situation changes completely:
+        eigenvalues become purely imaginary and eigenvectors are
+        orthonormal only over the complex field.
+      </p>
+    </div>
+  </div>
+</section>
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

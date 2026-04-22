@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="lessonorder" content="1">
+    <meta name="chapter_order" content="1">
+    <meta name="book_slug" content="Stats">
+    <title>Probability and Counting</title>
+   
+    <meta name="book" content="Stats">
+    <meta name="part" content=" ">
+    <meta name="chapter" content="Foundations of Probability">
+    <meta name="title" content="Probability and Counting">
+    <meta name="description" content="A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.">
+    <meta name="keywords" content="probability, counting, permutations, combinations, bayes theorem, stars and bars, sample space">
+    
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-10">
+    <meta name="order" content="1">
+    <meta name="status" content="live">
+    <meta name="belongs_to" content="lib">
+    <meta name="reading_time" content="6">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <style>
+        
+       
+
+
+
+        .math-block {
+
+            margin: 1rem 0;
+            background-color: var(--bg);
+            overflow-x: auto;
+            font-size: 1.05rem;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .highlight-text {
+            color: var(--accent, #D48C70);
+            font-weight: 600;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .box-item {
+            background: var(--surface, #F4EFE6);
+            border: 1px solid var(--border, #E8DFD1);
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        ul.math-list {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        ul.math-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* SVG Figure Styling */
+        .article-figure {
+            margin: 3rem 0;
+            text-align: center;
+        }
+
+        .svg-container {
+            background: var(--bg);
+            padding: 2rem;
+
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            margin-bottom: 1rem;
+        }
+
+        .article-figure figcaption {
+            font-size: 0.95rem;
+            color: var(--muted, #847769);
+        }
+
+        [data-theme="dark"] .concept-section h2 {
+            border-color: var(--border, #2E2018);
+        }
+        [data-theme="dark"] .math-block {
+            background-color: var(--bg);
+        }
+        [data-theme="dark"] .box-item {
+            background: var(--surface, #1F1510);
+            border-color: var(--border, #2E2018);
+        }
+        [data-theme="dark"] .svg-container {
+            border-color: var(--border, #2E2018);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+    </style>
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <meta property="og:title" content="Probability and Counting">
+    <meta property="og:description" content="A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/probability-and-counting.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/03.stats/01.foundations-of-probability/01.probability-and-counting.html">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    
+                    <section class="article-body">
+
+                        <div class="concept-section">
+                            <h2>Part I: Probability</h2>
+
+                            <h3>1. Sample Space and Event</h3>
+                            <p>The <strong>sample space</strong> $\Omega$ (or $S$) of an experiment is the set of all possible outcomes of the experiment. An <strong>event</strong> $A$ is a subset of the sample space $\Omega$, and we say that $A$ occurred if the actual outcome is in $A$.</p>
+
+                            <figure class="article-figure">
+                                <div class="svg-container">
+                                    <svg viewBox="0 0 440 350" xmlns="http://www.w3.org/2000/svg" style="width: 60%; max-width: 550px; margin: 0 auto; display: block;">
+                                        <rect x="10" y="10" width="420" height="330" fill="none" stroke="var(--text)" stroke-width=".5" stroke-opacity="0.4" />
+
+                                        <g fill="none" stroke="var(--text)" stroke-width="1.5">
+                                            <circle cx="80" cy="75" r="28" />
+                                            <circle cx="205" cy="75" r="28" />
+                                            <circle cx="330" cy="75" r="28" />
+                                            <circle cx="80" cy="175" r="28" />
+                                            <circle cx="205" cy="175" r="28" />
+                                            <circle cx="330" cy="175" r="28" />
+                                            <circle cx="80" cy="275" r="28" />
+                                            <circle cx="205" cy="275" r="28" />
+                                            <circle cx="330" cy="275" r="28" />
+                                        </g>
+
+                                        <path d="M 30,25 L 370,25 L 370,125 L 265,125 L 265,225 L 30,225 Z" fill="none" stroke="var(--text)" stroke-width="3" stroke-linejoin="round" />
+
+                                        <path d="M 145,128 L 366,128 L 366,325 L 145,325 Z" fill="none" stroke="var(--text)" stroke-width="3" stroke-dasharray="10 8" stroke-linejoin="round" />
+
+                                        <text x="142" y="88" font-family="Lora, serif" font-size="34" font-style="italic" font-weight="300" fill="var(--text)" text-anchor="middle">A</text>
+                                        <text x="267" y="288" font-family="Lora, serif" font-size="34" font-style="italic" font-weight="300" fill="var(--text)" text-anchor="middle">B</text>
+                                    </svg>
+                                </div>
+                                <figcaption>
+                                    <strong>FIGURE 1.1</strong> A sample space as Pebble World, with two events $A$ and $B$ spotlighted.
+                                </figcaption>
+                            </figure>
+
+                            <h3>2. Naive Definition of Probability</h3>
+                            <p>Let $A$ be an event for an experiment with a finite sample space $S$. The naive probability of $A$ is defined as:</p>
+                            
+                                $$ P_{\text{naive}}(A) = \frac{|A|}{|S|} = \frac{\text{number of outcomes favorable to } A}{\text{total number of outcomes in } S} $$
+                         
+
+                            <h3>3. General Definition & Kolmogorov’s Axioms</h3>
+                            <p>A <strong>probability space</strong> consists of a sample space $\Omega$ and a probability function $P$ that takes an event $A \subseteq \Omega$ as input and returns a real number $P(A) \in [0,1]$. The probability axioms are the foundational rules that any probability measure must satisfy:</p>
+                            
+                            <div class="grid-2">
+                                <div class="box-item">
+                                    <strong>Axiom 1: Non-negativity</strong>
+                                    $$ P(A) \ge 0 $$
+                                    <p>For every event $A$.</p>
+                                </div>
+                                <div class="box-item">
+                                    <strong>Axiom 2: Normalization</strong>
+                                   $$ P(\Omega) = 1 $$
+                                    <p>The probability that <em>something</em> in the sample space happens is 1.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="box-item">
+                                <strong>Axiom 3: Countable Additivity ($\sigma$-additivity)</strong>
+                                <p>For any <em>countable</em> collection of <em>mutually exclusive</em> (disjoint) events $A_1, A_2, \dots$ (meaning $A_i \cap A_j = \varnothing$ for $i \neq j$):</p>
+                                
+                                    $$ P\left(\bigcup_{i=1}^{\infty} A_i\right) = \sum_{i=1}^{\infty} P(A_i) $$
+                                
+                            </div>
+
+                            <p>From just these three axioms, we can derive the following essential properties:</p>
+                            <ul class="math-list">
+                                <li>Probability of the empty set: $P(\varnothing) = 0$</li>
+                                <li>Bounds: $0 \le P(A) \le 1$</li>
+                                <li>Complement: $P(A^c) = 1 - P(A)$</li>
+                                <li>Inclusion-Exclusion: $P(A \cup B) = P(A) + P(B) - P(A \cap B)$</li>
+                                <li>Monotonicity: $A \subseteq B \implies P(A) \le P(B)$</li>
+                            </ul>
+                            <h3>4. De Morgan’s Laws (for events)</h3>
+                            <p>For any two events $A$ and $B$:</p>
+                           
+                                $$ (A \cup B)^c = A^c \cap B^c $$
+                                $$ (A \cap B)^c = A^c \cup B^c $$
+                            
+
+                            <h3>5. Conditional Probability & Independence</h3>
+                            <p>The probability of event $A$ occurring given that event $B$ has already occurred is defined as:</p>
+                            <div class="math-display">
+                                $$ P(A \mid B) = \frac{P(A \cap B)}{P(B)}, \quad \text{provided } P(B) \gt 0 $$
+                            </div>
+                            <p>Two events $A$ and $B$ are <strong>independent</strong> if the occurrence of one does not affect the probability of the other. Mathematically, they are independent if and only if:</p>
+                            <div class="math-display">
+                                $$ P(A \cap B) = P(A)P(B) \quad \iff \quad P(A \mid B) = P(A) $$
+                            </div>
+
+                            <h3>6. Law of Total Probability & Bayes' Theorem</h3>
+                            <p>If $B_1, B_2, \dots, B_n$ form a partition of the sample space (they are disjoint and their union is $\Omega$), then for any event $A$:</p>
+                            <div class="math-display">
+                                $$ P(A) = \sum_{i=1}^{n} P(A \mid B_i)P(B_i) $$
+                            </div>
+                            <p><strong>Bayes' Theorem</strong> allows us to update probabilities based on new evidence. It relates $P(A \mid B)$ to $P(B \mid A)$:</p>
+                            <div class="math-display">
+                                $$ P(A \mid B) = \frac{P(B \mid A)P(A)}{P(B)} $$
+                            </div>
+                            <section class="theorem-block">
+    <h3>7. Inclusion–Exclusion</h3>
+    <p>
+        For any events \(A_1, A_2, \dots, A_n\),
+    </p>
+
+  <div class="math-display">
+$$
+\begin{aligned}
+P\!\left(\bigcup_{i=1}^{n} A_i\right)
+&=
+\sum_i P(A_i)
+-
+\sum_{i \lt j} P(A_i \cap A_j)
++
+\sum_{i \lt j \lt k} P(A_i \cap A_j \cap A_k)
+- \cdots \\
+&\quad + (-1)^{n+1} P(A_1 \cap \cdots \cap A_n)
+\end{aligned}
+$$
+</div>
+    <p>
+        This formula follows the same intuition as the two-event case:
+        first add all individual probabilities, then subtract the pairwise
+        overlaps that were counted twice, then add back the triple overlaps
+        that were subtracted too many times, and continue alternating.
+    </p>
+
+                        </div>
+                        <div class="concept-section">
+                            <h2>Part II: Counting</h2>
+
+                            <h3>1. Multiplication Rule</h3>
+                            <p>Consider a compound experiment consisting of two sub-experiments, Experiment A and Experiment B. Suppose that Experiment A has $a$ possible outcomes, and for each of those outcomes Experiment B has $b$ possible outcomes. Then the compound experiment has $ab$ possible outcomes.</span> </p>
+
+                            <h3>2. Subsets</h3>
+                            <p>A set with $n$ elements has $2^n$ subsets. This is because for each element, there are 2 choices: either include it in the subset or exclude it.</p>
+
+                            <h3>3. Sampling With Replacement (Independent Choices)</h3>
+                            <p>Imagine drawing from a pool of $n$ distinct objects $k$ times. If each drawn object is returned to the pool before the next draw, every choice is a fresh start. Because order matters and the pool size never shrinks, the total number of possible outcomes scales exponentially:</p>
+                            <div class="math-display">$$ n^k $$</div>
+
+                            <h3>4. Permutations (Sampling Without Replacement)</h3>
+                            <p>What happens if we remove the replacement rule? When drawing $k$ objects from a pool of $n$, each choice permanently removes an option from the pool. Your first choice has $n$ possibilities, your second has $n-1$, and so on.</p>
+                            <p>When <strong>order matters</strong>, this sequence of shrinking choices is called a permutation (${}^nP_k$):</p>
+                            <div class="math-display">$$ n(n-1)(n-2)\cdots(n-k+1) $$</div>
+                            <p>More elegantly, we can represent this by taking the factorial of the entire set and dividing out the unselected remainder. This yields outcomes for $1 \le k \le n$ (and 0 possibilities if $k \gt n$):</p>
+                            <div class="math-display">$$ {}^nP_k = \frac{n!}{(n-k)!} $$</div>
+                            <p><em>(Note: A factorial, written as $n!$, simply represents the arrangement of all $n$ items, mathematically defined as $n(n-1)\cdots 1$, with $0! = 1$ by convention.)</em></p>
+
+                            <h3>5. Combinations (Unordered Subsets)</h3>
+                            <p>Often, we only care about <em>which</em> items were selected, not the sequence in which they were drawn. To find the number of unique subsets of size $k$ from $n$ items, we start with the permutations calculated above and divide out the redundant arrangements.</p>
+                            <p>Since $k$ selected items can be arranged in $k!$ different ways, we divide our permutation formula by $k!$. This gives us the binomial coefficient, read as "$n$ choose $k$":</p>
+                            <div class="math-display">$${}^nC_k =\binom{n}{k} = \frac{n!}{k!(n-k)!} $$</div>
+
+                            <h3>6. The Binomial Theorem</h3>
+                            <p>We can apply this combinatorial intuition directly to algebra. When expanding $(x+y)^n$, you are multiplying $(x+y)$ by itself $n$ times. To form each term in the final expansion, you must choose either an $x$ or a $y$ from each of the $n$ factors.</p>
+                            <p>If you choose $y$ exactly $k$ times, you are forced to choose $x$ the remaining $n-k$ times, resulting in the term $x^{n-k}y^k$. How many different ways can you select $k$ instances of $y$ from $n$ factors? Exactly $\binom{n}{k}$ ways. Summing all possible values of $k$ gives us the Binomial Theorem:</p>
+                            <div class="math-display">$$ (x+y)^n = \sum_{k=0}^{n}\binom{n}{k}x^{n-k}y^k $$</div>
+                                                        
+                            <h3>7. Multinomial Coefficient</h3>
+                            <p>If we want to divide $n$ distinct items into $r$ distinct groups of sizes $k_1, k_2, \dots, k_r$ (where $\sum k_i = n$), the number of ways to do this is given by the multinomial coefficient:</p>
+                            <div class="math-display">
+                                $$ \binom{n}{k_1, k_2, \dots, k_r} = \frac{n!}{k_1! k_2! \cdots k_r!} $$
+                            </div>
+
+                            <h3>8. Stars and Bars (Bose-Einstein)</h3>
+                            <p><strong>Definition (Divider Method):</strong> The number of ways to distribute $n$ <em>indistinguishable</em> balls into $k$ <em>distinguishable</em> bins is:</p>
+                            <div class="math-display">
+                                $$ \binom{n + k - 1}{k - 1} \;=\; \binom{n + k - 1}{n} $$
+                            </div>
+                            <p>This is because we represent the $n$ balls by $n$ stars and separate the $k$ bins using $k-1$ bars.</p>
+                            
+                            <div class="box-item">
+                                <strong>Example:</strong>
+                                <p>How many ways can we assign 20 students to 4 different professors, assuming the students are indistinguishable and each professor only cares about how many students they receive?</p>
+                                <strong>Solution:</strong>
+                                <p>This is a stars and bars problem with 20 stars and $4-1=3$ bars. Hence, the number of ways is:</p>
+                       
+                                    $$ \binom{20 + 4 - 1}{4 - 1} = \binom{23}{3} = \binom{23}{20} $$
+                       
+                            </div>
+
+                            <h3>9. Vandermonde’s Identity</h3>
+                            <p>Choosing $k$ items from a total of $m+n$ (divided into two groups of $m$ and $n$) is equivalent to picking $j$ items from the first group and $k-j$ from the second, summed over all possible $j$.</p>
+                     
+                                $$ \binom{m+n}{k} = \sum_{j=0}^{k} \binom{m}{j}\binom{n}{k-j} $$
+                           
+                        </div>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === "function") {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+</body>
+</html>

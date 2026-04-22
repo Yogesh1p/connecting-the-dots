@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <meta name="chapter_order" content="3">
+    <meta name="book_slug" content="linear-algebra">
+<title>Projection Matrices and Least Squares</title>
+
+<meta name="book" content="Linear Algebra">
+<meta name="chapter" content="Orthogonality and Projections">
+<meta name="part" content=" ">
+<meta name="title" content="Projection Matrices and Least Squares">
+<meta name="description" content="Applying projection matrices to solve unsolvable systems using the method of least squares and the normal equation.">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-18">
+<meta name="chapterorder" content="2">
+<meta name="lessonorder" content="3">
+<meta name="status" content="draft">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="projections, least squares, linear regression, normal equation, orthogonal, linear algebra">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="reading_time" content="7">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <style>
+        /* Semantic Figure Styling */
+        .diagram-figure {
+            margin: 2.5rem auto; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            max-width: 550px; 
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            width: 100%; 
+        }
+        .svg-container svg {
+            width: 100%; 
+            height: auto;
+        }
+        .figure-caption {
+            margin-top: 1rem;
+            color: var(--text);
+            font-size: 0.9em;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+    </style>
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <meta property="og:title" content="Projection Matrices and Least Squares">
+    <meta property="og:description" content="Applying projection matrices to solve unsolvable systems using the method of least squares and the normal equation.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/projection-matrices-and-least-squares.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<h2>The Projection Matrix: Extreme Cases</h2>
+
+<p>
+  Recall our master formula for projecting any vector $b$ onto the column space of a matrix $A$. The projection matrix $P$ physically forces any vector into the nearest point within that allowed subspace:
+</p>
+
+<div class="math-display">
+  $$P = A(A^T A)^{-1} A^T$$
+</div>
+
+<p>
+  To build an intuition for what this mathematical machinery is doing, it helps to test the boundaries. What happens at the extremes?
+</p>
+
+<ol>
+    <li>
+        <strong>Case 1: $b$ is already in the column space.</strong><br>
+        If $b$ lives in the column space, it must be a linear combination of the columns of $A$. Mathematically, this means $b = Ax$ for some vector $x$. If we push this through our projection formula, we get:
+        <div class="math-display">
+            $$Pb = A(A^T A)^{-1} A^T (Ax)$$
+        </div>
+        Notice that $A^T A$ is sitting right next to its own inverse, $(A^T A)^{-1}$. They obliterate each other, leaving just $Ax$. And since $Ax = b$, the projection of $b$ is simply $b$. The matrix recognized the vector was already home and left it untouched.
+    </li>
+    <li>
+        <strong>Case 2: $b$ is perfectly perpendicular to the column space.</strong><br>
+        If $b$ is orthogonal to the column space $C(A)$, it must live entirely in the orthogonal complement. From the fundamental theorem of linear algebra, we know the orthogonal complement of the column space is the null space of $A^T$. 
+        Therefore, $A^T b = 0$. 
+        <br><br>
+        Look at the far right side of the projection formula: $Pb = A(A^T A)^{-1} (A^T b)$. Because $A^T b = 0$, the entire expression collapses. $Pb = 0$. The projection of a purely orthogonal vector onto the subspace is the zero vector. It casts no shadow.
+    </li>
+</ol>
+
+
+<h3>Fitting a Straight Line: The Intuition of Least Squares</h3>
+
+<p>
+  When do we actually need this? The most vital application in science, statistics, and machine learning is finding order in messy data. Suppose we have three measurements taken at times $t = 1, 2, 3$. The observed values are $b = 1, 2, 2$. 
+</p>
+
+<p>
+  We want to fit these points to a straight line model: $C + Dt = b$. Let's plug our data into the model to build our system of equations:
+</p>
+
+<div class="math-display">
+  $$C + 1D = 1$$
+  $$C + 2D = 2$$
+  $$C + 3D = 2$$
+</div>
+
+<p>
+  If you plot these three points, you will immediately see they form a triangle, not a straight line. No line can pass through all three points simultaneously. In matrix form, $Ax = b$ looks like this:
+</p>
+
+<div class="math-display">
+  $$\begin{bmatrix} 1 & 1 \\ 1 & 2 \\ 1 & 3 \end{bmatrix} \begin{bmatrix} C \\ D \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix}$$
+</div>
+
+<p>
+  Our vector $b = (1, 2, 2)$ is not in the column space of $A$. The system is unsolvable. But we cannot just give up. We need the <em>best possible</em> solution. We define the "best" line as the one that minimizes the sum of the squared errors between the line and the actual data points. We want to minimize $\|Ax - b\|^2$.
+</p>
+
+<p>
+  There are two distinct ways to conceptualize this minimization: <strong>calculus</strong> and <strong>geometry</strong>. 
+</p>
+
+<h4>The Calculus Perspective</h4>
+<p>
+  We want to minimize the total squared error, which is the sum of the squares of the vertical misses at each point:
+</p>
+<div class="math-display">
+  $$E = (C + D - 1)^2 + (C + 2D - 2)^2 + (C + 3D - 2)^2$$
+</div>
+<p>
+  To find the minimum of a multivariable function, we take the partial derivatives with respect to $C$ and $D$, and set them both to zero. Because the error function is a sum of squares, the derivatives will be perfectly linear. This produces two equations with two unknowns. 
+</p>
+
+<h4>The Linear Algebra Perspective</h4>
+<p>
+  Instead of taking derivatives, we rely on the geometry of projection. We want the vector $p$ in the column space of $A$ that is closest to $b$. The error vector $e = b - p$ must be completely orthogonal to the column space. As we proved previously, this requirement directly yields the Normal Equation:
+</p>
+
+<div class="math-box key-box">
+  <div class="math-box-label">The Normal Equation</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      $$A^T A \hat{x} = A^T b$$
+    </div>
+  </div>
+</div>
+
+<p>
+  There is another way to view this step. The original system $Ax = b$ may fail because $b$ does not lie in the column space of $A$. By multiplying both sides by $A^T$, we transform the equation into $A^T A x = A^T b$, where both sides now lie in the row space of $A$. Since $A^T b$ always belongs to this space, the new system is guaranteed to be consistent. In this sense, the Normal Equation shifts the problem into a space where it can always be solved.
+</p>
+
+<p>
+  If you actually take the partial derivatives from the calculus approach, set them to zero, and rearrange the terms, you will derive <em>this exact same matrix equation</em>. The spatial intuition of dropping a perpendicular shadow and the analytic intuition of finding a derivative minimum converge on the exact same truth.
+</p>
+
+
+<h3>Solving the System</h3>
+
+<p>
+  Let's calculate the components of our Normal Equation to find our best coefficients $\hat{x}$. First, compute $A^T A$:
+</p>
+
+<div class="math-display">
+  $$A^T A = \begin{bmatrix} 1 & 1 & 1 \\ 1 & 2 & 3 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 1 & 2 \\ 1 & 3 \end{bmatrix} = \begin{bmatrix} 3 & 6 \\ 6 & 14 \end{bmatrix}$$
+</div>
+
+<p>
+  Notice that $A^T A$ is beautifully symmetric. Next, compute $A^T b$:
+</p>
+
+<div class="math-display">
+  $$A^T b = \begin{bmatrix} 1 & 1 & 1 \\ 1 & 2 & 3 \end{bmatrix} \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} = \begin{bmatrix} 5 \\ 11 \end{bmatrix}$$
+</div>
+
+<p>
+  Now we solve $A^T A \hat{x} = A^T b$:
+</p>
+
+<div class="math-display">
+  $$\begin{bmatrix} 3 & 6 \\ 6 & 14 \end{bmatrix} \begin{bmatrix} C \\ D \end{bmatrix} = \begin{bmatrix} 5 \\ 11 \end{bmatrix}$$
+</div>
+
+<p>
+  Subtracting twice the first row from the second row gives $2D = 1 \implies D = 1/2$. Back-substituting into the first row gives $3C + 3 = 5 \implies C = 2/3$. 
+</p>
+
+<p>
+  Our best fit line is $y = \frac{2}{3} + \frac{1}{2}t$.
+</p>
+
+<h3>Visualizing the Error</h3>
+  <p>
+    Equations and derivatives are powerful, but seeing the geometry makes it click. Let's make the abstract concept of "minimizing the sum of squares" completely literal.
+  </p>
+  <p>
+    The interactive tool below plots our three impossible points: $(1, 1)$, $(2, 2)$, and $(3, 2)$. The boxes attached to the line represent the actual, geometric area of your squared errors.
+  </p>
+  <p>
+    <strong>Your objective:</strong> Adjust the intercept ($C$) and slope ($D$) sliders to shrink the total area of those squares to the absolute minimum. See if you can manually find the perfect best-fit line before we let the Normal Equation do it for us.
+  </p>
+<style>
+    .least-squares-wrap {
+        width: 100%;
+        max-width: 600px;
+        margin: 2.5rem auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        font-family: inherit; /* Inherits your site's body font */
+    }
+
+    .ls-canvas-container {
+        width: 100%;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: center;
+    }
+
+    canvas#lsCanvas {
+        width: 100%;
+        max-width: 500px;
+        aspect-ratio: 1/1;
+        display: block;
+    }
+
+    .ls-controls {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .ls-header {
+        text-align: center;
+        font-family: var(--font-serif, Lora, serif);
+        font-size: 1.3rem;
+        color: var(--dark);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .ls-error-display {
+        text-align: center;
+        font-size: 1.15rem;
+        font-weight: bold;
+        color: var(--accent);
+        background: rgba(217, 83, 79, 0.1);
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .ls-sliders {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .ls-slider-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .ls-slider-label {
+        font-weight: 600;
+        color: var(--text);
+        min-width: 140px;
+        font-size: 0.95rem;
+    }
+
+    .ls-slider-row input[type="range"] {
+        flex-grow: 1;
+        accent-color: var(--accent);
+        cursor: pointer;
+    }
+
+    .ls-slider-value {
+        font-family: inherit;
+        font-variant-numeric: tabular-nums; /* Prevents jittering with proportional fonts */
+        font-weight: bold;
+        min-width: 45px;
+        text-align: right;
+        color: var(--dark);
+    }
+
+    .ls-equations {
+        background: var(--bg);
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        font-family: inherit;
+        font-variant-numeric: tabular-nums;
+        font-size: 0.95rem;
+        color: var(--text);
+        line-height: 1.6;
+    }
+
+    .ls-eq-line {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .ls-eq-error {
+        color: var(--accent);
+        font-weight: bold;
+    }
+</style>
+
+<div class="least-squares-wrap">
+    <div class="ls-canvas-container">
+        <canvas id="lsCanvas"></canvas>
+    </div>
+    <div class="ls-controls">
+        <div class="ls-header">Least Squares Fit: C + Dt = b</div>
+        
+        <div class="ls-error-display" id="lsErrorWrap">
+            Total Squared Error (E) = <span id="lsTotalError">0.00</span>
+        </div>
+
+        <div class="ls-sliders">
+            <div class="ls-slider-row">
+                <div class="ls-slider-label">Intercept (C):</div>
+                <input type="range" id="sliderC" min="-2" max="4" step="0.05" value="1">
+                <div class="ls-slider-value" id="valC">1.00</div>
+            </div>
+            <div class="ls-slider-row">
+                <div class="ls-slider-label">Slope (D):</div>
+                <input type="range" id="sliderD" min="-2" max="3" step="0.05" value="0.5">
+                <div class="ls-slider-value" id="valD">0.50</div>
+            </div>
+        </div>
+
+        <div class="ls-equations" id="lsEqContainer">
+            </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('lsCanvas');
+    const ctx = canvas.getContext('2d');
+    const sliderC = document.getElementById('sliderC');
+    const sliderD = document.getElementById('sliderD');
+    const valC = document.getElementById('valC');
+    const valD = document.getElementById('valD');
+    const errorDisplay = document.getElementById('lsTotalError');
+    const errorWrap = document.getElementById('lsErrorWrap');
+    const eqContainer = document.getElementById('lsEqContainer');
+
+    // Data points: (t, b)
+    const points = [
+        { t: 1, b: 1 },
+        { t: 2, b: 2 },
+        { t: 3, b: 2 }
+    ];
+
+    const LOGICAL_SIZE = 500;
+    
+    function setupHighDPICanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        
+        canvas.width = LOGICAL_SIZE * dpr;
+        canvas.height = LOGICAL_SIZE * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener('resize', () => {
+        setupHighDPICanvas();
+        draw();
+    });
+    setupHighDPICanvas();
+
+    function draw() {
+        const C = parseFloat(sliderC.value);
+        const D = parseFloat(sliderD.value);
+        
+        valC.textContent = C.toFixed(2);
+        valD.textContent = D.toFixed(2);
+
+        // Fetch colors dynamically
+        const style = getComputedStyle(document.documentElement);
+        const textColor = style.getPropertyValue('--text').trim() || '#4d5156';
+        const accentColor = style.getPropertyValue('--accent').trim() || '#d9534f';
+        const borderColor = style.getPropertyValue('--border').trim() || '#e0e0e0';
+        const darkColor = style.getPropertyValue('--dark').trim() || '#202124';
+
+        // Coordinate system bounds [-0.5 to 4.5]
+        const rangeMin = -0.5;
+        const rangeMax = 4.5;
+        const rangeSpan = rangeMax - rangeMin;
+        const scale = LOGICAL_SIZE / rangeSpan;
+
+        ctx.clearRect(0, 0, LOGICAL_SIZE, LOGICAL_SIZE);
+        ctx.save();
+        
+        ctx.translate(-rangeMin * scale, LOGICAL_SIZE + rangeMin * scale);
+        ctx.scale(scale, -scale); 
+
+        // 1. Draw Grid
+        ctx.lineWidth = 1 / scale;
+        ctx.strokeStyle = borderColor;
+        ctx.beginPath();
+        for(let i = 0; i <= 4; i++) {
+            ctx.moveTo(i, rangeMin); ctx.lineTo(i, rangeMax); 
+            ctx.moveTo(rangeMin, i); ctx.lineTo(rangeMax, i); 
+        }
+        ctx.stroke();
+
+        // Axes
+        ctx.lineWidth = 1.5 / scale;
+        ctx.strokeStyle = darkColor;
+        ctx.beginPath();
+        ctx.moveTo(0, rangeMin); ctx.lineTo(0, rangeMax); 
+        ctx.moveTo(rangeMin, 0); ctx.lineTo(rangeMax, 0); 
+        ctx.stroke();
+
+        // 2. Draw The Fitted Line: b = C + Dt
+        ctx.lineWidth = 2.5 / scale;
+        ctx.strokeStyle = darkColor;
+        ctx.beginPath();
+        const yStart = C + D * rangeMin;
+        const yEnd = C + D * rangeMax;
+        ctx.moveTo(rangeMin, yStart);
+        ctx.lineTo(rangeMax, yEnd);
+        ctx.stroke();
+
+        // 3. Draw Squares and Errors
+        let totalError = 0;
+        let eqHTML = '';
+
+        points.forEach((p, index) => {
+            const predictedY = C + D * p.t;
+            const error = predictedY - p.b;
+            const sqError = error * error;
+            totalError += sqError;
+
+            const sign = error >= 0 ? '+' : '';
+            eqHTML += `
+                <div class="ls-eq-line">
+                    <span>Point ${index+1} (t=${p.t}): &nbsp; ${C.toFixed(2)} + ${D.toFixed(2)}(${p.t}) = ${predictedY.toFixed(2)}</span>
+                    <span class="ls-eq-error">Error: ${sign}${error.toFixed(2)}</span>
+                </div>
+            `;
+
+            const absErr = Math.abs(error);
+
+            // Draw the literal square of the error
+            if (absErr > 0.01) {
+                ctx.fillStyle = accentColor;
+                ctx.globalAlpha = 0.15;
+                ctx.beginPath();
+                ctx.moveTo(p.t, p.b);
+                ctx.lineTo(p.t + absErr, p.b);
+                ctx.lineTo(p.t + absErr, predictedY);
+                ctx.lineTo(p.t, predictedY);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.globalAlpha = 0.5;
+                ctx.strokeStyle = accentColor;
+                ctx.lineWidth = 1.5 / scale;
+                ctx.stroke();
+            }
+
+            // Draw vertical dashed line for the miss
+            ctx.globalAlpha = 1.0;
+            ctx.strokeStyle = accentColor;
+            ctx.setLineDash([4/scale, 4/scale]);
+            ctx.lineWidth = 2 / scale;
+            ctx.beginPath();
+            ctx.moveTo(p.t, p.b);
+            ctx.lineTo(p.t, predictedY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw the actual data point
+            ctx.fillStyle = darkColor;
+            ctx.beginPath();
+            ctx.arc(p.t, p.b, 6/scale, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        ctx.restore();
+
+        // Update DOM texts
+        errorDisplay.textContent = totalError.toFixed(3);
+        eqContainer.innerHTML = eqHTML;
+        
+        // Emphasize absolute minimum (C=0.67, D=0.5)
+        if (Math.abs(C - 0.67) < 0.05 && Math.abs(D - 0.5) < 0.05) {
+            errorWrap.style.background = 'rgba(40, 167, 69, 0.15)';
+            errorWrap.style.color = '#28a745';
+            errorDisplay.style.color = '#28a745';
+            errorDisplay.innerHTML = `${totalError.toFixed(3)} ✨ (Absolute Minimum)`;
+        } else {
+            errorWrap.style.background = '';
+            errorWrap.style.color = '';
+            errorDisplay.style.color = '';
+        }
+    }
+
+    sliderC.addEventListener('input', draw);
+    sliderD.addEventListener('input', draw);
+
+    draw();
+})();
+</script>
+
+<h3>Validating the Error</h3>
+
+<p>
+  Let's project our points onto this new line to find the vector $p$, which contains the predicted heights:
+</p>
+
+<ul>
+    <li>At $t=1$: $p_1 = 2/3 + 1/2(1) = 7/6$</li>
+    <li>At $t=2$: $p_2 = 2/3 + 1/2(2) = 5/3 = 10/6$</li>
+    <li>At $t=3$: $p_3 = 2/3 + 1/2(3) = 13/6$</li>
+</ul>
+
+<p>
+  The error vector is $e = b - p$. 
+</p>
+<div class="math-display">
+  $$e = \begin{bmatrix} 1 \\ 2 \\ 2 \end{bmatrix} - \begin{bmatrix} 7/6 \\ 10/6 \\ 13/6 \end{bmatrix} = \begin{bmatrix} -1/6 \\ 2/6 \\ -1/6 \end{bmatrix}$$
+</div>
+
+<p>
+  If our math is correct, this error vector must be orthogonal to the entire column space of $A$. Let's test it against the two basis columns of $A$:
+</p>
+<div class="math-display">
+  $e \cdot \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix} = -1/6 + 2/6 - 1/6 = 0$
+  <br><br>
+  $e \cdot \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix} = -1/6 + 4/6 - 3/6 = 0$
+</div>
+<p>
+  The dot products are zero. The error is perfectly perpendicular to the plane spanned by our model.
+</p>
+
+
+<h3>Why $A^T A$ is Always Invertible (If Columns are Independent)</h3>
+
+<p>
+  We rely heavily on solving $(A^T A)^{-1}$. But how do we know $A^T A$ is invertible? The matrix $A^T A$ is guaranteed to be invertible as long as the columns of $A$ are linearly independent. Let's prove it directly. 
+</p>
+
+<p>
+  Assume there is a vector $x$ in the null space of $A^T A$. This means:
+</p>
+<div class="math-display">
+  $$A^T A x = 0$$
+</div>
+<p>
+  Multiply both sides by $x^T$:
+</p>
+<div class="math-display">
+  $$x^T A^T A x = 0$$
+</div>
+<p>
+  Using transpose properties, $(Ax)^T = x^T A^T$, so we can rewrite this as:
+</p>
+<div class="math-display">
+  $$(Ax)^T (Ax) = 0$$
+</div>
+<p>
+  The dot product of a vector with itself is its squared length: $\|Ax\|^2 = 0$. The only vector with a length of zero is the zero vector itself, so $Ax = 0$. 
+</p>
+<p>
+  Now we use our condition: if $A$ has independent columns, the only solution to $Ax = 0$ is $x = 0$. Therefore, the null space of $A^T A$ contains only the zero vector. A matrix with an empty null space is strictly invertible.
+</p>
+
+
+<h3>Looking Ahead: Orthonormal Vectors</h3>
+
+<p>
+  There is a specific scenario where the math of $A^T A$ becomes exceptionally beautiful: when the columns of $A$ are independent <em>and</em> perpendicular unit vectors. We call these <strong>orthonormal</strong> vectors.
+</p>
+
+<p>
+  If the columns of $A$ are orthonormal, their dot products with themselves are 1, and their dot products with each other are 0. In this magical case, $A^T A$ collapses completely into the Identity Matrix ($I$). Next time, we will explore why orthonormal bases are the absolute ideal in linear algebra, and how to forge them using Gram-Schmidt orthogonalization.
+</p>
+
+</section>
+
+
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <meta name="lessonorder" content="4">
+    <meta name="book_slug" content="linear-algebra">
+<title>Vector Spaces and the Four Fundamental Subspaces</title>
+
+<meta name="book" content="Linear Algebra">
+<meta name="chapter" content="Vector Spaces and Subspaces">
+<meta name="part" content=" ">
+<meta name="title" content="Vector Spaces &amp; Subspaces">
+<meta name="description" content=" vector spaces, the column space, the null space, basis, dimension">
+<meta name="author" content="Yogesh">
+<meta name="date" content="2026-04-04">
+<meta name="chapter_order" content="2">
+<meta name="lesson_order" content="">
+<meta name="status" content="hide">
+<meta name="belongs_to" content="lib">
+<meta name="keywords" content="vector spaces, subspaces, basis, dimension, rank, nullity, column space, row space, null space">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="7">
+
+    <meta property="og:title" content="Vector Spaces & Subspaces">
+    <meta property="og:description" content=" vector spaces, the column space, the null space, basis, dimension">
+    <meta property="og:image" content="../assets/og/vector-spaces-subspaces.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<section id="vector-spaces">
+  <h2>Vector Spaces</h2>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Vector Space</div>
+    <div class="math-box-body">
+      <p>
+        A set $V$ is a <strong>vector space</strong> if, for every $\vec{v}, \vec{w} \in V$ and every real scalar $c, d \in \mathbb{R}$, the linear combination stays inside the space:
+      </p>
+      <div class="math-display">$$ c\vec{v} + d\vec{w} \in V $$</div>
+      <p>
+        This is called <strong>closure</strong> under addition and scalar multiplication. If you can add any two objects in the set and multiply them by numbers without leaving the set, you have a vector space.
+      </p>
+    </div>
+  </div>
+
+  <p>The standard example is $\mathbb{R}^n$, the space of all real column vectors with $n$ components. However, linear algebra extends far beyond column vectors. Other valid vector spaces include:</p>
+  <ul>
+    <li><strong>$M_{m \times n}$</strong>: The space of all $m \times n$ matrices. (You can add matrices and multiply them by constants).</li>
+    <li><strong>$P_n$</strong>: The space of all polynomials of degree $n$ or less.</li>
+    <li><strong>$Z$</strong>: The space consisting of <em>only</em> the zero vector, $\{\vec{0}\}$. $c\vec{0} + d\vec{0} = \vec{0}$, which is still in the space.</li>
+  </ul>
+</section>
+
+<section id="subspaces">
+  <h2>Subspaces</h2>
+
+  <p>A subspace is a vector space that sits inside a larger vector space. It must independently satisfy the rules of a vector space.</p>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Subspace</div>
+    <div class="math-box-body">
+      <p>A subset $W \subseteq V$ is a subspace if it satisfies three rules:</p>
+      <ol>
+        <li><strong>Contains the zero vector:</strong> $\vec{0} \in W$ (Crucial! Set $c=0$).</li>
+        <li><strong>Closed under addition:</strong> $\vec{u}, \vec{v} \in W \Rightarrow \vec{u} + \vec{v} \in W$.</li>
+        <li><strong>Closed under scalar multiplication:</strong> $\vec{u} \in W, c \in \mathbb{R} \Rightarrow c\vec{u} \in W$.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="math-box note-box">
+    <div class="math-box-label">The Geometry of Subspaces in $\mathbb{R}^3$</div>
+    <div class="math-box-body">
+      <p>What do subspaces of $\mathbb{R}^3$ look like geometrically? There are exactly four types:</p>
+      <ul>
+        <li><strong>3D:</strong> The whole space $\mathbb{R}^3$ itself.</li>
+        <li><strong>2D:</strong> Any plane that passes <em>through the origin</em>.</li>
+        <li><strong>1D:</strong> Any line that passes <em>through the origin</em>.</li>
+        <li><strong>0D:</strong> The origin itself $Z = \{(0,0,0)\}$.</li>
+      </ul>
+      <p><em>Note: A plane or line that does not pass through the origin is NOT a subspace, because it fails to contain $\vec{0}$.</em></p>
+    </div>
+  </div>
+</section>
+
+<section id="column-space-ax-b">
+  <h2>The Column Space and $Ax = b$</h2>
+
+  <p>If we have a matrix $A$ of size $m \times n$, it acts as a mapping from $\mathbb{R}^n$ to $\mathbb{R}^m$. The most important subspace associated with $A$ is its Column Space, $C(A)$.</p>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">The Column Space $C(A)$</div>
+    <div class="math-box-body">
+      <p>The column space of $A$ consists of all linear combinations of its columns. It lives inside the output space $\mathbb{R}^m$.</p>
+      <div class="math-display">$$ C(A) = \{ Ax \mid x \in \mathbb{R}^n \} $$</div>
+    </div>
+  </div>
+
+  <p>The system $Ax = b$ asks: <em>"Can I find a combination of the columns of $A$ (weights given by $x$) that produces the vector $b$?"</em></p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Existence of Solutions</div>
+    <div class="math-box-body">
+      <p>The system $Ax = b$ has a solution <strong>if and only if $b$ is in the column space of $A$</strong> ($b \in C(A)$).</p>
+    </div>
+  </div>
+</section>
+
+<section id="nullspace-special-solutions">
+  <h2>The Null Space and Special Solutions</h2>
+
+  <p>While the column space answers <em>whether</em> a solution exists, the Null Space answers <em>how many</em> solutions exist.</p>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">The Null Space $N(A)$</div>
+    <div class="math-box-body">
+      <p>The null space of $A$ contains all solutions $x$ to the homogeneous equation $Ax = 0$. It lives in the input space $\mathbb{R}^n$.</p>
+    </div>
+  </div>
+
+  <h3>Finding the Null Space: Pivot vs. Free Variables</h3>
+  <p>To find the null space, we reduce $A$ to its Reduced Row Echelon Form, $R$. Elimination does not change the solutions to $Ax=0$, so $N(A) = N(R)$.</p>
+  
+  <p>Suppose an $m \times n$ matrix $A$ has $r$ pivots.
+  <ul>
+    <li>There are $r$ <strong>pivot columns</strong>. Their corresponding variables are <strong>pivot variables</strong>.</li>
+    <li>There are $n - r$ columns without pivots. Their corresponding variables are <strong>free variables</strong>.</li>
+  </ul>
+  </p>
+
+  <p>To find the <strong>Special Solutions</strong> that form the basis for $N(A)$: Set one free variable to $1$ and the rest to $0$. Solve for the pivot variables. Repeat this for each free variable. You will get exactly $n - r$ special solutions.</p>
+</section>
+
+<section id="complete-solution">
+  <h2>The Complete Solution to $Ax = b$</h2>
+
+  <p>Linear algebra provides a beautiful structure for the complete solution to any system $Ax = b$. It is constructed in two parts.</p>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">Complete Solution Structure</div>
+    <div class="math-box-body">
+      <div class="math-display">$$ x_{complete} = x_p + x_n $$</div>
+      <ul>
+        <li>$x_p$ is <strong>one particular solution</strong> to $Ax = b$. We usually find it by setting all free variables to $0$ and solving for the pivot variables.</li>
+        <li>$x_n$ represents <strong>all vectors in the null space</strong> $N(A)$. It is a linear combination of the Special Solutions.</li>
+      </ul>
+      <p>Why does this work? If $Ax_p = b$ and $Ax_n = 0$, then $A(x_p + x_n) = Ax_p + Ax_n = b + 0 = b$.</p>
+    </div>
+  </div>
+
+  <table class="math-table">
+    <thead>
+      <tr>
+        <th>Rank Condition</th>
+        <th>Rows vs Cols</th>
+        <th>Solutions to $Ax = b$</th>
+        <th>Null Space $N(A)$</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Full Column Rank ($r=n$)</td>
+        <td>$m \ge n$ (Tall)</td>
+        <td>0 or 1 (Unique)</td>
+        <td>$Z = \{\vec{0}\}$</td>
+      </tr>
+      <tr>
+        <td>Full Row Rank ($r=m$)</td>
+        <td>$m \le n$ (Wide)</td>
+        <td>$\infty$ (Always exists)</td>
+        <td>$n-m$ special solutions</td>
+      </tr>
+      <tr>
+        <td>Full Rank ($r=m=n$)</td>
+        <td>$m = n$ (Square)</td>
+        <td>Exactly 1</td>
+        <td>$Z = \{\vec{0}\}$</td>
+      </tr>
+      <tr>
+        <td>Rank Deficient ($r < m, r < n$)</td>
+        <td>Any</td>
+        <td>0 or $\infty$</td>
+        <td>$n-r$ special solutions</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="basis-and-dimension">
+  <h2>Independence, Basis, and Dimension</h2>
+
+  <div class="math-box definition-box">
+    <div class="math-box-label">Linear Independence</div>
+    <div class="math-box-body">
+      <p>Vectors $v_1, v_2, \dots, v_n$ are linearly independent if the only combination that gives the zero vector is the trivial one:</p>
+      <div class="math-display">$$ c_1v_1 + c_2v_2 + \dots + c_nv_n = 0 \implies c_1 = c_2 = \dots = c_n = 0 $$</div>
+      <p><strong>Matrix definition:</strong> The columns of $A$ are independent if and only if $N(A) = \{\vec{0}\}$.</p>
+    </div>
+  </div>
+
+  <div class="math-box key-box">
+    <div class="math-box-label">Basis and Dimension</div>
+    <div class="math-box-body">
+      <p>A set of vectors is a <strong>Basis</strong> for a vector space $V$ if they possess two properties:</p>
+      <ol>
+        <li>They are <strong>linearly independent</strong> (not too many vectors).</li>
+        <li>They <strong>span</strong> the space $V$ (not too few vectors).</li>
+      </ol>
+      <p>The <strong>Dimension</strong> of a space is the number of vectors in every basis for that space.</p>
+    </div>
+  </div>
+  
+  <p><strong>Finding the basis of $C(A)$:</strong> Do not use the columns of $R$. Row operations change the column space! Instead, find the pivot columns of $R$, and select those <em>exact same columns</em> from the original matrix $A$.</p>
+</section>
+
+<section id="four-fundamental-subspaces">
+  <h2>Strang's Four Fundamental Subspaces</h2>
+
+  <p>Every $m \times n$ matrix $A$ of rank $r$ creates four fundamental subspaces. The relationship between their dimensions is the most important theorem in linear algebra.</p>
+
+  <table class="math-table">
+    <thead>
+      <tr>
+        <th>Subspace</th>
+        <th>Symbol</th>
+        <th>Lives in</th>
+        <th>Dimension</th>
+        <th>Basis comes from</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Column space</td>
+        <td>$C(A)$</td>
+        <td>$\mathbb{R}^m$</td>
+        <td>$r$ (rank)</td>
+        <td>Pivot columns of $A$</td>
+      </tr>
+      <tr>
+        <td>Row space</td>
+        <td>$C(A^T)$</td>
+        <td>$\mathbb{R}^n$</td>
+        <td>$r$ (rank)</td>
+        <td>First $r$ rows of $R$ (or $U$)</td>
+      </tr>
+      <tr>
+        <td>Null space</td>
+        <td>$N(A)$</td>
+        <td>$\mathbb{R}^n$</td>
+        <td>$n-r$</td>
+        <td>Special solutions to $Ax=0$</td>
+      </tr>
+      <tr>
+        <td>Left null space</td>
+        <td>$N(A^T)$</td>
+        <td>$\mathbb{R}^m$</td>
+        <td>$m-r$</td>
+        <td>Special solutions to $A^Ty=0$</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="math-box note-box">
+    <div class="math-box-label">Why is it called the "Left" Null Space?</div>
+    <div class="math-box-body">
+      <p>If $y$ is in $N(A^T)$, then $A^T y = 0$. If we take the transpose of both sides, we get:</p>
+      <div class="math-display">$$ y^T A = 0^T $$</div>
+      <p>Here, $y^T$ is a row vector multiplying $A$ from the <em>left</em>. It represents the linear combinations of the <em>rows</em> of $A$ that result in a row of zeros.</p>
+    </div>
+  </div>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">The Fundamental Theorem of Linear Algebra (Part 1)</div>
+    <div class="math-box-body">
+      <p>The column space and the row space always have the exact same dimension: $r$.</p>
+      <p>The dimension of the domain is $n$. The row space and null space split this domain:</p>
+      <div class="math-display">$$ \dim(C(A^T)) + \dim(N(A)) = r + (n - r) = n $$</div>
+      <p>This equation is widely known as the <strong>Rank-Nullity Theorem</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="matrix-spaces">
+  <h2>Dimension of Matrix Spaces</h2>
+
+  <p>Matrices themselves can be treated as vectors inside matrix spaces $M_{m\times n}$.</p>
+
+  <div class="math-box theorem-box">
+    <div class="math-box-label">Dimension of $M$</div>
+    <div class="math-box-body">
+      <p>Each $m \times n$ matrix has $mn$ independent entries, so the standard basis consists of $mn$ matrices (each with a single $1$ and the rest $0$'s).</p>
+      <div class="math-display">$$ \dim(M_{m\times n}) = mn $$</div>
+      <p>Example: For $3 \times 3$ matrices, $\dim(M) = 9$.</p>
+    </div>
+  </div>
+  
+  <p>We can find subspaces within square matrices $M_{n \times n}$:</p>
+  <ul>
+    <li><strong>Symmetric Matrices ($S$):</strong> $A^T = A$. The dimension is $\frac{n(n+1)}{2}$. For a $3 \times 3$, $\dim(S) = 6$.</li>
+    <li><strong>Upper Triangular Matrices ($U$):</strong> The dimension is also $\frac{n(n+1)}{2}$.</li>
+    <li><strong>Diagonal Matrices ($D$):</strong> These represent the intersection of $S$ and $U$ ($S \cap U$). The dimension is $n$.</li>
+  </ul>
+</section>
+
+<section id="misused-terminology">
+  <h2>Commonly Misused Terminology</h2>
+
+  <table class="math-table">
+    <thead>
+      <tr><th>Wrong</th><th>Correct</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Rank of a space</td><td>Dimension of a space</td><td>Rank is a property of matrices, dimension is a property of spaces.</td></tr>
+      <tr><td>Basis of a matrix</td><td>Basis of a column space</td><td>A single matrix has no basis. Spaces have bases.</td></tr>
+      <tr><td>Span of a matrix</td><td>Span of its columns</td><td>Only sets of vectors can span a space.</td></tr>
+      <tr><td>Rank of a vector</td><td>Meaningless</td><td>Single vectors do not have rank.</td></tr>
+      <tr><td>Matrix is a subspace</td><td>Column space is a subspace</td><td>Spaces are constructed from combinations of vectors.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

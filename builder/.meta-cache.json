@@ -1,130 +1,130 @@
 [
   {
+    "path": "01.generative-models/01.introduction/01.taxonomy-of-generative-models.html",
+    "hash": "74166a05a81e6d6656bbd0c0334af39a"
+  },
+  {
+    "path": "01.generative-models/01.introduction/02.ai-evolution-timeline.html",
+    "hash": "d6485a422586712709a251a6aa4e4470"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/01.intro-to-autoregression-models.html",
+    "hash": "c161fa08df09bb1d8e7803effabedcc9"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/02.word-representation.html",
+    "hash": "1c56c1446d3629babab0071a2bae451c"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/03.fixed-length-autoregressive-models.html",
+    "hash": "c3b07b8cbcf3b647e3dce54352c463b8"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory.html",
+    "hash": "14bb30ce324e2182dab5c70e5345c5a5"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/05.attention-and-the-end-of-recurrence.html",
+    "hash": "21c498d6e46722a39945a1e724aa55df"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/06.the-transformer-architecture.html",
+    "hash": "80ad7243bf2de4740dbdc091504b79d7"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/07.position-representation.html",
+    "hash": "5831fc7d3091d196ee15795ee96bc517"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/08.the-architecture-of-scale.html",
+    "hash": "bf0066b855b861debaa6aeba92b0f202"
+  },
+  {
+    "path": "01.generative-models/02.autoregressive-models/09.attention-approximation.html",
+    "hash": "36134059cdbc0048e56fc7261ace2014"
+  },
+  {
+    "path": "01.generative-models/03.latent-variable-models/01.introduction-to-latent-variable-models.html",
+    "hash": "e329c939e562cf3fc72e3d98ffe87f3f"
+  },
+  {
+    "path": "02.linear-algebra/01.solving-linear-systems/01.solving-linear-equations.html",
+    "hash": "fc6de4d440b6ea0733f85565e54724e1"
+  },
+  {
+    "path": "02.linear-algebra/01.solving-linear-systems/02.the-complete-solution.html",
+    "hash": "27c5d7ac90a827ae277bbdf2ec6a37ea"
+  },
+  {
+    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces.html",
+    "hash": "8eee0386cdf8a95eb63e7c261db67650"
+  },
+  {
+    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/02.null-space-from-block-rref.html",
+    "hash": "51dd4e6d52b5268faf5720e098e653e1"
+  },
+  {
+    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/03.independence-basis-and-dimension.html",
+    "hash": "6401e6da2009341130038e4fe53a8726"
+  },
+  {
+    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/04.vector-spaces-and-subspaces.html",
+    "hash": "2d401c0ef4651eb43d8a14576ea63c4c"
+  },
+  {
+    "path": "02.linear-algebra/03.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces.html",
+    "hash": "cde1bd53d761289672aa6cfbbca60e00"
+  },
+  {
+    "path": "02.linear-algebra/03.orthogonality-and-projections/02.projections-onto-subspaces.html",
+    "hash": "524059b813043b07643a31c15710de55"
+  },
+  {
+    "path": "02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html",
+    "hash": "201f423951c53def920d65954c236c4b"
+  },
+  {
+    "path": "02.linear-algebra/03.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt.html",
+    "hash": "20f0d2c143be05eeec9889b66dabec3c"
+  },
+  {
+    "path": "02.linear-algebra/05.eigenvalues-and-eigenvectors/01.eigenvectors.html",
+    "hash": "56794782d740ab3d122739f4a0d9c729"
+  },
+  {
+    "path": "02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html",
+    "hash": "e353005b0b3f745e5f7c5a3c14698b8f"
+  },
+  {
+    "path": "02.linear-algebra/05.eigenvalues-and-eigenvectors/03.positive-defnite-matrices.html",
+    "hash": "d8a84caafa61539d566afd09b2fb20c9"
+  },
+  {
+    "path": "02.linear-algebra/06.singular-value-decomposition/01.the-singular-value-decomposition-svd.html",
+    "hash": "25e85ad7ae350c76c229657e5027349b"
+  },
+  {
+    "path": "02.linear-algebra/99.applications/01.google-search.html",
+    "hash": "4a55f94eb78999f65e630dc30b90822f"
+  },
+  {
+    "path": "03.stats/01.foundations-of-probability/01.probability-and-counting.html",
+    "hash": "e6ca4da344a31e3dc5a9e2df40d7594d"
+  },
+  {
+    "path": "03.stats/02.distributions/01.common-probability-distributions.html",
+    "hash": "41357bcec3e297df187a2d1fc1009431"
+  },
+  {
+    "path": "03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html",
+    "hash": "b5882e58dc787a2b8b318b841ef7dae9"
+  },
+  {
     "path": "dots/new-chapter/_template.html",
-    "hash": "6889705f98acfb69c2e8da9360e2ee54"
+    "hash": "872022a079bec8ed6d0fbdf617d1faf3"
   },
   {
     "path": "dots/new-chapter/test-page.html",
     "hash": "6bcdc183c51094c8aa94abe28e1043b1"
-  },
-  {
-    "path": "generative/autoregressive-models/Architecture_of_scale.html",
-    "hash": "326e2a97579b5ad0b7a5799b9cdaf71c"
-  },
-  {
-    "path": "generative/autoregressive-models/Fixed-length.html",
-    "hash": "692a2aee071d4eee3cebeb711232bde5"
-  },
-  {
-    "path": "generative/autoregressive-models/Transformer.html",
-    "hash": "c1384778d9617147bce67935d9e3a14b"
-  },
-  {
-    "path": "generative/autoregressive-models/attention.html",
-    "hash": "4492e276629359643a540861d12cac7d"
-  },
-  {
-    "path": "generative/autoregressive-models/attention_approximation.html",
-    "hash": "c1bb03e63cd35b9174d70df52e21e65e"
-  },
-  {
-    "path": "generative/autoregressive-models/intro_ar.html",
-    "hash": "6dc56523e8f4f6cb258eb24580a67249"
-  },
-  {
-    "path": "generative/autoregressive-models/pos_enc.html",
-    "hash": "97bb256a1736f16ba815fd5cf458b07e"
-  },
-  {
-    "path": "generative/autoregressive-models/rnn.html",
-    "hash": "17608a2cd23392c774337d765ce12348"
-  },
-  {
-    "path": "generative/autoregressive-models/word_rep.html",
-    "hash": "053930f20da28649b4fa4eb4b849c45f"
-  },
-  {
-    "path": "generative/detour/ai-timeline.html",
-    "hash": "9c3ea59b47f6cbc672f307411e263720"
-  },
-  {
-    "path": "generative/detour/taxonomy.html",
-    "hash": "7608469d671cd046dde4d1408415e5f1"
-  },
-  {
-    "path": "generative/latent-variable-models/intro_lvm.html",
-    "hash": "25b01704be439bf3a9e0d224728fa682"
-  },
-  {
-    "path": "linear-algebra/1.solving-linear-systems/complete_solution.html",
-    "hash": "2e9519e687fcbd01a90ffa650ef4fdf4"
-  },
-  {
-    "path": "linear-algebra/1.solving-linear-systems/sle.html",
-    "hash": "84b3482647304c7353e87e2fb6f64b4a"
-  },
-  {
-    "path": "linear-algebra/10.Applications/google_search.html",
-    "hash": "a51fc927fd4d8a0b60b0fc420ffa13dd"
-  },
-  {
-    "path": "linear-algebra/2.vector-spaces-and-subspaces/Independence,Basis,Dimension.html",
-    "hash": "5dfb07d25caf23ca8872ee0e936e552e"
-  },
-  {
-    "path": "linear-algebra/2.vector-spaces-and-subspaces/Null_Space_from_Block_RREF.html",
-    "hash": "4c7af4b5bd03ac69a291ab4210be016f"
-  },
-  {
-    "path": "linear-algebra/2.vector-spaces-and-subspaces/four_subspaces.html",
-    "hash": "ff4b5ad884141ce883e9190f173834b1"
-  },
-  {
-    "path": "linear-algebra/2.vector-spaces-and-subspaces/vec_spaces.html",
-    "hash": "efa6dc070fa91dc9284efea3cd3e882c"
-  },
-  {
-    "path": "linear-algebra/4.orthogonality-and-projections/4.1.html",
-    "hash": "ca722104c995e8152945c315b7aba948"
-  },
-  {
-    "path": "linear-algebra/4.orthogonality-and-projections/4.2.html",
-    "hash": "0dc7f1e70c0e496fb6ca07c8a3bd761d"
-  },
-  {
-    "path": "linear-algebra/4.orthogonality-and-projections/4.3.html",
-    "hash": "8e3b98777ed63a3eb191785e6812993c"
-  },
-  {
-    "path": "linear-algebra/4.orthogonality-and-projections/4.4.html",
-    "hash": "12eb1f00c369a32ae9e868e6d9fb930d"
-  },
-  {
-    "path": "linear-algebra/6.eigenvalues-and-eigenvectors/6.1.html",
-    "hash": "2b57637092af149dbeb2bf7c088874fa"
-  },
-  {
-    "path": "linear-algebra/6.eigenvalues-and-eigenvectors/6.2.html",
-    "hash": "d6dee4fb769d8c4464e982507c08faa6"
-  },
-  {
-    "path": "linear-algebra/6.eigenvalues-and-eigenvectors/6.3.html",
-    "hash": "956b089b8f4ac842f6205ba93570a450"
-  },
-  {
-    "path": "linear-algebra/7.the-svd-and-applications/7.1.html",
-    "hash": "2ab9d5d7c8ef62d854cfff7f12fc41ee"
-  },
-  {
-    "path": "stats/stats-foundation/central_limit_theorem.html",
-    "hash": "7424d46ed195dbecf425d298f8986b17"
-  },
-  {
-    "path": "stats/stats-foundation/counting.html",
-    "hash": "38d5aaa49eaf6331543d2d9a439a5083"
-  },
-  {
-    "path": "stats/stats-foundation/distribution.html",
-    "hash": "61837d29b152716946bbc9b22d32aae7"
   }
 ]

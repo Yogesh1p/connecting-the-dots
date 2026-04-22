@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+    <meta name="title" content="AI Evolution Timeline">
+    <meta name="lessonorder" content="2">
+    <meta name="chapter_order" content="1">
+    <meta name="book_slug" content="generative">
+ <meta name="date" content="2026-04-01">
+     <meta name="book" content="Generative Models">
+         <meta name="chapter" content="Introduction">
+    <meta name="part" content=" ">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Evolution Timeline — Connecting the Dots</title>
+  <style>
+    :root {
+      --bg: #110e0c;
+      --surface: #1a1512;
+      --text: #EAD9C2;
+      --muted: #8a7763;
+      
+      --vision: #D48C70;
+      --vision-glow: rgba(212, 140, 112, 0.2);
+      
+      --nlp: #5EEAD4;
+      --nlp-glow: rgba(94, 234, 212, 0.2);
+
+      --gen: #C084FC;
+      --gen-glow: rgba(192, 132, 252, 0.2);
+      
+      --line: rgba(234, 217, 194, 0.1);
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 50% 0%, #1f1814, var(--bg));
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 450px;
+      height: 100vh;
+    }
+    
+    .timeline-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: stretch; /* Prevents centering-clip bug */
+      padding: 0 40px;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--muted) transparent;
+    }
+    
+    .timeline-wrap::-webkit-scrollbar { height: 8px; }
+    .timeline-wrap::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 10px; }
+
+    /* Expanded width, responsive height */
+    .timeline-track {
+      position: relative;
+      min-width: 15000px; 
+      width: 100%;
+      height: 100%; 
+    }
+
+    .axis-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--line);
+      border-top: 1px dashed rgba(255,255,255,0.05);
+    }
+    
+    /* Safely distanced axes */
+    .axis-vision { top: 25%; }
+    .axis-nlp { top: 50%; }
+    .axis-gen { top: 75%; }
+
+    .node-group {
+      position: absolute;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      width: 20px; 
+      z-index: 5;
+    }
+
+    .node-group.vision-node { top: calc(25% - 8px); }
+    .node-group.nlp-node { top: calc(50% - 8px); }
+    .node-group.gen-node { top: calc(75% - 8px); }
+
+    .node {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 3px solid;
+      transition: all 0.3s ease;
+      position: absolute;
+      z-index: 10;
+    }
+
+    .vision-node .node { border-color: var(--vision); box-shadow: 0 0 0 6px var(--vision-glow); }
+    .nlp-node .node { border-color: var(--nlp); box-shadow: 0 0 0 6px var(--nlp-glow); }
+    .gen-node .node { border-color: var(--gen); box-shadow: 0 0 0 6px var(--gen-glow); }
+
+    .node-group:hover { z-index: 20; }
+    .node-group:hover .node, .node-group.active .node { background: #fff; transform: scale(1.4); }
+    .vision-node:hover .node, .vision-node.active .node { box-shadow: 0 0 20px var(--vision); border-color: #fff; }
+    .nlp-node:hover .node, .nlp-node.active .node { box-shadow: 0 0 20px var(--nlp); border-color: #fff; }
+    .gen-node:hover .node, .gen-node.active .node { box-shadow: 0 0 20px var(--gen); border-color: #fff; }
+
+    .label-box {
+      position: absolute;
+      width: 150px; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    .year {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    
+    .title {
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      color: var(--text);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      line-height: 1.3;
+    }
+
+    .stem-dynamic {
+      position: absolute;
+      width: 1px;
+      background: rgba(255,255,255,0.15);
+      z-index: 1;
+      transition: all 0.3s ease;
+    }
+    
+    .node-group:hover .stem-dynamic, .node-group.active .stem-dynamic {
+      background: rgba(255,255,255,0.6);
+    }
+
+    /* Panel Styles */
+    .panel {
+      background: rgba(21, 17, 14, 0.85);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(255,255,255,0.05);
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+    }
+    .panel-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+    .tag { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px; width: fit-content; }
+    .tag.vision { background: var(--vision-glow); color: var(--vision); border: 1px solid rgba(212,140,112,0.3); }
+    .tag.nlp { background: var(--nlp-glow); color: var(--nlp); border: 1px solid rgba(94,234,212,0.3); }
+    .tag.gen { background: var(--gen-glow); color: var(--gen); border: 1px solid rgba(192,132,252,0.3); }
+    .panel h2 { margin: 0 0 10px; font-size: 2.8rem; font-weight: 800; color: #fff; line-height: 1.1; }
+    .panel h3 { margin: 0 0 25px; color: var(--text); font-size: 1.2rem; font-weight: 400; border-bottom: 1px solid var(--line); padding-bottom: 20px; line-height: 1.4; }
+    .panel p { line-height: 1.7; color: #bcaea0; font-size: 1.05rem; }
+
+    /* Controls */
+    .controls { display: flex; gap: 15px; margin-top: 40px; }
+    .nav-btn { flex: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text); padding: 14px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+    .nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+    .nav-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+    .theme-vision .nav-btn:hover:not(:disabled) { border-color: var(--vision); color: var(--vision); }
+    .theme-nlp .nav-btn:hover:not(:disabled) { border-color: var(--nlp); color: var(--nlp); }
+    .theme-gen .nav-btn:hover:not(:disabled) { border-color: var(--gen); color: var(--gen); }
+  </style>
+  <meta name="reading_time" content="1">
+
+    <meta property="og:title" content="AI Evolution Timeline — Connecting the Dots">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-evolution-timeline.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/01.generative-models/01.introduction/02.ai-evolution-timeline.html">
+</head>
+<body>
+
+  <div class="layout">
+    <div class="timeline-wrap">
+      <div class="timeline-track" id="timeline">
+        <div class="axis-line axis-vision"></div>
+        <div class="axis-line axis-nlp"></div>
+        <div class="axis-line axis-gen"></div>
+      </div>
+    </div>
+    
+    <aside class="panel" id="sidePanel">
+      <div class="panel-content">
+        <div id="paperTag" class="tag gen">Generative & General</div>
+        <h2 id="paperYear">1943</h2>
+        <h3 id="paperTitle">McCulloch-Pitts Neuron</h3>
+        <p id="paperBody">The foundation of artificial neural networks. McCulloch and Pitts create a mathematical model of a biological neuron using propositional logic.</p>
+      </div>
+      
+      <div class="controls">
+        <button id="prevBtn" class="nav-btn" disabled>&#8592; Previous</button>
+        <button id="nextBtn" class="nav-btn">Next &#8594;</button>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const milestones = [
+      // VISION TRACK
+      { year: 1958, track: 'vision', title: 'The Perceptron (Vision)', body: 'Frank Rosenblatt applies the Perceptron to visual pattern recognition, proving machines could "learn" visual features by adjusting weights.' },
+      { year: 1959, track: 'vision', title: 'Hierarchical Vision', body: 'Hubel & Wiesel discover simple and complex cells in a cat’s visual cortex, proving vision is processed in hierarchical stages.' },
+      { year: 1969, track: 'vision', title: 'The XOR Problem', body: 'Minsky & Papert proved a single-layer perceptron couldn\'t solve non-linear problems like XOR, stalling neural network research.' },
+      { year: 1980, track: 'vision', title: 'Neocognitron', body: 'Kunihiko Fukushima built the first true convolutional architecture modeled on Hubel & Wiesel, but it lacked a training algorithm.' },
+      { year: 1986, track: 'vision', title: 'Backpropagation', body: 'Rumelhart, Hinton, and Williams popularize backpropagation, utilizing the chain rule to compute gradients and making deep networks trainable.' },
+      { year: 1989, track: 'vision', title: 'First CNN (LeNet-1)', body: 'Yann LeCun successfully applies backpropagation to a convolutional architecture for zip code recognition. Features were learned, not hand-coded.' },
+      { year: 1998, track: 'vision', title: 'Spatial Pooling', body: 'LeNet-5 established the gold standard pattern of alternating convolutions and pooling layers to condense spatial information.' },
+      { year: 2001, track: 'vision', title: 'Haar Cascades', body: 'Viola and Jones achieved real-time face detection by cascading simple hand-engineered features to rapidly reject non-faces.' },
+      { year: 2009, track: 'vision', title: 'ImageNet Dataset', body: 'Fei-Fei Li realizes algorithms need massive data. She releases ImageNet (millions of labeled images), fundamentally shifting AI research.' },
+      { year: 2012, track: 'vision', title: 'Deep Learning Explosion', body: 'AlexNet uses GPUs, ReLU, and ImageNet to crush traditional computer vision, proving deep learned features dominate.' },
+      { year: 2014, track: 'vision', title: 'Depth & Parallelism', body: 'VGG proved repeating small 3x3 filters was optimal, while Inception proved multiple kernel sizes could run in parallel.' },
+      { year: 2015, track: 'vision', title: 'Residual Connections', body: 'Kaiming He introduced skip connections. By learning residuals (y = F(x) + x), networks scaled to hundreds of layers.' },
+      { year: 2015.5, track: 'vision', title: 'Single-Shot Detection', body: 'YOLO (You Only Look Once) reframed object detection from complex pipelines into a single, real-time regression problem.' },
+      { year: 2017.9, track: 'vision', title: 'Attention in Vision', body: 'Non-local Neural Networks brought self-attention mechanisms into computer vision, capturing long-range dependencies before the ViT era.' },
+      { year: 2019, track: 'vision', title: 'EfficientNet', body: 'Introduced compound scaling. Instead of arbitrarily adding layers, architectures adopted a principled way to scale depth, width, and resolution.' },
+      { year: 2020, track: 'vision', title: 'Self-Supervised Vision', body: 'SimCLR and MoCo pioneer contrastive learning in vision, proving models can learn powerful representations from unlabeled images.' },
+      { year: 2021, track: 'vision', title: 'Vision Transformers & CLIP', body: 'The Transformer crossed over into vision (ViT). Simultaneously, OpenAI\'s CLIP bridged text and images into a shared mathematical space.' },
+      { year: 2022, track: 'vision', title: 'Stable Diffusion', body: 'A milestone in vision generation. By running diffusion in latent space, high-quality image synthesis became computationally accessible.' },
+      { year: 2022.5, track: 'vision', title: 'Masked Autoencoders', body: 'Kaiming He proves that masking 75% of an image and forcing a model to reconstruct it creates highly robust, self-supervised vision models.' },
+      { year: 2023, track: 'vision', title: 'Segment Anything', body: 'Meta releases SAM, a foundational vision model capable of zero-shot segmentation based on point or text prompts.' },
+
+      // NLP TRACK
+      { year: 1950, track: 'nlp', title: 'The Turing Test', body: 'Alan Turing proposes the Imitation Game: if a machine can converse indistinguishably from a human, it must be considered intelligent.' },
+      { year: 1954, track: 'nlp', title: 'Georgetown Experiment', body: 'An early, highly publicized demonstration of machine translation, converting Russian sentences to English using rule-based linguistics.' },
+      { year: 1966, track: 'nlp', title: 'ELIZA', body: 'Created by Joseph Weizenbaum, ELIZA simulated a psychotherapist using pattern matching, birthing the concept of a chatbot.' },
+      { year: 1972, track: 'nlp', title: 'SHRDLU', body: 'Terry Winograd\'s system demonstrates early natural language understanding, allowing a user to converse with a computer moving shapes in a block world.' },
+      { year: 1988, track: 'nlp', title: 'Statistical NLP', body: 'The field shifted from brittle hand-coded logic rules to statistical models (like Hidden Markov Models) leveraging probability.' },
+      { year: 1997, track: 'nlp', title: 'LSTM Networks', body: 'Hochreiter and Schmidhuber introduced LSTMs. Gating mechanisms solved the vanishing gradient problem, allowing memory of long sequences.' },
+      { year: 2003, track: 'nlp', title: 'Neural Language Models', body: 'Yoshua Bengio introduced architectures that learned distributed mathematical representations for words.' },
+      { year: 2013, track: 'nlp', title: 'Word Embeddings', body: 'Word2Vec mapped words into a dense vector space where spatial distance equaled semantic meaning.' },
+      { year: 2014, track: 'nlp', title: 'Seq2Seq', body: 'The Encoder-Decoder architecture allowed translation of variable-length sentences by compressing them into a fixed context vector.' },
+      { year: 2015, track: 'nlp', title: 'The Attention Mechanism', body: 'Bahdanau solves the bottleneck of Seq2Seq by allowing models to dynamically "attend" to relevant parts of the input sequence during decoding.' },
+      { year: 2016, track: 'nlp', title: 'Subword Embeddings', body: 'FastText and Byte-Pair Encoding (BPE) solve the out-of-vocabulary problem by representing words as sub-components, bridging Word2Vec and Transformers.' },
+      { year: 2017, track: 'nlp', title: 'The Transformer', body: '"Attention is All You Need" is published. It removed recurrence entirely, relying solely on self-attention for massive parallelization.' },
+      { year: 2018, track: 'nlp', title: 'Pre-training Era (BERT)', body: 'Models learned language structure by predicting masked words in massive datasets before being fine-tuned for specific tasks.' },
+      { year: 2019, track: 'nlp', title: 'GPT-2', body: 'OpenAI initially refuses to fully release GPT-2, citing its "too dangerous" text generation capabilities—a major cultural shift in NLP.' },
+      { year: 2019.5, track: 'nlp', title: 'Post-BERT Refinements', body: 'Models like RoBERTa and XLNet optimize pre-training objectives, proving that massive scale and better masking strategies beat architectural complexity.' },
+      { year: 2020, track: 'nlp', title: 'In-Context Learning', body: 'GPT-3 proved that with enough scale, a model could perform entirely new tasks just from the prompt, without weight updates.' },
+      { year: 2021, track: 'nlp', title: 'Code Generation (Codex)', body: 'A massive conceptual leap: proving that programming languages can be treated identically to natural languages by autoregressive models.' },
+      { year: 2022, track: 'nlp', title: 'Alignment (RLHF)', body: 'ChatGPT applied Reinforcement Learning from Human Feedback to shape massive raw text predictors into helpful dialogue agents.' },
+      { year: 2022.5, track: 'nlp', title: 'Chain-of-Thought', body: 'Wei et al. demonstrate that prompting LLMs to generate intermediate reasoning steps before answering dramatically improves logic and math capabilities.' },
+      { year: 2023, track: 'nlp', title: 'Instruction Tuning', body: 'Formalizing Prompt Engineering. Models are explicitly fine-tuned on instructions, dramatically improving their ability to follow user intent zero-shot.' },
+      { year: 2023.5, track: 'nlp', title: 'Open-Source Democratization', body: 'The release of Meta\'s LLaMA triggers an explosion of open-source fine-tuning, shifting power away from purely proprietary APIs.' },
+      { year: 2024, track: 'nlp', title: 'Infinite Context Windows', body: 'Models like Gemini 1.5 achieve stable reasoning across 1-million+ token context windows, allowing entire codebases or books to be processed instantly.' },
+
+      // GENERATIVE & GENERAL AI TRACK
+      { year: 1943, track: 'gen', title: 'McCulloch-Pitts Neuron', body: 'The theoretical foundation. McCulloch and Pitts create a mathematical model of a biological neuron using propositional logic.' },
+      { year: 1950, track: 'gen', title: 'Computer Chess', body: 'Claude Shannon publishes a seminal paper on programming a computer for playing chess, establishing minimax and game-tree search.' },
+      { year: 1956, track: 'gen', title: 'Dartmouth Workshop', body: 'John McCarthy coins the term "Artificial Intelligence." The field is officially born during a summer research project.' },
+      { year: 1957, track: 'gen', title: 'The Perceptron Mark I', body: 'Frank Rosenblatt physically builds the first neural network hardware, proving a machine could learn a task through trial and error.' },
+      { year: 1959, track: 'gen', title: 'Machine Learning Coined', body: 'Arthur Samuel builds a self-learning Checkers program and officially coins the term "Machine Learning."' },
+      { year: 1965, track: 'gen', title: 'DENDRAL', body: 'The first "expert system." It used rules derived from human experts to deduce molecular structure, marking the peak of Symbolic AI.' },
+      { year: 1969, track: 'gen', title: 'ARPANET', body: 'The foundational networking infrastructure is built. Decades later, this distributed networking would make massive cluster-training of AI possible.' },
+      { year: 1974, track: 'gen', title: 'Werbos Backpropagation', body: 'Paul Werbos outlines backpropagation in his PhD thesis, 12 years before it is popularized for neural networks.' },
+      { year: 1982, track: 'gen', title: 'Hopfield Networks', body: 'John Hopfield models neural networks on statistical mechanics. Memories are stored as energy minimums in a physical system.' },
+      { year: 1985, track: 'gen', title: 'Boltzmann Machines', body: 'Hinton and Sejnowski introduce a stochastic recurrent network capable of learning probability distributions over inputs.' },
+      { year: 1986, track: 'gen', title: 'Backprop Foundations', body: 'Backpropagation is formalized and widely adopted, providing the mathematical engine that will eventually power the deep learning revolution.' },
+      { year: 1997, track: 'gen', title: 'Deep Blue', body: 'A massive symbolic AI milestone: IBM\'s supercomputer defeats world chess champion Garry Kasparov.' },
+      { year: 2003, track: 'gen', title: 'Early ML at Scale', body: 'Google\'s PageRank and subsequent ad-targeting engines prove that machine learning can operate profitably at planetary scale.' },
+      { year: 2004, track: 'gen', title: 'DARPA Grand Challenge', body: 'The dawn of modern embodied AI. Self-driving vehicles attempt a desert course, catalyzing the robotics and autonomous systems industry.' },
+      { year: 2006, track: 'gen', title: 'Deep Belief Networks', body: 'Geoffrey Hinton introduces greedy layer-wise training, coining the modern term "Deep Learning" to break the AI winter.' },
+      { year: 2011, track: 'gen', title: 'IBM Watson', body: 'Watson defeats human champions in Jeopardy!, proving machines could parse ambiguous natural language to retrieve facts.' },
+      { year: 2014, track: 'gen', title: 'Variational Autoencoders', body: 'Kingma and Welling introduce VAEs, mapping data to a continuous latent space to allow smooth, probabilistic generation.' },
+      { year: 2014.5, track: 'gen', title: 'Generative Adversarial Nets', body: 'Ian Goodfellow pits a generator against a discriminator in a minimax game, creating unprecedented image sharpness.' },
+      { year: 2015, track: 'gen', title: 'Early Diffusion', body: 'Sohl-Dickstein introduces the concept of destroying data with thermal noise and training a model to reverse the thermodynamics.' },
+      { year: 2016, track: 'gen', title: 'Deep RL (AlphaGo)', body: 'DeepMind\'s AlphaGo combines Monte Carlo tree search with deep neural "intuition" to defeat world champion Lee Sedol.' },
+      { year: 2016.5, track: 'gen', title: 'Neural Architecture Search', body: 'Machines designing machines. Researchers use RNNs and reinforcement learning to automatically design neural network architectures.' },
+      { year: 2017.5, track: 'gen', title: 'Autoregressive Generation', body: 'Transformers are adapted for purely autoregressive tasks, predicting the next token to generate infinitely scaling text.' },
+      { year: 2017.8, track: 'gen', title: 'AlphaZero', body: 'A paradigm shift in RL: DeepMind\'s system masters Go, Chess, and Shogi entirely through self-play, free from human data biases.' },
+      { year: 2019, track: 'gen', title: 'OpenAI Five / AlphaStar', body: 'Deep RL masters highly complex, imperfect-information multiplayer games (Dota 2 and StarCraft II) requiring long-term strategic planning.' },
+      { year: 2020, track: 'gen', title: 'Denoising Diffusion', body: 'Ho et al. refine diffusion (DDPM), proving it could rival the fidelity of GANs without the highly unstable training dynamics.' },
+      { year: 2021, track: 'gen', title: 'AlphaFold 2', body: 'DeepMind solves the 50-year-old protein folding grand challenge. Arguably AI\'s most profound real-world scientific impact to date.' },
+      { year: 2022, track: 'gen', title: 'Latent Diffusion', body: 'Models compress images into a latent mathematical space, making high-quality generation fast enough to run on consumer GPUs.' },
+      { year: 2022.5, track: 'gen', title: 'Constitutional AI', body: 'Anthropic introduces a method where AI models align themselves based on a written "constitution" of rules, reducing reliance on human labeling.' },
+      { year: 2023, track: 'gen', title: 'GPT-4 & Multimodality', body: 'The dawn of massive multimodal reasoning models capable of passing human professional and academic exams across multiple domains.' },
+      { year: 2023.2, track: 'gen', title: 'Mixture of Experts', body: 'Models like Mixtral and GPT-4 popularize MoE, selectively activating sub-networks to drastically scale parameters without exploding compute costs.' },
+      { year: 2023.5, track: 'gen', title: 'Autonomous Agents', body: 'Projects like AutoGPT attempt to give LLMs recursive agency, allowing them to break down goals, plan, and autonomously use software tools.' },
+      { year: 2024, track: 'gen', title: 'Multimodal Reasoning', body: 'Models like Claude 3 and Gemini 1.5 reach near-human benchmarks natively processing text, vision, and audio simultaneously.' },
+      { year: 2024.5, track: 'gen', title: 'AlphaProof & AlphaGeometry', body: 'AI achieves formal reasoning. Systems successfully prove complex mathematical theorems, marking a leap toward AGI-level logic.' },
+      { year: 2024.8, track: 'gen', title: 'Test-Time Compute (o1)', body: 'OpenAI shifts the paradigm from fast pattern matching to test-time computation, allowing models to utilize internal "chains of thought" before answering.' }
+    ];
+
+    // Sort strictly by year/decimal
+    milestones.sort((a, b) => a.year - b.year);
+
+    const timeline = document.getElementById('timeline');
+    const totalNodes = milestones.length;
+    let currentIndex = 0;
+    
+    // Create a buffer on the timeline ends
+    const minYear = Math.min(...milestones.map(m => m.year)) - 1; 
+    const maxYear = Math.max(...milestones.map(m => m.year)) + 1; 
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const panel = document.getElementById('sidePanel');
+
+    // ALGORITHM: 3-Tier Bi-directional Staggering (Safe Distances)
+    // Tiers are strictly pixel heights away from the axis line.
+    const LANE_DISTANCES = {
+      'U1': { dir: 'up', dist: 30 },
+      'D1': { dir: 'down', dist: 30 },
+      'U2': { dir: 'up', dist: 100 },
+      'D2': { dir: 'down', dist: 100 },
+      'U3': { dir: 'up', dist: 170 },
+      'D3': { dir: 'down', dist: 170 }
+    };
+
+    const LANE_PREFS = {
+      vision: ['U1', 'U2', 'D1', 'U3', 'D2', 'D3'], 
+      nlp:    ['U1', 'D1', 'U2', 'D2', 'U3', 'D3'], 
+      gen:    ['D1', 'D2', 'U1', 'D3', 'U2', 'U3']  
+    };
+
+    let occupied = {
+      vision: { U1: [], U2: [], D1: [], U3: [], D2: [], D3: [] },
+      nlp:    { U1: [], D1: [], U2: [], D2: [], U3: [], D3: [] },
+      gen:    { D1: [], D2: [], U1: [], D3: [], U2: [], U3: [] }
+    };
+
+    // 1.1% of 15000px = 165px. Perfect clearance for a 150px wide label box.
+    const MIN_DIST_PCT = 1.1; 
+
+    function updateSelection(index) {
+      currentIndex = index;
+      const m = milestones[index];
+      
+      document.getElementById('paperYear').textContent = Math.floor(m.year);
+      document.getElementById('paperTitle').textContent = m.title;
+      document.getElementById('paperBody').textContent = m.body;
+      
+      const tag = document.getElementById('paperTag');
+      if (m.track === 'vision') tag.textContent = 'Computer Vision';
+      else if (m.track === 'nlp') tag.textContent = 'Natural Language';
+      else tag.textContent = 'Generative & General';
+      
+      tag.className = `tag ${m.track}`;
+      panel.className = `panel theme-${m.track}`;
+
+      document.querySelectorAll('.node-group').forEach((n, i) => {
+        if (i === index) n.classList.add('active');
+        else n.classList.remove('active');
+      });
+
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === totalNodes - 1;
+      
+      const activeNode = document.querySelectorAll('.node-group')[index];
+      activeNode.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    // Node Generation Loop
+    milestones.forEach((m, index) => {
+      const group = document.createElement('div');
+      group.className = `node-group ${m.track}-node`;
+      
+      const xPositionPct = ((m.year - minYear) / (maxYear - minYear)) * 100;
+      group.style.left = `${xPositionPct}%`;
+
+      let assignedLane = null;
+      for (let lane of LANE_PREFS[m.track]) {
+        let isOccupied = false;
+        for (let pos of occupied[m.track][lane]) {
+          if (Math.abs(xPositionPct - pos) < MIN_DIST_PCT) {
+            isOccupied = true;
+            break;
+          }
+        }
+        if (!isOccupied) {
+          assignedLane = lane;
+          break;
+        }
+      }
+      
+      if (!assignedLane) assignedLane = LANE_PREFS[m.track][0]; 
+      
+      occupied[m.track][assignedLane].push(xPositionPct);
+
+      const node = document.createElement('div');
+      node.className = 'node';
+      
+      const stem = document.createElement('div');
+      stem.className = 'stem-dynamic';
+
+      const labelBox = document.createElement('div');
+      labelBox.className = 'label-box';
+
+      const yearLabel = document.createElement('div');
+      yearLabel.className = 'year';
+      yearLabel.textContent = Math.floor(m.year);
+
+      const titleLabel = document.createElement('div');
+      titleLabel.className = 'title';
+      titleLabel.textContent = m.title;
+
+      labelBox.appendChild(yearLabel);
+      labelBox.appendChild(titleLabel);
+
+      const layout = LANE_DISTANCES[assignedLane];
+      
+      if (layout.dir === 'up') {
+        labelBox.style.bottom = `${layout.dist}px`;
+        stem.style.bottom = '8px';
+        stem.style.height = `${layout.dist - 8}px`;
+      } else {
+        labelBox.style.top = `${layout.dist}px`;
+        stem.style.top = '8px';
+        stem.style.height = `${layout.dist - 8}px`;
+      }
+
+      group.onclick = () => updateSelection(index);
+
+      group.appendChild(stem);
+      group.appendChild(node);
+      group.appendChild(labelBox);
+      timeline.appendChild(group);
+    });
+
+    prevBtn.onclick = () => { if (currentIndex > 0) updateSelection(currentIndex - 1); };
+    nextBtn.onclick = () => { if (currentIndex < totalNodes - 1) updateSelection(currentIndex + 1); };
+
+    // Scroll to start after UI render
+    setTimeout(() => updateSelection(0), 100);
+  </script>
+</body>
+</html>

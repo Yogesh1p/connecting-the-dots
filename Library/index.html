@@ -685,7 +685,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const library = {};
     if (typeof window.rawPages === 'undefined') return; 
     
-    let filteredPages = window.rawPages.filter(page => page.book === book);
+    let filteredPages = window.rawPages.filter(page => {
+      const config = BOOK_CONFIG[book];
+      return page.bookSlug === book || page.book === book || page.book === config?.title;
+    });
     
     updateHero(book, filteredPages);
 
@@ -693,7 +696,9 @@ document.addEventListener("DOMContentLoaded", () => {
         filteredPages = filteredPages.filter(page => {
             return (page.title && page.title.toLowerCase().includes(currentSearchQuery)) ||
                    (page.description && page.description.toLowerCase().includes(currentSearchQuery)) ||
+                   (page.bookTitle && page.bookTitle.toLowerCase().includes(currentSearchQuery)) ||
                    (page.chapter && page.chapter.toLowerCase().includes(currentSearchQuery)) ||
+                   (page.chapterNumber && page.chapterNumber.toLowerCase().includes(currentSearchQuery)) ||
                    (page.keywords && page.keywords.toLowerCase().includes(currentSearchQuery));
         });
         
@@ -704,10 +709,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     filteredPages.forEach(page => {
-      if (!library[page.chapter]) library[page.chapter] = {};
+      if (!library[page.chapter]) {
+        library[page.chapter] = {
+          order: page.chapterOrder ?? 999,
+          number: page.chapterNumber || "",
+          parts: {}
+        };
+      }
       const part = page.part?.trim() || "Main";
-      if (!library[page.chapter][part]) library[page.chapter][part] = [];
-      library[page.chapter][part].push(page);
+      if (!library[page.chapter].parts[part]) library[page.chapter].parts[part] = [];
+      library[page.chapter].parts[part].push(page);
     });
 
     renderLibrary(library, !!currentSearchQuery);
@@ -727,12 +738,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     chapters.sort((a, b) => {
+        const ao = library[a].order ?? 999;
+        const bo = library[b].order ?? 999;
+        if (ao !== bo) return ao - bo;
         const ai = chapterList.indexOf(a);
         const bi = chapterList.indexOf(b);
         return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
       })
       .forEach(chapter => {
-        const parts = library[chapter];
+        const chapterMeta = library[chapter];
+        const parts = chapterMeta.parts;
+        const chapterTitle = chapterMeta.number ? `${chapterMeta.number} · ${chapter}` : chapter;
         let coreRowsHtml = "";
         let deepDiveRowsHtml = "";
         let totalSections = 0;
@@ -746,13 +762,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             parts[part]
-              .sort((a, b) => (a.lessonorder ?? 999) - (b.lessonorder ?? 999))
+              .sort((a, b) => {
+                const ao = a.lessonorder ?? 999;
+                const bo = b.lessonorder ?? 999;
+                if (ao !== bo) return ao - bo;
+                return (a.title || "").localeCompare(b.title || "");
+              })
               .forEach(page => {
                 totalSections++;
                 const status = (page.status || 'draft').toLowerCase();
                 const statusBadge = status === 'draft' ? `<span class="status-badge status-draft">Draft</span>` : '';
                 
-                let displayTitle = page.title;
+                let displayTitle = page.lessonNumber ? `${page.lessonNumber} · ${page.title}` : page.title;
 
                 const rowHTML = `
                   <div class="toc-row ${page.tier === 'deep-dive' ? 'is-deep-dive' : ''}">
@@ -784,7 +805,7 @@ document.addEventListener("DOMContentLoaded", () => {
         html += `
           <details class="toc-block" data-chapter="${chapter}" ${isOpen}>
             <summary>
-              <span class="ch-summary-title">${chapter}</span>
+              <span class="ch-summary-title">${chapterTitle}</span>
               <span class="ch-summary-count">${totalSections} Lessons</span>
               <svg class="ch-summary-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
