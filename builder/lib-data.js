@@ -29,6 +29,20 @@ window.rawPages = [
     "readingTime": 15
   },
   {
+    "url": "../Library/generative/autoregressive-models/Transformer.html",
+    "book": "generative",
+    "title": "The Transformer Architecture",
+    "description": "From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.",
+    "date": "2026-04-22",
+    "chapter": "Autoregressive Models",
+    "lessonorder": 7,
+    "part": "Transformer Foundations",
+    "tier": "core",
+    "keywords": "transformer, positional encoding, masked self-attention, cross-attention, feed-forward network, residual connections, layer normalization, encoder-decoder, decoder-only, autoregressive, pre-norm, GPT, BERT",
+    "status": "draft",
+    "readingTime": 14
+  },
+  {
     "url": "../Library/generative/autoregressive-models/attention.html",
     "book": "generative",
     "title": "Attention and the End of Recurrence",
