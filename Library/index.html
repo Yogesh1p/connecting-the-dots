@@ -549,6 +549,7 @@ const BOOK_CONFIG = {
 
 let activeBook = "generative"; 
 let currentSearchQuery = ""; 
+const LOCAL_WORKSPACE_ROOT = "/Users/yogesh/Documents/connecting-the-dots";
 
 const bookMemory = JSON.parse(sessionStorage.getItem('bookMemory')) || {};
 
@@ -675,11 +676,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const CHAPTER_ORDER = {
     "generative": ["Introduction", "Autoregressive Models", "Latent Variable Models", "Normalizing Flows", "Variational Autoencoders", "Generative Adversarial Networks", "Diffusion Models"],
-    "linear-algebra": ["Solving Linear Systems", "Vector Spaces and Subspaces", "Orthogonality and Projections", "Determinants", "Eigenvalues and Eigenvectors", "Singular Value Decomposition"],
+    "linear-algebra": ["Solving Linear Systems", "Vector Spaces and Subspaces", "Orthogonality and Projections", "Determinants", "Eigenvalues and Eigenvectors", "Singular Value Decomposition","Applications"],
     "Stats": ["Foundations of Probability", "Distributions", "Statistical Inference", "Bayesian Thinking"],
   };
 
   const partPriority = { "Transformer Foundations": 0, "Large Language Models": 1, "Stats and Statistics Foundations": 0, "Main": 2 };
+
+  function isLocalLibraryServer() {
+    return ["localhost", "127.0.0.1", "0.0.0.0"].includes(window.location.hostname);
+  }
+
+  function vscodeUrlFor(sourcePath) {
+    const fullPath = `${LOCAL_WORKSPACE_ROOT}/${sourcePath}`;
+    return `vscode://file/${fullPath.replace(/#/g, "%23")}`;
+  }
 
   function buildLibrary(book = activeBook) {
     const library = {};
@@ -748,7 +758,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .forEach(chapter => {
         const chapterMeta = library[chapter];
         const parts = chapterMeta.parts;
-        const chapterTitle = chapterMeta.number ? `${chapterMeta.number} · ${chapter}` : chapter;
+        const chapterTitle = chapterMeta.number ? `${chapterMeta.number}. ${chapter}` : chapter;
         let coreRowsHtml = "";
         let deepDiveRowsHtml = "";
         let totalSections = 0;
@@ -773,11 +783,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const status = (page.status || 'draft').toLowerCase();
                 const statusBadge = status === 'draft' ? `<span class="status-badge status-draft">Draft</span>` : '';
                 
-                let displayTitle = page.lessonNumber ? `${page.lessonNumber} · ${page.title}` : page.title;
+                let displayTitle = page.lessonNumber ? `${page.lessonNumber}. ${page.title}` : page.title;
 
                 const rowHTML = `
                   <div class="toc-row ${page.tier === 'deep-dive' ? 'is-deep-dive' : ''}">
-                    <a href="${page.url}">
+                    <a href="${page.url}" data-source-path="${page.sourcePath || ''}">
                       <span class="row-title">${displayTitle} ${statusBadge}</span>
                     </a>
                   </div>
@@ -849,7 +859,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById('library-content').addEventListener('click', (e) => {
-    if (e.target.closest('a')) saveCurrentBookState();
+    const link = e.target.closest('a');
+    if (!link) return;
+
+    if (isLocalLibraryServer() && e.altKey && link.dataset.sourcePath) {
+      e.preventDefault();
+      window.location.href = vscodeUrlFor(link.dataset.sourcePath);
+      return;
+    }
+
+    saveCurrentBookState();
   });
 
   document.addEventListener('visibilitychange', () => {

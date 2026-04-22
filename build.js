@@ -89,13 +89,17 @@ function getPathOrder(relativePath, index = 0) {
 }
 
 function createPageObject(relativePath, content, readingTime) {
+    const sourcePath = relativePath.replace(/\\/g, "/");
     const bookTitle = getMeta(content, "book") || "";
     const bookSlug = getMeta(content, "book_slug") || slugify(bookTitle);
-    const chapterOrder = parseInt(getMeta(content, "chapter_order")) || getPathOrder(relativePath, 1);
-    const lessonorder = parseInt(getMeta(content, "lessonorder")) || getPathOrder(relativePath, 2);
+    const pathChapterOrder = getPathOrder(relativePath, 1);
+    const pathLessonOrder = getPathOrder(relativePath, 2);
+    const chapterOrder = pathChapterOrder !== 999 ? pathChapterOrder : (parseInt(getMeta(content, "chapter_order")) || 999);
+    const lessonorder = pathLessonOrder !== 999 ? pathLessonOrder : (parseInt(getMeta(content, "lessonorder")) || 999);
 
     return {
-        url:         `../Library/${relativePath.replace(/\\/g, "/")}`,
+        url:         `../Library/${sourcePath}`,
+        sourcePath:  `Library/${sourcePath}`,
         book:        bookTitle,
         bookTitle,
         bookSlug,
@@ -105,9 +109,9 @@ function createPageObject(relativePath, content, readingTime) {
         date:        getMeta(content, "date")        || "",
         chapter:     getMeta(content, "chapter")     || "",
         chapterOrder,
-        chapterNumber: chapterOrder === 999 ? "" : String(chapterOrder).padStart(2, "0"),
+        chapterNumber: chapterOrder === 999 ? "" : String(chapterOrder),
         lessonorder,
-        lessonNumber: lessonorder === 999 ? "" : String(lessonorder).padStart(2, "0"),
+        lessonNumber: lessonorder === 999 ? "" : String(lessonorder),
         part:        getMeta(content, "part")        || "Main",
         tier:        getMeta(content, "tier")        || "core",
         keywords:    getMeta(content, "keywords")    || "",
@@ -141,8 +145,8 @@ function buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime }
     const DARK    = "#2D241E";
     const TEXT    = "#4A3F35";
     const MUTED   = "#847769";
-    const chapterNumber = chapterOrder && chapterOrder !== 999 ? String(chapterOrder).padStart(2, "0") : "";
-    const chapterEyebrow = chapterNumber ? `CHAPTER ${chapterNumber} · ${chapter}` : chapter;
+    const chapterNumber = chapterOrder && chapterOrder !== 999 ? String(chapterOrder) : "";
+    const chapterEyebrow = chapterNumber ? `CHAPTER ${chapterNumber}: ${chapter}` : chapter;
 
     const bgGlyphHtml = chapterNumber
         ? `<div style="display:flex;position:absolute;right:28px;top:126px;font-size:420px;font-weight:700;font-style:italic;color:#F0EAE1;line-height:0.82;font-family:'Lora';">${escapeHtml(chapterNumber)}</div>`
@@ -222,7 +226,7 @@ function buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime }
 
 async function build() {
     console.log("🔍 Scanning library for changes…");
-    const files = getAllHtmlFiles(libraryDir);
+    const files = getAllHtmlFiles(libraryDir).sort();
 
     // 1. Snapshot
     const currentSnapshot = files.map(f => ({
@@ -281,7 +285,7 @@ async function build() {
             const chapter      = getMeta(content, "chapter")       || "Connecting the Dots";
             const book         = getMeta(content, "book")          || "";
             const description = getMeta(content, "description") || "";
-            const chapterOrder = parseInt(getMeta(content, "chapter_order")) || getPathOrder(relativePath, 1);
+            const chapterOrder = getPathOrder(relativePath, 1);
 
             if (title.toLowerCase().includes("template") || relativePath.includes("_template")) continue;
 
