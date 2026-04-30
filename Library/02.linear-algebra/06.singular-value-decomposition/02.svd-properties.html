@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="article_id" content="09544489">
+    <meta charset="UTF-8">
+    <meta name="chapter_order" content="6">
+    <meta name="book_slug" content="linear-algebra">
+    <title>SVD Properties and Analytical Mechanics</title>
+
+    <meta name="book" content="Linear Algebra">
+    <meta name="chapter" content="Singular Value Decomposition">
+    <meta name="part" content=" ">
+    <meta name="title" content="SVD Properties and Analytical Mechanics">
+    <meta name="description" content="Exploring the analytical mechanics of the SVD: diagonalizing with two bases, the outer product expansion, singular value stability, and numerical realities in LAPACK.">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-25">
+    <meta name="chapterorder" content="3">
+    <meta name="lessonorder" content="2">
+    <meta name="status" content="draft">
+    <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="singular value decomposition, outer product expansion, matrix norms, pseudoinverse, polar decomposition, fundamental subspaces, numerical stability, lapack">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="reading_time" content="10">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+
+    <style>
+        /* ─────────────────────────────────────
+           Math display & Figures
+           ───────────────────────────────────── */
+        .math-display, .math-block { text-align: center; margin: 1.5rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; -webkit-overflow-scrolling: touch; }
+        .reading-content mjx-container[display="true"] { margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; padding: 0 !important; overflow-x: auto; overflow-y: hidden; }
+        mjx-container svg { fill: currentColor; color: currentColor; }
+        
+        /* Table overrides for content */
+        .article-body table { width: 100%; border-collapse: collapse; margin: 2rem 0; font-size: 0.95rem; }
+        .article-body th { text-align: left; padding: 0.75rem 1rem; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
+        .article-body td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .article-body tr:last-child td { border-bottom: none; }
+    </style>
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+            svg: { fontCache: "global" }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+
+    <meta property="og:title" content="SVD Properties and Analytical Mechanics">
+    <meta property="og:description" content="Exploring the analytical mechanics of the SVD: diagonalizing with two bases, the outer product expansion, singular value stability, and numerical realities in LAPACK.">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/02.linear-algebra/06.singular-value-decomposition/02.svd-properties.html">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544489.png?v=8dcae6">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    
+                    <section class="article-body">
+
+<p>
+    The Singular Value Decomposition is a highlight of linear algebra because it addresses the deepest flaws of standard eigendecomposition. When we try to diagonalize a matrix $A$ via $A = X\Lambda X^{-1}$, we face three major problems: the eigenvectors in $X$ are usually not orthogonal, there are often not enough of them (defective matrices), and $A$ is strictly required to be square.
+</p>
+
+<p>
+    The singular vectors of $A$ solve all those problems perfectly. By paying the price of managing two distinct sets of vectors ($u$'s and $v$'s), we unlock the definitive analytical mechanics of any matrix—square or rectangular.
+</p>
+
+<h2>Diagonalizing with Two Bases: $AV = U\Sigma$</h2>
+
+<p>
+    Because the singular vectors are explicitly linked by the mapping equation $Av_i = \sigma_i u_i$, we can express this column-by-column as a single matrix multiplication:
+</p>
+
+<div class="math-display">
+    $$A \begin{bmatrix} | & & | \\ v_1 & \cdots & v_n \\ | & & | \end{bmatrix} = \begin{bmatrix} | & & | \\ u_1 & \cdots & u_m \\ | & & | \end{bmatrix} \begin{bmatrix} \sigma_1 & & \\ & \ddots & \\ & & \sigma_r \end{bmatrix}$$
+</div>
+
+<p>
+    Or simply, <strong>$AV = U\Sigma$</strong>. Because $V$ is an orthogonal matrix with orthonormal columns, its inverse is its transpose ($V^{-1} = V^T$). Multiplying both sides on the right by $V^T$ gives us the standard SVD formula: $A = U\Sigma V^T$. 
+</p>
+
+<p>
+    This reveals that the SVD is ultimately just diagonalizing a matrix using <em>two different orthonormal bases</em> instead of one. This two-bases diagonalization often carries much more geometric and structural information than $A = X\Lambda X^{-1}$.
+</p>
+
+<h2>The Outer Product Expansion</h2>
+
+<p>
+    If we carry out the multiplication $A = U\Sigma V^T$ by taking columns of $U\Sigma$ times rows of $V^T$, we produce a profound summation:
+</p>
+
+<div class="math-display">
+    $$A = \sigma_1 u_1 v_1^T + \sigma_2 u_2 v_2^T + \cdots + \sigma_r u_r v_r^T$$
+</div>
+
+<p>
+    This splits $A$ into a combination of $r$ strictly <strong>rank-one matrices</strong>. Because the singular values are sorted in descending order ($\sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_r > 0$), this expansion organizes the matrix into distinct layers of importance. The first term, $\sigma_1 u_1 v_1^T$, represents the single largest structural piece of $A$. This splitting is the critical foundation for data compression and low-rank approximations.
+</p>
+
+<h2>The Four Fundamental Subspaces</h2>
+
+<p>
+    More than just orthogonality, the $u$'s and $v$'s give us the exact, definitive orthonormal bases for the four fundamental subspaces of any $m \times n$ matrix $A$ of rank $r$. 
+</p>
+
+<div style="overflow-x: auto;">
+    <table>
+        <thead>
+            <tr><th>Subspace</th><th>Basis from SVD</th><th>Dimension</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Row space</strong> $C(A^T)$</td><td>$v_1, \dots, v_r$ (first $r$ columns of $V$)</td><td>$r$</td></tr>
+            <tr><td><strong>Null space</strong> $N(A)$</td><td>$v_{r+1}, \dots, v_n$ (last $n-r$ columns of $V$)</td><td>$n-r$</td></tr>
+            <tr><td><strong>Column space</strong> $C(A)$</td><td>$u_1, \dots, u_r$ (first $r$ columns of $U$)</td><td>$r$</td></tr>
+            <tr><td><strong>Left null space</strong> $N(A^T)$</td><td>$u_{r+1}, \dots, u_m$ (last $m-r$ columns of $U$)</td><td>$m-r$</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<p>
+    Using these bases, the exact projection matrices onto these spaces become trivial. Letting $U_r$ be the first $r$ columns of $U$, the projection onto the column space is strictly $P_{C(A)} = U_r U_r^T$. Letting $V_r$ be the first $r$ columns of $V$, the projection onto the row space is $P_{C(A^T)} = V_r V_r^T$.
+</p>
+
+<h2>Singular Value Stability vs. Eigenvalue Instability</h2>
+
+<p>
+    One of the greatest triumphs of the SVD is its unconditional numerical stability. Eigenvalues, by contrast, can be terrifyingly unstable when a matrix is not symmetric. 
+</p>
+
+<p>
+    Consider a $4 \times 4$ strictly triangular matrix $A$ with zeros on the diagonal and some non-zero entries above it. Because it is triangular, its eigenvalues are exactly $0, 0, 0, 0$. Now, suppose we perturb the matrix by changing the bottom-left entry from $0$ to just $1/60,000$. 
+</p>
+
+<p>
+    That tiny change of $1/60,000$ produces a massive jump in the eigenvalues. The four eigenvalues move from zero outward, spacing themselves onto a circle in the complex plane with a radius of $1/10$. This demonstrates serious instability when $A^TA$ is far from $AA^T$.
+</p>
+
+<p>
+    By contrast, <strong>singular values are completely stable</strong>. They do not change by more than the magnitude of the change in the matrix itself. If you perturb a matrix by $1/60,000$, the singular values will shift by at most $1/60,000$. They are the fixed, reliable DNA of the matrix.
+</p>
+
+<h2>Matrix Norms and the Pseudoinverse</h2>
+
+<p>
+    Because the SVD separates geometry from magnitude, measuring a matrix collapses into simple arithmetic on the singular values.
+</p>
+
+<ul>
+    <li><strong>Spectral (Operator) Norm:</strong> $\|A\|_2 = \sigma_1$. The absolute maximum stretch $A$ can apply to any unit vector.</li>
+    <li><strong>Frobenius Norm:</strong> $\|A\|_F = \sqrt{\sigma_1^2+\cdots+\sigma_r^2}$. The total "energy" of the matrix.</li>
+    <li><strong>Nuclear Norm:</strong> $\|A\|_* = \sigma_1+\cdots+\sigma_r$. The sum of the stretch factors.</li>
+</ul>
+
+<p>
+    Furthermore, the SVD defines the ultimate generalized inverse. If $A$ is rectangular or singular, we define the <strong>Moore-Penrose pseudoinverse</strong> as:
+</p>
+
+<div class="math-display">
+    $$A^+ = V \Sigma^+ U^T$$
+</div>
+
+<p>
+    Here, $\Sigma^+$ is formed by replacing every strictly positive $\sigma_i$ with $1/\sigma_i$ and transposing. This pseudoinverse is mathematical magic: computing $x^+ = A^+ b$ automatically finds the exact least-squares solution for overdetermined systems, and selects the solution with the minimum Euclidean norm for underdetermined systems.
+</p>
+
+<h2>Polar Decomposition: $A = QS$</h2>
+
+<p>
+    The SVD immediately yields the <strong>polar decomposition</strong> for any square $n \times n$ matrix:
+</p>
+
+<div class="math-display">
+    $$A = U\Sigma V^T = (UV^T)(V\Sigma V^T) = QS$$
+</div>
+
+<p>
+    Here, $Q = UV^T$ is an orthogonal matrix, and $S = V\Sigma V^T$ is a symmetric positive semidefinite matrix. This proves that any physical deformation or linear map can be factored precisely into a pure structural strain ($S$) followed by a rigid rotation ($Q$).
+</p>
+
+<h2>Computing the SVD: The Numerical Reality</h2>
+
+<p>
+    Analytically, we know the singular values are the square roots of the eigenvalues of $S = A^TA$, and $V$ contains its eigenvectors. 
+</p>
+
+<p>
+    However, <strong>we never actually compute $A^TA$ in practice.</strong> Squaring a matrix squares its condition number (making it $\kappa(A)^2$), which ruthlessly destroys numerical precision on computers. Furthermore, solving $\det(A^TA - \lambda I) = 0$ involves massive polynomials, which is universally avoided in modern algorithms.
+</p>
+
+<p>
+    Instead, algorithms like those in LAPACK use a two-step approach that preserves numerical stability perfectly:
+</p>
+
+<ol>
+    <li>We multiply $A$ on the left and right by a sequence of simple orthogonal matrices ($Q_1^T A Q_2$) to introduce zeros. Because orthogonal matrices don't change lengths, the singular values remain totally unchanged.</li>
+    <li>This iterative process stops when we reach a <strong>bidiagonal matrix</strong> (non-zeros only on the main diagonal and the one directly above it).</li>
+    <li>From the bidiagonal state, a highly specialized QR algorithm pushes the off-diagonal entries toward zero, finally leaving us with the pure diagonal matrix $\Sigma$, while the accumulated orthogonal matrices become $U$ and $V^T$.</li>
+</ol>
+<!--
+  ═══════════════════════════════════════════════════════════════════════════════
+  ADDITIONS FOR: 02_svd-properties.html
+  Insert these <section> blocks BEFORE the closing </section> tag of article-body.
+  Covers gaps from textbook §7.2 and §7.4 not yet in the article.
+  ═══════════════════════════════════════════════════════════════════════════════
+-->
+
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     GAP 1: The Matrix Norm as a Maximum Ratio (§7.2 / §7.4)
+     Textbook proves ||A|| = σ₁ from the Rayleigh quotient; gives |λ| ≤ σ₁;
+     derives the triangle and product inequalities.
+     ───────────────────────────────────────────────────────────────────────── -->
+
+<h2>The Matrix Norm: Why $\|A\| = \sigma_1$</h2>
+
+<p>
+    The entry $\sigma_1$ is not just the "largest singular value." It is the precise answer to the most natural question you can ask about a matrix: <em>how much can it stretch a vector?</em>
+</p>
+
+<div class="math-display">
+    $$\|A\|_2 = \max_{x \neq 0} \frac{\|Ax\|}{\|x\|} = \sigma_1$$
+</div>
+
+<p>
+    <strong>Proof.</strong> Write $A = U\Sigma V^T$. Multiplying by an orthogonal matrix preserves lengths: $\|Qx\| = \|x\|$ for any orthogonal $Q$, because $\|Qx\|^2 = x^T Q^T Q x = x^T x$. Applying this to both $U$ and $V^T$:
+</p>
+
+<div class="math-display">
+    $$\|Ax\| = \|U \Sigma V^T x\| = \|\Sigma V^T x\| = \|\Sigma y\|$$
+</div>
+
+<p>
+    where $y = V^T x$ is just a change of coordinates — and since $V^T$ is orthogonal, $\|y\| = \|x\|$. Now $\Sigma y$ simply scales each coordinate: $(\Sigma y)_i = \sigma_i y_i$. So:
+</p>
+
+<div class="math-display">
+    $$\frac{\|Ax\|}{\|x\|} = \frac{\|\Sigma y\|}{\|y\|} = \frac{\sqrt{\sigma_1^2 y_1^2 + \sigma_2^2 y_2^2 + \cdots}}{\sqrt{y_1^2 + y_2^2 + \cdots}} \leq \frac{\sqrt{\sigma_1^2 (y_1^2 + y_2^2 + \cdots)}}{\sqrt{y_1^2 + y_2^2 + \cdots}} = \sigma_1$$
+</div>
+
+<p>
+    The upper bound $\sigma_1$ is achieved when $y = (1, 0, \ldots, 0)^T$, i.e., when $x = v_1$. At that point $Av_1 = \sigma_1 u_1$ and the ratio equals exactly $\sigma_1$. $\square$
+</p>
+
+<p>
+    A direct corollary is one of the most useful facts in matrix analysis: <strong>every eigenvalue satisfies $|\lambda| \leq \sigma_1$</strong>. If $Ax = \lambda x$ with $\|x\|=1$, then $|\lambda| = |\lambda|\|x\| = \|\lambda x\| = \|Ax\| \leq \sigma_1 \|x\| = \sigma_1$.
+</p>
+
+<p>
+    Two further inequalities drop out of the definition immediately. For any two compatible matrices:
+</p>
+
+<div class="math-display">
+    $$\|A + B\| \leq \|A\| + \|B\| \qquad \text{(triangle inequality)}$$
+    $$\|AB\| \leq \|A\|\,\|B\| \qquad \text{(product inequality)}$$
+</div>
+
+<p>
+    The first follows from the triangle inequality for vectors: $\|(A+B)x\| \leq \|Ax\| + \|Bx\| \leq \|A\|\|x\| + \|B\|\|x\|$. Divide by $\|x\|$ and take the maximum. The second follows by applying the bound $\|Bx\| \leq \|B\|\|x\|$ first, then $\|A(Bx)\| \leq \|A\|\|Bx\|$.
+</p>
+
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     GAP 2: Nearest Orthogonal Matrix & Nearest Singular Matrix (§7.4)
+     ───────────────────────────────────────────────────────────────────────── -->
+
+<h2>What $\sigma_{\min}$ Measures: Distance to Singularity</h2>
+
+<p>
+    The polar decomposition $A = QS$ has a beautiful side effect. The factor $Q = UV^T$ is not just <em>an</em> orthogonal matrix — it is the <em>nearest</em> orthogonal matrix to $A$:
+</p>
+
+<div class="math-box" style="border-left: 3px solid var(--border); padding: 1rem 1.25rem; margin: 1.5rem 0; background: var(--surface, #faf8f5);">
+    <p style="margin:0"><strong>$Q = UV^T$ minimizes $\|Q_0 - A\|$ over all orthogonal matrices $Q_0$.</strong></p>
+    <p style="margin: 0.6rem 0 0; color: var(--muted); font-size: 0.95em;">This is the matrix analogue of the fact that $e^{i\theta}$ is the nearest point on the unit circle to the complex number $re^{i\theta}$, since the polar decomposition of $re^{i\theta}$ is $r \cdot e^{i\theta} = (\text{magnitude}) \cdot (\text{unit circle point})$.</p>
+</div>
+
+<p>
+    Even more striking: $\sigma_{\min}$ is exactly the <strong>distance from $A$ to the nearest singular matrix</strong>. If $A = \sum_{i=1}^r \sigma_i u_i v_i^T$, then knocking out the last (smallest) piece $\sigma_r u_r v_r^T$ produces the closest rank-$(r-1)$ matrix to $A$, at a cost of exactly $\sigma_r$. By the Eckart–Young theorem, no other rank-$(r-1)$ matrix is closer.
+</p>
+<p>
+    In numerical practice, this gives singular values their second major job: <strong>diagnosing ill-conditioning</strong>. The ratio $\sigma_{\max}/\sigma_{\min}$ is the <em>condition number</em> $\kappa(A)$. When $\kappa(A)$ is large, $A$ is close to being singular, and solving $Ax = b$ will amplify any rounding error in $b$ by a factor of up to $\kappa(A)$.
+</p>
+
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     GAP 3: Complete Pseudoinverse Action — projections A⁺A and AA⁺ (§7.4)
+     Textbook is explicit that A⁺ sends the left nullspace to zero, and that
+     A⁺A and AA⁺ are projections onto the row space and column space.
+     ───────────────────────────────────────────────────────────────────────── -->
+
+<h2>The Complete Action of $A^+$: Projections</h2>
+
+<p>
+    The pseudoinverse $A^+ = V\Sigma^+ U^T$ does something geometrically precise. By choosing the SVD bases, we can track exactly what happens to every vector.
+</p>
+
+<p>
+    A matrix $A$ of rank $r$ partitions its input space $\mathbb{R}^n$ into the row space (dimension $r$) and the null space (dimension $n-r$), and its output space $\mathbb{R}^m$ into the column space (dimension $r$) and the left null space (dimension $m-r$). The pseudoinverse reverses the invertible part and kills the rest:
+</p>
+
+<div style="overflow-x:auto; margin: 1.5rem 0;">
+<table>
+    <thead>
+        <tr><th>Input to $A^+$</th><th>Output of $A^+$</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>$u_i$ (column space of $A$, $i \leq r$)</td><td>$v_i / \sigma_i$ (row space of $A$)</td></tr>
+        <tr><td>$u_i$ (left null space of $A$, $i > r$)</td><td>$\mathbf{0}$</td></tr>
+    </tbody>
+</table>
+</div>
+
+<p>
+    Two products of $A$ and $A^+$ become projection matrices, not the identity:
+</p>
+
+<div class="math-display">
+    $$A^+ A = \begin{bmatrix} I_r & 0 \\ 0 & 0 \end{bmatrix}_{\text{in row/null decomposition}} = \text{projection onto the row space of } A$$
+</div>
+
+<div class="math-display">
+    $$A A^+ = \begin{bmatrix} I_r & 0 \\ 0 & 0 \end{bmatrix}_{\text{in col/left-null decomposition}} = \text{projection onto the column space of } A$$
+</div>
+
+<p>
+    These are <em>orthogonal</em> projections — the best possible. When $A$ is square and invertible, $r = m = n$ and both products become the identity, recovering the familiar $A^{-1}A = AA^{-1} = I$.
+</p>
+
+<p>
+    This makes the pseudoinverse the only "inverse" that is simultaneously:
+</p>
+<ul>
+    <li><strong>Exact on the solvable part:</strong> for any $b$ in the column space, $A(A^+b) = b$.</li>
+    <li><strong>Minimum-norm:</strong> among all $x$ solving the normal equations $A^TAx = A^Tb$, the solution $x^+ = A^+b$ is the unique one lying in the row space — i.e., the shortest one.</li>
+    <li><strong>Least-squares:</strong> $x^+ = A^+b$ minimizes $\|Ax - b\|$ even when no exact solution exists.</li>
+</ul>
+
+<p>
+    These three properties together are the <strong>Moore–Penrose conditions</strong>, and $A^+ = V\Sigma^+U^T$ is the unique matrix satisfying all of them.
+</p>
+
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     GAP 4: The Reverse Polar Decomposition A = KQ (§7.4)
+     ───────────────────────────────────────────────────────────────────────── -->
+
+<h2>The Reverse Polar Decomposition: $A = KQ$</h2>
+
+<p>
+    The polar decomposition $A = QS$ (stretch then rotate) has a twin. Inserting $UU^T = I$ instead:
+</p>
+
+<div class="math-display">
+    $$A = U\Sigma V^T = (U\Sigma U^T)(UV^T) = KQ$$
+</div>
+
+<p>
+    Here $Q = UV^T$ is the same orthogonal matrix as before, but now $K = U\Sigma U^T$ is the positive semidefinite factor on the <em>left</em>. If $S$ was the symmetric square root of $A^TA$ (since $S^2 = V\Sigma^2 V^T = A^TA$), then $K$ is the symmetric square root of $AA^T$ (since $K^2 = U\Sigma^2 U^T = AA^T$). In mechanics, $A = QS$ represents stretch-then-rotate while $A = KQ$ represents rotate-then-stretch — two physically distinct ways to reach the same deformation $A$.
+</p>
+
+
+<!-- ─────────────────────────────────────────────────────────────────────────
+     GAP 5: SVD ↔ Symmetric Block Matrix (§7.2, Problem 22)
+     ───────────────────────────────────────────────────────────────────────── -->
+
+<h2>A Hidden Equivalence: SVD as Eigendecomposition</h2>
+
+<p>
+    The SVD of $A$ is secretly equivalent to the eigendecomposition of one symmetric matrix. Form the $(m+n) \times (m+n)$ symmetric block matrix:
+</p>
+
+<div class="math-display">
+    $$M = \begin{bmatrix} 0 & A \\ A^T & 0 \end{bmatrix}$$
+</div>
+
+<p>
+    This matrix has a beautiful eigenstructure. For each singular triple $(\sigma_i, u_i, v_i)$ of $A$, the vectors $\frac{1}{\sqrt{2}}\begin{bmatrix} u_i \\ v_i \end{bmatrix}$ and $\frac{1}{\sqrt{2}}\begin{bmatrix} u_i \\ -v_i \end{bmatrix}$ are eigenvectors of $M$ with eigenvalues $+\sigma_i$ and $-\sigma_i$ respectively. You can verify directly:
+</p>
+
+<div class="math-display">
+    $$M \begin{bmatrix} u_i \\ v_i \end{bmatrix} = \begin{bmatrix} Av_i \\ A^Tu_i \end{bmatrix} = \begin{bmatrix} \sigma_i u_i \\ \sigma_i v_i \end{bmatrix} = \sigma_i \begin{bmatrix} u_i \\ v_i \end{bmatrix}$$
+</div>
+
+<p>
+    So the SVD of any $m \times n$ matrix $A$ is completely equivalent to the eigendecomposition of this symmetric $(m+n)\times(m+n)$ matrix. The singular values of $A$ appear in $\pm$ pairs as eigenvalues of $M$. This is one of the deepest structural connections in matrix theory — it allows every theorem about symmetric eigenvalue problems to be translated directly into a theorem about singular values.
+</p>
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+    <meta name="article_id" content="4e343906">
+    <meta charset="UTF-8">
     <meta name="chapter_order" content="6">
     <meta name="book_slug" content="linear-algebra">
-<title>The Singular Value Decomposition (SVD)</title>
+    <title>The Singular Value Decomposition (SVD)</title>
 
-<meta name="book" content="Linear Algebra">
-<meta name="chapter" content="Singular Value Decomposition">
-<meta name="part" content=" ">
-<meta name="title" content="The Singular Value Decomposition (SVD)">
-<meta name="description" content="Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the four fundamental subspaces, and finding the directions of maximum stretch.">
-<meta name="author" content="Yogesh">
-<meta name="date" content="2026-04-18">
-<meta name="chapterorder" content="3">
-<meta name="lessonorder" content="1">
-<meta name="status" content="draft">
-<meta name="belongs_to" content="lib">
-<meta name="keywords" content="singular value decomposition, SVD, orthogonal basis, eigenvalues, low-rank approximation, fundamental subspaces, linear algebra">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="reading_time" content="9">
+    <meta name="book" content="Linear Algebra">
+    <meta name="chapter" content="Singular Value Decomposition">
+    <meta name="part" content=" ">
+    <meta name="title" content="The Singular Value Decomposition (SVD)">
+    <meta name="description" content="Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the fundamental subspaces, and finding the directions of maximum stretch.">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-18">
+    <meta name="chapterorder" content="3">
+    <meta name="lessonorder" content="1">
+    <meta name="status" content="draft">
+    <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="singular value decomposition, SVD, orthogonal basis, eigenvalues, fundamental subspaces, linear algebra">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="reading_time" content="9">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,11 +30,10 @@
     <link rel="stylesheet" href="../../../css/articles.css">
 
     <style>
-    
         /* ─────────────────────────────────────
            Math display & Figures
            ───────────────────────────────────── */
-        .math-display, .math-block { text-align: center; margin: 1rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; -webkit-overflow-scrolling: touch; }
+        .math-display, .math-block { text-align: center; margin: 1.5rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; -webkit-overflow-scrolling: touch; }
         .reading-content mjx-container[display="true"] { margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; padding: 0 !important; overflow-x: auto; overflow-y: hidden; }
         mjx-container svg { fill: currentColor; color: currentColor; }
         
@@ -43,15 +43,24 @@
         .figure-caption { margin-top: 1rem; color: var(--text); font-size: 0.9em; line-height: 1.5; max-width: 90%; }
 
         /* Interactive Widget Styling */
-        .interactive-container {
-            width: 100%; max-width: 500px; margin: 0 auto; padding: 1rem; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center;
-        }
-        canvas#svdCanvas { width: 100%; max-width: 450px; aspect-ratio: 1/1; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
-        .widget-controls { width: 100%; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .widget-controls input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--accent); }
-        .widget-label { font-family: var(--font-serif, Lora, serif); font-size: 1.1rem; color: var(--dark); font-weight: 600; text-align: center; }
-        .widget-sublabel { font-size: 0.85rem; color: var(--muted); text-align: center; }
+        .svd-widget-wrapper { width: 100%; max-width: 950px; margin: 3rem auto; display: flex; flex-direction: column; align-items: center; }
+        .svd-comparison-layout { display: flex; flex-wrap: wrap; gap: 3rem; width: 100%; justify-content: center; margin-bottom: 2rem; }
+        .canvas-column { flex: 1 1 320px; max-width: 420px; display: flex; flex-direction: column; align-items: center; }
+        .canvas-title { font-family: var(--font-serif, Lora, serif); font-size: 1.3rem; color: var(--dark); margin-bottom: 1rem; font-weight: 600; text-align: center; }
+        canvas.svd-view { width: 100%; aspect-ratio: 1/1; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; outline: none; }
+        .step-info { margin-top: 1rem; height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.95rem; color: var(--muted); line-height: 1.4; }
+        .button-group { display: flex; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
+        .svd-btn { background: transparent; color: var(--text); border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 50%; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; align-items: center; justify-content: center; }
+        .svd-btn:hover:not(:disabled) { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+        .svd-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+        .matrix-input-container { display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem; font-family: var(--font-serif, Lora, serif); font-size: 1.2rem; color: var(--dark); background: var(--surface); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); }
+        .matrix-brackets { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; position: relative; padding: 0 0.5rem; }
+        .matrix-brackets::before, .matrix-brackets::after { content: ''; position: absolute; top: -4px; bottom: -4px; width: 8px; border: 2px solid var(--dark); }
+        .matrix-brackets::before { left: 0; border-right: none; }
+        .matrix-brackets::after { right: 0; border-left: none; }
+        .matrix-input { width: 50px; text-align: center; font-family: inherit; font-size: 1.1rem; padding: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; color-scheme: light dark; }
+        .matrix-input:focus { outline: 2px solid var(--accent); }
+        [data-theme="dark"] .matrix-input::-webkit-inner-spin-button, [data-theme="dark"] .matrix-input::-webkit-outer-spin-button { filter: invert(80%); opacity: 1; cursor: pointer; }
     </style>
 
     <script>
@@ -76,8 +85,8 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
     <meta property="og:title" content="The Singular Value Decomposition (SVD)">
-    <meta property="og:description" content="Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the four fundamental subspaces, and finding the directions of maximum stretch.">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/the-singular-value-decomposition-svd-.png">
+    <meta property="og:description" content="Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the fundamental subspaces, and finding the directions of maximum stretch.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-4e343906.png?v=bf46e0">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
@@ -93,300 +102,228 @@
                 <article class="reading-content">
 
                     <div id="article-header"></div>
+                    
                     <section class="article-body">
 
-<h2>The Final Factorization: SVD</h2>
-
-<p>
-    The Singular Value Decomposition (SVD) brings together everything we have studied about linear transformations, orthogonal matrices, and the four fundamental subspaces. Any matrix whatsoever can be broken down into:
-</p>
-
-<div class="math-display">
-    $$\text{Orthogonal Matrix} \times \text{Diagonal Matrix} \times \text{Orthogonal Matrix}$$
-</div>
-
-<p>
-    There are many ways to discover the SVD. We’ll follow the most geometric one: <strong>the search for maximum stretch</strong>. Along the way, you’ll see how the other perspectives—like matching bases and analyzing Gram matrices—naturally fall out.
-</p>
-
-<h3>The Philosophy: Why Eigenvectors Fail Us</h3>
-
-<p>
-    For symmetric square matrices, eigenvectors work beautifully because applying the matrix keeps the vector in the same space—the direction is preserved up to a scale ($Ax = \lambda x$). But for a general rectangular $m \times n$ matrix $A$, this idea breaks down. $A$ takes an input vector $v$ in $\mathbb{R}^n$ and outputs a vector $Av$ in $\mathbb{R}^m$. They don't live in the same dimension, so asking if $Av$ points in the "same direction" as $v$ is geometrically meaningless.
-</p>
-
-<p>
-    This is exactly why eigen-decomposition fails in general—but the SVD succeeds. Instead of insisting on one basis that works before and after, the SVD allows <em>two different bases</em>, one for each space. 
-</p>
-
 <div class="math-box key-box">
-    <div class="math-box-label">The Perfect Coordinates</div>
+    <div class="math-box-label">The One-Line SVD Mental Model</div>
     <div class="math-box-body">
-        <div class="math-display">
-            $$A v_i = \sigma_i\, u_i$$
-        </div>
-        <p>The SVD is not just a decomposition. It is the discovery of the <strong>perfect input coordinates</strong> (the $v_i$) and the <strong>perfect output coordinates</strong> (the $u_i$) in which the matrix $A$ becomes as simple as possible—purely diagonal scaling.</p>
+        <p>SVD finds the input directions that remain orthogonal after transformation, and expresses the matrix as exactly three operations: <strong>rotation &rarr; scaling &rarr; rotation</strong>.</p>
     </div>
 </div>
 
-<h3>The Search for Maximum Stretch</h3>
+<h2>Why Eigenvectors Are Not Enough</h2>
 
 <p>
-    We are looking for the directions that get stretched the most by $A$. So, which unit vector $v$ makes the length of the output, $\|Av\|$, as large as possible? Let's look at the squared length:
+    When you study a <em>square, symmetric</em> matrix $S$, eigen-decomposition is perfect.
+    You get $S = Q \Lambda Q^T$: one orthogonal matrix $Q$ to change basis, one diagonal matrix $\Lambda$ to scale,
+    and then $Q^T$ to undo the rotation. The same basis works on both sides. Life is beautiful.
+</p>
+
+<p>
+    But what happens when $A$ is rectangular — say $m \times n$ with $m \neq n$? Or even square but asymmetric?
+    Then eigenvectors either do not exist (no real eigenvalues), or they exist but are not orthogonal, so we cannot
+    use the same geometric story.
+</p>
+
+<p>
+    The key obstruction is this: an eigenvector satisfies $Av = \lambda v$, meaning the <em>output</em> must live
+    in the same space as the <em>input</em>. If $A : \mathbb{R}^n \to \mathbb{R}^m$ with $m \neq n$, a vector
+    in $\mathbb{R}^n$ cannot equal a scaled vector in $\mathbb{R}^m$. The concept collapses.
+</p>
+
+<p>
+    The SVD resolves this by relaxing the requirement. Instead of insisting
+    $Av = \lambda v$ (same vector, same space), we ask for:
 </p>
 
 <div class="math-display">
-    $$\|A v\|_2^2 = (A v)^T (A v) = v^T A^T A v$$
+    $$A v_i = \sigma_i\, u_i$$
 </div>
 
 <p>
-    Look at what just appeared: $A^T A$, the <strong>row Gram matrix</strong>. Even if $A$ is rectangular and messy, $A^T A$ is guaranteed to be a square, symmetric, positive semi-definite matrix. In linear algebra, a quadratic form like $v^T (A^T A) v$ is maximized exactly when $v$ is chosen to be the eigenvector of $A^T A$ corresponding to its largest eigenvalue:
+    Here $v_i \in \mathbb{R}^n$ is an input direction, $u_i \in \mathbb{R}^m$ is an output direction,
+    and $\sigma_i \geq 0$ is the scaling factor called a <strong>singular value</strong>.
+    No requirement that $v_i = u_i$; they may live in entirely different spaces.
+    This simple generalization unlocks the entire theory.
+</p>
+
+<h2>Five Ways to Discover the SVD</h2>
+
+<p>
+    The SVD can be <em>discovered</em> through many independent routes. Each one illuminates a different
+    facet of the same truth. We will walk all five, then unify them.
+</p>
+
+<h3>1. The Hypothesis: What If Special Directions Stay Orthogonal?</h3>
+
+<p>
+    Here is a bold guess: <em>suppose</em> there is some orthonormal set of input directions
+    $\{v_1, v_2, \dots, v_n\}$ such that after applying $A$, their images $\{Av_1, Av_2, \dots\}$
+    are still orthogonal to each other — just scaled and rotated.
+</p>
+
+<p>
+    Why is this a reasonable guess? <strong>Orthogonality is the only structure that survives rotations cleanly — so if anything is preserved under a linear map, orthogonality is the best candidate.</strong> A random matrix certainly <em>can</em> destroy orthogonality —
+    perpendicular inputs can become non-perpendicular outputs. But we are hoping that with the right
+    choice of inputs, perpendicularity survives the transformation.
+</p>
+
+<p>
+    Let us trace what this hypothesis implies. Suppose $Av_i = \sigma_i u_i$ and $Av_j = \sigma_j u_j$,
+    where $u_i, u_j$ are unit vectors with $u_i \perp u_j$. Take the dot product of $Av_i$ and $Av_j$:
 </p>
 
 <div class="math-display">
-    $$A^T A v = \lambda_{\max} v$$
+    $$(Av_i)^T (Av_j) = v_i^T A^T A v_j = 0$$
 </div>
 
 <p>
-    These vectors $v$ are not the eigenvectors of $A$ (which don't exist for rectangular matrices), but the eigenvectors of $A^T A$. The maximum stretch we achieve is the square root of that eigenvalue. We call this stretch the <strong>singular value</strong>, $\sigma$:
+    This means $v_i$ and $v_j$ must be eigenvectors of $A^T A$ — the matrix that measures inner products
+    of outputs. If $v_i \neq v_j$ with different eigenvalues, eigenvectors of a symmetric matrix are
+    automatically perpendicular. So the hypothesis is consistent: <strong>choose the $v_i$ to be
+    eigenvectors of $A^T A$, and the outputs $Av_i$ will automatically come out orthogonal.</strong>
+</p>
+
+<p>
+    The scaling factors follow immediately. If $A^T A v_i = \lambda_i v_i$, then
+    $\|Av_i\|^2 = v_i^T A^T A v_i = \lambda_i \|v_i\|^2 = \lambda_i$.
+    So $\sigma_i = \sqrt{\lambda_i}$. This is where singular values come from.
+</p>
+
+<h3>2. The Gram Matrix: $A^T A$ and $A A^T$ Share Eigenvalues</h3>
+
+<p>
+    There is something striking if you look at the two <strong>Gram matrices</strong> associated with $A$.
+    The <em>row Gram matrix</em> is $A^T A$ (an $n \times n$ matrix), and the <em>column Gram matrix</em>
+    is $A A^T$ (an $m \times m$ matrix). These are different sizes. Yet they share all nonzero eigenvalues.
+</p>
+
+<p>
+    <strong>Why?</strong> Suppose $A^T A v = \lambda v$ with $\lambda \neq 0$ and $v \neq 0$.
+    Multiply both sides on the left by $A$:
 </p>
 
 <div class="math-display">
-    $$\sigma = \sqrt{\lambda_{\max}}, \qquad A^T A v = \sigma^2 v \quad \text{(Right singular vectors } v\text{)}$$
+    $$A (A^T A v) = \lambda (A v) \implies (A A^T)(Av) = \lambda (Av)$$
 </div>
 
 <p>
-    This vector $v$ is our first <strong>Right Singular Vector</strong>. It is called "right" because it will sit on the right side of the SVD factorization. We continue to the next-largest eigenvalue, finding the direction of second-greatest stretch, and so on through all $r$ non-zero eigenvalues.
-</p>
-
-<h3>What Happens After the Stretch?</h3>
-
-<p>
-    We have found our input directions $v$, and we know $A^T A v = \sigma^2 v$. But what happens to these vectors when they land in the column space? We defined our target relationship as $Av = \sigma u$. 
+    So $Av$ is an eigenvector of $A A^T$ with the same eigenvalue $\lambda$, provided $Av \neq 0$.
+    The same argument works in reverse, from $AA^T$ back to $A^T A$.
 </p>
 
 <p>
-    If $v$ is a direction of pure stretching, then its image $Av$ should also behave like a "pure direction" in the output space. That suggests $Av$ itself should be an eigenvector of something natural in the output space—namely the <strong>column Gram matrix</strong>, $AA^T$. 
-</p>
-
-<p>
-    Let's trace the math to verify this. Take our equation for $v$ and multiply both sides by $A$:
+    So the nonzero eigenvalues are identical. Their eigenvectors are related by:
 </p>
 
 <div class="math-display">
-    $$A(A^T A v) = A(\sigma^2 v)$$
+    $$u_i = \frac{1}{\sigma_i} A v_i, \qquad v_i = \frac{1}{\sigma_i} A^T u_i$$
 </div>
 
 <p>
-    Regroup the parentheses on the left side:
+    Since $A^T A$ and $A A^T$ are both symmetric positive semidefinite, their eigenvectors
+    can be chosen to be orthonormal — and that gives us the right singular vectors ($V$) and left singular vectors ($U$) directly.
+</p>
+
+<h3>3. Maximum Stretch: Finding the Direction $A$ Pulls Hardest</h3>
+
+<p>
+    Here is the most geometric and perhaps the most natural way to think about it.
+    You have a matrix $A$. You want to know: <em>which unit vector does $A$ stretch the most?</em>
 </p>
 
 <div class="math-display">
-    $$(A A^T)(A v) = \sigma^2 (A v)$$
+    $$\text{maximize} \quad \|Av\|^2 \quad \text{subject to} \quad \|v\| = 1$$
 </div>
 
 <p>
-    Now, substitute our core definition $Av = \sigma u$ into both sides:
+    Expand the objective:
 </p>
 
 <div class="math-display">
-    $$(A A^T)(\sigma u) = \sigma^2 (\sigma u)$$
+    $$\|Av\|^2 = (Av)^T(Av) = v^T A^T A v$$
 </div>
 
 <p>
-    Cancel out a $\sigma$ from both sides:
+    Maximizing a quadratic form $v^T (A^TA) v$ over the unit sphere always gives the answer: the maximum is $\lambda_{\max}$, achieved when $v$ is the corresponding eigenvector of $A^TA$. So the direction of maximum stretch is the top eigenvector, and the maximum stretch is $\sigma_1 = \sqrt{\lambda_{\max}}$.
 </p>
-
-<div class="math-display">
-    $$A A^T u = \sigma^2 u \quad \text{(Left singular vectors } u\text{)}$$
-</div>
 
 <p>
-    The output vector $u$ is exactly the eigenvector of $AA^T$ with the eigenvalue $\sigma^2$. We call $u$ the <strong>Left Singular Vector</strong>.
+    Now deflate: restrict to the subspace orthogonal to the previous directions, ensuring the next vector captures a new independent direction of stretch. Continue until all singular
+    values are found. 
 </p>
 
-<h3>The Grand Synthesis: $A = U \Sigma V^T$</h3>
+<h3>4. Orthogonal-Matrix Motivation: When Eigenvectors Don't Exist</h3>
 
 <p>
-    The eigenbasis $V$ (from $A^T A$) gets mapped by $A$ into the eigenbasis $U$ (from $A A^T$), scaled by the singular values. In matrix form, this is $A V = U \Sigma$. Rearranging by multiplying by $V^T$ gives us the full singular value decomposition:
+    For a general square matrix we decompose it using eigenvectors. But here is a puzzle:
+    <strong>orthogonal matrices don't necessarily have any real eigenvectors at all.</strong>
+    Think of a pure rotation $R$ in $\mathbb{R}^2$ by some angle $\theta \neq 0, \pi$.
+    Every vector gets rotated — none stays in the same direction. So $Rv = \lambda v$ has no
+    real solution. 
 </p>
 
-<div class="math-box key-box">
-    <div class="math-box-label">The Singular Value Decomposition</div>
+<p>
+    Yet a rotation is not mysterious at all. We can describe it beautifully: it takes one
+    orthonormal set of vectors and turns it into another orthonormal set. 
+</p>
+
+<p>
+    The SVD is the direct generalization of this idea to <em>any</em> matrix.
+    Even when $A$ is rectangular, or singular, or asymmetric, it takes some orthonormal set in the input space
+    and maps it to another orthonormal set in the output space — with scalings in between.
+</p>
+
+<h3>5. Basis Matching: Connecting Two Orthogonal Sets</h3>
+
+<p>
+    Before applying $A$, we represent points using one basis. After applying $A$, we represent
+    the results using another basis. These two bases live in different spaces — $\mathbb{R}^n$
+    before and $\mathbb{R}^m$ after — and there is no reason they should be the same.
+</p>
+
+<p>
+    What the SVD does is precisely <strong>connect these two orthogonal sets</strong>.
+    The columns of $V$ are the orthonormal basis on the input side. The columns of $U$ are the
+    orthonormal basis on the output side. The singular values $\Sigma$ tell you the scaling
+    that connects each input direction to its corresponding output direction.
+</p>
+
+<div class="math-box key-box" style="margin-top: 2rem;">
+    <div class="math-box-label">Compression Checkpoint</div>
     <div class="math-box-body">
-        <div class="math-display">
-            $$A = U \Sigma V^T$$
-        </div>
+        <p>Let’s pause and compress what just happened across these five views:</p>
+        <ul>
+            <li>$A^T A$ gives the perfect <strong>input directions</strong> ($V$).</li>
+            <li>$A A^T$ gives the perfect <strong>output directions</strong> ($U$).</li>
+            <li>They share the <strong>same eigenvalues</strong>, meaning the stretch factor ($\sigma$) linking them is identical.</li>
+        </ul>
     </div>
 </div>
 
-<p>
-    Geometrically, every matrix transformation can be understood in three clean steps:
-</p>
-<ol>
-    <li><strong>$V^T$</strong>: rotate the input space so we are looking along the special directions $v_i$. (Mathematically, multiplying an input vector by $V^T$ takes the dot product with every basis vector $v_i$, projecting it into the $V$ coordinate system).</li>
-    <li><strong>$\Sigma$</strong>: stretch or compress along perpendicular axes. (No mixing at all).</li>
-    <li><strong>$U$</strong>: rotate the result into its final orientation.</li>
-</ol>
+
+
+<h2>The Formal Statement and Shapes of $U$, $\Sigma$, $V$</h2>
 
 <p>
-    The miracle of the SVD is that <strong>all the complexity of the matrix is captured by rotations plus independent scalings</strong>—no shearing, no entanglement.
+    Let $A$ be any real $m \times n$ matrix of rank $r$. The <strong>full SVD</strong> writes:
 </p>
 
-<style>
-    .svd-widget-wrapper {
-        width: 100%;
-        max-width: 950px;
-        margin: 3rem auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+<div class="math-display">
+    $$\boxed{A = U \Sigma V^T}$$
+</div>
 
-    /* Dual Canvas Layout */
-    .svd-comparison-layout {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 3rem;
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 2rem;
-    }
-    
-    .canvas-column {
-        flex: 1 1 320px;
-        max-width: 420px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+<p>where:</p>
 
-    .canvas-title {
-        font-family: var(--font-serif, Lora, serif);
-        font-size: 1.3rem;
-        color: var(--dark);
-        margin-bottom: 1rem;
-        font-weight: 600;
-        text-align: center;
-    }
-
-    /* Explicit box styling so both canvases are identical */
-    canvas.svd-view { 
-        width: 100%; 
-        aspect-ratio: 1/1; 
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        outline: none;
-    }
-
-    /* Step Labels & Independent Controls */
-    .step-info {
-        margin-top: 1rem;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        font-size: 0.95rem;
-        color: var(--muted);
-        line-height: 1.4;
-    }
-
-    .button-group { 
-        display: flex; 
-        justify-content: center; 
-        gap: 0.75rem; 
-        margin-top: 0.5rem; 
-    }
-
-    .svd-btn {
-        background: transparent; 
-        color: var(--text); 
-        border: 1px solid var(--border);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%; 
-        font-weight: 600; 
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: all 0.2s ease; 
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .svd-btn:hover:not(:disabled) { 
-        background: var(--bg); 
-        border-color: var(--accent); 
-        color: var(--accent);
-    }
-
-    .svd-btn:disabled { 
-        opacity: 0.25; 
-        cursor: not-allowed; 
-    }
-
-    /* Matrix Input Controls (Centered at bottom) */
-    .matrix-input-container {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-top: 0.5rem;
-        font-family: var(--font-serif, Lora, serif);
-        font-size: 1.2rem;
-        color: var(--dark);
-        background: var(--surface);
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-    }
-
-    .matrix-brackets {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-        position: relative;
-        padding: 0 0.5rem;
-    }
-
-    .matrix-brackets::before, .matrix-brackets::after {
-        content: '';
-        position: absolute;
-        top: -4px; bottom: -4px;
-        width: 8px;
-        border: 2px solid var(--dark);
-    }
-    .matrix-brackets::before { left: 0; border-right: none; }
-    .matrix-brackets::after { right: 0; border-left: none; }
-    
-    .matrix-input {
-        width: 50px;
-        text-align: center;
-        font-family: inherit;
-        font-size: 1.1rem;
-        padding: 4px;
-        background: var(--bg);
-        border: 1px solid var(--border);
-        color: var(--text);
-        border-radius: 4px;
-        color-scheme: light dark;
-    }
-    .matrix-input:focus { outline: 2px solid var(--accent); }
-
-    /* Forces the spin arrows to be light gray in dark mode */
-    [data-theme="dark"] .matrix-input::-webkit-inner-spin-button,
-    [data-theme="dark"] .matrix-input::-webkit-outer-spin-button {
-        filter: invert(80%);
-        opacity: 1;
-        cursor: pointer;
-    }
-</style>
+<ul>
+    <li>$U$ is $m \times m$, orthogonal ($U^T U = I_m$). Its columns $u_1, \dots, u_m$ are the <strong>left singular vectors</strong>.</li>
+    <li>$V$ is $n \times n$, orthogonal ($V^T V = I_n$). Its columns $v_1, \dots, v_n$ are the <strong>right singular vectors</strong>.</li>
+    <li>$\Sigma$ is $m \times n$ with $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r > 0$ on its main diagonal and zeros elsewhere.</li>
+</ul>
 
 <div class="diagram-figure" style="max-width: 1000px;">
     <div class="svd-widget-wrapper">
-        
         <div class="svd-comparison-layout">
             <div class="canvas-column">
                 <div class="canvas-title">Direct Transformation</div>
@@ -418,7 +355,6 @@
                 <input type="number" id="m_d" class="matrix-input" value="2" step="0.5">
             </div>
         </div>
-
     </div>
 </div>
 
@@ -633,7 +569,7 @@
         ctx.translate(directCanvas.width / 2, directCanvas.height / 2);
         ctx.scale(scale, -scale);
 
-        // 1. GHOST BACKGROUND (Grid opacity increased for visibility)
+        // 1. GHOST BACKGROUND
         ctx.lineWidth = 1 / scale;
         ctx.strokeStyle = gridColor;
         ctx.globalAlpha = 0.5; 
@@ -751,172 +687,121 @@
 })();
 </script>
 
-
-<h3>Why $A^T A$ and $A A^T$ Were Inevitable</h3>
+<h2>The Four Fundamental Subspaces, Revealed</h2>
 
 <p>
-    If we want to verify how this connects back to our symmetric Gram matrices, we can just plug the SVD into $A^T A$ and $A A^T$:
+    The SVD is the definitive geometric answer to finding orthonormal bases for the four fundamental subspaces of a matrix. The columns of $V$ neatly partition the input space into the row space and the null space. The columns of $U$ partition the output space into the column space and the left null space.
 </p>
 
-<div class="math-display">
-    $$A^T A = (U\Sigma V^T)^T(U\Sigma V^T) = V \Sigma^T U^T U \Sigma V^T = V \Sigma^T \Sigma V^T$$
+<p>
+    The action of $A$ is now completely clear: $A$ maps the basis vectors of the row space directly to the basis vectors of the column space (scaled by the magnitude of $\sigma_i$), and it completely annihilates everything in the null space. We will explore the rigorous projections onto these spaces in the properties article.
+</p>
+
+<h2>How to Compute the SVD: Step-by-Step</h2>
+
+<h3>The Standard Procedure</h3>
+
+<ol>
+    <li><strong>Form $A^T A$</strong> (an $n\times n$ symmetric positive semidefinite matrix).</li>
+    <li><strong>Find eigenvalues</strong> $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n \geq 0$ of $A^T A$.</li>
+    <li><strong>Set singular values</strong> $\sigma_i = \sqrt{\lambda_i}$.</li>
+    <li><strong>Find eigenvectors</strong> of $A^T A$ (orthonormalize within each repeated-eigenvalue subspace). These form the columns of $V$.</li>
+    <li><strong>Compute $u_i = \frac{1}{\sigma_i} A v_i$</strong> for each $i$ with $\sigma_i > 0$. These are already unit vectors and automatically orthogonal.</li>
+    <li><strong>Complete $U$</strong>: for the zero singular values, choose $u_{r+1}, \dots, u_m$ to be any orthonormal basis for $N(A^T)$ (e.g., via Gram-Schmidt on the remaining directions).</li>
+</ol>
+
+<div style="border-left: 3px solid var(--border); padding-left: 1rem; margin: 1.2rem 0; color: var(--muted); font-style: italic; font-size: 0.9rem;">
+    Always compute $u_i$ from $u_i = \frac{1}{\sigma_i} Av_i$ rather than from the eigenvectors of $AA^T$
+    directly. Eigenvectors are only defined up to sign; using this formula ensures $Av_i = \sigma_i u_i$
+    holds with the correct sign to bridge the two matrices.
 </div>
 
-<div class="math-display">
-    $$A A^T = (U\Sigma V^T)(U\Sigma V^T)^T = U \Sigma V^T V \Sigma^T U^T = U \Sigma \Sigma^T U^T$$
-</div>
-
-<p>
-    Because $U$ and $V$ are orthogonal ($U^T U = I$ and $V^T V = I$), the equations collapse exactly to the standard symmetric diagonalizations — $V$ diagonalizes $A^T A$ and $U$ diagonalizes $A A^T$, with eigenvalues $\sigma_i^2$ in both cases.
-</p>
-
-<h3>The Ultimate Map of the Four Fundamental Subspaces</h3>
-
-<p>
-    The SVD doesn’t just tell us what these subspaces are — it gives the <strong>best possible orthonormal basis for each one</strong>, aligned exactly with how the matrix actually acts. Suppose $A$ is an $m \times n$ matrix of rank $r$.
-</p>
-
-<ul>
-    <li><strong>The Row Space $C(A^T)$:</strong> The first $r$ columns of $V$ ($v_1, \dots, v_r$) form an orthonormal basis for the row space.</li>
-    <li><strong>The Null Space $N(A)$:</strong> The remaining $n - r$ columns of $V$ ($v_{r+1}, \dots, v_n$) form an orthonormal basis for the null space. These are the vectors that $A$ crushes to zero — their singular values are $0$.</li>
-    <li><strong>The Column Space $C(A)$:</strong> The first $r$ columns of $U$ ($u_1, \dots, u_r$) form an orthonormal basis for the column space. These are precisely the directions that survive under the transformation.</li>
-    <li><strong>The Left Null Space $N(A^T)$:</strong> The remaining $m - r$ columns of $U$ ($u_{r+1}, \dots, u_m$) form an orthonormal basis for the left null space.</li>
-</ul>
+<h2>Worked Examples</h2>
 
 <details class="toggle">
-    <summary>Worked Example 1: A Full-Rank 2&times;2 Matrix</summary>
+    <summary>Example 1: A Full-Rank 2×2 Matrix</summary>
     <div style="margin-top: 1rem;">
-        <p>
-            Let us take $A = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix}$. This matrix is invertible with rank 2, so we expect two non-zero singular values.
-        </p>
+        <p>Let $A = \begin{bmatrix} 4 & 4 \\ -3 & 3 \end{bmatrix}$, which has rank 2.</p>
 
-        <p>
-            <strong>Step 1: Compute $A^T A$ and find the right singular vectors $V$.</strong>
-        </p>
-
+        <h4>Step 1: Compute $A^T A$</h4>
         <div class="math-display">
-            $$A^T A = \begin{bmatrix}4 & -3 \\ 4 & 3\end{bmatrix}\begin{bmatrix}4 & 4 \\ -3 & 3\end{bmatrix} = \begin{bmatrix}32 & 0 \\ 0 & 18\end{bmatrix}$$
+            $$A^T A = \begin{bmatrix}4&-3\\4&3\end{bmatrix}\begin{bmatrix}4&4\\-3&3\end{bmatrix} = \begin{bmatrix}32&0\\0&18\end{bmatrix}$$
+        </div>
+        <p>It came out diagonal — eigenvalues $\lambda_1 = 32$, $\lambda_2 = 18$ are immediate. Singular values: $\sigma_1 = 4\sqrt{2}$, $\sigma_2 = 3\sqrt{2}$.</p>
+
+        <h4>Step 2: Eigenvectors of $A^T A$ → columns of $V$</h4>
+        <p>The eigenvectors are along $(1,0)^T$ and $(0,1)^T$:</p>
+        <div class="math-display">
+            $$V = \begin{bmatrix}1&0\\0&1\end{bmatrix}$$
         </div>
 
-        <p>
-            $A^T A$ comes out diagonal. The eigenvalues are $\sigma_1^2 = 32$ and $\sigma_2^2 = 18$, read directly off the diagonal.
-        </p>
-
-        <p>
-            The eigenvectors (columns of $V$) are found from the null spaces of $(A^TA - \sigma_i^2 I)$. Here, the eigenvectors are along the directions $(1,1)$ and $(1,-1)$, which we normalize to unit vectors by dividing by $\sqrt{2}$:
-        </p>
-
+        <h4>Step 3: Compute $U$ via $u_i = \frac{1}{\sigma_i}Av_i$</h4>
         <div class="math-display">
-            $$v_1 = \frac{1}{\sqrt{2}}\begin{bmatrix}1\\1\end{bmatrix}, \qquad v_2 = \frac{1}{\sqrt{2}}\begin{bmatrix}1\\-1\end{bmatrix}, \qquad V = \frac{1}{\sqrt{2}}\begin{bmatrix}1 & 1 \\ 1 & -1\end{bmatrix}$$
+            $$Av_1 = \begin{bmatrix}4&4\\-3&3\end{bmatrix}\begin{bmatrix}1\\0\end{bmatrix} = \begin{bmatrix}4\\-3\end{bmatrix}$$
         </div>
+        <p>So $u_1 = \frac{1}{4\sqrt{2}}(4,-3)^T$. Similarly for $u_2$, giving us the final matrices for $U$, $\Sigma$, and $V^T$.</p>
+    </div>
+</details>
 
-        <p>
-            <strong>Step 2: Compute $A A^T$ and find the left singular vectors $U$.</strong>
-        </p>
+<details class="toggle">
+    <summary>Example 2: A Rank-1 Matrix — When a Whole Row Space Collapses</summary>
+    <div style="margin-top: 1rem;">
+        <p>Let $A = \begin{bmatrix}4&3\\8&6\end{bmatrix}$. Notice row 2 = 2 × row 1. Rank 1.</p>
 
+        <h4>The geometry</h4>
+        <p>$A$ crushes all of $\mathbb{R}^2$ onto a single line — the column space is spanned by $(4,8)^T$, or after normalizing, $u_1 = \frac{1}{\sqrt{5}}(1,2)^T$. The row space is spanned by $(4,3)^T$, normalized to $v_1 = (0.8, 0.6)^T$.</p>
+
+        <h4>Singular value</h4>
         <div class="math-display">
-            $$A A^T = \begin{bmatrix}4 & 4 \\ -3 & 3\end{bmatrix}\begin{bmatrix}4 & -3 \\ 4 & 3\end{bmatrix} = \begin{bmatrix}32 & 0 \\ 0 & 18\end{bmatrix}$$
+            $$A^TA = \begin{bmatrix}80&60\\60&45\end{bmatrix}$$
         </div>
+        <p>Rank 1, so one eigenvalue is zero; the other is the trace $= 125$. Thus $\sigma_1 = \sqrt{125} = 5\sqrt{5}$, $\sigma_2 = 0$.</p>
 
-        <p>
-            Notice that $AA^T$ also comes out diagonal with eigenvalues $32$ and $18$. This is no accident: $A^T A$ and $AA^T$ always share the same non-zero eigenvalues. The eigenvectors of $AA^T$ give the columns of $U$: $u_1 = \begin{bmatrix}1\\0\end{bmatrix}$ and $u_2 = \begin{bmatrix}0\\1\end{bmatrix}$.
-        </p>
-
-        <p>
-            <strong>Step 3: Determine the correct signs using $Av_i = \sigma_i u_i$.</strong>
-        </p>
-
-        <p>
-            The sign of each $u_i$ must be consistent with $Av_i = \sigma_i u_i$. The eigenvectors of $AA^T$ only give us the direction — we must verify the sign against the actual transformation. Let's check $v_2$:
-        </p>
-
+        <h4>Full SVD</h4>
         <div class="math-display">
-            $$A v_2 = \begin{bmatrix}4 & 4 \\ -3 & 3\end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix}1\\-1\end{bmatrix} = \frac{1}{\sqrt{2}}\begin{bmatrix}0\\-6\end{bmatrix} = \sqrt{18} \begin{bmatrix}0\\-1\end{bmatrix}$$
-        </div>
-
-        <p>
-            So $u_2 = \begin{bmatrix}0\\-1\end{bmatrix}$, not $\begin{bmatrix}0\\1\end{bmatrix}$. The sign flipped. Always determine $u_i = \frac{1}{\sigma_i}Av_i$ to get the correct sign, rather than reading it directly from the eigenvectors of $AA^T$.
-        </p>
-
-        <p>
-            <strong>The complete SVD:</strong>
-        </p>
-
-        <div class="math-display">
-            $$A = \begin{bmatrix}1 & 0 \\ 0 & -1\end{bmatrix} \begin{bmatrix}\sqrt{32} & 0 \\ 0 & \sqrt{18}\end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix}1 & 1 \\ 1 & -1\end{bmatrix}$$
+            $$A = \frac{1}{\sqrt{5}}\begin{bmatrix}1&2\\2&-1\end{bmatrix}\begin{bmatrix}5\sqrt{5}&0\\0&0\end{bmatrix}\begin{bmatrix}0.8&0.6\\0.6&-0.8\end{bmatrix}$$
         </div>
     </div>
 </details>
 
 <details class="toggle">
-    <summary>Worked Example 2: A Rank-1 Matrix</summary>
+    <summary>Example 3: A Rectangular 3×2 Matrix</summary>
     <div style="margin-top: 1rem;">
-        <p>
-            Let's solidify this with a singular $2 \times 2$ matrix with rank 1:
-        </p>
+        <p>Let $A = \begin{bmatrix}1&1\\1&0\\0&1\end{bmatrix}$, a $3\times 2$ matrix of rank 2.</p>
 
+        <h4>$A^T A$ is $2\times 2$</h4>
         <div class="math-display">
-            $$A = \begin{bmatrix} 4 & 3 \\ 8 & 6 \end{bmatrix}$$
+            $$A^T A = \begin{bmatrix}1&1&0\\1&0&1\end{bmatrix}\begin{bmatrix}1&1\\1&0\\0&1\end{bmatrix} = \begin{bmatrix}2&1\\1&2\end{bmatrix}$$
         </div>
+        <p>Eigenvalues: $\lambda_{1,2} = \frac{4 \pm \sqrt{4}}{2}$... actually $(2-\lambda)^2 - 1 = 0$, so $\lambda = 3$ and $\lambda = 1$. Singular values: $\sigma_1 = \sqrt{3}$, $\sigma_2 = 1$.</p>
 
-        <p>
-            Because it's rank 1, the row space is spanned by the rows $[4, 3]$ and $[8, 6]$. Since $[8, 6] = 2[4, 3]$, they span the same 1D line — all multiples of $(4, 3)$. To find our first input vector $v_1$, we normalize it to a unit vector: $\|(4,3)\| = 5$, so $v_1 = (0.8, 0.6)$. The null space is the perpendicular line, giving us $v_2 = (0.6, -0.8)$. These form our matrix $V$.
-        </p>
+        <h4>Eigenvectors of $A^T A$ → $V$</h4>
+        <p>For $\lambda=3$: $(A^TA - 3I)v = 0$ gives $v_1 = (1,1)^T/\sqrt{2}$. For $\lambda=1$: $v_2 = (1,-1)^T/\sqrt{2}$.</p>
 
-        <p>
-            The column space is also a 1D line — multiples of $(4, 8)$, or simplified, $(1, 2)$. Normalizing gives $u_1 = \bigl(\tfrac{1}{\sqrt{5}}, \tfrac{2}{\sqrt{5}}\bigr)$. The left null space is the perpendicular vector $u_2 = \bigl(\tfrac{2}{\sqrt{5}}, \tfrac{-1}{\sqrt{5}}\bigr)$. These form our matrix $U$, which we can write as $\frac{1}{\sqrt{5}}\begin{bmatrix}1 & 2 \\ 2 & -1\end{bmatrix}$.
-        </p>
-
-        <p>
-            For the singular value, we compute $A^T A$:
-        </p>
-
+        <h4>Left singular vectors</h4>
         <div class="math-display">
-            $$A^T A = \begin{bmatrix}4 & 8 \\ 3 & 6\end{bmatrix}\begin{bmatrix}4 & 3 \\ 8 & 6\end{bmatrix} = \begin{bmatrix}80 & 60 \\ 60 & 45\end{bmatrix}$$
+            $$u_1 = \frac{1}{\sqrt{3}}Av_1 = \frac{1}{\sqrt{6}}\begin{bmatrix}2\\1\\1\end{bmatrix}, \quad u_2 = Av_2 = \frac{1}{\sqrt{2}}\begin{bmatrix}0\\1\\-1\end{bmatrix}$$
         </div>
-
-        <p>
-            This rank-1 matrix has trace $= 80 + 45 = 125$. Since the rank is 1, one eigenvalue is $0$, so the non-zero eigenvalue must be the entire trace: $\lambda = 125$. The singular value is $\sigma_1 = \sqrt{125} = 5\sqrt{5}$, and $\sigma_2 = 0$. The zeros slot perfectly into $\Sigma$ for the null space dimensions:
-        </p>
-
-        <div class="math-display">
-            $$A = \frac{1}{\sqrt{5}}\begin{bmatrix}1 & 2 \\ 2 & -1\end{bmatrix} \begin{bmatrix}5\sqrt{5} & 0 \\ 0 & 0\end{bmatrix} \begin{bmatrix}0.8 & 0.6 \\ 0.6 & -0.8\end{bmatrix}$$
-        </div>
-
-        <p>
-            This means the entire matrix can be written as a single outer product: $A = \sigma_1 u_1 v_1^T$. A rank-1 matrix is nothing more than one direction in input space mapped to one direction in output space.
-        </p>
+        <p>We need a third $u_3$ orthogonal to both, spanning the left null space. By cross-product or Gram-Schmidt: $u_3 \propto (-1, 1, 1)$... normalize appropriately. The SVD is $3\times 3$ times $3\times 2$ times $2\times 2$.</p>
     </div>
 </details>
 
-<h3>The Optimal Low-Rank Approximation</h3>
-
-<p>
-    Because the SVD separates the geometry (the orthogonal matrices $U$ and $V$) from the magnitude (the singular values $\sigma$), it gives us a profound way to compress information. If we carry out the matrix multiplication $A = U \Sigma V^T$ column by column, it expands into a sum of rank-one matrices:
-</p>
-
-<div class="math-display">
-    $$A = \sigma_1 u_1 v_1^T + \sigma_2 u_2 v_2^T + \dots + \sigma_r u_r v_r^T$$
+<div class="math-box key-box" style="margin-top: 3rem;">
+    <div class="math-box-label">The master identity</div>
+    <div class="math-box-body">
+        <div class="math-display" style="margin: 0.5rem 0;">
+            $$A = U\Sigma V^T$$
+        </div>
+        <p style="margin-top:0.6rem">
+            <strong>Eigendecomposition</strong> (when it exists): change basis &rarr; scale &rarr; return to the same basis.<br>
+            <strong>SVD</strong> (always): change basis in $\mathbb{R}^n$ &rarr; scale &rarr; change to a <em>different</em> basis in $\mathbb{R}^m$.
+        </p>
+    </div>
 </div>
 
-<div class="math-display">
-    $$A = \sum_{i=1}^{r} \sigma_i u_i v_i^T$$
-</div>
-
-<p>
-    By convention, singular values are always sorted in descending order ($\sigma_1 \ge \sigma_2 \ge \dots$). The first term $\sigma_1 u_1 v_1^T$ contains the single most important piece of information in the matrix. The second term is the second most important.
-</p>
-
-<p>
-    If we want to compress a massive dataset, we simply stop the sum early. Truncating the small $\sigma_i$ terms throws away the mathematical "noise" and leaves us with the absolute best low-rank approximation of $A$ geometrically possible. Keeping only the first $k$ terms gives the closest rank-$k$ matrix to $A$ — not just intuitively, but <strong>provably optimal</strong> among all possible rank-$k$ matrices. This profound result is known as the Eckart–Young–Mirsky theorem, and it is the foundational algorithm powering everything from modern image compression to digital recommendation systems.
-</p>
-
-
-
-<p style="text-align: center; font-size: 1.1em; font-style: italic; margin-top: 2rem;">
-    <strong>In summary:</strong><br>
-    Eigen-decomposition is <em>"change basis &rarr; scale &rarr; return to the same basis."</em><br>
-    The SVD is <em>"change basis &rarr; scale &rarr; change to a different basis."</em>
+<p style="text-align: center; font-family: var(--font-serif, Lora, serif); font-style: italic; font-size: 1.05rem; color: var(--muted); margin: 3rem 0 1rem; line-height: 1.7;">
+    "The SVD is not just a factorization. It is the complete and perfect description
+    of what a linear map does." — paraphrasing Gilbert Strang
 </p>
 
                     </section>

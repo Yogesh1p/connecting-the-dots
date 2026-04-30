@@ -1,0 +1,15 @@
+{
+  "liveServer.settings.wait": 0,
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {},
+  "[html]": {
+    "editor.formatOnSave": false,
+    "editor.codeActionsOnSave": {}
+  },
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**",
+    "builder/**",
+    "assets/og/**",
+    "node_modules/**"
+  ]
+}

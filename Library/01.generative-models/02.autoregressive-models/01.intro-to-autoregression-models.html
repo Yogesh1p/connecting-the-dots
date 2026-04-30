@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <title>Intro to Autoregression Models</title>
+  <meta name="article_id" content="ee398b68">
     <meta charset="UTF-8">
     <meta name="chapter_order" content="2">
     <meta name="book_slug" content="generative">
@@ -15,7 +17,7 @@
 <meta name="status" content="live">
 <meta name="belongs_to" content="lib">
 <meta name="keywords" content="chain rule, bayesian networks, markov models, generative modeling">
-<meta name="reading_time" content="6">
+<meta name="reading_time" content="7">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
@@ -58,7 +60,7 @@
 
     <meta property="og:title" content="Intro to Autoregression Models">
     <meta property="og:description" content="From exponential joint distributions to tractable autoregressive factorization">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/intro-to-autoregression-models.png">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-ee398b68.png?v=11195f">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
@@ -115,7 +117,78 @@
   <div class="math-display">
     $$ 2^n - 1. $$
   </div>
+  <details class="toggle">
+    <summary>Where does $2^n - 1$ come from?</summary>
+    <p style="margin-top: 0.5rem;">To understand the size of the raw joint distribution, let's look at a concrete example with 3 variables: $x_1, x_2,$ and $x_3$. We can use the <strong>Multiplication Rule</strong> from basic combinatorics.</p>
+    <p>The rule states: if Experiment A has $a$ possible outcomes, and Experiment B has $b$ possible outcomes, the combined experiment has $ab$ possible outcomes.</p>
+    <p>Since each of our 3 variables can take exactly 2 possible states (0 or 1), applying the multiplication rule means our lookup table must have $2 \times 2 \times 2 = 8$ distinct rows to cover every possible configuration:</p>
 
+    <table class="math-table">
+      <thead>
+        <tr>
+          <th>$x_1$</th>
+          <th>$x_2$</th>
+          <th>$x_3$</th>
+          <th>Probability</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td>$p_1$</td>
+        </tr>
+        <tr>
+          <td>0</td>
+          <td>0</td>
+          <td>1</td>
+          <td>$p_2$</td>
+        </tr>
+        <tr>
+          <td>0</td>
+          <td>1</td>
+          <td>0</td>
+          <td>$p_3$</td>
+        </tr>
+        <tr>
+          <td>0</td>
+          <td>1</td>
+          <td>1</td>
+          <td>$p_4$</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>0</td>
+          <td>0</td>
+          <td>$p_5$</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>0</td>
+          <td>1</td>
+          <td>$p_6$</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>1</td>
+          <td>0</td>
+          <td>$p_7$</td>
+        </tr>
+        <tr>
+          <td>1</td>
+          <td>1</td>
+          <td>1</td>
+          <td>$1 - (p_1 + p_2 + p_3 + p_4 + p_5 + p_6 + p_7)$</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>So why minus one? Because this is a valid probability distribution, the probabilities of all 8 configurations must sum to exactly 1. Once the model learns the first 7 probabilities ($p_1$ through $p_7$), the very last row is locked in—it is simply 1 minus the sum of the rest.</p> 
+    <p>Therefore, for 3 variables, there are exactly $8 - 1 = 7$ independent, free parameters to learn. Generalized to $n$ variables, this gives us exactly <strong>$2^n - 1$</strong> free parameters.</p>
+  </details>
+
+  
   <p>Thus the parameter complexity grows exponentially with $n$. For high-dimensional data such as images, this representation is computationally impossible.</p>
 
   <p>The central challenge of generative modeling is therefore:</p>

@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 3. TOC & NAVIGATION
   // ============================================================
   const initializeToc = () => {
-    const headers = Array.from(document.querySelectorAll(".article-body h2, .article-body h3, .article-body h4"));
+    const headers = Array.from(document.querySelectorAll(".article-body h2, .article-body h3"));
     const existingIds = new Set();
 
     state.tocItems = headers.map((el, index) => {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="article_id" content="f1b9c30d">
 <meta charset="UTF-8">
     <meta name="chapter_order" content="3">
     <meta name="book_slug" content="linear-algebra">
@@ -19,7 +20,7 @@
 <meta name="belongs_to" content="lib">
 <meta name="keywords" content="projections, orthogonal projection, projection matrix, least squares, normal equation, linear algebra">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="reading_time" content="10">
+<meta name="reading_time" content="11">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -108,7 +109,7 @@
 
     <meta property="og:title" content="Projections onto Subspaces">
     <meta property="og:description" content="Deriving the mathematics of orthogonal projections onto lines and n-dimensional subspaces using the normal equation and projection matrices.">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/projections-onto-subspaces.png">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-f1b9c30d.png?v=218361">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
@@ -280,6 +281,7 @@
     The numerator $a^T b$ measures how much $b$ aligns with $a$. The denominator $a^T a$ normalizes it. Notice that $aa^T$ is a column multiplied by a row, resulting in a full-scale $n \times n$ matrix of rank 1. This matrix keeps only the component of any vector that lies along $a$ and removes everything else.
   </p>
 </div>
+
 <h3>Projection onto a Subspace $C(A)$</h3>
 
 <p>
@@ -315,7 +317,15 @@
 </div>
 
 <p>
-  Distributing $A^T$ gives us the most important equation in least-squares approximations:
+  Rearranging this yields $A^T A \hat{x} = A^T b$. But why does multiplying both sides by $A^T$ suddenly make an unsolvable system solvable? 
+</p>
+
+<p>
+  You can think of a projection operation as a filter that strips away orthogonal components. A matrix inherently sends anything perpendicular to its row space directly to the zero space. Because the row space of $A^T$ is exactly the column space of $A$, applying $A^T$ to our target vector $b$ completely annihilates any part of $b$ that lies outside our allowed subspace. 
+</p>
+
+<p>
+  By doing this, the perpendicular, unsolvable error is taken away. We are left with a new right-hand side that lives perfectly within the column space of $A^T A$, guaranteeing a solution for $\hat{x}$. This insight gives us the most important equation in least-squares approximations:
 </p>
 
 <div class="math-box key-box">
@@ -348,48 +358,48 @@
 <p>
   <strong>A word of caution:</strong> Looking at $(A^T A)^{-1}$, it is tempting to use the matrix inverse product rule and split it into $A^{-1}(A^T)^{-1}$. If we did that, the entire projection formula would collapse to $A A^{-1} (A^T)^{-1} A^T = I$. Why can't we do this? Because $A$ is typically a tall, rectangular matrix—it does not have an inverse! We are forced to leave it as $(A^T A)^{-1}$. 
 </p>
+
 <p>
   The only exception is if $A$ <em>is</em> a nice, square, invertible matrix. But if $A$ is square and invertible, its columns span the entire space $\mathbb{R}^n$. In that case, $b$ is already in the column space, and the projection onto the entire space is simply the identity matrix $P = I$.
 </p>
 
- <figure class="diagram-figure">
-    <div class="svg-container">
-        <svg viewBox="100 100 750 450" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="marker-arrow-text-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
-            </marker>
-            <marker id="marker-arrow-accent-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
-            </marker>
-            <marker id="marker-arrow-box-label-bg-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
-            </marker>
-            <marker id="marker-arrow-dark-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dark)" />
-            </marker>
-          </defs>
-          
-          <polygon points="200,440 600,540 800,320 400,220" fill="var(--surface)" stroke="var(--border)" stroke-width="4"/>
-          <text x="680" y="380" font-family="'Lora', serif" font-size="36" fill="var(--dark)">C(A)</text>
-          
-          <polygon points="500,370 480,373 480,353 500,350" fill="none" stroke="var(--muted)" stroke-width="3"/>
-          
-          <line x1="300" y1="400" x2="500" y2="370" stroke="var(--box-label-bg)" stroke-width="6" marker-end="url(#marker-arrow-box-label-bg-fig2)"/>
-          <text x="400" y="430" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--box-label-bg)">p</text>
-          
-          <line x1="300" y1="400" x2="500" y2="120" stroke="var(--accent)" stroke-width="5" marker-end="url(#marker-arrow-accent-fig2)"/>
-          <text x="360" y="240" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--accent)">b</text>
-          
-          <line x1="500" y1="370" x2="500" y2="120" stroke="var(--dark)" stroke-width="4" stroke-dasharray="8,8" marker-end="url(#marker-arrow-dark-fig2)"/>
-          <text x="520" y="260" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--dark)">e</text>
-        </svg>
-    </div>
-    <figcaption class="figure-caption">
-        <strong>Figure 2:</strong> Projection of vector $b$ onto a 2D column space $C(A)$. The projection $p$ is a linear combination of the column vectors, and the error $e$ is orthogonal to the entire plane.
-    </figcaption>
+<figure class="diagram-figure">
+  <div class="svg-container">
+      <svg viewBox="100 100 750 450" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="marker-arrow-text-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+          <marker id="marker-arrow-accent-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
+          </marker>
+          <marker id="marker-arrow-box-label-bg-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="marker-arrow-dark-fig2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dark)" />
+          </marker>
+        </defs>
+        
+        <polygon points="200,440 600,540 800,320 400,220" fill="var(--surface)" stroke="var(--border)" stroke-width="4"/>
+        <text x="680" y="380" font-family="'Lora', serif" font-size="36" fill="var(--dark)">C(A)</text>
+        
+        <polygon points="500,370 480,373 480,353 500,350" fill="none" stroke="var(--muted)" stroke-width="3"/>
+        
+        <line x1="300" y1="400" x2="500" y2="370" stroke="var(--box-label-bg)" stroke-width="6" marker-end="url(#marker-arrow-box-label-bg-fig2)"/>
+        <text x="400" y="430" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--box-label-bg)">p</text>
+        
+        <line x1="300" y1="400" x2="500" y2="120" stroke="var(--accent)" stroke-width="5" marker-end="url(#marker-arrow-accent-fig2)"/>
+        <text x="360" y="240" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--accent)">b</text>
+        
+        <line x1="500" y1="370" x2="500" y2="120" stroke="var(--dark)" stroke-width="4" stroke-dasharray="8,8" marker-end="url(#marker-arrow-dark-fig2)"/>
+        <text x="520" y="260" font-family="'Lora', serif" font-size="36" font-style="italic" fill="var(--dark)">e</text>
+      </svg>
+  </div>
+  <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> Projection of vector $b$ onto a 2D column space $C(A)$. The projection $p$ is a linear combination of the column vectors, and the error $e$ is orthogonal to the entire plane.
+  </figcaption>
 </figure>
-
 
 <h3>Properties of Projection Matrices</h3>
 
@@ -531,4 +541,4 @@
     </main>
 
 </body>
-</html>
+</html> 

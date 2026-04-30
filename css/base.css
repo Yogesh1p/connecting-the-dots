@@ -479,7 +479,7 @@ padding: 8px 12px;
   background: transparent; 
 }
 
-.toc-bold { color: var(--accent); opacity: 1; font-weight: 600; }
+.toc-bold { color: var(--dark); opacity: 1; font-weight: 600; }
 .toc-ind-1 { padding-left: 10px; }
 .toc-ind-2 { padding-left: 18px; }
 .toc-ind-3 { padding-left: 26px; }

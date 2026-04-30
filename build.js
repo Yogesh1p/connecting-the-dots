@@ -50,6 +50,7 @@ function decodeHtmlEntities(value) {
 }
 
 function getTitle(content) {
+    // This already prioritizes <meta name="title">
     const metaTitle = getMeta(content, "title");
     if (metaTitle) return metaTitle;
     const m = content.match(/<title>([^<]+)<\/title>/i);
@@ -120,22 +121,27 @@ function createPageObject(relativePath, content, readingTime) {
     };
 }
 
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+function ensureArticleId(content) {
+    let id = getMeta(content, "article_id");
+    let modified = false;
+    
+    // If no ID exists, generate one and inject it into the <head>
+    if (!id) {
+        id = crypto.randomBytes(4).toString("hex"); 
+        const metaTag = `  <meta name="article_id" content="${id}">`;
+        
+        if (/<head>/i.test(content)) {
+            content = content.replace(/<head>/i, `<head>\n${metaTag}`);
+        } else {
+            content = `${metaTag}\n${content}`;
+        }
+        modified = true;
+    }
+    
+    return { id, content, modified };
 }
 
 // ─── OG markup builder ────────────────────────────────────────────────────────
-// Satori rules strictly followed:
-//   1. Every <div> with 2+ children must have display:flex
-//   2. z-index is NOT supported. Layering is done by rendering the absolute
-//      background glyph before the content.
-//   3. Parse one complete markup string. Interpolating markup strings into the
-//      tagged html`` helper escapes them and renders the raw <div> text.
 
 function buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime }) {
     const BG      = "#FDFBF7";
@@ -149,53 +155,44 @@ function buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime }
     const chapterEyebrow = chapterNumber ? `CHAPTER ${chapterNumber}: ${chapter}` : chapter;
 
     const bgGlyphHtml = chapterNumber
-        ? `<div style="display:flex;position:absolute;right:28px;top:126px;font-size:420px;font-weight:700;font-style:italic;color:#F0EAE1;line-height:0.82;font-family:'Lora';">${escapeHtml(chapterNumber)}</div>`
+        ? `<div style="display:flex;position:absolute;right:28px;top:126px;font-size:420px;font-weight:700;font-style:italic;color:#F0EAE1;line-height:0.82;font-family:'Lora';">${chapterNumber}</div>`
         : `<div style="display:none;"></div>`;
 
     const bookHtml = book
         ? `<div style="display:flex;align-items:center;gap:12px;">
                <div style="display:flex;width:6px;height:6px;border-radius:50%;background:${ACCENT};margin-top:2px;flex-shrink:0;"></div>
-               <div style="display:flex;font-size:22px;font-weight:400;font-style:italic;color:${ACCENT};font-family:'Lora';">${escapeHtml(book)}</div>
+               <div style="display:flex;font-size:22px;font-weight:400;font-style:italic;color:${ACCENT};font-family:'Lora';">${book}</div>
            </div>`
         : `<div style="display:none;"></div>`;
 
     const markup = `
     <div style="display:flex;flex-direction:column;width:1200px;height:630px;background:${BG};font-family:'Lora',serif;position:relative;overflow:hidden;">
 
-        <!-- Top accent bar -->
         <div style="display:flex;width:100%;height:6px;flex-shrink:0;background:linear-gradient(90deg,${ACCENT} 0%,#b85e38 50%,${BORDER} 100%);"></div>
 
-        <!-- Body: position:relative wrapper so absolute children work -->
         <div style="display:flex;flex:1;flex-direction:column;justify-content:space-between;padding:56px 80px 52px;position:relative;">
 
-            <!-- Background glyph (absolute, rendered first = behind content) -->
             ${bgGlyphHtml}
 
-            <!-- Eyebrow row: chapter + optional book -->
             <div style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-shrink:0;width:100%;">
-                <div style="display:flex;font-size:22px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:${MUTED};font-family:'Lora';max-width:760px;">${escapeHtml(chapterEyebrow)}</div>
+                <div style="display:flex;font-size:22px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:${MUTED};font-family:'Lora';max-width:760px;">${chapterEyebrow}</div>
                 <div style="display:flex;flex-shrink:0;">
                     ${bookHtml}
                 </div>
             </div>
 
-            <!-- Middle title zone. This keeps short titles optically centered. -->
             <div style="display:flex;flex:1;flex-direction:column;justify-content:center;padding-bottom:24px;">
-                <div style="display:flex;font-size:88px;font-weight:700;color:${DARK};line-height:1.04;letter-spacing:-2.5px;max-width:860px;font-family:'Lora';">${escapeHtml(title)}</div>
+                <div style="display:flex;font-size:88px;font-weight:700;color:${DARK};line-height:1.04;letter-spacing:-2.5px;max-width:860px;font-family:'Lora';">${title}</div>
             </div>
 
-            <!-- BOTTOM: rule + author row -->
             <div style="display:flex;flex-direction:column;gap:20px;">
 
-                <!-- Rule with accent dot -->
                 <div style="display:flex;position:relative;width:100%;height:1px;background:${BORDER};">
                     <div style="display:flex;position:absolute;left:0;top:-4px;width:8px;height:8px;border-radius:50%;background:${ACCENT};"></div>
                 </div>
 
-                <!-- Author row -->
                 <div style="display:flex;align-items:center;justify-content:space-between;">
 
-                    <!-- Left: avatar + name -->
                     <div style="display:flex;align-items:center;gap:18px;">
                         <div style="display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,${ACCENT},#b85e38);font-size:22px;font-weight:700;color:${BG};font-family:'Lora';">Y</div>
                         <div style="display:flex;flex-direction:column;gap:3px;">
@@ -204,11 +201,10 @@ function buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime }
                         </div>
                     </div>
 
-                    <!-- Right: read pill + site name -->
                     <div style="display:flex;align-items:center;gap:20px;">
                         <div style="display:flex;align-items:center;gap:10px;background:${SURFACE};border:1.5px solid ${BORDER};border-radius:100px;padding:10px 24px;">
                             <div style="display:flex;width:7px;height:7px;border-radius:50%;background:${ACCENT};flex-shrink:0;"></div>
-                            <div style="display:flex;font-size:20px;font-weight:500;color:${MUTED};font-family:'Lora';">${escapeHtml(readingTime)} min read</div>
+                            <div style="display:flex;font-size:20px;font-weight:500;color:${MUTED};font-family:'Lora';">${readingTime} min read</div>
                         </div>
                         <div style="display:flex;font-size:20px;font-weight:600;color:${DARK};opacity:0.28;font-family:'Lora';">Connecting the Dots</div>
                     </div>
@@ -228,23 +224,28 @@ async function build() {
     console.log("🔍 Scanning library for changes…");
     const files = getAllHtmlFiles(libraryDir).sort();
 
-    // 1. Snapshot
-    const currentSnapshot = files.map(f => ({
-        path: path.relative(libraryDir, f),
-        hash: getHash(fs.readFileSync(f, "utf8")),
-    }));
+    const force = process.argv.includes("--force");
 
-    // 2. Cache check
-    let previousSnapshot = [];
+    // 1. Load previous cache
+    let cachedHashMap = {};
     if (fs.existsSync(metaCachePath)) {
-        try { previousSnapshot = JSON.parse(fs.readFileSync(metaCachePath, "utf8")); } catch (_) {}
+        try { cachedHashMap = JSON.parse(fs.readFileSync(metaCachePath, "utf8")); } catch (_) {}
     }
 
-    const force = process.argv.includes("--force");
-    if (!force && JSON.stringify(currentSnapshot) === JSON.stringify(previousSnapshot)) {
+    // 2. Find only files the USER changed
+    const changedFiles = files.filter(f => {
+        if (force) return true;
+        const rel = path.relative(libraryDir, f);
+        const currentHash = getHash(fs.readFileSync(f, "utf8"));
+        return currentHash !== cachedHashMap[rel];
+    });
+
+    if (changedFiles.length === 0) {
         console.log("⏩  Library is up to date. Build skipped.");
         return;
     }
+
+    console.log(`📝  ${changedFiles.length} file(s) changed — processing…`);
 
     // 3. Init Satori + Lora fonts
     console.log("🖼️  Initialising Satori and Lora font…");
@@ -265,10 +266,8 @@ async function build() {
         { name: "Lora", data: font700, weight: 700, style: "normal" },
     ];
 
-    const libPages = [];
-
-    // 4. Process each file
-    for (const filePath of files) {
+    // 4. Process only changed files
+    for (const filePath of changedFiles) {
         try {
             let content = fs.readFileSync(filePath, "utf8");
             let fileChanged = false;
@@ -279,30 +278,81 @@ async function build() {
             const withTime = syncReadingTime(content, readingTime);
             if (withTime !== content) { content = withTime; fileChanged = true; }
 
-            if ((getMeta(content, "status") || "").toLowerCase() === "hide") continue;
-
-            const title        = getTitle(content);
-            const chapter      = getMeta(content, "chapter")       || "Connecting the Dots";
-            const book         = getMeta(content, "book")          || "";
-            const description = getMeta(content, "description") || "";
-            const chapterOrder = getPathOrder(relativePath, 1);
-
-            if (title.toLowerCase().includes("template") || relativePath.includes("_template")) continue;
-
-            // B. OG image
-            const outputFilename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`;
-            const outputPath = path.join(ogOutputDir, outputFilename);
-
-            if (force || !fs.existsSync(outputPath)) {
-                const markup = buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime });
-                const svg = await satori(markup, { width: 1200, height: 630, fonts });
-                const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
-                fs.writeFileSync(outputPath, resvg.render().asPng());
-                console.log(`  ✅ OG: ${outputFilename}`);
+            if ((getMeta(content, "status") || "").toLowerCase() === "hide") {
+                cachedHashMap[relativePath] = getHash(content);
+                fs.writeFileSync(metaCachePath, JSON.stringify(cachedHashMap, null, 2), "utf8");
+                continue;
             }
 
-            // C. Meta tag injection / update
-            const absoluteImageUrl = `${SITE_URL}/assets/og/${outputFilename}`;
+            // --- SYNC TITLE FROM META TAG ---
+            const title = getTitle(content); // This grabs the <meta name="title">
+            
+            if (title.toLowerCase().includes("template") || relativePath.includes("_template")) {
+                cachedHashMap[relativePath] = getHash(content);
+                fs.writeFileSync(metaCachePath, JSON.stringify(cachedHashMap, null, 2), "utf8");
+                continue;
+            }
+
+            // Force the <title> tag in the HTML to match the meta title
+            const expectedTitleTag = `<title>${title}</title>`;
+            const titleTagRegex = /<title>[\s\S]*?<\/title>/i;
+            
+            if (titleTagRegex.test(content)) {
+                const currentTitleTag = content.match(titleTagRegex)[0];
+                if (currentTitleTag !== expectedTitleTag) {
+                    content = content.replace(titleTagRegex, expectedTitleTag);
+                    fileChanged = true;
+                    console.log(`  📝 Synced <title> to match meta tag: "${title}"`);
+                }
+            } else if (/<head>/i.test(content)) {
+                content = content.replace(/<head>/i, `<head>\n  ${expectedTitleTag}`);
+                fileChanged = true;
+                console.log(`  📝 Injected <title> based on meta tag: "${title}"`);
+            }
+            // --------------------------------
+
+            const chapter      = getMeta(content, "chapter")      || "Connecting the Dots";
+            const book         = getMeta(content, "book")         || "";
+            const description  = getMeta(content, "description")  || "";
+            const chapterOrder = getPathOrder(relativePath, 1);
+
+            // B. Inject or Retrieve Article ID
+            const idResult = ensureArticleId(content);
+            const articleId = idResult.id;
+            if (idResult.modified) {
+                content = idResult.content;
+                fileChanged = true;
+            }
+
+            // C. OG image Generation
+            const outputFilename = `og-${articleId}.png`;
+            const outputPath = path.join(ogOutputDir, outputFilename);
+
+            // Cleanup old OG images if the filename changed
+            const existingOgMatch = content.match(/property=["']og:image["']\s+content=["']([^"']+)["']/i);
+            if (existingOgMatch) {
+                const oldImageUrl = existingOgMatch[1];
+                const oldFilename = path.basename(oldImageUrl);
+                if (oldFilename && oldFilename !== outputFilename) {
+                    const oldFilePath = path.join(ogOutputDir, oldFilename);
+                    if (fs.existsSync(oldFilePath)) {
+                        fs.unlinkSync(oldFilePath);
+                        console.log(`  🗑️ Cleaned up old OG: ${oldFilename}`);
+                    }
+                }
+            }
+
+            // ALWAYS redraw the image if the file is in changedFiles
+            const markup = buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime });
+            const svg = await satori(markup, { width: 1200, height: 630, fonts });
+            const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
+            fs.writeFileSync(outputPath, resvg.render().asPng());
+            console.log(`  ✅ OG generated/updated: ${outputFilename}`);
+
+            // D. Meta tag injection / update 
+            // Note: Added a cache-busting query parameter (?v=) so browsers/social media fetch the new image
+            const fileHash = getHash(content).substring(0, 6);
+            const absoluteImageUrl = `${SITE_URL}/assets/og/${outputFilename}?v=${fileHash}`;
             const absolutePageUrl  = `${SITE_URL}/Library/${relativePath.replace(/\\/g, "/")}`;
             const hasOg = /property=["']og:image["']/i.test(content);
 
@@ -317,36 +367,50 @@ async function build() {
                 fileChanged = true;
             } else {
                 const updated = content
+                    .replace(/property=["']og:title["']\s+content=["'][^"']*["']/gi, `property="og:title" content="${title}"`)
                     .replace(/content=["'][^"']*?\/og\/[^"']*?["']/gi, `content="${absoluteImageUrl}"`)
-                    .replace(/property=["']og:url["']\s+content=["'][^"']*["']/gi,
-                             `property="og:url" content="${absolutePageUrl}"`);
-                if (updated !== content) { content = updated; fileChanged = true; }
+                    .replace(/property=["']og:url["']\s+content=["'][^"']*["']/gi, `property="og:url" content="${absolutePageUrl}"`);
+                
+                if (updated !== content) { 
+                    content = updated; 
+                    fileChanged = true; 
+                }
             }
 
             if (fileChanged) fs.writeFileSync(filePath, content, "utf8");
 
-            libPages.push(createPageObject(relativePath, content, readingTime));
+            cachedHashMap[relativePath] = getHash(content);
+            fs.writeFileSync(metaCachePath, JSON.stringify(cachedHashMap, null, 2), "utf8");
+
+            console.log(`  ✔ ${relativePath}`);
 
         } catch (err) {
             console.error(`❌ Error processing ${filePath}:`, err.message);
         }
     }
 
-    // 5. Write lib-data.js
+    // 5. Rebuild lib-data.js from all files
+    const libPages = [];
+    for (const filePath of files) {
+        try {
+            const content      = fs.readFileSync(filePath, "utf8");
+            const relativePath = path.relative(libraryDir, filePath);
+            const status       = (getMeta(content, "status") || "").toLowerCase();
+            const title        = getTitle(content);
+            if (status === "hide") continue;
+            if (title.toLowerCase().includes("template") || relativePath.includes("_template")) continue;
+            const readingTime = estimateReadingTime(content);
+            libPages.push(createPageObject(relativePath, content, readingTime));
+        } catch (_) {}
+    }
+
     fs.writeFileSync(
         path.join(builderDir, "lib-data.js"),
         `// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n`,
         "utf8"
     );
 
-    // 6. Update cache AFTER all file writes
-    const finalSnapshot = files.map(f => ({
-        path: path.relative(libraryDir, f),
-        hash: getHash(fs.readFileSync(f, "utf8")),
-    }));
-    fs.writeFileSync(metaCachePath, JSON.stringify(finalSnapshot, null, 2), "utf8");
-
-    console.log(`\n✨ Build complete. ${libPages.length} pages processed.`);
+    console.log(`\n✨ Build complete. ${libPages.length} pages in lib-data.js.`);
 }
 
 build().catch(console.error);

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Hypothesis Testing: Z, T, and Chi-Squared Tests</title>
+  <meta name="article_id" content="64e96823">
+    <meta charset="UTF-8">
+    <meta name="chapter_order" content="6">
+
+    <meta name="book" content="Stats">
+    <meta name="chapter" content="Hypothesis Testing">
+    <meta name="part" content="  ">
+    <meta name="title" content="Hypothesis Testing: Z, T, and Chi-Squared Tests">
+    <meta name="description" content="An intuition-first guide to statistical significance, p-values, and choosing the right test.">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-23">
+    <meta name="date updated" content="2026-04-23">
+    <meta name="lessonorder" content="1">
+    <meta name="status" content="draft">
+    <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="hypothesis testing, z-test, t-test, chi-squared, p-value, statistical significance">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../css/base.css">
+    <link rel="stylesheet" href="../../../css/articles.css">
+    <style>
+        .hypothesis-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin: 2rem auto;
+            width: 100%;
+            max-width: 550px;
+        }
+
+        #distributionCanvas {
+            width: 100%;
+            aspect-ratio: 2/1;
+            display: block;
+            background: transparent;
+        }
+    </style>
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
+    <script src="../../../js/base.js" defer></script>
+    <script src="../../../js/components.js" defer></script>
+    <script src="../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+    <meta name="reading_time" content="6">
+
+    <meta property="og:title" content="Hypothesis Testing: Z, T, and Chi-Squared Tests">
+    <meta property="og:description" content="An intuition-first guide to statistical significance, p-values, and choosing the right test.">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/03.stats/08.Hypothesis_test/01. Hypothesis_test.html">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-64e96823.png?v=99c799">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<section id="introduction">
+    <h2>The Foundation of Hypothesis Testing </h2>
+
+    <p>
+        At its core, hypothesis testing is a formal system for deciding whether an observed pattern is real, or just a coincidence of random sampling. We always start by pitting two opposing views against each other:
+    </p>
+
+    <ul>
+        <li><strong>Null Hypothesis ($H_0$):</strong> The baseline assumption. There is <em>no</em> relationship, <em>no</em> difference, or <em>no</em> effect. (e.g., There is no relationship between gender and highest educational attainment).</li>
+        <li><strong>Alternative Hypothesis ($H_1$):</strong> The claim we are trying to prove. There <em>is</em> a relationship, difference, or effect.</li>
+    </ul>
+
+    <div class="math-box">
+        <div class="math-box-label">The Intuition of Significance Level ($\alpha$)</div>
+        <div class="math-box-body">
+            <p>
+                Suppose we set our significance level ($\alpha$) to 5%. What does this actually mean? 
+            </p>
+            <p>
+                Even if the Null Hypothesis is perfectly true, random variation means that <em>extreme</em> samples can still happen. A 5% significance level means we are drawing a line in the sand: if our sample yields a result so extreme that it has less than a 5% chance of occurring in a world where $H_0$ is true, we reject $H_0$. 
+            </p>
+            <p>
+                Yes, there is a small chance we are making a mistake (rejecting a true null), but we are mathematically ensuring we are only wrong 5% of the time with this decision rule.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section id="z-test">
+    <h2>The Z-Test (Known Population Variance)</h2>
+
+    <p>
+        A <strong>Z-test</strong> is used to determine whether a sample mean is significantly different from a population mean. It requires two strict conditions:
+    </p>
+    <ol>
+        <li>The population standard deviation ($\sigma$) is <strong>known</strong>.</li>
+        <li>The sample size is large (typically $n \ge 30$).</li>
+    </ol>
+
+    <div class="math-box">
+        <div class="math-box-body">
+            <p>The Test Statistic follows the standard normal distribution under the null hypothesis:</p>
+            <div class="math-display">
+                $$z = \frac{\bar{x} - \mu}{\sigma/\sqrt{n}}$$
+            </div>
+            <p>Where:</p>
+            <ul>
+                <li>$\bar{x}$ = sample mean</li>
+                <li>$\mu$ = population mean (under $H_0$)</li>
+                <li>$\sigma$ = population standard deviation</li>
+                <li>$n$ = sample size</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="hypothesis-wrap">
+        <canvas id="distributionCanvas"></canvas>
+    </div>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('distributionCanvas');
+        const ctx = canvas.getContext('2d');
+        const LOGICAL_WIDTH = 550;
+        const LOGICAL_HEIGHT = 275;
+
+        function setupHighDPICanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+            canvas.width = LOGICAL_WIDTH * dpr;
+            canvas.height = LOGICAL_HEIGHT * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        setupHighDPICanvas();
+        window.addEventListener('resize', setupHighDPICanvas);
+
+        function drawNormalCurve() {
+            const style = getComputedStyle(document.documentElement);
+            const textColor = style.getPropertyValue('--text').trim() || '#666';
+            const accentColor = style.getPropertyValue('--accent').trim() || '#D48C70';
+            const borderColor = style.getPropertyValue('--border').trim() || '#E8DFD1';
+            const surfaceColor = style.getPropertyValue('--bg').trim() || '#FFF';
+
+            ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+            const padding = 30;
+            const width = LOGICAL_WIDTH - 2 * padding;
+            const height = LOGICAL_HEIGHT - 2 * padding;
+            const baseline = LOGICAL_HEIGHT - padding;
+
+            // Map x from [-4, 4] to canvas coordinates
+            const mapX = (x) => padding + ((x + 4) / 8) * width;
+            // Map y to canvas coordinates
+            const mapY = (y) => baseline - (y / 0.45) * height;
+
+            // Normal PDF function
+            const pdf = (x) => (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * x * x);
+
+            // Draw Tails (Rejection Regions at alpha = 0.05, Z = +/- 1.96)
+            ctx.fillStyle = accentColor;
+            ctx.globalAlpha = 0.2;
+            
+            // Left Tail
+            ctx.beginPath();
+            ctx.moveTo(mapX(-4), baseline);
+            for (let x = -4; x <= -1.96; x += 0.05) {
+                ctx.lineTo(mapX(x), mapY(pdf(x)));
+            }
+            ctx.lineTo(mapX(-1.96), baseline);
+            ctx.fill();
+
+            // Right Tail
+            ctx.beginPath();
+            ctx.moveTo(mapX(1.96), baseline);
+            for (let x = 1.96; x <= 4; x += 0.05) {
+                ctx.lineTo(mapX(x), mapY(pdf(x)));
+            }
+            ctx.lineTo(mapX(4), baseline);
+            ctx.fill();
+
+            // Draw Curve
+            ctx.globalAlpha = 1.0;
+            ctx.beginPath();
+            ctx.strokeStyle = textColor;
+            ctx.lineWidth = 2;
+            for (let x = -4; x <= 4; x += 0.05) {
+                if (x === -4) ctx.moveTo(mapX(x), mapY(pdf(x)));
+                else ctx.lineTo(mapX(x), mapY(pdf(x)));
+            }
+            ctx.stroke();
+
+            // Draw Axes
+            ctx.beginPath();
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1;
+            ctx.moveTo(padding, baseline);
+            ctx.lineTo(LOGICAL_WIDTH - padding, baseline);
+            // Center line
+            ctx.moveTo(mapX(0), baseline);
+            ctx.lineTo(mapX(0), mapY(pdf(0)));
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = textColor;
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("μ", mapX(0), baseline + 15);
+            ctx.fillText("-1.96", mapX(-1.96), baseline + 15);
+            ctx.fillText("1.96", mapX(1.96), baseline + 15);
+
+            // Example Point (Z = -2.36)
+            const zTest = -2.36;
+            ctx.fillStyle = accentColor;
+            ctx.beginPath();
+            ctx.arc(mapX(zTest), baseline, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText("Z = -2.36 (Reject H₀)", mapX(zTest), baseline - 15);
+        }
+
+        drawNormalCurve();
+    })();
+    </script>
+
+    <h3>A Common Trap: The Standard Error vs Standard Deviation</h3>
+    
+    <p>
+        It is very easy to look at the formula denominator ($\sigma / \sqrt{n}$) and confuse it with the population standard deviation ($\sigma$). Let's break down exactly <em>why</em> we divide by $\sqrt{n}$.
+    </p>
+
+    <div class="math-box">
+        <div class="math-box-label">Variance of the Mean</div>
+        <div class="math-box-body">
+            <p>
+                Each individual observation has a standard deviation of $\sigma$. But we aren't testing an individual; we are testing the <strong>sample mean</strong> ($\bar{x}$). 
+            </p>
+            <p>
+                By the laws of variance for independent variables:
+            </p>
+            <div class="math-display">
+                $$\mathrm{Var}\left(\frac{x_1+\cdots+x_n}{n}\right) = \frac{n\sigma^2}{n^2} = \frac{\sigma^2}{n}$$
+            </div>
+            <p>
+                Taking the square root gives us the standard deviation <em>of the sample mean</em>, also known as the Standard Error (SE):
+            </p>
+            <div class="math-display">
+                $$\mathrm{SD}(\bar{x}) = \frac{\sigma}{\sqrt{n}}$$
+            </div>
+            <p>
+                <strong>The takeaway:</strong> When a problem states "Population standard deviation = $60$", they mean $\sigma = 60$, <strong>not</strong> $\sigma/\sqrt{n} = 60$. The spread of your sample mean shrinks as your sample size $n$ grows.
+            </p>
+        </div>
+    </div>
+
+    <details class="toggle" style="margin-top:1rem;">
+        <summary><strong>Worked Example: LED Bulbs</strong></summary>
+        
+        <p>A manufacturer claims that the average lifetime of its LED bulbs is <strong>1000 hours</strong>. A consumer agency randomly tests <strong>50 bulbs</strong> and finds:</p>
+        <ul>
+            <li>Sample mean lifetime = 980 hours</li>
+            <li>Population standard deviation = 60 hours</li>
+        </ul>
+        <p>At a 5% significance level, test whether the manufacturer’s claim is valid.</p>
+
+        <p><strong>Step 1: Set up hypotheses</strong></p>
+        <p>
+            $H_0: \mu = 1000$ hours<br>
+            $H_1: \mu \neq 1000$ hours (two-tailed test)
+        </p>
+
+        <p><strong>Step 2: Compute the Z-statistic</strong></p>
+        <div class="math-display">
+            $$Z = \frac{\bar{x} - \mu_0}{\sigma/\sqrt{n}} = \frac{980 - 1000}{60/\sqrt{50}}$$
+        </div>
+        <p>
+            The denominator evaluates to $60/\sqrt{50} \approx 8.49$.
+        </p>
+        <div class="math-display">
+            $$Z \approx \frac{-20}{8.49} \approx -2.36$$
+        </div>
+
+        <p><strong>Step 3: Decision rule</strong></p>
+        <p>
+            For a 5% significance, two-tailed test, our critical values are $Z = \pm 1.96$.<br>
+            Since $|Z| = 2.36 > 1.96$, we fall into the rejection region.
+        </p>
+        <p><strong>Conclusion:</strong> Reject $H_0$. The probability of the mean deviating this much purely by chance is less than 5%.</p>
+    </details>
+
+</section>
+
+
+<section id="t-test">
+    <h2>The T-Test Family (Unknown Population Variance)</h2>
+
+    <p>
+        In the real world, we rarely know the true population standard deviation ($\sigma$). Instead, we estimate it using our sample standard deviation ($s$). Because we are estimating an extra parameter, we lose some certainty. This is why we use the <strong>t-distribution</strong>, which has "fatter tails" than the normal distribution to account for this extra uncertainty.
+    </p>
+
+    <h3>1. One-Sample T-Test</h3>
+    <p>Used to compare a sample mean to a hypothesized population mean.</p>
+
+    <div class="math-display">
+        $$t=\frac{\bar{x}-\mu_0}{s/\sqrt{n}}$$
+    </div>
+    <p><strong>Degrees of Freedom (df):</strong> $n - 1$</p>
+
+    <details class="toggle">
+        <summary><strong>Worked Example: Student Study Hours</strong></summary>
+        
+        <p>A university claims that students study on average 6 hours per day. You randomly sample 10 students and observe:</p>
+        <ul>
+            <li>Sample mean: $\bar{x} = 5.4$ hours</li>
+            <li>Sample standard deviation: $s = 0.8$ hours</li>
+        </ul>
+
+        <p><strong>Step 1: Hypotheses</strong></p>
+        <p>$H_0: \mu = 6$<br>$H_1: \mu \neq 6$</p>
+
+        <p><strong>Step 2: Compute the t-statistic</strong></p>
+        <div class="math-display">
+            $$t = \frac{\bar{x} - \mu}{s/\sqrt{n}} = \frac{5.4 - 6}{0.8/\sqrt{10}} \approx -2.37$$
+        </div>
+        <p>Degrees of freedom: $df = n - 1 = 9$</p>
+
+        <p><strong>Step 3: Decision ($\alpha = 0.05$)</strong></p>
+        <p>The critical value for a two-tailed test with $df=9$ is $t_{0.025,9} \approx \pm 2.262$.<br>
+        Since $|2.37| > 2.262$, the observed deviation is more extreme than what we allow under $\alpha = 0.05$. <strong>Reject $H_0$.</strong></p>
+    </details>
+
+    <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
+
+    <h3>2. Paired T-Test</h3>
+    <p>
+        Use this when the <em>same subjects</em> are measured twice (e.g., a Before-After study).
+    </p>
+
+    <div class="math-box">
+        <div class="math-box-label">The Key Insight</div>
+        <div class="math-box-body">
+            <p>
+                A paired t-test is essentially just a One-Sample T-test in disguise. We completely ignore the raw scores and instead calculate the <strong>differences</strong> ($d_i$) between the pairs. We then run a one-sample test on those differences against a hypothesized mean of 0.
+            </p>
+        </div>
+    </div>
+
+    <div class="math-display">
+        $$t=\frac{\bar{d}}{s_d/\sqrt{n}}$$
+    </div>
+    <p>Where $\bar{d}$ is the mean of the differences, and $s_d$ is the standard deviation of those differences. $df = n - 1$.</p>
+
+    <details class="toggle">
+        <summary><strong>Worked Example: Before-After Study</strong></summary>
+        
+        <p>A trainer tests 8 students before and after a new study method:</p>
+        <table class="math-table">
+            <thead>
+                <tr><th>Student</th><th>Before</th><th>After</th><th>Difference ($d$)</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>60</td><td>65</td><td>+5</td></tr>
+                <tr><td>2</td><td>55</td><td>58</td><td>+3</td></tr>
+                <tr><td>3</td><td>70</td><td>74</td><td>+4</td></tr>
+                <tr><td>4</td><td>62</td><td>66</td><td>+4</td></tr>
+                <tr><td>5</td><td>68</td><td>72</td><td>+4</td></tr>
+                <tr><td>6</td><td>64</td><td>67</td><td>+3</td></tr>
+                <tr><td>7</td><td>59</td><td>63</td><td>+4</td></tr>
+                <tr><td>8</td><td>66</td><td>70</td><td>+4</td></tr>
+            </tbody>
+        </table>
+
+        <p><strong>Step 1: Reduce to ONE sample</strong></p>
+        <p>Our dataset is now simply: $d = [5, 3, 4, 4, 4, 3, 4, 4]$</p>
+
+        <p><strong>Step 2: Compute Statistics</strong></p>
+        <ul>
+            <li>Mean difference: $\bar{d} = 3.875$</li>
+            <li>Sample standard deviation: $s_d \approx 0.64$</li>
+            <li>$n = 8$</li>
+        </ul>
+
+        <p><strong>Step 3: Compute the t-statistic</strong></p>
+        <div class="math-display">
+            $$t = \frac{\bar{d} - 0}{s_d / \sqrt{n}} = \frac{3.875}{0.64/\sqrt{8}} \approx 17.1$$
+        </div>
+
+        <p><strong>Step 4: Decision</strong></p>
+        <p>With $df = 7$ and $\alpha = 0.05$ (two-tailed), critical $t \approx \pm 2.365$.<br>
+        Since $17.1 \gg 2.365$, we overwhelmingly <strong>Reject $H_0$</strong>.</p>
+    </details>
+
+    <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
+
+    <h3>3. Two-Sample T-Test (Independent Samples)</h3>
+    <p>Used to compare the means of two completely independent groups.</p>
+
+    <p><strong>Scenario A: Equal Variances (Pooled t-test)</strong></p>
+    <div class="math-display">
+        $$t=\frac{\bar{x}_1-\bar{x}_2}{s_p\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}} \quad \text{where} \quad s_p^2=\frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}$$
+    </div>
+
+    <p><strong>Scenario B: Unequal Variances (Welch’s t-test)</strong></p>
+    <div class="math-display">
+        $$t=\frac{\bar{x}_1-\bar{x}_2}{\sqrt{\frac{s_1^2}{n_1}+\frac{s_2^2}{n_2}}}$$
+    </div>
+
+    <details class="toggle">
+        <summary><strong>Worked Example: Online vs Classroom Training</strong></summary>
+        
+        <p>We want to know if training method affects test scores.</p>
+        <ul>
+            <li><strong>Group 1 (Online):</strong> $n_1 = 20, \bar{x}_1 = 78, s_1 = 6$</li>
+            <li><strong>Group 2 (Classroom):</strong> $n_2 = 22, \bar{x}_2 = 74, s_2 = 7$</li>
+        </ul>
+
+        <p><strong>Hypotheses:</strong> $H_0:\ \mu_1 = \mu_2 \quad \text{vs} \quad H_1:\ \mu_1 \ne \mu_2$</p>
+
+        <p><strong>Test statistic (Assuming unequal variances):</strong></p>
+        <div class="math-display">
+            $$t = \frac{78 - 74} {\sqrt{\frac{36}{20} + \frac{49}{22}}} = \frac{4}{\sqrt{1.8 + 2.227}} = \frac{4}{\sqrt{4.027}} \approx 1.99$$
+        </div>
+
+        <p><strong>Decision:</strong></p>
+        <p>Using Welch's formula for degrees of freedom yields $df \approx 39$. The critical value at $\alpha = 0.05$ is $t \approx 2.02$.<br>
+        Because $|1.99| < 2.02$, we <strong>Fail to reject $H_0$</strong>. There is not enough evidence to prove a difference.</p>
+    </details>
+
+</section>
+
+
+<section id="chi-squared">
+    <h2>Chi-Squared Test of Independence</h2>
+
+    <p>
+        While T-tests and Z-tests handle continuous numerical data, the <strong>Chi-square ($\chi^2$) test</strong> handles <em>categorical</em> data. It tests whether two categorical variables are independent of one another.
+    </p>
+
+    <div class="math-box">
+        <div class="math-box-body">
+            <div class="math-display">
+                $$\chi^2 = \sum \frac{(O - E)^2}{E}$$
+            </div>
+            <p>Where $O$ = Observed frequency and $E$ = Expected frequency under $H_0$.</p>
+        </div>
+    </div>
+
+    <details class="toggle">
+        <summary><strong>Worked Example: Study Method vs Exam Result</strong></summary>
+        
+        <p>Is study method independent of the final exam result? A teacher records results for 100 students:</p>
+        <table class="math-table">
+            <thead>
+                <tr><th>Method</th><th>Pass</th><th>Fail</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Online</td><td>30</td><td>20</td><td>50</td></tr>
+                <tr><td>Offline</td><td>40</td><td>10</td><td>50</td></tr>
+                <tr><td><strong>Total</strong></td><td>70</td><td>30</td><td>100</td></tr>
+            </tbody>
+        </table>
+
+        <p><strong>Step 1: Expected Counts</strong></p>
+        <p>If they are independent, the expected count in any cell is: $E = \frac{(\text{row total})(\text{column total})}{\text{grand total}}$.</p>
+        <ul>
+            <li>Online/Pass: $(50 \times 70)/100 = 35$</li>
+            <li>Online/Fail: $(50 \times 30)/100 = 15$</li>
+            <li>Offline/Pass: $(50 \times 70)/100 = 35$</li>
+            <li>Offline/Fail: $(50 \times 30)/100 = 15$</li>
+        </ul>
+
+        <p><strong>Step 2: Compute $\chi^2$ Statistic</strong></p>
+        <div class="math-display">
+            $$\chi^2 = \frac{(30-35)^2}{35} + \frac{(20-15)^2}{15} + \frac{(40-35)^2}{35} + \frac{(10-15)^2}{15}$$
+        </div>
+        <div class="math-display">
+            $$\chi^2 = \frac{25}{35} + \frac{25}{15} + \frac{25}{35} + \frac{25}{15} \approx 0.714 + 1.667 + 0.714 + 1.667 = 4.76$$
+        </div>
+
+        <p><strong>Step 3: Decision</strong></p>
+        <p>Degrees of freedom: $df = (\text{rows}-1)(\text{cols}-1) = (2-1)(2-1) = 1$.</p>
+        <p>For $\alpha = 0.05$, the critical value $\chi^2_{0.05,1} = 3.84$.<br>
+        Since $4.76 > 3.84$, we <strong>Reject $H_0$</strong>. Study method and exam result are dependent.</p>
+    </details>
+
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

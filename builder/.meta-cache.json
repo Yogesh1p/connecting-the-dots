@@ -1,130 +1,47 @@
-[
-  {
-    "path": "01.generative-models/01.introduction/01.taxonomy-of-generative-models.html",
-    "hash": "74166a05a81e6d6656bbd0c0334af39a"
-  },
-  {
-    "path": "01.generative-models/01.introduction/02.ai-evolution-timeline.html",
-    "hash": "d6485a422586712709a251a6aa4e4470"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/01.intro-to-autoregression-models.html",
-    "hash": "c161fa08df09bb1d8e7803effabedcc9"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/02.word-representation.html",
-    "hash": "1c56c1446d3629babab0071a2bae451c"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/03.fixed-length-autoregressive-models.html",
-    "hash": "c3b07b8cbcf3b647e3dce54352c463b8"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory.html",
-    "hash": "14bb30ce324e2182dab5c70e5345c5a5"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/05.attention-and-the-end-of-recurrence.html",
-    "hash": "21c498d6e46722a39945a1e724aa55df"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/06.the-transformer-architecture.html",
-    "hash": "80ad7243bf2de4740dbdc091504b79d7"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/07.position-representation.html",
-    "hash": "5831fc7d3091d196ee15795ee96bc517"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/08.the-architecture-of-scale.html",
-    "hash": "bf0066b855b861debaa6aeba92b0f202"
-  },
-  {
-    "path": "01.generative-models/02.autoregressive-models/09.attention-approximation.html",
-    "hash": "36134059cdbc0048e56fc7261ace2014"
-  },
-  {
-    "path": "01.generative-models/03.latent-variable-models/01.introduction-to-latent-variable-models.html",
-    "hash": "e329c939e562cf3fc72e3d98ffe87f3f"
-  },
-  {
-    "path": "02.linear-algebra/01.solving-linear-systems/01.solving-linear-equations.html",
-    "hash": "fc6de4d440b6ea0733f85565e54724e1"
-  },
-  {
-    "path": "02.linear-algebra/01.solving-linear-systems/02.the-complete-solution.html",
-    "hash": "27c5d7ac90a827ae277bbdf2ec6a37ea"
-  },
-  {
-    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces.html",
-    "hash": "8eee0386cdf8a95eb63e7c261db67650"
-  },
-  {
-    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/02.null-space-from-block-rref.html",
-    "hash": "51dd4e6d52b5268faf5720e098e653e1"
-  },
-  {
-    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/03.independence-basis-and-dimension.html",
-    "hash": "6401e6da2009341130038e4fe53a8726"
-  },
-  {
-    "path": "02.linear-algebra/02.vector-spaces-and-subspaces/04.vector-spaces-and-subspaces.html",
-    "hash": "2d401c0ef4651eb43d8a14576ea63c4c"
-  },
-  {
-    "path": "02.linear-algebra/03.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces.html",
-    "hash": "cde1bd53d761289672aa6cfbbca60e00"
-  },
-  {
-    "path": "02.linear-algebra/03.orthogonality-and-projections/02.projections-onto-subspaces.html",
-    "hash": "524059b813043b07643a31c15710de55"
-  },
-  {
-    "path": "02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html",
-    "hash": "201f423951c53def920d65954c236c4b"
-  },
-  {
-    "path": "02.linear-algebra/03.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt.html",
-    "hash": "20f0d2c143be05eeec9889b66dabec3c"
-  },
-  {
-    "path": "02.linear-algebra/05.eigenvalues-and-eigenvectors/01.eigenvectors.html",
-    "hash": "56794782d740ab3d122739f4a0d9c729"
-  },
-  {
-    "path": "02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html",
-    "hash": "e353005b0b3f745e5f7c5a3c14698b8f"
-  },
-  {
-    "path": "02.linear-algebra/05.eigenvalues-and-eigenvectors/03.positive-defnite-matrices.html",
-    "hash": "d8a84caafa61539d566afd09b2fb20c9"
-  },
-  {
-    "path": "02.linear-algebra/06.singular-value-decomposition/01.the-singular-value-decomposition-svd.html",
-    "hash": "25e85ad7ae350c76c229657e5027349b"
-  },
-  {
-    "path": "02.linear-algebra/11.applications/01.google-search.html",
-    "hash": "0f100c410c526a08d82ce2cef9486ade"
-  },
-  {
-    "path": "03.stats/01.foundations-of-probability/01.probability-and-counting.html",
-    "hash": "e6ca4da344a31e3dc5a9e2df40d7594d"
-  },
-  {
-    "path": "03.stats/02.distributions/01.common-probability-distributions.html",
-    "hash": "41357bcec3e297df187a2d1fc1009431"
-  },
-  {
-    "path": "03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html",
-    "hash": "b5882e58dc787a2b8b318b841ef7dae9"
-  },
-  {
-    "path": "dots/new-chapter/_template.html",
-    "hash": "872022a079bec8ed6d0fbdf617d1faf3"
-  },
-  {
-    "path": "dots/new-chapter/test-page.html",
-    "hash": "6bcdc183c51094c8aa94abe28e1043b1"
-  }
-]
+{
+  "01.generative-models/01.introduction/01.taxonomy-of-generative-models.html": "6fcef766d7fe59dc469ae9a17bc374af",
+  "01.generative-models/01.introduction/02.ai-evolution-timeline.html": "49d6dfc4dd3916adf5e7a9bafab446db",
+  "01.generative-models/02.autoregressive-models/01.intro-to-autoregression-models.html": "2636a115b809d9e1f80d5c50e2466471",
+  "01.generative-models/02.autoregressive-models/02.word-representation.html": "d2680362875ebd13beae6061d9f52485",
+  "01.generative-models/02.autoregressive-models/03.fixed-length-autoregressive-models.html": "196bbc8ecb630940d5d6f51a16d5c026",
+  "01.generative-models/02.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory.html": "869f87756bf39ef3b0f76432849ed17e",
+  "01.generative-models/02.autoregressive-models/05.attention-and-the-end-of-recurrence.html": "d0a0dfc609548aab0b507d65eac72aed",
+  "01.generative-models/02.autoregressive-models/06.the-transformer-architecture.html": "0ec6c468a2d97c261e4d50bdd6de80c0",
+  "01.generative-models/02.autoregressive-models/07.position-representation.html": "71a874a1e3a3158906da955b95b94a87",
+  "01.generative-models/02.autoregressive-models/08.the-architecture-of-scale.html": "225bf687485ba48f3c8c57a57c525a64",
+  "01.generative-models/02.autoregressive-models/09.attention-approximation.html": "f80e2dcd32b1a8fa4750da32666a4278",
+  "01.generative-models/03.latent-variable-models/01.introduction-to-latent-variable-models.html": "bacc9092ee9360aa9863c817e0fcb26a",
+  "02.linear-algebra/01.solving-linear-systems/01.solving-linear-equations.html": "2298b0817445c606e1f9a93a4bab2945",
+  "02.linear-algebra/01.solving-linear-systems/02.the-complete-solution.html": "6bfe38ab948d8a8fcad05698624e59e7",
+  "02.linear-algebra/02.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces.html": "50a2987754bd491946a47fb2c2e0e3d1",
+  "02.linear-algebra/02.vector-spaces-and-subspaces/02.null-space-from-block-rref.html": "3e2beed50636d2ee348fabeb7ada41a8",
+  "02.linear-algebra/02.vector-spaces-and-subspaces/03.independence-basis-and-dimension.html": "1944e10bb64d7989ae4e95d5da32f1ed",
+  "02.linear-algebra/02.vector-spaces-and-subspaces/04.vector-spaces-and-subspaces.html": "2d401c0ef4651eb43d8a14576ea63c4c",
+  "02.linear-algebra/03.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces.html": "6c22facdf3493b1ac90aadf29a09ee96",
+  "02.linear-algebra/03.orthogonality-and-projections/02.projections-onto-subspaces.html": "0d2f2baa3b5747b46971379da23e0601",
+  "02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html": "1348ddc296abc3e3f8f5123c56119705",
+  "02.linear-algebra/03.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt.html": "acd713b9945ff3ba14a10c08fd416a77",
+  "02.linear-algebra/05.eigenvalues-and-eigenvectors/01.eigenvectors.html": "13f439c5784242f5d9f9c7ef323b3e5f",
+  "02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html": "95774f9a263e663e55c76887f1bd276c",
+  "02.linear-algebra/05.eigenvalues-and-eigenvectors/03.positive-defnite-matrices.html": "72be1e7819613023f0a0203f4b41e1d0",
+  "02.linear-algebra/06.singular-value-decomposition/01.the-singular-value-decomposition-svd.html": "46f1cc8100421def8e948dad81c43732",
+  "02.linear-algebra/11.applications/01.google-search.html": "9fbb3d44e2d27bd506e71272ac08b9da",
+  "03.stats/01.foundations-of-probability/01.probability-and-counting.html": "6b4d020016d1e7fd1f27a3f89787c059",
+  "03.stats/02.distributions/01.common-probability-distributions.html": "a006635cb038c294a1c7d5f3b9abbc8d",
+  "03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html": "93f819df1b0ccddfd3b00e63d89fe1e2",
+  "03.stats/08.Hypothesis_test/01. Hypothesis_test.html": "97c6f4931e4b6c9ddd44197e4427a97c",
+  "dots/new-chapter/_template.html": "872022a079bec8ed6d0fbdf617d1faf3",
+  "dots/new-chapter/test-page.html": "6bcdc183c51094c8aa94abe28e1043b1",
+  "01.generative-models/02.autoregressive-models/05.attention-mechanism.html": "704d8a6aa3f6868cc0a7b32e1bd1c97f",
+  "01.generative-models/02.autoregressive-models/shared-attenti.html": "948481fb91312398f2e0bf68f1ad7a23",
+  "01.generative-models/02.autoregressive-models/shared-attention.html": "90992d5b92114cb0208e84fe449ea0ee",
+  "01.generative-models/02.autoregressive-models/10.shared-attention.html": "5923e5973bf590c805d7d5ca8a3c77f6",
+  "02.linear-algebra/04.determinants/01.properties.html": "5afef71b54e5da7cbb59e8a9aee0619d",
+  "02.linear-algebra/06.singular-value-decomposition/03.svd-applications.html": "2ecc22dde20185c47d35f30b8f35d9b4",
+  "02.linear-algebra/06.singular-value-decomposition/02.svd-properties.html": "24079d3e9c8672b254dd540f1ee7cbf6",
+  "02.linear-algebra/05.eigenvalues-and-eigenvectors/01.google-search.html": "675dd8b7f543547f948e5ead10066af9",
+  "02.linear-algebra/05.eigenvalues-and-eigenvectors/04.google-search.html": "89b1cb35ef4cfc9192844b5d2ad70dbf",
+  "02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html": "e97e85fb5f003a69eceb37b25769733a",
+  "01.generative-models/01.untitled/01.taxonomy-of-generative-models.html": "5b57b3e2c909778703dae140c9b61dd2",
+  "01.generative-models/01.untitled/02.ai-evolution-timeline.html": "d4ecc7210ca81c8dc54e8d5f17b8e3ff"
+}

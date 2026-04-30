@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="article_id" content="63d929b0">
 <meta charset="UTF-8">
     <meta name="chapter_order" content="2">
     <meta name="book_slug" content="generative">
@@ -112,14 +113,14 @@
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
 
-    <meta property="og:title" content="The Cost of Attention and How to Reduce It">
+    <meta property="og:title" content="Attention Approximation">
     <meta property="og:description" content="From the quadratic bottleneck of full attention to sparse patterns, low-rank decompositions, kernel approximations, IO-aware exact computation, and recurrent hybrids—the landscape of attention approximation.">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/01.generative-models/02.autoregressive-models/09.attention-approximation.html">
 
-    <meta property="og:title" content="The Cost of Attention and How to Reduce It">
+    <meta property="og:title" content="Attention Approximation">
     <meta property="og:description" content="From the quadratic bottleneck of full attention to sparse patterns, low-rank decompositions, kernel approximations, IO-aware exact computation, and recurrent hybrids—the landscape of attention approximation.">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/01.generative-models/02.autoregressive-models/09.attention-approximation.html">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/attention-approximation.png">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-63d929b0.png?v=28b79e">
     <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
@@ -147,6 +148,7 @@
   </div>
 </div>
 <h2>The Quadratic Problem</h2>
+<p>then</p>
 
 <p>Attention derives its expressive power from being unrestricted: every token attends to every other token. For a sequence of length $n$, this requires computing the matrix $QK^\top \in \mathbb{R}^{n \times n}$. Consequently, both the computational cost and the memory footprint scale as $O(n^2)$.</p>
 
