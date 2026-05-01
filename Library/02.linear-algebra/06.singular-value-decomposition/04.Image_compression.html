@@ -230,7 +230,7 @@
     <meta property="og:title" content="SVD for Image Compression">
     <meta property="og:description" content="Understanding how the Singular Value Decomposition generalizes symmetric matrix compression to separate, rank, and compress the visual information of an image.">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544490.png?v=41800f">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544490.png?v=b1c2d8">
     <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
@@ -363,6 +363,30 @@
     </div>
 </div>
 <h2>The Truncated SVD</h2>
+<p>
+    <strong>Important clarification:</strong> Real images are almost never low-rank matrices. In fact, they typically have <em>full rank</em>.
+</p>
+
+<p>
+    What makes compression possible is not low rank, but <strong>low effective rank</strong>. This means that while there may be many singular values, most of them are extremely small.
+</p>
+
+<p>
+    The singular values $\sigma_1 \geq \sigma_2 \geq \dots$ decay rapidly. The first few capture the dominant structure of the image (shapes, lighting, large regions), while the remaining ones contribute only tiny corrections—fine textures and noise.
+</p>
+
+<p>
+    This is why we can safely discard the tail:
+</p>
+
+<ul>
+    <li>We are <strong>not assuming the image is low-rank</strong>.</li>
+    <li>We are <strong>approximating it as low-rank</strong> by ignoring small singular values.</li>
+</ul>
+
+<p>
+    In practice, we do not transmit the full matrix $A$. We transmit a <strong>low-rank approximation</strong> constructed from only the largest singular values.
+</p>
 
 <p>
     In a real photograph, one rank-1 matrix isn't enough to capture the fine details (like the texture of hair or a subtle gradient of a shadow). That is why the full SVD is a <em>sum</em> of these matrices. The first piece ($u_1 v_1^\top$) blocks out the massive background and the basic silhouette. The second piece adds the primary shadows. The 50th piece adds the tiny textures. As we reach the tail end of the expansion, the components are essentially mathematical noise.
