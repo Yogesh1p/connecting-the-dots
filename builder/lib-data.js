@@ -19,7 +19,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "chain rule, bayesian networks, markov models, generative modeling",
     "status": "live",
-    "readingTime": 7
+    "readingTime": 8
   },
   {
     "url": "../Library/01.generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models.html",

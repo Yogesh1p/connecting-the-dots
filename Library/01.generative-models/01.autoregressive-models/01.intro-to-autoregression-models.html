@@ -17,7 +17,7 @@
 <meta name="status" content="live">
 <meta name="belongs_to" content="lib">
 <meta name="keywords" content="chain rule, bayesian networks, markov models, generative modeling">
-<meta name="reading_time" content="7">
+<meta name="reading_time" content="8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
@@ -60,7 +60,7 @@
 
     <meta property="og:title" content="Intro to Autoregression Models">
     <meta property="og:description" content="From exponential joint distributions to tractable autoregressive factorization">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-ee398b68.png?v=2636a1">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-ee398b68.png?v=e464ab">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
@@ -217,7 +217,72 @@
   <div class="math-display">
     $$ 1 + 2 + 4 + \cdots + 2^{n-1} = 2^n - 1, $$
   </div>
+<details class="toggle">
+  <summary>Example: 3 binary variables (why this becomes $1 + 2 + 4$)</summary>
 
+  <p style="margin-top: 0.5rem;">
+    Let us make this concrete with three binary variables: $X_1, X_2, X_3$.
+  </p>
+
+  <p>
+    Using the chain rule, we write the joint distribution as:
+  </p>
+
+  <div class="math-display">
+    $$ P(X_1, X_2, X_3) = P(X_1)\, P(X_2 \mid X_1)\, P(X_3 \mid X_1, X_2). $$
+  </div>
+
+  <p>Now count parameters for each term:</p>
+
+  <ul>
+    <li>
+      <strong>$P(X_1)$:</strong> A binary variable needs <strong>1 parameter</strong> (since $P(1)=1-P(0)$).
+    </li>
+
+    <li>
+      <strong>$P(X_2 \mid X_1)$:</strong> For each value of $X_1$ (0 or 1), we need a Bernoulli distribution.
+      <br>
+      → 2 possible conditions → <strong>2 parameters</strong>.
+    </li>
+
+    <li>
+      <strong>$P(X_3 \mid X_1, X_2)$:</strong> Now the condition has 2 variables.
+      <br>
+      → $2^2 = 4$ possible configurations → <strong>4 parameters</strong>.
+    </li>
+  </ul>
+
+  <p>
+    Adding everything together:
+  </p>
+
+  <div class="math-display">
+    $$ 1 + 2 + 4 = 7. $$
+  </div>
+
+  <p>
+    This matches the full joint distribution size: with 3 binary variables, there are $2^3 = 8$ outcomes, and thus $8 - 1 = 7$ independent parameters.
+  </p>
+
+  <p>
+    The pattern now becomes clear:
+  </p>
+
+  <ul>
+    <li>First variable → $1 = 2^0$</li>
+    <li>Second variable → $2 = 2^1$</li>
+    <li>Third variable → $4 = 2^2$</li>
+  </ul>
+
+  <p>
+    So in general, the $i$-th variable contributes $2^{i-1}$ parameters, giving:
+  </p>
+
+  <div class="math-display">
+    $$ 1 + 2 + 4 + \cdots + 2^{n-1}. $$
+  </div>
+
+</details>
   <p>which is still exponential in $n$.</p>
 
   <p>The chain rule changes the form of the problem but not its complexity. To make progress, we must introduce additional structure.</p>
@@ -249,11 +314,26 @@
     </div>
   </div>
 
-  <p>If each variable has at most $k$ parents and variables are binary, each conditional table has $2^k$ entries. The total parameter count becomes</p>
+<p>
+  If each variable has at most $k$ parents and variables are binary, then each conditional distribution
+  $p(x_i \mid \text{parents})$ requires one parameter per parent configuration.
+</p>
 
-  <div class="math-display">
-    $$ O(n \cdot 2^k), $$
-  </div>
+<p>
+  Since there are at most $2^k$ such configurations, each variable contributes at most $2^k$ parameters.
+</p>
+
+<div class="math-display">
+  $$ \text{Total parameters} \;\leq\; n \cdot 2^k. $$
+</div>
+
+<p>
+  Hence, the parameter count scales as
+</p>
+
+<div class="math-display">
+  $$ O(n \cdot 2^k). $$
+</div>
 
   <p>which is linear in $n$ when $k$ is small.</p>
 
@@ -263,20 +343,31 @@
 
   <p>We can push this idea to its extreme by assuming each variable depends only on the immediately preceding one.</p>
 
-  <div class="math-box">
-    <div class="math-box-label">Definition</div>
-    <div class="math-box-body">
-      <p>The <strong>first-order Markov assumption</strong> states</p>
-      <div class="math-display">
-        $$ x_{i+1} \perp \{x_1,\dots,x_{i-1}\} \mid x_i. $$
-      </div>
-      <p>The joint distribution factorizes as</p>
-      <div class="math-display">
-        $$ p(x_{1:n}) = p(x_1)\prod_{i=1}^{n-1} p(x_{i+1}\mid x_i). $$
-      </div>
-      <p>Here each variable has only one parent, so only local transition probabilities are required.</p>
+<div class="math-box">
+  <div class="math-box-label">Definition</div>
+  <div class="math-box-body">
+    <p>The <strong>first-order Markov assumption</strong> states</p>
+    
+    <div class="math-display">
+      $$ x_{i+1} \perp \{x_1,\dots,x_{i-1}\} \mid x_i. $$
     </div>
+
+    <p>
+      Here, the symbol $\perp$ means <strong>independence</strong>. So this reads:
+      $x_{i+1}$ is independent of all earlier variables given $x_i$.
+    </p>
+
+    <p>The joint distribution factorizes as</p>
+    
+    <div class="math-display">
+      $$ p(x_{1:n}) = p(x_1)\prod_{i=1}^{n-1} p(x_{i+1}\mid x_i). $$
+    </div>
+
+    <p>
+      Here each variable has only one parent, so only local transition probabilities are required.
+    </p>
   </div>
+</div>
 
   <p>The Markov assumption is a modeling choice: we intentionally restrict dependencies to obtain tractability.</p>
 
