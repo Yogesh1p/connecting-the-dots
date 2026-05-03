@@ -533,7 +533,7 @@ window.rawPages = [
     "bookSlug": "linear-algebra",
     "bookOrder": 2,
     "title": "Positive Defnite Matrices",
-    "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
+    "description": "What positive definite and positive semidefinite matrices are, and given a matrix A, how do you find out if it is positive definite or positive semidefinite?",
     "date": "2026-04-07",
     "chapter": "Eigenvalues and Eigenvectors",
     "chapterOrder": 5,
@@ -542,9 +542,9 @@ window.rawPages = [
     "lessonNumber": "3",
     "part": "  ",
     "tier": "core",
-    "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive definite matrices, cholesky factorisation",
+    "keywords": "positive definite matrices, positive semidefinite matrices, quadratic forms, eigenvalue test, pivot test, Sylvester",
     "status": "live",
-    "readingTime": 3
+    "readingTime": 19
   },
   {
     "url": "../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/04.google-search.html",

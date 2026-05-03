@@ -440,10 +440,14 @@ footer { padding: 3rem 0 4rem; text-align: center; font-family: -apple-system, B
 .toc-item:last-child { margin-bottom: 10px; }
 .toc-wrapper:hover .toc-list { display: flex; }
 
-.toc-list::-webkit-scrollbar { width: 4px; }
+/* Add scrollbar-width for Firefox support, and reduce webkit width for Chrome/Safari/Edge */
+.toc-list {
+  scrollbar-width: thin; /* Firefox */
+}
+
+.toc-list::-webkit-scrollbar { width: 2px; } /* Reduced from 4px */
 .toc-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 .toc-list::-webkit-scrollbar-track { background: color-mix(in srgb, var(--border) 20%, transparent); }
-
 .toc-item {
   border: none;
   background: transparent;
