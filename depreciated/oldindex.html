@@ -77,7 +77,11 @@
   <meta name="twitter:image"       content="https://yogesh1p.github.io/connecting-the-dots/assets/og_index.png">
 
     <style id="mobile-view-styles">
-        img, iframe, video {
+        img, video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        iframe:not(.giscus-frame) {
             max-width: 100% !important;
             height: auto !important;
         }

@@ -191,7 +191,11 @@
     <meta name="twitter:card" content="summary_large_image">
 
     <style id="mobile-view-styles">
-        img, iframe, video {
+        img, video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        iframe:not(.giscus-frame) {
             max-width: 100% !important;
             height: auto !important;
         }

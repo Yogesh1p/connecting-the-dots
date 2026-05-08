@@ -165,6 +165,15 @@ document.addEventListener('DOMContentLoaded', () => {
         navEl.style.transform = 'translateY(0)';
       }
       lastScrollY = currentScrollY;
+
+      // Force-rewrite theme-color meta after nav transform changes.
+      // Mobile browsers repaint the status bar when the nav hides/shows,
+      // overriding the meta value with the page background color.
+      const currentTheme = htmlEl.getAttribute('data-theme') || 'light';
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', currentTheme === 'dark' ? '#16100C' : '#FDFBF7');
+      }
     }, { passive: true });
   }
 
