@@ -166,14 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       lastScrollY = currentScrollY;
 
-      // Force-rewrite theme-color meta after nav transform changes.
-      // Mobile browsers repaint the status bar when the nav hides/shows,
-      // overriding the meta value with the page background color.
+      // iOS Safari requires removing + recreating the meta node to re-read it.
       const currentTheme = htmlEl.getAttribute('data-theme') || 'light';
-      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-      if (metaThemeColor) {
-        metaThemeColor.setAttribute('content', currentTheme === 'dark' ? '#16100C' : '#FDFBF7');
-      }
+      forceMetaThemeColor(currentTheme);
     }, { passive: true });
   }
 
@@ -188,19 +183,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 // 2. THEME TOGGLING SYNC
+  // iOS Safari ignores setAttribute on an existing meta[name="theme-color"]
+  // after scroll repaints. Removing and recreating the node forces a full re-read.
+  const forceMetaThemeColor = (theme) => {
+    const color = theme === 'dark' ? '#16100C' : '#FDFBF7';
+    const existing = document.querySelector('meta[name="theme-color"]');
+    if (existing) existing.remove();
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = color;
+    document.head.appendChild(meta);
+  };
+
   const applyTheme = (theme) => {
     htmlEl.setAttribute('data-theme', theme);
     try { localStorage.setItem('theme', theme); } catch (e) {}
 
-    // --- UPDATED LOGIC ---
-    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (!metaThemeColor) {
-      metaThemeColor = document.createElement('meta');
-      metaThemeColor.name = 'theme-color';
-      document.head.appendChild(metaThemeColor);
-    }
-    metaThemeColor.setAttribute('content', theme === 'dark' ? '#16100C' : '#FDFBF7');
-    // ---------------------
+    forceMetaThemeColor(theme);
 
     // Sync Giscus if it exists
     const iframe = document.querySelector('iframe.giscus-frame');
@@ -211,13 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Set initial meta colors on page load
-  let initialMetaThemeColor = document.querySelector('meta[name="theme-color"]');
-  if (!initialMetaThemeColor) {
-      initialMetaThemeColor = document.createElement('meta');
-      initialMetaThemeColor.name = 'theme-color';
-      document.head.appendChild(initialMetaThemeColor);
-  }
-  initialMetaThemeColor.setAttribute('content', savedTheme === 'dark' ? '#16100C' : '#FDFBF7');
+  // Use forceMetaThemeColor for initial set — consistent behaviour on iOS Safari.
+  forceMetaThemeColor(savedTheme);
   
   document.addEventListener('click', (e) => {
     if (e.target.closest('.theme-toggle')) {
