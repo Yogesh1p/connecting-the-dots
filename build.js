@@ -83,6 +83,70 @@ function slugify(value) {
         .replace(/^-|-$/g, "");
 }
 
+function getRootPrefix(relativePath) {
+    const depth = relativePath.replace(/\\/g, "/").split("/").length;
+    return "../".repeat(depth);
+}
+
+function ensureHeadTag(content, tag, testRegex) {
+    if (testRegex.test(content)) return { content, changed: false };
+    if (/<\/head>/i.test(content)) {
+        return { content: content.replace(/<\/head>/i, `${tag}\n</head>`), changed: true };
+    }
+    return { content: `${tag}\n${content}`, changed: true };
+}
+
+function ensureCoreArticleHead(content, relativePath) {
+    let changed = false;
+    const root = getRootPrefix(relativePath);
+    const tags = [
+        {
+            tag: `    <meta name="viewport" content="width=device-width, initial-scale=1.0">`,
+            test: /<meta\s+name=["']viewport["']/i
+        },
+        {
+            tag: `    <link rel="preconnect" href="https://fonts.googleapis.com">`,
+            test: /<link[^>]+href=["']https:\/\/fonts\.googleapis\.com["']/i
+        },
+        {
+            tag: `    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`,
+            test: /<link[^>]+href=["']https:\/\/fonts\.gstatic\.com["']/i
+        },
+        {
+            tag: `    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">`,
+            test: /fonts\.googleapis\.com\/css2\?family=Lora/i
+        },
+        {
+            tag: `    <link rel="stylesheet" href="${root}css/base.css">`,
+            test: /<link[^>]+href=["'][^"']*css\/base\.css["']/i
+        },
+        {
+            tag: `    <link rel="stylesheet" href="${root}css/articles.css">`,
+            test: /<link[^>]+href=["'][^"']*css\/articles\.css["']/i
+        },
+        {
+            tag: `    <script src="${root}js/base.js" defer></script>`,
+            test: /<script[^>]+src=["'][^"']*js\/base\.js["']/i
+        },
+        {
+            tag: `    <script src="${root}js/components.js" defer></script>`,
+            test: /<script[^>]+src=["'][^"']*js\/components\.js["']/i
+        },
+        {
+            tag: `    <script src="${root}js/article_components.js" defer></script>`,
+            test: /<script[^>]+src=["'][^"']*js\/article_components\.js["']/i
+        }
+    ];
+
+    for (const item of tags) {
+        const result = ensureHeadTag(content, item.tag, item.test);
+        content = result.content;
+        changed = changed || result.changed;
+    }
+
+    return { content, changed };
+}
+
 function getPathOrder(relativePath, index = 0) {
     const segment = relativePath.replace(/\\/g, "/").split("/")[index] || "";
     const match = segment.match(/^(\d+)/);
@@ -272,6 +336,12 @@ async function build() {
             let content = fs.readFileSync(filePath, "utf8");
             let fileChanged = false;
             const relativePath = path.relative(libraryDir, filePath);
+
+            const coreHead = ensureCoreArticleHead(content, relativePath);
+            if (coreHead.changed) {
+                content = coreHead.content;
+                fileChanged = true;
+            }
 
             // A. Reading time
             const readingTime = estimateReadingTime(content);

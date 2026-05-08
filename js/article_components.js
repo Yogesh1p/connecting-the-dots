@@ -1,6 +1,6 @@
 /* ============================================================
    article_components.js (Optimized & Robust)
-   Handles: Header Injection, and Instant Progress Recovery
+   Handles: Article Shell, Header Injection, Prev/Next, and Progress Recovery
    ============================================================ */
 
 // 1. SILENCE BROWSER SCROLL RESTORATION
@@ -25,6 +25,176 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getMeta = (name) => document.querySelector(`meta[name="${name}"]`)?.content || "";
+  const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+
+  const getArticleRoot = () => {
+    const parts = window.location.pathname.split("/").filter(Boolean);
+    const libraryIndex = parts.findIndex(part => part.toLowerCase() === "library");
+    if (libraryIndex === -1) return "";
+    return "../".repeat(Math.max(1, parts.length - libraryIndex - 1));
+  };
+
+  const rootPath = getArticleRoot();
+
+  const loadScriptOnce = (src, test) => new Promise((resolve, reject) => {
+    if (test?.()) {
+      resolve();
+      return;
+    }
+
+    const existing = Array.from(document.scripts).find(script => script.src.endsWith(src));
+    if (existing) {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+
+  // ============================================================
+  // 0. ARTICLE SHELL NORMALIZATION
+  // ============================================================
+  const ensureArticleShell = () => {
+    let articleBody = document.querySelector(".article-body");
+
+    if (!articleBody) {
+      const semanticArticle = document.querySelector("article[data-article], article");
+      if (semanticArticle) {
+        articleBody = document.createElement("section");
+        articleBody.className = "article-body";
+        while (semanticArticle.firstChild) articleBody.appendChild(semanticArticle.firstChild);
+        semanticArticle.replaceWith(articleBody);
+      }
+    }
+
+    if (!articleBody) return null;
+
+    const directArticleBody = articleBody;
+    if (!document.getElementById("global-nav") && !document.querySelector(".nav-sticky, .nav-static")) {
+      const nav = document.createElement("div");
+      nav.id = "global-nav";
+      nav.dataset.root = rootPath;
+      document.body.prepend(nav);
+      if (typeof window.initGlobalNavigation === "function") {
+        window.initGlobalNavigation();
+        const navEl = document.querySelector("nav");
+        const topHam = document.getElementById("topHamBtn");
+        const topDrawer = document.getElementById("topDrawer");
+
+        if (navEl) {
+          let lastScrollY = window.scrollY;
+          navEl.style.transition = "transform 0.3s ease-in-out";
+          window.addEventListener("scroll", () => {
+            const currentScrollY = window.scrollY;
+            navEl.style.transform = currentScrollY > lastScrollY && currentScrollY > 60
+              ? "translateY(-100%)"
+              : "translateY(0)";
+            lastScrollY = currentScrollY;
+          }, { passive: true });
+        }
+
+        if (topHam && topDrawer) {
+          const toggleDrawer = (forceState) => {
+            const isOpen = typeof forceState === "boolean" ? forceState : !topHam.classList.contains("is-open");
+            topHam.classList.toggle("is-open", isOpen);
+            topDrawer.classList.toggle("is-open", isOpen);
+          };
+
+          topHam.addEventListener("click", () => toggleDrawer());
+          topHam.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              toggleDrawer();
+            }
+          });
+          document.addEventListener("click", (event) => {
+            if (topDrawer.classList.contains("is-open") && !topHam.contains(event.target) && !topDrawer.contains(event.target)) {
+              toggleDrawer(false);
+            }
+            if (event.target.closest("#topDrawer a")) toggleDrawer(false);
+          });
+          document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") toggleDrawer(false);
+          });
+        }
+      }
+    }
+
+    if (document.querySelector(".page-wrap .reading-content .article-body")) {
+      if (!document.getElementById("article-header")) {
+        const header = document.createElement("div");
+        header.id = "article-header";
+        directArticleBody.parentNode.insertBefore(header, directArticleBody);
+      }
+      return directArticleBody;
+    }
+
+    const main = document.createElement("main");
+    main.className = "page-wrap";
+
+    const layout = document.createElement("div");
+    layout.className = "article-layout";
+
+    const readingContainer = document.createElement("div");
+    readingContainer.className = "reading-container";
+
+    const readingContent = document.createElement("article");
+    readingContent.className = "reading-content";
+
+    const header = document.createElement("div");
+    header.id = "article-header";
+
+    directArticleBody.replaceWith(main);
+    main.appendChild(layout);
+    layout.appendChild(readingContainer);
+    readingContainer.appendChild(readingContent);
+    readingContent.appendChild(header);
+    readingContent.appendChild(directArticleBody);
+
+    return directArticleBody;
+  };
+
+  const ensureArticleFooter = () => {
+    let comments = document.getElementById("article-comments");
+    if (!comments) {
+      comments = document.createElement("div");
+      comments.id = "article-comments";
+    }
+
+    let nav = document.getElementById("article-pagination");
+    if (!nav) {
+      nav = document.createElement("nav");
+      nav.id = "article-pagination";
+      nav.className = "article-pagination";
+      nav.setAttribute("aria-label", "Article navigation");
+    }
+
+    const pageWrap = document.querySelector(".page-wrap") || document.body;
+    if (!nav.isConnected) {
+      if (comments.isConnected && comments.parentNode) {
+        comments.parentNode.insertBefore(nav, comments);
+      } else {
+        pageWrap.appendChild(nav);
+      }
+    }
+    if (!comments.isConnected) pageWrap.appendChild(comments);
+
+    if (typeof window.injectGiscusComments === "function") {
+      window.injectGiscusComments("article-comments");
+    }
+  };
 
   // ============================================================
   // 1. ARTICLE HEADER INJECTION
@@ -71,6 +241,69 @@ document.addEventListener("DOMContentLoaded", () => {
         ${tagsHtml ? `<div class="article-header__tags">${tagsHtml}</div>` : ''}
       </header>
     `;
+  };
+
+  const getCurrentArticleKey = () => {
+    const path = decodeURIComponent(window.location.pathname).replace(/\\/g, "/");
+    const libraryIndex = path.toLowerCase().indexOf("/library/");
+    if (libraryIndex === -1) return "";
+    return path.slice(libraryIndex + 1).replace(/^\/+/, "").toLowerCase();
+  };
+
+  const orderedPages = (pages) => [...pages].sort((a, b) => (
+    (a.bookOrder ?? 999) - (b.bookOrder ?? 999) ||
+    (a.chapterOrder ?? 999) - (b.chapterOrder ?? 999) ||
+    (a.lessonorder ?? 999) - (b.lessonorder ?? 999) ||
+    String(a.title || "").localeCompare(String(b.title || ""))
+  ));
+
+  const renderArticlePagination = async () => {
+    const container = document.getElementById("article-pagination");
+    if (!container) return;
+
+    try {
+      await loadScriptOnce(`${rootPath}builder/lib-data.js`, () => Array.isArray(window.rawPages));
+    } catch (err) {
+      container.remove();
+      return;
+    }
+
+    const pages = orderedPages((window.rawPages || []).filter(page => page.status !== "hide"));
+    const currentKey = getCurrentArticleKey();
+    const currentIndex = pages.findIndex(page => String(page.sourcePath || "").toLowerCase() === currentKey);
+
+    if (currentIndex === -1) {
+      container.remove();
+      return;
+    }
+
+    const makeLink = (page, direction) => {
+      if (!page) return `<span class="article-pagination__link article-pagination__link--empty" aria-hidden="true"></span>`;
+      const label = direction === "prev" ? "Previously" : "Up next";
+      const arrow = direction === "prev" ? "←" : "→";
+      const href = `${rootPath}${page.sourcePath}`;
+      return `
+        <a class="article-pagination__link article-pagination__link--${direction}" href="${href}">
+          <span class="article-pagination__label">${label}</span>
+          <span class="article-pagination__body">
+            <span class="article-pagination__arrow" aria-hidden="true">${arrow}</span>
+            <span class="article-pagination__title">${escapeHtml(page.title)}</span>
+          </span>
+        </a>
+      `;
+    };
+
+    const prev = pages[currentIndex - 1];
+    const next = pages[currentIndex + 1];
+
+    if (!prev && !next) {
+      container.remove();
+      return;
+    }
+
+    container.classList.toggle("article-pagination--has-prev", Boolean(prev));
+    container.classList.toggle("article-pagination--has-next", Boolean(next));
+    container.innerHTML = `${makeLink(prev, "prev")}${makeLink(next, "next")}`;
   };
 
   // ============================================================
@@ -211,8 +444,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Launch sequence
+  ensureArticleShell();
   injectArticleHeader();
   initializeToc();
+  ensureArticleFooter();
+  renderArticlePagination();
   
   // High-frequency scroll listener using requestAnimationFrame
   let ticking = false;

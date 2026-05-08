@@ -60,5 +60,6 @@
   "01.generative-models/10.untitled/01.taxonomy-of-generative-models.html": "1c1e7ffd625382f2e77d315783907c16",
   "01.generative-models/10.untitled/02.ai-evolution-timeline.html": "a5990d0f82d87051407d5fa42b7320b0",
   "01.generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models.html": "0b6f526360b54972b99933cde6715424",
-  "01.generative-models/01.autoregressive-models/03.word-representation.html": "f03d4480df47b70a88d6c183ce6b9f60"
+  "01.generative-models/01.autoregressive-models/03.word-representation.html": "f03d4480df47b70a88d6c183ce6b9f60",
+  "01.generative-models/01.autoregressive-models/15.the-architecture-of-scale.html": "4e4fa7ba991e072e9f83d96299c40cda"
 }

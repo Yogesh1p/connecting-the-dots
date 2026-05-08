@@ -138,6 +138,8 @@ function initGlobalNavigation(options = {}) {
   `;
 }
 
+window.initGlobalNavigation = initGlobalNavigation;
+
 /* ============================================================
    DOM CONTENT LOADED LOGIC
    ============================================================ */
@@ -265,8 +267,8 @@ window.injectGiscusComments = function(containerId) {
     const style = document.createElement('style');
     style.id = 'giscus-inject-styles';
     style.textContent = `
-      .article-discussion-wrap { max-width: 720px; margin: 4rem auto 2rem; padding-top: 2rem; border-top: 1px solid var(--border); }
-      .article-discussion-wrap > p { text-align: center; color: var(--muted); font-family: var(--font-sans, system-ui, sans-serif); margin-bottom: 2rem; }
+      .article-discussion-wrap { max-width: 720px; margin: 5rem auto 2rem; padding-top: 0; }
+      .article-discussion-wrap > p { text-align: left; color: var(--muted); font-family: var(--font-sans, system-ui, sans-serif); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; margin-bottom: 1.35rem; }
       .giscus-box { width: 100%; min-height: 300px; }
     `;
     document.head.appendChild(style);

@@ -31,6 +31,8 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'Lora', Georgia, serif;
+      font-size: 1.125rem; 
+      line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -77,35 +79,110 @@
       width: 100%; height: 100%;
       display: block;
       cursor: grab;
-      touch-action: none;
+      touch-action: pan-y;
     }
     #network-graph:active { cursor: grabbing; }
 
-    /* ══════════════════════════════════════════
-       TOOLTIP 
+
+/* ══════════════════════════════════════════
+       FIXED INFO PANEL
     ══════════════════════════════════════════ */
- #graph-tooltip {
+    #graph-info-panel {
       position: absolute;
       z-index: 20;
       pointer-events: none;
+      width: 280px;
       opacity: 0;
-      transition: opacity 0.15s ease;
-      background: color-mix(in srgb, var(--card-bg) 92%, transparent);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      background: color-mix(in srgb, var(--card-bg) 94%, transparent);
       border: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 6px; /* Slightly sharper */
-      padding: 0.35rem 0.7rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.58rem; /* Slightly smaller */
-      letter-spacing: 0.05em;
-      color: var(--text);
-      white-space: nowrap;
-      box-shadow: 0 4px 12px color-mix(in srgb, var(--dark) 5%, transparent);
-      /* Shift it to the right and up so it doesn't cover the node or label */
-      transform: translate(15px, -140%); 
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      box-shadow: 0 8px 28px color-mix(in srgb, var(--dark) 10%, transparent);
     }
-    #graph-tooltip.visible { opacity: 1; }
+    
+    /* Smart positioning classes */
+    #graph-info-panel.pos-left {
+      top: 1.4rem;
+      left: 1.4rem;
+      right: auto;
+      transform: translateY(-6px);
+    }
+    #graph-info-panel.pos-right {
+      top: 3.5rem; 
+      right: 1.4rem;
+      left: auto;
+      transform: translateY(-6px);
+    }
+    
+    #graph-info-panel.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .ip-type {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem; 
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.5rem;
+    }
+    .ip-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .ip-name {
+      font-family: 'Lora', serif; font-size: 1.2rem; 
+      font-weight: 600; color: var(--dark); line-height: 1.3; margin-bottom: 0.4rem;
+    }
+    .ip-crumb {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; 
+      color: var(--muted); opacity: 0.85;
+      margin-bottom: 0.7rem; line-height: 1.5;
+    }
+    .ip-children {
+      border-top: 1px solid var(--border);
+      padding-top: 0.6rem; margin-top: 0.2rem;
+      display: flex; flex-direction: column; gap: 0.35rem;
+    }
+    .ip-child-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem; 
+      color: var(--text); opacity: 0.9;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ip-child-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .ip-action {
+      margin-top: 0.8rem; padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; 
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600;
+    }
+
+    /* ══════════════════════════════════════════
+       NODE COUNT BADGE
+    ══════════════════════════════════════════ */
+    #graph-stats {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      z-index: 10;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.4s ease 0.3s;
+      text-align: right;
+      line-height: 1.7;
+    }
+    #graph-stats.visible { opacity: 1; }
 
     /* ══════════════════════════════════════════
        SHARED PILL 
@@ -120,6 +197,12 @@
       align-items: center;
       justify-content: center;
       width: clamp(200px, 40vw, 320px);
+      transition: top 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    
+    #pill-anchor.search-mode {
+      top: 1.4rem;
+      transform: translate(-50%, 0);
     }
 
     .pill {
@@ -148,7 +231,7 @@
       padding: 0.65rem 1.6rem 0.65rem 1.3rem;
       color: var(--muted);
       font-family: 'JetBrains Mono', monospace;
-      font-size: clamp(0.58rem, 1.4vw, 0.65rem);
+      font-size: clamp(0.65rem, 1.4vw, 0.75rem);
       letter-spacing: 0.16em;
       text-transform: uppercase;
       cursor: pointer;
@@ -183,7 +266,7 @@
     .archive-search {
       padding: 0.65rem 1.2rem;
       color: var(--text);
-      font: italic clamp(0.8rem, 2vw, 0.85rem) 'Lora', serif;
+      font: italic clamp(0.9rem, 2vw, 1rem) 'Lora', serif;
       outline: none;
       pointer-events: none; 
       -webkit-appearance: none;
@@ -213,12 +296,12 @@
     .graph-node-sub  { fill: var(--text); stroke: var(--bg); stroke-width: 2px; }
     .graph-node-leaf { fill: var(--muted); stroke: var(--bg); stroke-width: 1.5px; }
     
-    .graph-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; fill: var(--text); pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
-    .graph-label.hub-label { font-size: 0.82rem; font-weight: 600; fill: var(--dark); }
-    .graph-label.book-label { font-size: 0.95rem; font-weight: 700; fill: var(--dark); text-transform: uppercase; letter-spacing: 0.05em; }
+    .graph-label { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; font-weight: 500; fill: var(--text); paint-order: stroke; stroke: color-mix(in srgb, var(--bg) 95%, transparent); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; transition: opacity 0.25s ease; }
+    .graph-label.hub-label { font-size: 0.75rem; font-weight: 600; fill: var(--dark); }
+    .graph-label.book-label { font-size: 0.85rem; font-weight: 700; fill: var(--dark); text-transform: uppercase; letter-spacing: 0.05em; }
     
     .graph-link.active { stroke: var(--accent); stroke-opacity: 0.7; stroke-width: 2.5px; }
-    .dimmed       { opacity: 0.05; }
+    .dimmed       { opacity: 0.05 !important; }
     .search-match { stroke: var(--accent) !important; filter: drop-shadow(0 0 6px var(--accent)); }
 
     /* Mobile Adjustments */
@@ -231,7 +314,7 @@
         line-height: 1.4;
       }
       .mobile-subtext {
-        font-size: 0.45rem;
+        font-size: 0.5rem;
         opacity: 0.6;
         letter-spacing: 0.2em;
       }
@@ -250,7 +333,9 @@
   <canvas id="shatter-canvas"></canvas>
   <div id="d3-container"><svg id="network-graph"></svg></div>
   
-  <div id="graph-tooltip"></div>
+  <div id="graph-info-panel"></div>
+
+  <div id="graph-stats"></div>
   
   <div id="pill-anchor">
     <button id="enter-btn" class="pill" aria-label="Explore the graph">
@@ -320,7 +405,6 @@ window.addEventListener('load', () => {
   function crispTap(grp) {
     if (!AC) return;
     if (AC.state === 'suspended') AC.resume();
-    // Added 10500 freq for the new 'book' node so it sounds distinct
     const freq = grp==='book' ? 10500 : grp==='hub' ? 9500 : grp==='sub' ? 7200 : 5800;
     const t = AC.currentTime;
     const osc = AC.createOscillator(), g = AC.createGain();
@@ -349,14 +433,11 @@ window.addEventListener('load', () => {
     C.accent = getCssColor('--accent', '#D48C70');
     C.muted  = getCssColor('--muted',  '#847769');
   }
-  // Assign C.dark to the book node
   function nodeColor(g) { return g==='book'?C.dark:g==='hub'?C.accent:g==='sub'?C.text:C.muted; }
 
   const isMobile = () => window.innerWidth < 640;
-  // Make the book node the largest
-  function nodeR(g) { return isMobile() ? (g==='book'?24:g==='hub'?18:g==='sub'?12:7) : (g==='book'?20:g==='hub'?14:g==='sub'?9:5); }
+  function nodeR(g) { return isMobile() ? (g==='book'?20:g==='hub'?14:g==='sub'?10:6) : (g==='book'?16:g==='hub'?11:g==='sub'?7:4); }
 
-  /* ── Dynamic Graph data from lib-data.js ── */
   function createGraphData() {
     const nodesMap = new Map();
     const linksMap = new Map();
@@ -373,7 +454,6 @@ window.addEventListener('load', () => {
     pages.forEach(page => {
       if (page.status === 'hide') return; 
 
-      // Data extraction
       const title = (page.title || "").trim();
       if (!title) return; 
       
@@ -381,28 +461,22 @@ window.addEventListener('load', () => {
       const chapter = (page.chapter || "General").trim(); 
       const part = (page.part || "").trim();      
 
-      // Unique IDs
       const bookId = `book_${book}`;
       const chapterId = `chap_${book}_${chapter}`;
       const titleId = `title_${book}_${chapter}_${part}_${title}`;
 
-      // 1. Create the Book, Chapter, and Article Nodes
       addNode(bookId, "book", book);
       addNode(chapterId, "hub", chapter);
       addNode(titleId, "leaf", title, page.url); 
 
-      // 2. Connect Book -> Chapter
       linksMap.set(`${bookId}->${chapterId}`, { source: bookId, target: chapterId });
 
-      // 3. Connect downstream
       if (part !== "") { 
-        // If Part exists: Chapter -> Part -> Article
         const partId = `part_${book}_${chapter}_${part}`;
         addNode(partId, "sub", part);
         linksMap.set(`${chapterId}->${partId}`, { source: chapterId, target: partId });
         linksMap.set(`${partId}->${titleId}`, { source: partId, target: titleId });
       } else {
-        // If NO Part: Chapter -> Article
         linksMap.set(`${chapterId}->${titleId}`, { source: chapterId, target: titleId });
       }
     });
@@ -422,7 +496,6 @@ window.addEventListener('load', () => {
   const svgCont      = document.getElementById('d3-container');
   const enterBtn     = document.getElementById('enter-btn');
   const searchInput  = document.getElementById('graph-search');
-  const tooltip      = document.getElementById('graph-tooltip');
 
   let W, H, DPR, particles = [], sceneData, d3sim;
   let transitionDone = false, animating = false, animStartTime = null;
@@ -435,8 +508,9 @@ window.addEventListener('load', () => {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width  = W * DPR; 
     canvas.height = H * DPR;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(DPR, DPR);
+    
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); 
+    
     d3.select('#network-graph').attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
     updateColors();
   }
@@ -447,105 +521,189 @@ window.addEventListener('load', () => {
     sceneData = createGraphData();
 
     const mob = isMobile();
-    const CY = H * 0.42; 
+    const CX = W / 2, CY = H * 0.42;
+
+    const g = svg.append('g').attr('class', 'graph-layer');
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.15, 4]) 
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform);
+      });
+    
+    svg.call(zoom).on("wheel.zoom", null);
+    
+    svg.on("dblclick.zoom", () => {
+      svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity);
+    });
+
     d3sim = d3.forceSimulation(sceneData.nodes)
-      .force('link',    d3.forceLink(sceneData.links).id(d=>d.id).distance(mob?40:50))
-      .force('charge',  d3.forceManyBody().strength(mob?-90:-130))
-      .force('center',  d3.forceCenter(W/2, CY))
-      .force('x',       d3.forceX(W/2).strength(0.08))
-      .force('y',       d3.forceY(CY).strength(0.08))
-      .force('collide', d3.forceCollide().radius(d=>d.radius+(mob?14:12)));
+      .force('link', d3.forceLink(sceneData.links).id(d=>d.id)
+                         .distance(d => {
+                           if (d.source.group === 'book' || d.target.group === 'book') return mob ? 60 : 130;
+                           if (d.source.group === 'hub' || d.target.group === 'hub') return mob ? 40 : 75;
+                           return mob ? 20 : 40;
+                         })
+                         .strength(0.8))
+      .force('charge', d3.forceManyBody()
+                         .strength(d => d.group === 'book' ? -1000 : d.group === 'hub' ? -400 : -150)
+                         .distanceMax(800))
+      .force('x', d3.forceX(CX).strength(0.04))
+      .force('y', d3.forceY(CY).strength(0.08))
+      .force('collide', d3.forceCollide(d => d.radius + (mob ? 12 : 24)).iterations(3));
 
     d3sim.stop();
-    for(let i=0;i<300;i++) d3sim.tick();
-    const pad = mob?30:60;
-    sceneData.nodes.forEach(n=>{n.x=Math.max(pad,Math.min(W-pad,n.x));n.y=Math.max(pad,Math.min(H-pad,n.y));});
+    for (let i = 0; i < 300; i++) d3sim.tick();
 
-    const link  = svg.append('g').selectAll('line').data(sceneData.links).join('line').attr('class','graph-link');
-    const node  = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle').attr('class',d=>`graph-node-${d.group}`).attr('r',d=>d.radius).call(makeDrag(d3sim));
-    
-const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
-      .attr('r',d=>mob?Math.max(d.radius,22):d.radius)
+    const link  = g.append('g').selectAll('line').data(sceneData.links).join('line').attr('class','graph-link');
+    const node  = g.append('g').selectAll('circle').data(sceneData.nodes).join('circle').attr('class',d=>`graph-node-${d.group}`).attr('r',d=>d.radius).call(makeDrag(d3sim));
+
+    const hit   = g.append('g').selectAll('circle').data(sceneData.nodes).join('circle')
+      .attr('r',d=>mob?Math.max(d.radius,22):Math.max(d.radius+8, 18))
       .attr('fill','transparent').attr('stroke','none')
-      .style('cursor', d => d.url ? 'pointer' : 'grab') 
+      .style('cursor', d => d.url ? 'pointer' : 'grab')
       .call(makeDrag(d3sim))
       .on('click', (e, d) => {
-        if (e.defaultPrevented) return; 
+        if (e.defaultPrevented) return;
         if (d.url) {
-          // If the URL starts with "../Library/", strip the "../" off.
-          // This keeps the link inside the connecting-the-dots folder.
           let safeUrl = d.url.startsWith('../') ? d.url.substring(3) : d.url;
           window.location.href = safeUrl;
         }
       });
 
-    const label = svg.append('g').selectAll('text').data(sceneData.nodes).join('text')
-      .attr('class',d=>`graph-label${d.group==='book'?' book-label':d.group==='hub'?' hub-label':''}`)
-      .attr('dx',d=>d.radius+6).attr('dy',4)
-      .attr('x',d=>d.x).attr('y',d=>d.y)
-      .text(d=>d.label);
+    const label = g.append('g').selectAll('text')
+      .data(sceneData.nodes)
+      .join('text')
+      .attr('class', d => `graph-label ${d.group}-label`)
+      .attr('text-anchor', 'middle')
+      .attr('dy', d => -d.radius - 6)
+      .text(d => d.label);
+
+    const parentOf = new Map();
+    sceneData.links.forEach(l => {
+      const sid = typeof l.source==='object'?l.source.id:l.source;
+      const tid = typeof l.target==='object'?l.target.id:l.target;
+      parentOf.set(tid, sid);
+    });
+    
+    function getBreadcrumb(nodeId) {
+      const crumbs = [];
+      let cur = parentOf.get(nodeId);
+      let safety = 0;
+      while (cur && safety++ < 5) {
+        const n = sceneData.nodes.find(x => x.id === cur);
+        if (n) crumbs.unshift(n.label);
+        cur = parentOf.get(cur);
+      }
+      return crumbs.join(' › ');
+    }
 
     d3sim.on('tick',()=>{
       link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-      node.attr('cx',d=>d.x=Math.max(20,Math.min(W-20,d.x))).attr('cy',d=>d.y=Math.max(20,Math.min(H-20,d.y)));
+      node.attr('cx',d=>d.x).attr('cy',d=>d.y);
       hit.attr('cx',d=>d.x).attr('cy',d=>d.y);
-      label.attr('x',d=>d.x).attr('y',d=>d.y);
+      label.attr('x', d=>d.x).attr('y', d=>d.y);
     });
+
+    const statsEl = document.getElementById('graph-stats');
+    if (statsEl) {
+      const books = sceneData.nodes.filter(n=>n.group==='book').length;
+      const chapters = sceneData.nodes.filter(n=>n.group==='hub').length;
+      const articles = sceneData.nodes.filter(n=>n.group==='leaf').length;
+      statsEl.innerHTML = `${books} book · ${chapters} chapters · ${articles} articles`;
+    }
 
     let dragging=false, hovered=null, term='';
+    
     function updateState(){
       if(dragging) return;
+      
       if(hovered){
         const conn=new Set([hovered.id]);
-        const connL=sceneData.links.filter(l=>{if(l.source.id===hovered.id||l.target.id===hovered.id){conn.add(l.source.id);conn.add(l.target.id);return true;}return false;});
+        const connL=sceneData.links.filter(l=>{
+          const sid=typeof l.source==='object'?l.source.id:l.source;
+          const tid=typeof l.target==='object'?l.target.id:l.target;
+          if(sid===hovered.id||tid===hovered.id){conn.add(sid);conn.add(tid);return true;}return false;
+        });
         node.classed('dimmed',n=>!conn.has(n.id)).classed('search-match',false);
+        label.classed('dimmed',n=>!conn.has(n.id)); 
         link.classed('dimmed',l=>!connL.includes(l)).classed('active',l=>connL.includes(l));
-        label.style('opacity',n=>conn.has(n.id)?1:0);
       } else if(term){
-        const m=new Set(sceneData.nodes.filter(n=>n.label && n.label.toLowerCase().includes(term)).map(n=>n.id));
+        const m=new Set(sceneData.nodes.filter(n=>n.label&&n.label.toLowerCase().includes(term)).map(n=>n.id));
         node.classed('dimmed',n=>!m.has(n.id)).classed('search-match',n=>m.has(n.id));
+        label.classed('dimmed',n=>!m.has(n.id));
         link.classed('dimmed',true).classed('active',false);
-        label.style('opacity',n=>m.has(n.id)?1:0);
       } else {
         node.classed('dimmed',false).classed('search-match',false);
+        label.classed('dimmed',false);
         link.classed('dimmed',false).classed('active',false);
-        label.style('opacity',0);
       }
     }
-    
+
     searchInput.addEventListener('input',e=>{term=e.target.value.toLowerCase().trim();updateState();});
-// Desktop Hover & Tooltip Logic
-    hit.on('mouseover', (e, d) => { 
-      if(!mob) { 
-        hovered = d; 
-        updateState(); 
-        crispTap(d.group); 
-        
-        // If it's an article (has a URL), show a minimal action tooltip
-        if (d.url && tooltip) {
-          tooltip.innerHTML = `<span style="color:var(--accent); font-weight:500;">Read Article</span> <span style="opacity:0.5; margin-left:4px;">↗</span>`;
-          tooltip.classList.add('visible');
-          tooltip.style.left = e.pageX + 'px';
-          tooltip.style.top = e.pageY + 'px';
-        }
-      } 
+
+    function syncSearchState() {
+      if (!searchInput) return;
+      term = searchInput.value.toLowerCase().trim();
+      updateState();
+    }
+
+    window.addEventListener('pageshow', (e) => {
+      syncSearchState();
     });
+
+    const infoPanel = document.getElementById('graph-info-panel');
     
-    hit.on('mousemove', (e) => {
-      if(!mob && tooltip && tooltip.classList.contains('visible')) {
-        tooltip.style.left = e.pageX + 'px';
-        tooltip.style.top = e.pageY + 'px';
+    // FIX: ADDED 'e' TO THE FUNCTION SIGNATURE
+    function showInfoPanel(e, d) {
+      if (!infoPanel) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      if (clientX < W / 2) {
+        infoPanel.classList.remove('pos-left');
+        infoPanel.classList.add('pos-right');
+      } else {
+        infoPanel.classList.remove('pos-right');
+        infoPanel.classList.add('pos-left');
       }
-    });
 
-    hit.on('mouseout', () => { 
-      if(!mob) { 
-        hovered = null; updateState(); 
-        if (tooltip) tooltip.classList.remove('visible');
-      } 
-    });
+      const typeLabels = { book:'Book', hub:'Chapter', sub:'Part', leaf:'Article' };
+      const typeColors = { book:'var(--dark)', hub:'var(--accent)', sub:'var(--text)', leaf:'var(--muted)' };
+      const breadcrumb = getBreadcrumb(d.id);
+      const connectedNodes = sceneData.links
+        .filter(l=>{
+          const sid=typeof l.source==='object'?l.source.id:l.source;
+          const tid=typeof l.target==='object'?l.target.id:l.target;
+          return sid===d.id||tid===d.id;
+        })
+        .map(l=>{
+          const sid=typeof l.source==='object'?l.source.id:l.source;
+          return sceneData.nodes.find(n=>n.id===(sid===d.id?(typeof l.target==='object'?l.target.id:l.target):sid));
+        })
+        .filter(Boolean).slice(0,6);
 
-    hit.on('touchstart', (e, d) => { if(mob) { hovered = (hovered === d ? null : d); updateState(); crispTap(d.group); } }, { passive: true });
+      let html=`<div class="ip-type"><span class="ip-dot" style="background:${typeColors[d.group]||'var(--muted)'}"></span>${typeLabels[d.group]||d.group}</div>`;
+      html+=`<div class="ip-name">${d.label}</div>`;
+      if(breadcrumb) html+=`<div class="ip-crumb">${breadcrumb}</div>`;
+      if(connectedNodes.length){
+        html+=`<div class="ip-children">`;
+        connectedNodes.forEach(n=>{
+          html+=`<div class="ip-child-item"><span class="ip-child-dot" style="background:${typeColors[n.group]||'var(--muted)'}"></span>${n.label}</div>`;
+        });
+        html+=`</div>`;
+      }
+      if(d.url) html+=`<div class="ip-action">Read article ↗</div>`;
+      infoPanel.innerHTML=html;
+      infoPanel.classList.add('visible');
+    }
+    
+    function hideInfoPanel() {
+      if(infoPanel) infoPanel.classList.remove('visible');
+    }
+
+    // Hit event listeners are correct and pass 'e'
+    hit.on('mouseover',(e,d)=>{ if(!mob){hovered=d;updateState();crispTap(d.group);showInfoPanel(e, d);}});
+    hit.on('mouseout', ()  =>{ if(!mob){hovered=null;updateState();hideInfoPanel();}});
+    hit.on('touchstart',(e,d)=>{ if(mob){hovered=(hovered===d?null:d);updateState();crispTap(d.group);hovered?showInfoPanel(e, d):hideInfoPanel();}},{passive:true});
     
     function makeDrag(sim){
       return d3.drag().touchable(true)
@@ -604,7 +762,6 @@ const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('ci
         ctx.beginPath();ctx.arc(n.x,n.y,n.radius*nodeP,0,Math.PI*2);
         ctx.fillStyle=rgba(nc,nodeP);
         ctx.strokeStyle=`rgb(${C.bg[0]},${C.bg[1]},${C.bg[2]})`;
-        // Thicker stroke for the superhub 'book' node
         ctx.lineWidth=n.group==='book'?4:n.group==='hub'?3:n.group==='sub'?2:1.5;
         ctx.fill();ctx.stroke();
       });
@@ -638,7 +795,8 @@ const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('ci
         transitionDone=true; animating=false;
         canvas.style.transition='opacity 0.4s ease'; canvas.style.opacity='0';
         svgCont.style.opacity='1'; svgCont.style.pointerEvents='auto';
-        d3sim.alpha(0.02).restart();
+        d3sim.alpha(0.005).alphaDecay(0.05).restart();
+        document.getElementById('graph-stats')?.classList.add('visible');
       }
     } else if(!transitionDone&&!animating){
       renderFrame(0);
@@ -669,6 +827,9 @@ const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('ci
       setTimeout(()=>{
         enterBtn.style.display = 'none';
         searchInput.classList.add('visible');
+        
+        document.getElementById('pill-anchor').classList.add('search-mode');
+        
         searchInput.focus();
       }, 200);
     }
@@ -696,7 +857,17 @@ const hit   = svg.append('g').selectAll('circle').data(sceneData.nodes).join('ci
     enterBtn.style.display = 'none';
     searchInput.classList.add('visible');
     
-    d3sim.alpha(0.02).restart();
+    document.getElementById('pill-anchor').classList.add('search-mode');
+    
+    d3sim.alpha(0.005).alphaDecay(0.05).restart();
+    document.getElementById('graph-stats')?.classList.add('visible');
+    
+    setTimeout(() => {
+      if(searchInput) {
+        term = searchInput.value.toLowerCase().trim();
+        updateState();
+      }
+    }, 50);
   } else {
     renderFrame(0);
     loop();
