@@ -61,11 +61,55 @@
 
     <meta property="og:title" content="The Central Limit Theorem & Maximum Entropy">
     <meta property="og:description" content="A deep dive into the Central Limit Theorem, the origin of the normal distribution equation, and how maximizing entropy leads directly to the Gaussian curve.">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-c0e062d5.png?v=fe1938">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-c0e062d5.png?v=e9dac4">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html">
+
+    <script id="theme-logic">
+        (function() {
+            // 1. Instantly apply theme to prevent white flash
+            const savedTheme = localStorage.getItem('site-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+            
+            if (isDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+
+            // 2. Set the mobile status bar color to match your CSS --bg
+            let metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (!metaTheme) {
+                metaTheme = document.createElement('meta');
+                metaTheme.name = 'theme-color';
+                document.head.appendChild(metaTheme);
+            }
+            metaTheme.content = isDark ? '#16100C' : '#FDFBF7';
+        })();
+
+        // 3. Global toggle function for your sun/moon button
+        window.toggleSiteTheme = function() {
+            const root = document.documentElement;
+            const isDark = root.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            
+            if (newTheme === 'dark') {
+                root.setAttribute('data-theme', 'dark');
+            } else {
+                root.removeAttribute('data-theme');
+            }
+            
+            localStorage.setItem('site-theme', newTheme);
+            
+            // Update the mobile status bar instantly on click
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) {
+                metaTheme.content = newTheme === 'dark' ? '#16100C' : '#FDFBF7';
+            }
+        };
+    </script>
+
 </head>
 <body>
 
