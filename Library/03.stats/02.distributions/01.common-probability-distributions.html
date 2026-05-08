@@ -1,50 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script id="theme-color-sync">
-      (function () {
-        var COLORS = { dark: '#16100C', light: '#FDFBF7' };
-
-        function syncMetaThemeColor() {
-          var theme = document.documentElement.getAttribute('data-theme') || 'light';
-          var color = COLORS[theme] || COLORS.light;
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (!meta) {
-            meta = document.createElement('meta');
-            meta.name = 'theme-color';
-            document.head.appendChild(meta);
-          }
-          if (meta.getAttribute('content') !== color) {
-            meta.setAttribute('content', color);
-          }
-        }
-
-        // Run immediately on parse (prevents FOUC on status bar)
-        syncMetaThemeColor();
-
-        // Re-sync whenever data-theme attribute changes on <html>
-        var observer = new MutationObserver(function (mutations) {
-          mutations.forEach(function (m) {
-            if (m.attributeName === 'data-theme') syncMetaThemeColor();
-          });
-        });
-        observer.observe(document.documentElement, { attributes: true });
-
-        // Re-sync after scroll ends (mobile browser chrome re-reads meta after repaint)
-        var scrollTimer;
-        window.addEventListener('scroll', function () {
-          clearTimeout(scrollTimer);
-          scrollTimer = setTimeout(syncMetaThemeColor, 150);
-        }, { passive: true });
-
-        // Also re-sync on visibility change (returning from background)
-        document.addEventListener('visibilitychange', syncMetaThemeColor);
-
-        window.__syncMetaThemeColor = syncMetaThemeColor;
-      })();
-    </script>
-  <meta name="article_id" content="b6e1df9d">
+<meta name="article_id" content="b6e1df9d">
     <meta charset="UTF-8">
+    <meta name="theme-color" content="#FDFBF7" id="meta-theme-color">
     <meta name="lessonorder" content="1">
     <meta name="chapter_order" content="2">
     <meta name="book_slug" content="Stats">

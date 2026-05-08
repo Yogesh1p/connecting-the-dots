@@ -147,17 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const navRoot = document.getElementById('global-nav');
   initGlobalNavigation({ sticky: navRoot?.dataset?.sticky !== 'false' });
 
-  // ── MUST BE DEFINED FIRST — used by scroll listener and applyTheme ──
-  // iOS Safari ignores setAttribute on an existing meta[name="theme-color"]
-  // after scroll repaints. Removing and recreating the node forces a full re-read.
+  // ── MUST BE DEFINED FIRST — used by applyTheme ──
+  // iOS Safari only updates the status bar when meta[name="theme-color"] was
+  // present in the original parsed HTML. We keep that hardcoded tag and just
+  // update its content — no remove/recreate needed.
   const forceMetaThemeColor = (theme) => {
     const color = theme === 'dark' ? '#16100C' : '#FDFBF7';
-    const existing = document.querySelector('meta[name="theme-color"]');
-    if (existing) existing.remove();
-    const meta = document.createElement('meta');
-    meta.name = 'theme-color';
-    meta.content = color;
-    document.head.appendChild(meta);
+    const meta = document.getElementById('meta-theme-color')
+               || document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', color);
   };
 
   // Set initial meta color on page load
@@ -181,11 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
         navEl.style.transform = 'translateY(0)';
       }
       lastScrollY = currentScrollY;
-
-      // Re-sync theme-color after every nav transform — iOS Safari repaints
-      // the status bar area on scroll and overrides the meta value.
-      const currentTheme = htmlEl.getAttribute('data-theme') || 'light';
-      forceMetaThemeColor(currentTheme);
     }, { passive: true });
   }
 
