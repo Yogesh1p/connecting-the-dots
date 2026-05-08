@@ -161,18 +161,30 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set initial meta color on page load
   forceMetaThemeColor(savedTheme);
 
-  // 0. SCROLL UP TO SHOW NAVIGATION LOGIC
+  // 0. SCROLL HIDE/SHOW NAVIGATION LOGIC
+  // On mobile: nav stays always visible (translateY never applied) so Safari
+  // always samples the nav background color for the status bar.
+  // On desktop: hide on scroll-down, show on scroll-up as before.
   const navEl = document.querySelector('nav');
   if (navEl && navRoot?.dataset?.sticky !== 'false') {
+    const isMobile = () => window.innerWidth <= 768;
+
     let lastScrollY = window.scrollY;
-    
-    // Add smooth transition for hiding/showing
+
+    // Add smooth transition for desktop hide/show
     navEl.style.transition = 'transform 0.3s ease-in-out';
-    
+
     window.addEventListener('scroll', () => {
+      // On mobile: never hide — keep nav pinned so Safari samples it for status bar
+      if (isMobile()) {
+        navEl.style.transform = 'translateY(0)';
+        lastScrollY = window.scrollY;
+        return;
+      }
+
       const currentScrollY = window.scrollY;
-      
-      // Hide nav if scrolling down and past 60px. Show if scrolling up.
+
+      // Desktop: hide nav if scrolling down and past 60px. Show if scrolling up.
       if (currentScrollY > lastScrollY && currentScrollY > 60) {
         navEl.style.transform = 'translateY(-100%)';
       } else {
