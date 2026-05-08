@@ -213,6 +213,13 @@
             if (theme === "dark") {
                 document.documentElement.setAttribute("data-theme", "dark");
             }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
         })();
     </script>
 
@@ -231,7 +238,7 @@
     <meta property="og:title" content="SVD for Image Compression">
     <meta property="og:description" content="Understanding how the Singular Value Decomposition generalizes symmetric matrix compression to separate, rank, and compress the visual information of an image.">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544490.png?v=021fdd">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544490.png?v=ba24a6">
     <meta name="twitter:card" content="summary_large_image">
 
     <style id="mobile-view-styles">

@@ -35,6 +35,13 @@
             if (theme === "dark") {
                 document.documentElement.setAttribute("data-theme", "dark");
             }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
         })();
     </script>
 
@@ -67,7 +74,7 @@
     <meta property="og:title" content="The Transformer Architecture">
     <meta property="og:description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/01.generative-models/01.autoregressive-models/06.the-transformer-architecture.html">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-5f8e3408.png?v=5ff538">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-5f8e3408.png?v=bdf1b3">
     <meta name="twitter:card" content="summary_large_image">
 
     <style id="mobile-view-styles">

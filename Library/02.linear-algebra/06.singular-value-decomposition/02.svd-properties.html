@@ -51,6 +51,13 @@
             if (theme === "dark") {
                 document.documentElement.setAttribute("data-theme", "dark");
             }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
         })();
     </script>
 
@@ -70,7 +77,7 @@
     <meta property="og:title" content="SVD Properties and Analytical Mechanics">
     <meta property="og:description" content="Exploring the analytical mechanics of the SVD: diagonalizing with two bases, the outer product expansion, singular value stability, and numerical realities in LAPACK.">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/02.linear-algebra/06.singular-value-decomposition/02.svd-properties.html">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544489.png?v=fc844e">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544489.png?v=e36170">
     <meta name="twitter:card" content="summary_large_image">
 
     <style id="mobile-view-styles">

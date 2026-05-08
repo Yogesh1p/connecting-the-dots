@@ -34,6 +34,13 @@
             if (theme === "dark") {
                 document.documentElement.setAttribute("data-theme", "dark");
             }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
         })();
     </script>
 
@@ -57,7 +64,7 @@
 
     <meta property="og:title" content="Applications- Google search">
     <meta property="og:description" content="How Google's PageRank works as a linear algebra problem — Markov matrices, steady states, and the billion-dollar eigenvector">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-3d361195.png?v=4ccc8a">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-3d361195.png?v=a529b6">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">

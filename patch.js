@@ -3,60 +3,70 @@ const path = require('path');
 
 const ROOT_DIR = '/Users/yogesh/Documents/connecting-the-dots';
 
+// The inline theme script sets data-theme from localStorage but never updates
+// meta[name="theme-color"]. Since components.js is defer, Safari reads the
+// meta tag before JS can update it — and then ignores further updates after scroll.
+// Fix: update the meta in the same inline script, synchronously during parse.
+
+const OLD_INLINE_SCRIPT = `<script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>`;
+
+const FIXED_INLINE_SCRIPT = `<script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
+        })();
+    </script>`;
+
 function processHtmlFile(filePath) {
-  let content = fs.readFileSync(filePath, 'utf8');
-  let changed = false;
+    let content = fs.readFileSync(filePath, 'utf8');
 
-  // 1. Remove the broken theme-color-sync script injected by patch2.js
-  //    It uses setAttribute which iOS Safari ignores after scroll, and
-  //    calling it on every scroll event breaks subsequent toggle updates.
-  if (content.includes('id="theme-color-sync"')) {
-    content = content.replace(/<script id="theme-color-sync">[\s\S]*?<\/script>\s*/m, '');
-    changed = true;
-    console.log(`🗑️  Removed theme-color-sync script from: ${filePath}`);
-  }
-
-  // 2. Ensure a hardcoded meta[name="theme-color"] exists in the HTML source.
-  //    iOS Safari only respects dynamic meta updates if the tag was present
-  //    in the original parsed HTML — JS-created tags are ignored after scroll.
-  //    We insert it right after <meta charset> so it's parsed as early as possible.
-  if (!content.includes('name="theme-color"')) {
-    content = content.replace(
-      /(<meta\s+charset=[^>]+>)/i,
-      '$1\n    <meta name="theme-color" content="#FDFBF7" id="meta-theme-color">'
-    );
-    changed = true;
-    console.log(`✅ Added hardcoded meta[theme-color] to: ${filePath}`);
-  } else {
-    // Make sure it has an id so JS can find it reliably
     if (!content.includes('id="meta-theme-color"')) {
-      content = content.replace(
-        /<meta\s+name="theme-color"[^>]*>/,
-        (match) => match.includes('id=') ? match : match.replace('>', ' id="meta-theme-color">')
-      );
-      changed = true;
-      console.log(`✅ Added id to existing meta[theme-color] in: ${filePath}`);
+        console.log(`⏭️  No meta-theme-color found, skipping: ${filePath}`);
+        return;
     }
-  }
 
-  if (changed) {
-    fs.writeFileSync(filePath, content, 'utf8');
-  } else {
-    console.log(`⏭️  No changes needed: ${filePath}`);
-  }
+    if (content.includes('meta-theme-color') && content.includes('getElementById("meta-theme-color")')) {
+        console.log(`⏭️  Already patched: ${filePath}`);
+        return;
+    }
+
+    if (!content.includes(OLD_INLINE_SCRIPT)) {
+        console.log(`⚠️  Could not find inline theme script in: ${filePath}`);
+        return;
+    }
+
+    const updated = content.replace(OLD_INLINE_SCRIPT, FIXED_INLINE_SCRIPT);
+    fs.writeFileSync(filePath, updated, 'utf8');
+    console.log(`✅ Patched inline theme script in: ${filePath}`);
 }
 
 function walkDirectory(dir) {
-  fs.readdirSync(dir).forEach(file => {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
-      walkDirectory(fullPath);
-    } else if (file.endsWith('.html')) {
-      processHtmlFile(fullPath);
-    }
-  });
+    fs.readdirSync(dir).forEach(file => {
+        const fullPath = path.join(dir, file);
+        if (fs.statSync(fullPath).isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
+            walkDirectory(fullPath);
+        } else if (file.endsWith('.html')) {
+            processHtmlFile(fullPath);
+        }
+    });
 }
 
-console.log('🔍 Fixing theme-color meta for iOS Safari...');
+console.log('🔍 Patching inline theme scripts...');
 walkDirectory(ROOT_DIR);
 console.log('✅ Done!');

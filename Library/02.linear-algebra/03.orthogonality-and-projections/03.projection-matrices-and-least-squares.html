@@ -64,6 +64,13 @@
             if (theme === "dark") {
                 document.documentElement.setAttribute("data-theme", "dark");
             }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
         })();
     </script>
 
@@ -87,7 +94,7 @@
 
     <meta property="og:title" content="Projection Matrices and Least Squares">
     <meta property="og:description" content="Applying projection matrices to solve unsolvable systems using the method of least squares and the normal equation.">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-ca70c352.png?v=7d3362">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-ca70c352.png?v=a5926f">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
