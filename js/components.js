@@ -146,7 +146,23 @@ window.initGlobalNavigation = initGlobalNavigation;
 document.addEventListener('DOMContentLoaded', () => {
   const navRoot = document.getElementById('global-nav');
   initGlobalNavigation({ sticky: navRoot?.dataset?.sticky !== 'false' });
-  
+
+  // ── MUST BE DEFINED FIRST — used by scroll listener and applyTheme ──
+  // iOS Safari ignores setAttribute on an existing meta[name="theme-color"]
+  // after scroll repaints. Removing and recreating the node forces a full re-read.
+  const forceMetaThemeColor = (theme) => {
+    const color = theme === 'dark' ? '#16100C' : '#FDFBF7';
+    const existing = document.querySelector('meta[name="theme-color"]');
+    if (existing) existing.remove();
+    const meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    meta.content = color;
+    document.head.appendChild(meta);
+  };
+
+  // Set initial meta color on page load
+  forceMetaThemeColor(savedTheme);
+
   // 0. SCROLL UP TO SHOW NAVIGATION LOGIC
   const navEl = document.querySelector('nav');
   if (navEl && navRoot?.dataset?.sticky !== 'false') {
@@ -166,7 +182,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       lastScrollY = currentScrollY;
 
-      // iOS Safari requires removing + recreating the meta node to re-read it.
+      // Re-sync theme-color after every nav transform — iOS Safari repaints
+      // the status bar area on scroll and overrides the meta value.
       const currentTheme = htmlEl.getAttribute('data-theme') || 'light';
       forceMetaThemeColor(currentTheme);
     }, { passive: true });
@@ -182,19 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-// 2. THEME TOGGLING SYNC
-  // iOS Safari ignores setAttribute on an existing meta[name="theme-color"]
-  // after scroll repaints. Removing and recreating the node forces a full re-read.
-  const forceMetaThemeColor = (theme) => {
-    const color = theme === 'dark' ? '#16100C' : '#FDFBF7';
-    const existing = document.querySelector('meta[name="theme-color"]');
-    if (existing) existing.remove();
-    const meta = document.createElement('meta');
-    meta.name = 'theme-color';
-    meta.content = color;
-    document.head.appendChild(meta);
-  };
-
+  // 2. THEME TOGGLING SYNC
   const applyTheme = (theme) => {
     htmlEl.setAttribute('data-theme', theme);
     try { localStorage.setItem('theme', theme); } catch (e) {}
@@ -209,10 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Set initial meta colors on page load
-  // Use forceMetaThemeColor for initial set — consistent behaviour on iOS Safari.
-  forceMetaThemeColor(savedTheme);
-  
   document.addEventListener('click', (e) => {
     if (e.target.closest('.theme-toggle')) {
       const currentTheme = htmlEl.getAttribute('data-theme') || 'light';
