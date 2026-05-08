@@ -18,6 +18,22 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
     onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script>
+
+    <style id="mobile-view-styles">
+        img, iframe, video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        @media screen and (max-width: 768px) {
+            body, article, .content, main {
+                width: 100% !important;
+                max-width: 100vw !important;
+                padding: 10px 15px !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
