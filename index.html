@@ -1,6 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script id="theme-color-sync">
+      (function () {
+        var COLORS = { dark: '#16100C', light: '#FDFBF7' };
+
+        function syncMetaThemeColor() {
+          var theme = document.documentElement.getAttribute('data-theme') || 'light';
+          var color = COLORS[theme] || COLORS.light;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'theme-color';
+            document.head.appendChild(meta);
+          }
+          if (meta.getAttribute('content') !== color) {
+            meta.setAttribute('content', color);
+          }
+        }
+
+        // Run immediately on parse (prevents FOUC on status bar)
+        syncMetaThemeColor();
+
+        // Re-sync whenever data-theme attribute changes on <html>
+        var observer = new MutationObserver(function (mutations) {
+          mutations.forEach(function (m) {
+            if (m.attributeName === 'data-theme') syncMetaThemeColor();
+          });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+
+        // Re-sync after scroll ends (mobile browser chrome re-reads meta after repaint)
+        var scrollTimer;
+        window.addEventListener('scroll', function () {
+          clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(syncMetaThemeColor, 150);
+        }, { passive: true });
+
+        // Also re-sync on visibility change (returning from background)
+        document.addEventListener('visibilitychange', syncMetaThemeColor);
+
+        window.__syncMetaThemeColor = syncMetaThemeColor;
+      })();
+    </script>
   <meta name="version" content="v9audio">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -335,6 +377,10 @@
                 max-width: 100vw !important;
                 padding: 10px 15px !important;
                 box-sizing: border-box !important;
+            }
+            /* FIXED: Do NOT put overflow-x:hidden on body — it clips Giscus iframe.
+               Instead, clip only the layout wrappers. */
+            article, .content, main, .page-wrap, .reading-container, .reading-content {
                 overflow-x: hidden !important;
             }
         }
@@ -411,7 +457,8 @@
 window.addEventListener('load', () => {
   if (typeof d3 === 'undefined') return;
 
-  const hasExplored = sessionStorage.getItem('graphExplored') === 'true';
+  const isMobile = () => window.innerWidth < 640;
+  const hasExplored = sessionStorage.getItem('graphExplored') === 'true' && !isMobile();
 
   let AC = null, audioUnlocked = false;
   function unlockAudio() {
@@ -451,7 +498,6 @@ window.addEventListener('load', () => {
   }
   function nodeColor(g) { return g==='book'?C.dark:g==='hub'?C.accent:g==='sub'?C.text:C.muted; }
 
-  const isMobile = () => window.innerWidth < 640;
   function nodeR(g) { return isMobile() ? (g==='book'?20:g==='hub'?14:g==='sub'?10:6) : (g==='book'?16:g==='hub'?11:g==='sub'?7:4); }
 
   function createGraphData() {
@@ -670,7 +716,6 @@ window.addEventListener('load', () => {
 
     const infoPanel = document.getElementById('graph-info-panel');
     
-    // FIX: ADDED 'e' TO THE FUNCTION SIGNATURE
     function showInfoPanel(e, d) {
       if (!infoPanel) return;
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -716,7 +761,6 @@ window.addEventListener('load', () => {
       if(infoPanel) infoPanel.classList.remove('visible');
     }
 
-    // Hit event listeners are correct and pass 'e'
     hit.on('mouseover',(e,d)=>{ if(!mob){hovered=d;updateState();crispTap(d.group);showInfoPanel(e, d);}});
     hit.on('mouseout', ()  =>{ if(!mob){hovered=null;updateState();hideInfoPanel();}});
     hit.on('touchstart',(e,d)=>{ if(mob){hovered=(hovered===d?null:d);updateState();crispTap(d.group);hovered?showInfoPanel(e, d):hideInfoPanel();}},{passive:true});
@@ -828,27 +872,27 @@ window.addEventListener('load', () => {
     animating=true; animStartTime=performance.now();
   }
   
-  enterBtn.addEventListener('click',()=>{
+  enterBtn.addEventListener('click', () => {
+    if (isMobile()) {
+      // On mobile, just scroll to the content and exit. Do NOT start the graph transition.
+      document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
     sessionStorage.setItem('graphExplored', 'true');
     
     unlockAudio();
     enterBtn.classList.add('morphing');
     startTransition(); 
 
-    if (isMobile()) {
-      setTimeout(()=>{
-        document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
-      }, 400);
-    } else {
-      setTimeout(()=>{
-        enterBtn.style.display = 'none';
-        searchInput.classList.add('visible');
-        
-        document.getElementById('pill-anchor').classList.add('search-mode');
-        
-        searchInput.focus();
-      }, 200);
-    }
+    setTimeout(() => {
+      enterBtn.style.display = 'none';
+      searchInput.classList.add('visible');
+      
+      document.getElementById('pill-anchor').classList.add('search-mode');
+      
+      searchInput.focus();
+    }, 200);
   });
   
   document.addEventListener('keydown',e=>{

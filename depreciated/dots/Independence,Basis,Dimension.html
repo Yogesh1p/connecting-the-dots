@@ -1,6 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script id="theme-color-sync">
+      (function () {
+        var COLORS = { dark: '#16100C', light: '#FDFBF7' };
+
+        function syncMetaThemeColor() {
+          var theme = document.documentElement.getAttribute('data-theme') || 'light';
+          var color = COLORS[theme] || COLORS.light;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'theme-color';
+            document.head.appendChild(meta);
+          }
+          if (meta.getAttribute('content') !== color) {
+            meta.setAttribute('content', color);
+          }
+        }
+
+        // Run immediately on parse (prevents FOUC on status bar)
+        syncMetaThemeColor();
+
+        // Re-sync whenever data-theme attribute changes on <html>
+        var observer = new MutationObserver(function (mutations) {
+          mutations.forEach(function (m) {
+            if (m.attributeName === 'data-theme') syncMetaThemeColor();
+          });
+        });
+        observer.observe(document.documentElement, { attributes: true });
+
+        // Re-sync after scroll ends (mobile browser chrome re-reads meta after repaint)
+        var scrollTimer;
+        window.addEventListener('scroll', function () {
+          clearTimeout(scrollTimer);
+          scrollTimer = setTimeout(syncMetaThemeColor, 150);
+        }, { passive: true });
+
+        // Also re-sync on visibility change (returning from background)
+        document.addEventListener('visibilitychange', syncMetaThemeColor);
+
+        window.__syncMetaThemeColor = syncMetaThemeColor;
+      })();
+    </script>
 
 <meta charset="UTF-8">
 <title>Independence, Basis, and Dimension</title>
@@ -71,6 +113,10 @@
                 max-width: 100vw !important;
                 padding: 10px 15px !important;
                 box-sizing: border-box !important;
+            }
+            /* FIXED: Do NOT put overflow-x:hidden on body — it clips Giscus iframe.
+               Instead, clip only the layout wrappers. */
+            article, .content, main, .page-wrap, .reading-container, .reading-content {
                 overflow-x: hidden !important;
             }
         }
