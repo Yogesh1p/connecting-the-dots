@@ -53,49 +53,36 @@
         async
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
-  <meta name="reading_time" content="1">
-
-    <script id="theme-logic">
+  <meta name="reading_time" content="1"><script id="theme-logic">
         (function() {
-            // 1. Instantly apply theme to prevent white flash
-            const savedTheme = localStorage.getItem('site-theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-            
-            if (isDark) {
-                document.documentElement.setAttribute('data-theme', 'dark');
+            // Function to update the mobile status bar
+            function updateMetaThemeColor() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                let metaTheme = document.querySelector('meta[name="theme-color"]');
+                if (!metaTheme) {
+                    metaTheme = document.createElement('meta');
+                    metaTheme.name = 'theme-color';
+                    document.head.appendChild(metaTheme);
+                }
+                // Matches your --bg hex codes
+                metaTheme.content = isDark ? '#16100C' : '#FDFBF7';
             }
 
-            // 2. Set the mobile status bar color to match your CSS --bg
-            let metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (!metaTheme) {
-                metaTheme = document.createElement('meta');
-                metaTheme.name = 'theme-color';
-                document.head.appendChild(metaTheme);
-            }
-            metaTheme.content = isDark ? '#16100C' : '#FDFBF7';
+            // 1. Run immediately on load to prevent white flash
+            updateMetaThemeColor();
+
+            // 2. Watch the <html> tag for ANY changes to the 'data-theme' attribute
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'data-theme') {
+                        updateMetaThemeColor();
+                    }
+                });
+            });
+
+            // Start observing immediately
+            observer.observe(document.documentElement, { attributes: true });
         })();
-
-        // 3. Global toggle function for your sun/moon button
-        window.toggleSiteTheme = function() {
-            const root = document.documentElement;
-            const isDark = root.getAttribute('data-theme') === 'dark';
-            const newTheme = isDark ? 'light' : 'dark';
-            
-            if (newTheme === 'dark') {
-                root.setAttribute('data-theme', 'dark');
-            } else {
-                root.removeAttribute('data-theme');
-            }
-            
-            localStorage.setItem('site-theme', newTheme);
-            
-            // Update the mobile status bar instantly on click
-            const metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) {
-                metaTheme.content = newTheme === 'dark' ? '#16100C' : '#FDFBF7';
-            }
-        };
     </script>
 
 </head>
