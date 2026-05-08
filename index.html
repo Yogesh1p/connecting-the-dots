@@ -322,38 +322,7 @@
       #pill-anchor { width: 85vw; }
       #enter-btn { padding: 0.8rem 1.2rem; }
     }
-  </style><script id="theme-logic">
-        (function() {
-            // Function to update the mobile status bar
-            function updateMetaThemeColor() {
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                let metaTheme = document.querySelector('meta[name="theme-color"]');
-                if (!metaTheme) {
-                    metaTheme = document.createElement('meta');
-                    metaTheme.name = 'theme-color';
-                    document.head.appendChild(metaTheme);
-                }
-                // Matches your --bg hex codes
-                metaTheme.content = isDark ? '#16100C' : '#FDFBF7';
-            }
-
-            // 1. Run immediately on load to prevent white flash
-            updateMetaThemeColor();
-
-            // 2. Watch the <html> tag for ANY changes to the 'data-theme' attribute
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'data-theme') {
-                        updateMetaThemeColor();
-                    }
-                });
-            });
-
-            // Start observing immediately
-            observer.observe(document.documentElement, { attributes: true });
-        })();
-    </script>
-
+  </style>
 </head>
 <body>
 

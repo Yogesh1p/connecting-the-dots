@@ -178,15 +178,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 2. THEME TOGGLING SYNC
+// 2. THEME TOGGLING SYNC
   const applyTheme = (theme) => {
     htmlEl.setAttribute('data-theme', theme);
     try { localStorage.setItem('theme', theme); } catch (e) {}
 
-    const metaThemeColor = document.getElementById('theme-color-meta');
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', theme === 'dark' ? '#16100C' : '#FDFBF7');
+    // --- UPDATED LOGIC ---
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.name = 'theme-color';
+      document.head.appendChild(metaThemeColor);
     }
+    metaThemeColor.setAttribute('content', theme === 'dark' ? '#16100C' : '#FDFBF7');
+    // ---------------------
 
     // Sync Giscus if it exists
     const iframe = document.querySelector('iframe.giscus-frame');
@@ -196,12 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Set initial meta colors
-  const metaThemeColor = document.getElementById('theme-color-meta');
-  if (metaThemeColor) {
-    metaThemeColor.setAttribute('content', savedTheme === 'dark' ? '#16100C' : '#FDFBF7');
+  // Set initial meta colors on page load
+  let initialMetaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (!initialMetaThemeColor) {
+      initialMetaThemeColor = document.createElement('meta');
+      initialMetaThemeColor.name = 'theme-color';
+      document.head.appendChild(initialMetaThemeColor);
   }
-
+  initialMetaThemeColor.setAttribute('content', savedTheme === 'dark' ? '#16100C' : '#FDFBF7');
+  
   document.addEventListener('click', (e) => {
     if (e.target.closest('.theme-toggle')) {
       const currentTheme = htmlEl.getAttribute('data-theme') || 'light';

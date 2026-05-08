@@ -17,38 +17,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
-    onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script><script id="theme-logic">
-        (function() {
-            // Function to update the mobile status bar
-            function updateMetaThemeColor() {
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                let metaTheme = document.querySelector('meta[name="theme-color"]');
-                if (!metaTheme) {
-                    metaTheme = document.createElement('meta');
-                    metaTheme.name = 'theme-color';
-                    document.head.appendChild(metaTheme);
-                }
-                // Matches your --bg hex codes
-                metaTheme.content = isDark ? '#16100C' : '#FDFBF7';
-            }
-
-            // 1. Run immediately on load to prevent white flash
-            updateMetaThemeColor();
-
-            // 2. Watch the <html> tag for ANY changes to the 'data-theme' attribute
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'data-theme') {
-                        updateMetaThemeColor();
-                    }
-                });
-            });
-
-            // Start observing immediately
-            observer.observe(document.documentElement, { attributes: true });
-        })();
-    </script>
-
+    onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false});"></script>
 </head>
 
 <body>

@@ -187,38 +187,7 @@
     <meta property="og:image" content="../assets/og/ai-evolution-timeline-connecting-the-dots.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta name="twitter:card" content="summary_large_image"><script id="theme-logic">
-        (function() {
-            // Function to update the mobile status bar
-            function updateMetaThemeColor() {
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                let metaTheme = document.querySelector('meta[name="theme-color"]');
-                if (!metaTheme) {
-                    metaTheme = document.createElement('meta');
-                    metaTheme.name = 'theme-color';
-                    document.head.appendChild(metaTheme);
-                }
-                // Matches your --bg hex codes
-                metaTheme.content = isDark ? '#16100C' : '#FDFBF7';
-            }
-
-            // 1. Run immediately on load to prevent white flash
-            updateMetaThemeColor();
-
-            // 2. Watch the <html> tag for ANY changes to the 'data-theme' attribute
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'data-theme') {
-                        updateMetaThemeColor();
-                    }
-                });
-            });
-
-            // Start observing immediately
-            observer.observe(document.documentElement, { attributes: true });
-        })();
-    </script>
-
+    <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 

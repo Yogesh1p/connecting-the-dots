@@ -231,38 +231,7 @@
     <meta property="og:description" content="Understanding how the Singular Value Decomposition generalizes symmetric matrix compression to separate, rank, and compress the visual information of an image.">
     <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544490.png?v=b771b4">
-    <meta name="twitter:card" content="summary_large_image"><script id="theme-logic">
-        (function() {
-            // Function to update the mobile status bar
-            function updateMetaThemeColor() {
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                let metaTheme = document.querySelector('meta[name="theme-color"]');
-                if (!metaTheme) {
-                    metaTheme = document.createElement('meta');
-                    metaTheme.name = 'theme-color';
-                    document.head.appendChild(metaTheme);
-                }
-                // Matches your --bg hex codes
-                metaTheme.content = isDark ? '#16100C' : '#FDFBF7';
-            }
-
-            // 1. Run immediately on load to prevent white flash
-            updateMetaThemeColor();
-
-            // 2. Watch the <html> tag for ANY changes to the 'data-theme' attribute
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'data-theme') {
-                        updateMetaThemeColor();
-                    }
-                });
-            });
-
-            // Start observing immediately
-            observer.observe(document.documentElement, { attributes: true });
-        })();
-    </script>
-
+    <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 
