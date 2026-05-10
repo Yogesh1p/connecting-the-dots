@@ -459,7 +459,7 @@ async function build() {
         }
     }
 
-    // 5. Rebuild lib-data.js from all files
+    // 5. Rebuild inline lib-data inside Library/index.html
     const libPages = [];
     for (const filePath of files) {
         try {
@@ -474,13 +474,26 @@ async function build() {
         } catch (_) {}
     }
 
-    fs.writeFileSync(
-        path.join(builderDir, "lib-data.js"),
-        `// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n`,
-        "utf8"
-    );
+    const indexPath = path.join(libraryDir, "index.html");
+    if (!fs.existsSync(indexPath)) {
+        console.error("❌ Library/index.html not found — cannot inject lib-data.");
+    } else {
+        let indexHtml = fs.readFileSync(indexPath, "utf8");
+        const inlineScript = `<script id="lib-data">\n// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n</script>`;
 
-    console.log(`\n✨ Build complete. ${libPages.length} pages in lib-data.js.`);
+        // Replace existing inline lib-data block if present, otherwise inject before </head>
+        const existingBlock = /<script\s+id=["']lib-data["'][\s\S]*?<\/script>/i;
+        if (existingBlock.test(indexHtml)) {
+            indexHtml = indexHtml.replace(existingBlock, inlineScript);
+        } else {
+            indexHtml = indexHtml.replace("</head>", `${inlineScript}\n</head>`);
+        }
+
+        fs.writeFileSync(indexPath, indexHtml, "utf8");
+        console.log(`  ✅ Injected ${libPages.length} pages inline into Library/index.html`);
+    }
+
+    console.log(`\n✨ Build complete. ${libPages.length} pages in lib-data.`);
 }
 
 build().catch(console.error);
