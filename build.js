@@ -50,7 +50,6 @@ function decodeHtmlEntities(value) {
 }
 
 function getTitle(content) {
-    // This already prioritizes <meta name="title">
     const metaTitle = getMeta(content, "title");
     if (metaTitle) return metaTitle;
     const m = content.match(/<title>([^<]+)<\/title>/i);
@@ -188,12 +187,11 @@ function createPageObject(relativePath, content, readingTime) {
 function ensureArticleId(content) {
     let id = getMeta(content, "article_id");
     let modified = false;
-    
-    // If no ID exists, generate one and inject it into the <head>
+
     if (!id) {
-        id = crypto.randomBytes(4).toString("hex"); 
+        id = crypto.randomBytes(4).toString("hex");
         const metaTag = `  <meta name="article_id" content="${id}">`;
-        
+
         if (/<head>/i.test(content)) {
             content = content.replace(/<head>/i, `<head>\n${metaTag}`);
         } else {
@@ -201,7 +199,7 @@ function ensureArticleId(content) {
         }
         modified = true;
     }
-    
+
     return { id, content, modified };
 }
 
@@ -282,6 +280,38 @@ function buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime }
     return html(markup);
 }
 
+// ─── Static index builder (for crawlers / LLMs) ───────────────────────────────
+
+function buildStaticIndex(libPages) {
+    const byBook = {};
+    for (const page of libPages) {
+        const book = page.bookTitle || page.book || "Unknown";
+        if (!byBook[book]) byBook[book] = {};
+        const chapter = page.chapter || "General";
+        if (!byBook[book][chapter]) byBook[book][chapter] = [];
+        byBook[book][chapter].push(page);
+    }
+
+    let html = `<!-- AUTO-GENERATED static index for crawlers/LLMs — do not edit -->\n`;
+    html += `<div id="static-index" aria-hidden="true" style="display:none">\n`;
+
+    for (const [book, chapters] of Object.entries(byBook)) {
+        html += `  <section data-book="${book}">\n    <h2>${book}</h2>\n`;
+        for (const [chapter, pages] of Object.entries(chapters)) {
+            const sorted = pages.slice().sort((a, b) => (a.lessonorder ?? 999) - (b.lessonorder ?? 999));
+            html += `    <section data-chapter="${chapter}">\n      <h3>${chapter}</h3>\n      <ul>\n`;
+            for (const page of sorted) {
+                html += `        <li><a href="${page.url}">${page.title}</a></li>\n`;
+            }
+            html += `      </ul>\n    </section>\n`;
+        }
+        html += `  </section>\n`;
+    }
+
+    html += `</div>\n<!-- END static-index -->`;
+    return html;
+}
+
 // ─── Main build ───────────────────────────────────────────────────────────────
 
 async function build() {
@@ -355,18 +385,17 @@ async function build() {
             }
 
             // --- SYNC TITLE FROM META TAG ---
-            const title = getTitle(content); // This grabs the <meta name="title">
-            
+            const title = getTitle(content);
+
             if (title.toLowerCase().includes("template") || relativePath.includes("_template")) {
                 cachedHashMap[relativePath] = getHash(content);
                 fs.writeFileSync(metaCachePath, JSON.stringify(cachedHashMap, null, 2), "utf8");
                 continue;
             }
 
-            // Force the <title> tag in the HTML to match the meta title
             const expectedTitleTag = `<title>${title}</title>`;
             const titleTagRegex = /<title>[\s\S]*?<\/title>/i;
-            
+
             if (titleTagRegex.test(content)) {
                 const currentTitleTag = content.match(titleTagRegex)[0];
                 if (currentTitleTag !== expectedTitleTag) {
@@ -394,7 +423,7 @@ async function build() {
                 fileChanged = true;
             }
 
-            // C. OG image Generation
+            // C. OG image generation
             const outputFilename = `og-${articleId}.png`;
             const outputPath = path.join(ogOutputDir, outputFilename);
 
@@ -412,15 +441,14 @@ async function build() {
                 }
             }
 
-            // ALWAYS redraw the image if the file is in changedFiles
+            // Always redraw the image if the file is in changedFiles
             const markup = buildOgMarkup(html, { title, chapter, book, chapterOrder, readingTime });
             const svg = await satori(markup, { width: 1200, height: 630, fonts });
             const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
             fs.writeFileSync(outputPath, resvg.render().asPng());
             console.log(`  ✅ OG generated/updated: ${outputFilename}`);
 
-            // D. Meta tag injection / update 
-            // Note: Added a cache-busting query parameter (?v=) so browsers/social media fetch the new image
+            // D. Meta tag injection / update
             const fileHash = getHash(content).substring(0, 6);
             const absoluteImageUrl = `${SITE_URL}/assets/og/${outputFilename}?v=${fileHash}`;
             const absolutePageUrl  = `${SITE_URL}/Library/${relativePath.replace(/\\/g, "/")}`;
@@ -440,10 +468,10 @@ async function build() {
                     .replace(/property=["']og:title["']\s+content=["'][^"']*["']/gi, `property="og:title" content="${title}"`)
                     .replace(/content=["'][^"']*?\/og\/[^"']*?["']/gi, `content="${absoluteImageUrl}"`)
                     .replace(/property=["']og:url["']\s+content=["'][^"']*["']/gi, `property="og:url" content="${absolutePageUrl}"`);
-                
-                if (updated !== content) { 
-                    content = updated; 
-                    fileChanged = true; 
+
+                if (updated !== content) {
+                    content = updated;
+                    fileChanged = true;
                 }
             }
 
@@ -459,7 +487,7 @@ async function build() {
         }
     }
 
-    // 5. Rebuild inline lib-data inside Library/index.html
+    // 5. Rebuild static index in Library/index.html
     const libPages = [];
     for (const filePath of files) {
         try {
@@ -476,24 +504,24 @@ async function build() {
 
     const indexPath = path.join(libraryDir, "index.html");
     if (!fs.existsSync(indexPath)) {
-        console.error("❌ Library/index.html not found — cannot inject lib-data.");
+        console.error("❌ Library/index.html not found — cannot inject static index.");
     } else {
         let indexHtml = fs.readFileSync(indexPath, "utf8");
-        const inlineScript = `<script id="lib-data">\n// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n</script>`;
 
-        // Replace existing inline lib-data block if present, otherwise inject before </head>
-        const existingBlock = /<script\s+id=["']lib-data["'][\s\S]*?<\/script>/i;
+        const staticIndex = buildStaticIndex(libPages);
+        const existingBlock = /<!-- AUTO-GENERATED static index[\s\S]*?<!-- END static-index -->/;
+
         if (existingBlock.test(indexHtml)) {
-            indexHtml = indexHtml.replace(existingBlock, inlineScript);
+            indexHtml = indexHtml.replace(existingBlock, staticIndex);
         } else {
-            indexHtml = indexHtml.replace("</head>", `${inlineScript}\n</head>`);
+            indexHtml = indexHtml.replace("</body>", `${staticIndex}\n</body>`);
         }
 
         fs.writeFileSync(indexPath, indexHtml, "utf8");
-        console.log(`  ✅ Injected ${libPages.length} pages inline into Library/index.html`);
+        console.log(`  ✅ Static index updated (${libPages.length} pages) in Library/index.html`);
     }
 
-    console.log(`\n✨ Build complete. ${libPages.length} pages in lib-data.`);
+    console.log(`\n✨ Build complete. ${libPages.length} pages indexed.`);
 }
 
 build().catch(console.error);

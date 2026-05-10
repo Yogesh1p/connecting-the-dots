@@ -1,62 +1,27 @@
-const fs = require('fs');
-const path = require('path');
+#!/usr/bin/env node
+// patch-remove-lib-data-script.js
+// Run once: node patch-remove-lib-data-script.js
+// Removes the <script id="lib-data"> block from Library/index.html
 
-const ROOT_DIR = '/Users/yogesh/Documents/connecting-the-dots';
+const fs   = require("fs");
+const path = require("path");
 
-// Safari iOS does not re-render the status bar when meta[theme-color] is
-// updated via JavaScript after a scroll. The only reliable fix is to use
-// TWO static meta[theme-color] tags with media attributes — one for light,
-// one for dark. Safari picks the right one at paint time via CSS media query,
-// no JS needed at all.
-//
-// This patch:
-// 1. Replaces the single meta[theme-color] with two media-query variants
-// 2. Removes the forceMetaThemeColor / meta update calls from components.js
-//    (they are now redundant and cause no harm but we clean them up)
+const indexPath = path.join(__dirname, "Library", "index.html");
 
-const OLD_META = `<meta name="theme-color" content="#FDFBF7" id="meta-theme-color">`;
-const NEW_META = `<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">`;
-
-function processHtmlFile(filePath) {
-  let content = fs.readFileSync(filePath, 'utf8');
-
-  if (content.includes('prefers-color-scheme: light')) {
-    console.log(`⏭️  Already patched: ${filePath}`);
-    return;
-  }
-
-  if (!content.includes(OLD_META)) {
-    if (content.includes('id="meta-theme-color"')) {
-      // Different formatting — replace whatever variant exists
-      content = content.replace(
-        /<meta name="theme-color"[^>]*id="meta-theme-color"[^>]*>/,
-        NEW_META
-      );
-      fs.writeFileSync(filePath, content, 'utf8');
-      console.log(`✅ Replaced meta[theme-color] in: ${filePath}`);
-    } else {
-      console.log(`⏭️  No meta-theme-color found, skipping: ${filePath}`);
-    }
-    return;
-  }
-
-  content = content.replace(OLD_META, NEW_META);
-  fs.writeFileSync(filePath, content, 'utf8');
-  console.log(`✅ Patched: ${filePath}`);
+if (!fs.existsSync(indexPath)) {
+    console.error("❌ Library/index.html not found.");
+    process.exit(1);
 }
 
-function walkDirectory(dir) {
-  fs.readdirSync(dir).forEach(file => {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
-      walkDirectory(fullPath);
-    } else if (file.endsWith('.html')) {
-      processHtmlFile(fullPath);
-    }
-  });
+let html = fs.readFileSync(indexPath, "utf8");
+
+const block = /<script\s+id=["']lib-data["'][\s\S]*?<\/script>\s*/i;
+
+if (!block.test(html)) {
+    console.log("ℹ️  No <script id=\"lib-data\"> found — nothing to do.");
+    process.exit(0);
 }
 
-console.log('🔍 Switching to media-query theme-color meta tags...');
-walkDirectory(ROOT_DIR);
-console.log('✅ Done!');
+html = html.replace(block, "");
+fs.writeFileSync(indexPath, html, "utf8");
+console.log("✅ Removed <script id=\"lib-data\"> from Library/index.html");

@@ -474,746 +474,6 @@
             }
         }
     </style>
-<script id="lib-data">
-// AUTO-GENERATED — do not edit
-window.rawPages = [
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/01.intro-to-autoregression-models.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/01.intro-to-autoregression-models.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Intro to Autoregression Models",
-    "description": "From exponential joint distributions to tractable autoregressive factorization",
-    "date": "2026-04-08",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "chain rule, bayesian networks, markov models, generative modeling",
-    "status": "live",
-    "readingTime": 8
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Fixed-Length Autoregressive Models",
-    "description": "From FVSBN to NADE and MADE: how autoregressive density estimators scale from logistic regression to masked neural networks, and why fixed-length assumptions fail for language.",
-    "date": "2026-04-09",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "autoregressive models, FVSBN, NADE, RNADE, MADE, masked autoencoder, density estimation, fixed-length models, binary vectors, MNIST, variable-length sequences, language modeling",
-    "status": "draft",
-    "readingTime": 15
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/03.word-representation.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/03.word-representation.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Word Representation",
-    "description": "How words become vectors",
-    "date": "2026-04-04",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 3,
-    "lessonNumber": "3",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "embeddings, word2vec, skipgram, CBOW",
-    "status": "draft",
-    "readingTime": 13
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Recurrent Neural Networks and Sequence Memory",
-    "description": "How recurrent neural networks model sequential dependencies, why gradients vanish or explode, and how LSTMs, GRUs, bidirectional networks, and encoder-decoder models address memory limitations.",
-    "date": "2026-04-09",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 4,
-    "lessonNumber": "4",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "RNN, recurrent neural network, hidden state, BPTT, vanishing gradients, exploding gradients, LSTM, GRU, bidirectional RNN, stacked RNN, seq2seq, encoder decoder, sequence memory, attention bottleneck",
-    "status": "draft",
-    "readingTime": 13
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/05.attention-mechanism.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/05.attention-mechanism.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Attention Mechanism",
-    "description": "From the seq2seq bottleneck to scaled dot-product attention, self-attention, masking, and multi-head attention—the core ideas that replace recurrence in Transformers.",
-    "date": "2026-04-09",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 5,
-    "lessonNumber": "5",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "attention, cross-attention, self-attention, masked attention, scaled dot-product attention, multi-head attention, transformer, seq2seq bottleneck, queries keys values, autoregressive decoding",
-    "status": "draft",
-    "readingTime": 16
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/06.the-transformer-architecture.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/06.the-transformer-architecture.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "The Transformer Architecture",
-    "description": "From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.",
-    "date": "2026-04-22",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 6,
-    "lessonNumber": "6",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "transformer, positional encoding, masked self-attention, cross-attention, feed-forward network, residual connections, layer normalization, encoder-decoder, decoder-only, autoregressive, pre-norm, GPT, BERT",
-    "status": "draft",
-    "readingTime": 14
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/07.position-representation.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/07.position-representation.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Position Representation",
-    "description": "How positions are represented in the same vector space as embeddings using sinusoidal encodings and Rotary Positional Embeddings (RoPE).",
-    "date": "2026-04-03",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 7,
-    "lessonNumber": "7",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "positional encoding, RoPE, sinusoidal embeddings, attention, transformer",
-    "status": "live",
-    "readingTime": 8
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/09.attention-approximation.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/09.attention-approximation.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Attention Approximation",
-    "description": "The Cost of Attention and How to Reduce It--From the quadratic bottleneck of full attention to sparse patterns, low-rank decompositions, kernel approximations, IO-aware exact computation, and recurrent hybrids—the landscape of attention approximation.",
-    "date": "2026-04-22",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 9,
-    "lessonNumber": "9",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "attention approximation, sparse attention, linear attention, Linformer, Performer, FAVOR+, FlashAttention, Mamba, RWKV, BigBird, Longformer, random features, kernel methods, sliding window attention, state space models",
-    "status": "draft",
-    "readingTime": 22
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/10.shared-attention.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/10.shared-attention.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Shared Attention",
-    "description": "Multi-Query Attention, Grouped-Query Attention, and Cross-Layer Attention—how sharing key and value projections across heads and layers reduces the KV cache bottleneck at inference time.",
-    "date": "2026-04-24",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 10,
-    "lessonNumber": "10",
-    "part": "Transformer Foundations",
-    "tier": "core",
-    "keywords": "shared attention, multi-query attention, grouped-query attention, cross-layer attention, KV cache, inference efficiency, MQA, GQA, CLA, key-value sharing, attention heads, Transformer",
-    "status": "draft",
-    "readingTime": 12
-  },
-  {
-    "url": "../Library/01.generative-models/01.autoregressive-models/15.the-architecture-of-scale.html",
-    "sourcePath": "Library/01.generative-models/01.autoregressive-models/15.the-architecture-of-scale.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "The Architecture of Scale",
-    "description": "How we built the modern LLM from transformer foundations into scalable autoregressive systems.",
-    "date": "2026-04-01",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 15,
-    "lessonNumber": "15",
-    "part": "Large Language Models",
-    "tier": "deep-dive",
-    "keywords": "LLM, transformer, scaling, attention, autoregressive modeling",
-    "status": "live",
-    "readingTime": 40
-  },
-  {
-    "url": "../Library/01.generative-models/02.latent-variable-models/01.introduction-to-latent-variable-models.html",
-    "sourcePath": "Library/01.generative-models/02.latent-variable-models/01.introduction-to-latent-variable-models.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Introduction to Latent Variable Models",
-    "description": "The limitations of autoregressive models and the motivation for latent variable models, illustrated through the compass analogy.",
-    "date": "2026-04-09",
-    "chapter": "Latent Variable Models",
-    "chapterOrder": 2,
-    "chapterNumber": "2",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "latent variable models, autoregressive models, Bayesian inference",
-    "status": "draft",
-    "readingTime": 2
-  },
-  {
-    "url": "../Library/01.generative-models/10.untitled/01.taxonomy-of-generative-models.html",
-    "sourcePath": "Library/01.generative-models/10.untitled/01.taxonomy-of-generative-models.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "Taxonomy of Generative Models",
-    "description": "A comprehensive classification of generative AI models, including explicit likelihood, implicit likelihood, and score-based approaches.",
-    "date": "2026-04-07",
-    "chapter": "Untitled",
-    "chapterOrder": 10,
-    "chapterNumber": "10",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "generative models, taxonomy, autoregressive, normalizing flows, VAE, GAN, diffusion models, score-based models",
-    "status": "live",
-    "readingTime": 1
-  },
-  {
-    "url": "../Library/01.generative-models/10.untitled/02.ai-evolution-timeline.html",
-    "sourcePath": "Library/01.generative-models/10.untitled/02.ai-evolution-timeline.html",
-    "book": "Generative Models",
-    "bookTitle": "Generative Models",
-    "bookSlug": "generative",
-    "bookOrder": 1,
-    "title": "AI Evolution Timeline",
-    "description": "",
-    "date": "2026-04-01",
-    "chapter": "Untitled",
-    "chapterOrder": 10,
-    "chapterNumber": "10",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": " ",
-    "tier": "core",
-    "keywords": "",
-    "status": "draft",
-    "readingTime": 1
-  },
-  {
-    "url": "../Library/02.linear-algebra/01.solving-linear-systems/01.solving-linear-equations.html",
-    "sourcePath": "Library/02.linear-algebra/01.solving-linear-systems/01.solving-linear-equations.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Solving Linear Equations",
-    "description": "How to solve linear equations using Gaussian elimination and matrix factorization",
-    "date": "2026-04-04",
-    "chapter": "Solving Linear Systems",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "pivot, LU factorization, Gaussian elimination, linear equations, back substitution",
-    "status": "draft",
-    "readingTime": 8
-  },
-  {
-    "url": "../Library/02.linear-algebra/01.solving-linear-systems/02.the-complete-solution.html",
-    "sourcePath": "Library/02.linear-algebra/01.solving-linear-systems/02.the-complete-solution.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "The Complete Solution",
-    "description": "A deep geometric and computational treatment of solving Ax = b using elimination, particular solutions, null spaces, shifted hyperplanes, and rank-based solution classification.",
-    "date": "2026-04-11",
-    "chapter": "Solving Linear Systems",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": " ",
-    "tier": "core",
-    "keywords": "Ax=b, complete solution, particular solution, null space, shifted hyperplane, rank, free variables, linear algebra",
-    "status": "draft",
-    "readingTime": 6
-  },
-  {
-    "url": "../Library/02.linear-algebra/02.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces.html",
-    "sourcePath": "Library/02.linear-algebra/02.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "The Four Fundamental Subspaces",
-    "description": "A comprehensive breakdown of the four fundamental subspaces of a matrix: Row Space, Null Space, Column Space, and Left Null Space, culminating in the Big Picture diagram.",
-    "date": "2026-04-17",
-    "chapter": "Vector Spaces and Subspaces",
-    "chapterOrder": 2,
-    "chapterNumber": "2",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "four subspaces, row space, null space, column space, left null space, fundamental theorem of linear algebra, big picture, strang",
-    "status": "live",
-    "readingTime": 3
-  },
-  {
-    "url": "../Library/02.linear-algebra/02.vector-spaces-and-subspaces/02.null-space-from-block-rref.html",
-    "sourcePath": "Library/02.linear-algebra/02.vector-spaces-and-subspaces/02.null-space-from-block-rref.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Null Space from Block RREF",
-    "description": "A 4x4 rank 2 matrix example showing how the null space basis appears instantly from the block form [I F] as [-F; I].",
-    "date": "2026-04-11",
-    "chapter": "Vector Spaces and Subspaces",
-    "chapterOrder": 2,
-    "chapterNumber": "2",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": " ",
-    "tier": "core",
-    "keywords": "null space, rref, rank 2, block matrix, special solutions, gilbert strang, linear algebra",
-    "status": "draft",
-    "readingTime": 2
-  },
-  {
-    "url": "../Library/02.linear-algebra/02.vector-spaces-and-subspaces/03.independence-basis-and-dimension.html",
-    "sourcePath": "Library/02.linear-algebra/02.vector-spaces-and-subspaces/03.independence-basis-and-dimension.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Independence, Basis, and Dimension",
-    "description": "linear independence, spanning sets, basis, dimension, rank, and null space, showing how these concepts define the structure of vector spaces.",
-    "date": "2026-04-12",
-    "chapter": "Vector Spaces and Subspaces",
-    "chapterOrder": 2,
-    "chapterNumber": "2",
-    "lessonorder": 3,
-    "lessonNumber": "3",
-    "part": " ",
-    "tier": "core",
-    "keywords": "linear independence, basis, dimension, vector spaces, spanning sets, null space, column space, rank, pivots, linear algebra",
-    "status": "live",
-    "readingTime": 14
-  },
-  {
-    "url": "../Library/02.linear-algebra/03.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces.html",
-    "sourcePath": "Library/02.linear-algebra/03.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Orthogonality of the Four Subspaces",
-    "description": "A geometric and computational treatment of orthogonal subspaces, orthogonal complements, and the fundamental theorem of linear algebra.",
-    "date": "2026-04-18",
-    "chapter": "Orthogonality and Projections",
-    "chapterOrder": 3,
-    "chapterNumber": "3",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "orthogonality, fundamental subspaces, row space, null space, orthogonal complements, linear algebra",
-    "status": "draft",
-    "readingTime": 6
-  },
-  {
-    "url": "../Library/02.linear-algebra/03.orthogonality-and-projections/02.projections-onto-subspaces.html",
-    "sourcePath": "Library/02.linear-algebra/03.orthogonality-and-projections/02.projections-onto-subspaces.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Projections onto Subspaces",
-    "description": "Deriving the mathematics of orthogonal projections onto lines and n-dimensional subspaces using the normal equation and projection matrices.",
-    "date": "2026-04-18",
-    "chapter": "Orthogonality and Projections",
-    "chapterOrder": 3,
-    "chapterNumber": "3",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": " ",
-    "tier": "core",
-    "keywords": "projections, orthogonal projection, projection matrix, least squares, normal equation, linear algebra",
-    "status": "draft",
-    "readingTime": 11
-  },
-  {
-    "url": "../Library/02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html",
-    "sourcePath": "Library/02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Projection Matrices and Least Squares",
-    "description": "Applying projection matrices to solve unsolvable systems using the method of least squares and the normal equation.",
-    "date": "2026-04-18",
-    "chapter": "Orthogonality and Projections",
-    "chapterOrder": 3,
-    "chapterNumber": "3",
-    "lessonorder": 3,
-    "lessonNumber": "3",
-    "part": " ",
-    "tier": "core",
-    "keywords": "projections, least squares, linear regression, normal equation, orthogonal, linear algebra",
-    "status": "draft",
-    "readingTime": 7
-  },
-  {
-    "url": "../Library/02.linear-algebra/03.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt.html",
-    "sourcePath": "Library/02.linear-algebra/03.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Orthogonal Matrices and Gram-Schmidt",
-    "description": "Exploring orthonormal bases, the properties of orthogonal matrices (Q), and constructing them using the Gram-Schmidt process and A = QR factorization.",
-    "date": "2026-04-18",
-    "chapter": "Orthogonality and Projections",
-    "chapterOrder": 3,
-    "chapterNumber": "3",
-    "lessonorder": 4,
-    "lessonNumber": "4",
-    "part": " ",
-    "tier": "core",
-    "keywords": "orthogonal matrix, orthonormal basis, Gram-Schmidt, QR factorization",
-    "status": "draft",
-    "readingTime": 7
-  },
-  {
-    "url": "../Library/02.linear-algebra/04.determinants/01.properties.html",
-    "sourcePath": "Library/02.linear-algebra/04.determinants/01.properties.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Properties of Determinants",
-    "description": "Understanding the determinant: its core properties, what it tells us about invertibility, how to compute it via elimination, and its connection to area and volume.",
-    "date": "2026-04-25",
-    "chapter": "Determinants",
-    "chapterOrder": 4,
-    "chapterNumber": "4",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "determinant, properties of determinants, invertibility, cofactor, product rule, transpose",
-    "status": "draft",
-    "readingTime": 22
-  },
-  {
-    "url": "../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/01.eigenvectors.html",
-    "sourcePath": "Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/01.eigenvectors.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Eigenvectors",
-    "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
-    "date": "2026-04-07",
-    "chapter": "Eigenvalues and Eigenvectors",
-    "chapterOrder": 5,
-    "chapterNumber": "5",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": "  ",
-    "tier": "core",
-    "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive definite matrices, cholesky factorisation",
-    "status": "live",
-    "readingTime": 10
-  },
-  {
-    "url": "../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html",
-    "sourcePath": "Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Diagonalisation, Spectral Theorem",
-    "description": "How to find eigenvectors and eigenvalues, and how to diagonalise matrices",
-    "date": "2026-04-07",
-    "chapter": "Eigenvalues and Eigenvectors",
-    "chapterOrder": 5,
-    "chapterNumber": "5",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": "  ",
-    "tier": "core",
-    "keywords": "eigenvectors, eigenvalues, diagonalisation, spectral theorem, positive definite matrices, cholesky factorisation",
-    "status": "live",
-    "readingTime": 5
-  },
-  {
-    "url": "../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/03.positive-defnite-matrices.html",
-    "sourcePath": "Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/03.positive-defnite-matrices.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Positive Defnite Matrices",
-    "description": "What positive definite and positive semidefinite matrices are, and given a matrix A, how do you find out if it is positive definite or positive semidefinite?",
-    "date": "2026-04-07",
-    "chapter": "Eigenvalues and Eigenvectors",
-    "chapterOrder": 5,
-    "chapterNumber": "5",
-    "lessonorder": 3,
-    "lessonNumber": "3",
-    "part": "  ",
-    "tier": "core",
-    "keywords": "positive definite matrices, positive semidefinite matrices, quadratic forms, eigenvalue test, pivot test, Sylvester",
-    "status": "live",
-    "readingTime": 19
-  },
-  {
-    "url": "../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/04.google-search.html",
-    "sourcePath": "Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/04.google-search.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Applications- Google search",
-    "description": "How Google",
-    "date": "2026-04-07",
-    "chapter": "Eigenvalues and Eigenvectors",
-    "chapterOrder": 5,
-    "chapterNumber": "5",
-    "lessonorder": 4,
-    "lessonNumber": "4",
-    "part": "  ",
-    "tier": "core",
-    "keywords": "markov matrix, pagerank, steady state, perron-frobenius, eigenvectors, google, damping factor",
-    "status": "live",
-    "readingTime": 10
-  },
-  {
-    "url": "../Library/02.linear-algebra/06.singular-value-decomposition/01.the-singular-value-decomposition-svd.html",
-    "sourcePath": "Library/02.linear-algebra/06.singular-value-decomposition/01.the-singular-value-decomposition-svd.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "The Singular Value Decomposition (SVD)",
-    "description": "Exploring the ultimate matrix factorization: decomposing any matrix into orthogonal and diagonal components, connecting the fundamental subspaces, and finding the directions of maximum stretch.",
-    "date": "2026-04-18",
-    "chapter": "Singular Value Decomposition",
-    "chapterOrder": 6,
-    "chapterNumber": "6",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "singular value decomposition, SVD, orthogonal basis, eigenvalues, fundamental subspaces, linear algebra",
-    "status": "draft",
-    "readingTime": 9
-  },
-  {
-    "url": "../Library/02.linear-algebra/06.singular-value-decomposition/02.svd-properties.html",
-    "sourcePath": "Library/02.linear-algebra/06.singular-value-decomposition/02.svd-properties.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "SVD Properties and Analytical Mechanics",
-    "description": "Exploring the analytical mechanics of the SVD: diagonalizing with two bases, the outer product expansion, singular value stability, and numerical realities in LAPACK.",
-    "date": "2026-04-25",
-    "chapter": "Singular Value Decomposition",
-    "chapterOrder": 6,
-    "chapterNumber": "6",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": " ",
-    "tier": "core",
-    "keywords": "singular value decomposition, outer product expansion, matrix norms, pseudoinverse, polar decomposition, fundamental subspaces, numerical stability, lapack",
-    "status": "draft",
-    "readingTime": 10
-  },
-  {
-    "url": "../Library/02.linear-algebra/06.singular-value-decomposition/03.svd-applications.html",
-    "sourcePath": "Library/02.linear-algebra/06.singular-value-decomposition/03.svd-applications.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "Applications of SVD",
-    "description": "Moving from theory to practice: applying the SVD to image compression, PCA, eigenfaces, genomics, web search, model reduction, and least-squares optimization.",
-    "date": "2026-04-25",
-    "chapter": "Singular Value Decomposition",
-    "chapterOrder": 6,
-    "chapterNumber": "6",
-    "lessonorder": 3,
-    "lessonNumber": "3",
-    "part": " ",
-    "tier": "core",
-    "keywords": "singular value decomposition, PCA, principal component analysis, image compression, latent semantic analysis, least squares, eckart-young theorem, eigenfaces, genomics, HITS, POD",
-    "status": "draft",
-    "readingTime": 10
-  },
-  {
-    "url": "../Library/02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html",
-    "sourcePath": "Library/02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html",
-    "book": "Linear Algebra",
-    "bookTitle": "Linear Algebra",
-    "bookSlug": "linear-algebra",
-    "bookOrder": 2,
-    "title": "SVD for Image Compression",
-    "description": "Understanding how the Singular Value Decomposition generalizes symmetric matrix compression to separate, rank, and compress the visual information of an image.",
-    "date": "2026-04-26",
-    "chapter": "Singular Value Decomposition",
-    "chapterOrder": 6,
-    "chapterNumber": "6",
-    "lessonorder": 4,
-    "lessonNumber": "4",
-    "part": " ",
-    "tier": "core",
-    "keywords": "singular value decomposition, image compression, truncated svd, low-rank approximation, outer product, symmetric matrix",
-    "status": "draft",
-    "readingTime": 5
-  },
-  {
-    "url": "../Library/03.stats/01.foundations-of-probability/01.probability-and-counting.html",
-    "sourcePath": "Library/03.stats/01.foundations-of-probability/01.probability-and-counting.html",
-    "book": "Stats",
-    "bookTitle": "Stats",
-    "bookSlug": "Stats",
-    "bookOrder": 3,
-    "title": "Probability and Counting",
-    "description": "A complete foundation of probability axioms, sampling, permutations, combinations, and core counting principles.",
-    "date": "2026-04-10",
-    "chapter": "Foundations of Probability",
-    "chapterOrder": 1,
-    "chapterNumber": "1",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "probability, counting, permutations, combinations, bayes theorem, stars and bars, sample space",
-    "status": "live",
-    "readingTime": 6
-  },
-  {
-    "url": "../Library/03.stats/02.distributions/01.common-probability-distributions.html",
-    "sourcePath": "Library/03.stats/02.distributions/01.common-probability-distributions.html",
-    "book": "Stats",
-    "bookTitle": "Stats",
-    "bookSlug": "Stats",
-    "bookOrder": 3,
-    "title": "Common Probability Distributions",
-    "description": "A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.",
-    "date": "2026-04-10",
-    "chapter": "Distributions",
-    "chapterOrder": 2,
-    "chapterNumber": "2",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": " ",
-    "tier": "core",
-    "keywords": "probability, distributions, statistics, normal distribution, binomial, poisson, exponential, PMF, PDF, CDF",
-    "status": "live",
-    "readingTime": 4
-  },
-  {
-    "url": "../Library/03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html",
-    "sourcePath": "Library/03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html",
-    "book": "Stats",
-    "bookTitle": "Stats",
-    "bookSlug": "Stats",
-    "bookOrder": 3,
-    "title": "The Central Limit Theorem & Maximum Entropy",
-    "description": "A deep dive into the Central Limit Theorem, the origin of the normal distribution equation, and how maximizing entropy leads directly to the Gaussian curve.",
-    "date": "2026-04-14",
-    "chapter": "Distributions",
-    "chapterOrder": 2,
-    "chapterNumber": "2",
-    "lessonorder": 2,
-    "lessonNumber": "2",
-    "part": " ",
-    "tier": "core",
-    "keywords": "Central Limit Theorem, CLT, Normal Distribution, Gaussian, Maximum Entropy, Probability Density Function, Information Theory",
-    "status": "draft",
-    "readingTime": 6
-  },
-  {
-    "url": "../Library/03.stats/08.Hypothesis_test/01. Hypothesis_test.html",
-    "sourcePath": "Library/03.stats/08.Hypothesis_test/01. Hypothesis_test.html",
-    "book": "Stats",
-    "bookTitle": "Stats",
-    "bookSlug": "stats",
-    "bookOrder": 3,
-    "title": "Hypothesis Testing: Z, T, and Chi-Squared Tests",
-    "description": "An intuition-first guide to statistical significance, p-values, and choosing the right test.",
-    "date": "2026-04-23",
-    "chapter": "Hypothesis Testing",
-    "chapterOrder": 8,
-    "chapterNumber": "8",
-    "lessonorder": 1,
-    "lessonNumber": "1",
-    "part": "  ",
-    "tier": "core",
-    "keywords": "hypothesis testing, z-test, t-test, chi-squared, p-value, statistical significance",
-    "status": "draft",
-    "readingTime": 6
-  }
-];
-</script>
 </head>
 <body>
 
@@ -1646,5 +906,113 @@ document.addEventListener("DOMContentLoaded", () => {
   restoreScrollState();
 });
 </script>
+<!-- AUTO-GENERATED static index for crawlers/LLMs — do not edit -->
+<div id="static-index" aria-hidden="true" style="display:none">
+  <section data-book="Generative Models">
+    <h2>Generative Models</h2>
+    <section data-chapter="Autoregressive Models">
+      <h3>Autoregressive Models</h3>
+      <ul>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/01.intro-to-autoregression-models.html">Intro to Autoregression Models</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models.html">Fixed-Length Autoregressive Models</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/03.word-representation.html">Word Representation</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory.html">Recurrent Neural Networks and Sequence Memory</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/05.attention-mechanism.html">Attention Mechanism</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/06.the-transformer-architecture.html">The Transformer Architecture</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/07.position-representation.html">Position Representation</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/09.attention-approximation.html">Attention Approximation</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/10.shared-attention.html">Shared Attention</a></li>
+        <li><a href="../Library/01.generative-models/01.autoregressive-models/15.the-architecture-of-scale.html">The Architecture of Scale</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Latent Variable Models">
+      <h3>Latent Variable Models</h3>
+      <ul>
+        <li><a href="../Library/01.generative-models/02.latent-variable-models/01.introduction-to-latent-variable-models.html">Introduction to Latent Variable Models</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Untitled">
+      <h3>Untitled</h3>
+      <ul>
+        <li><a href="../Library/01.generative-models/10.untitled/01.taxonomy-of-generative-models.html">Taxonomy of Generative Models</a></li>
+        <li><a href="../Library/01.generative-models/10.untitled/02.ai-evolution-timeline.html">AI Evolution Timeline</a></li>
+      </ul>
+    </section>
+  </section>
+  <section data-book="Linear Algebra">
+    <h2>Linear Algebra</h2>
+    <section data-chapter="Solving Linear Systems">
+      <h3>Solving Linear Systems</h3>
+      <ul>
+        <li><a href="../Library/02.linear-algebra/01.solving-linear-systems/01.solving-linear-equations.html">Solving Linear Equations</a></li>
+        <li><a href="../Library/02.linear-algebra/01.solving-linear-systems/02.the-complete-solution.html">The Complete Solution</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Vector Spaces and Subspaces">
+      <h3>Vector Spaces and Subspaces</h3>
+      <ul>
+        <li><a href="../Library/02.linear-algebra/02.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces.html">The Four Fundamental Subspaces</a></li>
+        <li><a href="../Library/02.linear-algebra/02.vector-spaces-and-subspaces/02.null-space-from-block-rref.html">Null Space from Block RREF</a></li>
+        <li><a href="../Library/02.linear-algebra/02.vector-spaces-and-subspaces/03.independence-basis-and-dimension.html">Independence, Basis, and Dimension</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Orthogonality and Projections">
+      <h3>Orthogonality and Projections</h3>
+      <ul>
+        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces.html">Orthogonality of the Four Subspaces</a></li>
+        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/02.projections-onto-subspaces.html">Projections onto Subspaces</a></li>
+        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html">Projection Matrices and Least Squares</a></li>
+        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt.html">Orthogonal Matrices and Gram-Schmidt</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Determinants">
+      <h3>Determinants</h3>
+      <ul>
+        <li><a href="../Library/02.linear-algebra/04.determinants/01.properties.html">Properties of Determinants</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Eigenvalues and Eigenvectors">
+      <h3>Eigenvalues and Eigenvectors</h3>
+      <ul>
+        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/01.eigenvectors.html">Eigenvectors</a></li>
+        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html">Diagonalisation, Spectral Theorem</a></li>
+        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/03.positive-defnite-matrices.html">Positive Defnite Matrices</a></li>
+        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/04.google-search.html">Applications- Google search</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Singular Value Decomposition">
+      <h3>Singular Value Decomposition</h3>
+      <ul>
+        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/01.the-singular-value-decomposition-svd.html">The Singular Value Decomposition (SVD)</a></li>
+        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/02.svd-properties.html">SVD Properties and Analytical Mechanics</a></li>
+        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/03.svd-applications.html">Applications of SVD</a></li>
+        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html">SVD for Image Compression</a></li>
+      </ul>
+    </section>
+  </section>
+  <section data-book="Stats">
+    <h2>Stats</h2>
+    <section data-chapter="Foundations of Probability">
+      <h3>Foundations of Probability</h3>
+      <ul>
+        <li><a href="../Library/03.stats/01.foundations-of-probability/01.probability-and-counting.html">Probability and Counting</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Distributions">
+      <h3>Distributions</h3>
+      <ul>
+        <li><a href="../Library/03.stats/02.distributions/01.common-probability-distributions.html">Common Probability Distributions</a></li>
+        <li><a href="../Library/03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html">The Central Limit Theorem & Maximum Entropy</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Hypothesis Testing">
+      <h3>Hypothesis Testing</h3>
+      <ul>
+        <li><a href="../Library/03.stats/08.Hypothesis_test/01. Hypothesis_test.html">Hypothesis Testing: Z, T, and Chi-Squared Tests</a></li>
+      </ul>
+    </section>
+  </section>
+</div>
+<!-- END static-index -->
 </body>
 </html>
