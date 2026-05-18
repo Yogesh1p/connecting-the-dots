@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Positive Defnite Matrices</title>
+  <meta name="article_id" content="9989e612">
+  <meta charset="UTF-8">
+    <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+  <meta name="chapter_order" content="5">
+  <meta name="book_slug" content="linear-algebra">
+  <meta name="book" content="Linear Algebra">
+  <meta name="chapter" content="Eigenvalues and Eigenvectors">
+  <meta name="part" content="  ">
+  <meta name="title" content="Positive Defnite Matrices">
+  <meta name="description" content="What positive definite and positive semidefinite matrices are, and given a matrix A, how do you find out if it is positive definite or positive semidefinite?">
+  <meta name="author" content="Yogesh">
+  <meta name="date" content="2026-04-07">
+  <meta name="date updated" content="2026-04-07">
+  <meta name="lessonorder" content="3">
+  <meta name="status" content="live">
+  <meta name="belongs_to" content="lib">
+  <meta name="keywords" content="positive definite matrices, positive semidefinite matrices, quadratic forms, eigenvalue test, pivot test, Sylvester's criterion, leading principal minors, LDLT factorisation, Cholesky factorisation, Hessian, second derivative test, gram matrix, law of inertia">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../../../../css/base.css">
+  <link rel="stylesheet" href="../../../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
+        })();
+    </script>
+
+    <script src="../../../../../js/base.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/article_components.js" defer></script>
+
+    <style>
+      /* ─── Toggle proof block ─── */
+      .toggle {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
+      .toggle summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        color: var(--muted);
+        font-size: 0.92rem;
+        padding: 0.3rem 0;
+        user-select: none;
+      }
+      .toggle summary::-webkit-details-marker { display: none; }
+      .toggle summary::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-right: 1.5px solid var(--muted);
+        border-bottom: 1.5px solid var(--muted);
+        transform: rotate(-45deg);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-right: 4px;
+        flex-shrink: 0;
+      }
+      .toggle:hover summary,
+      .toggle[open] summary { color: var(--accent); }
+      .toggle:hover summary::before,
+      .toggle[open] summary::before { border-color: var(--accent); }
+      .toggle[open] summary::before { transform: rotate(45deg); }
+
+      .toggle-body {
+        border-left: 2px solid var(--border, #E8DFD1);
+        margin-top: 0.8rem;
+        padding: 0.6rem 0 0.4rem 1.4rem;
+      }
+      .toggle-body h4 {
+        margin: 1.2rem 0 0.4rem;
+        font-size: 0.95rem;
+        color: var(--text);
+        letter-spacing: 0.01em;
+      }
+      .toggle-body h4:first-child { margin-top: 0; }
+    </style>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+  <meta name="reading_time" content="19">
+
+    <meta property="og:title" content="Positive Defnite Matrices">
+    <meta property="og:description" content="What positive definite and positive semidefinite matrices are, how to test for them using eigenvalues, pivots, and upper-left determinants, and why they matter in optimisation, statistics, and numerical methods">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-9989e612.png?v=4f5599">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/03.positive-defnite-matrices/">
+
+    <style id="mobile-view-styles">
+        img, video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        iframe:not(.giscus-frame) {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        @media screen and (max-width: 768px) {
+            body, article, .content, main {
+                width: 100% !important;
+                max-width: 100vw !important;
+                padding: 10px 15px !important;
+                box-sizing: border-box !important;
+            }
+            /* FIXED: Do NOT put overflow-x:hidden on body — it clips Giscus iframe.
+               Instead, clip only the layout wrappers. */
+            article, .content, main, .page-wrap, .reading-container, .reading-content {
+                overflow-x: hidden !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<section id="positive-definite-matrices">
+
+  <h2>What Is a Positive Definite Matrix?</h2>
+
+  <p>
+    Some matrices behave like the number $+1$ — they always push things in a positive direction, never zero, never negative. Positive definite matrices are exactly this idea made precise for higher dimensions.
+  </p>
+
+  <p>
+    The central object is a <strong>quadratic form</strong>: for a square $n\times n$ matrix $A$ and a vector $x \in \mathbb{R}^n$, define
+  </p>
+
+  <div class="math-display">
+    $$f(x) = x^T A x$$
+  </div>
+
+  <p>
+    This is a scalar — a single number that depends on both $A$ and the direction you choose for $x$. You can think of it geometrically: it measures how much the matrix stretches and rotates $x$ before projecting back onto $x$ itself. When this number is always positive (for every nonzero direction you could pick), the matrix is called <strong>positive definite</strong>.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Core Definition</div>
+    <div class="math-box-body">
+      <p>A real $n \times n$ matrix $A$ is:</p>
+      <ul>
+        <li><strong>Positive definite (PD)</strong> if $x^TAx > 0$ for every nonzero $x \in \mathbb{R}^n$.</li>
+        <li><strong>Positive semidefinite (PSD)</strong> if $x^TAx \geq 0$ for every $x \in \mathbb{R}^n$ — equality at zero is now allowed.</li>
+        <li><strong>Indefinite</strong> if $x^TAx$ takes both positive and negative values for different choices of $x$.</li>
+      </ul>
+      <p>Positivity of the quadratic form is the <em>definition itself</em> — every other test (eigenvalues, pivots, determinants) is a consequence that follows from it.</p>
+    </div>
+  </div>
+
+  <h3>A Simple 2×2 Example</h3>
+
+  <p>
+    Consider the matrix $S = \begin{bmatrix} 2 & 1 \\ 1 & 2 \end{bmatrix}$. Its quadratic form is:
+  </p>
+
+  <div class="math-display">
+    $$f(x, y) = x^T S x = 2x^2 + 2xy + 2y^2$$
+  </div>
+
+  <p>
+    Is this always positive? Complete the square: $2x^2 + 2xy + 2y^2 = 2\!\left(x + \tfrac{1}{2}y\right)^2 + \tfrac{3}{2}y^2$. Both terms are non-negative, and they cannot both be zero unless $x = y = 0$. So $S$ is positive definite.
+  </p>
+
+  <p>
+    Now swap the off-diagonal to $-3$: $S' = \begin{bmatrix} 2 & -3 \\ -3 & 2 \end{bmatrix}$. Try $x = (1, 1)$: $f(1,1) = 2 - 6 + 2 = -2 < 0$. That single test vector kills positive definiteness — $S'$ is indefinite.
+  </p>
+
+  <h3>Why Does It Matter?</h3>
+
+  <p>
+    Positive definite matrices show up everywhere that a notion of "upward-curving" or "stable" is needed:
+  </p>
+  <ul>
+    <li><strong>Optimization:</strong> The Hessian at a local minimum is PD. If it isn't, you're at a saddle point, not a minimum.</li>
+    <li><strong>Statistics:</strong> Covariance matrices are always PSD — they measure spread, which is never negative.</li>
+    <li><strong>Least squares:</strong> The normal equations $A^T A x = A^T b$ have a unique solution exactly when $A^T A$ is PD.</li>
+    <li><strong>Numerical methods:</strong> PD systems can be solved with the faster, more stable Cholesky factorization instead of full LU.</li>
+  </ul>
+
+  <h2>How Do You Actually Check? — Cases by Matrix Shape</h2>
+
+  <p>
+    The definition — $x^TAx > 0$ for all nonzero $x$ — is not something you can verify directly. You can't test every vector. So in practice, checking positive definiteness always comes down to one of a small number of equivalent conditions. Which one you use depends on the <em>shape</em> of the matrix in front of you. We work through all three cases.
+  </p>
+
+  <h2>Case 1 — $A$ is Rectangular ($m\times n$, $m\neq n$)</h2>
+
+  <p>
+    A rectangular matrix cannot be PD or PSD on its own, because $x^TAx$ is not even defined: $Ax$ lives in $\mathbb{R}^m$ while $x$ lives in $\mathbb{R}^n$, so the inner product $x^T(Ax)$ would mix spaces. Rectangular matrices enter the story only through the <em>Gram matrix</em> construction.
+  </p>
+
+  <h3>The Gram Matrix $A^TA$</h3>
+  <p>
+    Given any $m\times n$ matrix $A$ (with $m\geq n$), form the square $n\times n$ matrix $S=A^TA$. This is always symmetric and always PSD. It is PD if and only if $A$ has full column rank (i.e., the columns of $A$ are linearly independent, equivalently $\operatorname{null}(A)=\{0\}$).
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Gram Matrix Test</div>
+    <div class="math-box-body">
+      <p>Let $A$ be $m\times n$ with $m\geq n$.</p>
+      <div class="math-display">
+        $$x^T(A^TA)x = (Ax)^T(Ax) = \|Ax\|^2 \geq 0$$
+      </div>
+      <p>
+        Strict inequality $\|Ax\|^2>0$ for all $x\neq 0$ holds exactly when $Ax=0\Rightarrow x=0$, i.e., when $\operatorname{rank}(A)=n$.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    So the practical test for a huge rectangular matrix $A$ is: <strong>compute the rank of $A$.</strong> If $\operatorname{rank}(A)=n$ (full column rank), then $A^TA$ is PD. Otherwise $A^TA$ is only PSD, with a null space of dimension $n-\operatorname{rank}(A)$.
+  </p>
+
+  <p>
+    <strong>How to find the rank of a large matrix:</strong> Run Gaussian elimination on $A$ and count the number of nonzero pivots. This takes $O(mn^2)$ work (assuming $m\geq n$). For truly huge matrices, a Singular Value Decomposition (SVD) gives the rank numerically — the number of singular values above a chosen tolerance. Rank deficiency shows up as one or more singular values equal (or close) to zero.
+  </p>
+
+  <p>
+    <strong>Why does this matter?</strong> In least-squares problems you solve the normal equations $A^TAx=A^Tb$. The solution is unique if and only if $A^TA$ is PD — which holds precisely when the columns of $A$ are independent. If $A^TA$ is only PSD, the system has infinitely many solutions and you need a pseudoinverse.
+  </p>
+
+  <h2>Case 2 — $A$ is Square but Not Symmetric</h2>
+
+  <p>
+    Now $A$ is $n\times n$ and the quadratic form $f(x)=x^TAx$ is well-defined. The first key insight is that the skew-symmetric part of $A$ contributes <em>nothing</em> to $f$.
+  </p>
+
+  <h3>Decomposing $A$ into Symmetric and Skew-Symmetric Parts</h3>
+  <p>
+    Any square matrix $A$ splits uniquely as:
+  </p>
+  <div class="math-display">
+    $$A = S + K, \qquad S=\frac{A+A^T}{2},\quad K=\frac{A-A^T}{2}$$
+  </div>
+  <p>
+    where $S$ is symmetric ($S^T=S$) and $K$ is skew-symmetric ($K^T=-K$). For any vector $x$, the skew-symmetric part satisfies $x^TKx=0$ (because $x^TKx$ is a scalar equal to its own negative). Therefore:
+  </p>
+  <div class="math-display">
+    $$x^TAx = x^TSx + x^TKx = x^TSx$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Reduction to the Symmetric Part</div>
+    <div class="math-box-body">
+      <p>A square (possibly non-symmetric) matrix $A$ is PD (resp. PSD) if and only if its symmetric part $S=\frac{A+A^T}{2}$ is PD (resp. PSD).</p>
+    </div>
+  </div>
+
+  <p>
+    <strong>This means eigenvalues of $A$ alone cannot determine PD/PSD.</strong> A non-symmetric matrix can have all positive eigenvalues yet fail to be PD (its symmetric part may have a negative eigenvalue). Conversely, a matrix can be PD while having complex eigenvalues. The eigenvalues of $A$ are irrelevant; only the eigenvalues of $S=\frac{A+A^T}{2}$ matter.
+  </p>
+
+  <h3>Practical Test for a Large Square Non-Symmetric Matrix</h3>
+  <p>
+    For a huge $n\times n$ non-symmetric matrix $A$, proceed as follows:
+  </p>
+  <ol>
+    <li>Form $S=\frac{A+A^T}{2}$. (This is $O(n^2)$ work — just average each entry with its mirror.)</li>
+    <li>Apply the tests for symmetric matrices to $S$ (described in Case 3 below).</li>
+  </ol>
+  <p>
+    You have now reduced the non-symmetric problem to a symmetric one at negligible cost.
+  </p>
+
+    <h2>Case 3 — $A$ is Square and Symmetric</h2>
+
+  <p>
+    This is the richest case, and the one where we have the most tools. Let $S$ be an $n\times n$ real symmetric matrix. Because $S$ is symmetric, it admits three classical tests for positive definiteness — and they are all equivalent. Passing any one guarantees all the others.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Three Equivalent Tests for PD</div>
+    <div class="math-box-body">
+      <p>A real symmetric $n \times n$ matrix $S$ is positive definite if and only if <em>any one</em> (and therefore all) of the following hold:</p>
+      <ol>
+        <li><strong>All pivots are positive:</strong> Every pivot $d_k > 0$ in the $LDL^T$ factorization of $S$.</li>
+        <li><strong>All eigenvalues are positive:</strong> $\lambda_i > 0$ for $i = 1, \ldots, n$.</li>
+        <li><strong>All upper-left determinants are positive (Sylvester&#39;s criterion):</strong> Every leading principal minor $\Delta_k = \det(S_{1:k,\,1:k}) > 0$ for $k = 1, \ldots, n$.</li>
+      </ol>
+      <p>The pivots are the ratios of consecutive leading minors ($d_k = \Delta_k / \Delta_{k-1}$), linking tests 1 and 3. Eigenvalues and pivots always share the same signs by Sylvester&#39;s law of inertia, linking tests 1 and 2. Each test below makes this precise.</p>
+    </div>
+  </div>
+
+  <h3>Test 1 — Completing the Square and the Pivot Test ($LDL^T$)</h3>
+  <p>
+    Rather than checking $x^TSx>0$ directly by plugging in every possible vector, we rewrite the quadratic form as an explicit sum of squares. This algebraic process hides a stunning matrix connection: <strong>completing the square is exactly Gaussian elimination in disguise.</strong>
+  </p>
+  <p>
+    Let's use a classic 2×2 example. Consider the matrix $S$ and its quadratic form $f(x,y)$:
+  </p>
+  <div class="math-display">
+    $$S = \begin{bmatrix}2&6\\6&20\end{bmatrix} \implies f(x,y) = 2x^2 + 12xy + 20y^2$$
+  </div>
+  <p>
+    If we use high-school algebra to complete the square, we get:
+  </p>
+  <div class="math-display">
+    $$f(x,y) = 2(x+3y)^2 + 2y^2$$
+  </div>
+  <p>
+    Now, let's run standard Gaussian elimination on $S$. To clear the $6$ in the bottom left, we multiply the first row by $3$ and subtract it from the second row. This gives us our upper triangular matrix $U$, our lower triangular multiplier matrix $L$, and a diagonal matrix of our pivots $D$:
+  </p>
+  <div class="math-display">
+    $$S \xrightarrow{\text{elimination}} U = \begin{bmatrix}2&6\\0&2\end{bmatrix}, \quad L = \begin{bmatrix}1&0\\\mathbf{3}&1\end{bmatrix}, \quad D = \begin{bmatrix}\mathbf{2}&0\\0&\mathbf{2}\end{bmatrix}$$
+  </div>
+  
+  <div class="math-box">
+    <div class="math-box-label">The Factorization Reveal</div>
+    <div class="math-box-body">
+      <p>Look closely at the completed square alongside our matrices:</p>
+      <div class="math-display">
+        $$f(x,y) = \mathbf{2}(x + \mathbf{3}y)^2 + \mathbf{2}y^2$$
+      </div>
+      <ul>
+        <li>The numbers <strong>outside</strong> the squares ($\mathbf{2}$ and $\mathbf{2}$) are exactly the <strong>pivots</strong> (the diagonal entries of $D$).</li>
+        <li>The number <strong>inside</strong> the square ($\mathbf{3}$) is exactly the <strong>multiplier</strong> from elimination (the entry in $L$).</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>
+    <strong>Why does this happen?</strong> Gaussian elimination factors the symmetric matrix as $S = LDL^T$. If we plug this factorization directly into our quadratic form, the mechanics are exposed:
+  </p>
+  <div class="math-display">
+    $$x^TSx = x^T(LDL^T)x = (L^Tx)^T D (L^Tx)$$
+  </div>
+  <p>
+    Let $z = L^Tx$. For our matrix, $L^T = \begin{bmatrix}1&3\\0&1\end{bmatrix}$, so $L^T \begin{bmatrix}x\\y\end{bmatrix} = \begin{bmatrix}x+3y\\y\end{bmatrix}$. These are exactly the terms inside our squares! The quadratic form is literally just $z^TDz$:
+  </p>
+  <div class="math-display">
+    $$d_1 z_1^2 + d_2 z_2^2 = \mathbf{2}(x+3y)^2 + \mathbf{2}y^2$$
+  </div>
+  <p>
+    <strong>The Conclusion:</strong> A matrix is Positive Definite if and only if all of its pivots are strictly positive. The positive pivots guarantee that the "sum of squares" equation only has positive coefficients, meaning the bowl must open upwards. If a pivot is negative, you have a minus sign in your sum of squares, creating a saddle point.
+  </p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+
+  <div style="margin:2rem 0;">
+    <div id="plot-saddle" style="width:100%; height:600px;"></div>
+    <div id="plot-bowl"   style="width:100%; height:600px; margin-top:2rem;"></div>
+  </div>
+
+  <script>
+  (function(){
+    const N = 50, range = 2; 
+    function linspace(a,b,n){const r=[];for(let i=0;i<n;i++)r.push(a+(b-a)*i/(n-1));return r;}
+    const xs = linspace(-range,range,N);
+    const ys = linspace(-range,range,N);
+    // Modified to match the Strang example context
+    const zSaddle = ys.map(y=>xs.map(x=>2*x*x+12*x*y+7*y*y)); // Pivots are 2 and -11
+    const zBowl   = ys.map(y=>xs.map(x=>2*x*x+12*x*y+20*y*y)); // Pivots are 2 and 2
+
+    function cv(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+    function renderPlots(){
+      const accent = cv('--accent')  || '#D48C70';
+      const bg     = cv('--surface') || '#F4EFE6';
+      const text   = cv('--text')    || '#4A3F35';
+      const border = cv('--border')  || '#E8DFD1';
+      const muted  = cv('--muted')   || '#847769';
+
+      const colorscale = [[0,'#C5B49A'],[0.5,accent],[1,'#2D241E']];
+
+      const surface = (z) => ({
+        type:'surface', x:xs, y:ys, z,
+        colorscale,
+        showscale:false,
+        contours:{
+          x:{show:false}, y:{show:false},
+          z:{show:true, usecolormap:false, highlightcolor:'rgba(255,255,255,0.3)', width:2}
+        }
+      });
+
+      const layout = (title) => ({
+        paper_bgcolor:'rgba(0,0,0,0)',
+        plot_bgcolor:'rgba(0,0,0,0)',
+        margin:{l:10, r:10, t:80, b:10}, 
+        font:{color:text, family:'Lora, Georgia, serif', size:15}, 
+        title:{
+          text: title, 
+          font: {size: 18, color: text, weight: 'bold'}, 
+          x: 0.5, 
+          xanchor: 'center'
+        },
+        scene:{
+          bgcolor: bg,
+          xaxis:{title:'x', gridcolor:border, zerolinecolor:border, tickfont:{size:12}},
+          yaxis:{title:'y', gridcolor:border, zerolinecolor:border, tickfont:{size:12}},
+          zaxis:{title:'f(x,y)', gridcolor:border, zerolinecolor:border, tickfont:{size:12}},
+          camera:{eye:{x:1.6, y:-1.6, z:1.2}} 
+        }
+      });
+
+      const config = {responsive:true, displayModeBar:false};
+
+      Plotly.react('plot-saddle',[surface(zSaddle)],
+        layout('Indefinite Matrix (Negative Pivot): f(x,y) = 2x² + 12xy + 7y²<br><span style="font-size:14px; color:#847769;">Completes to 2(x+3y)² - 11y² — saddle point at origin</span>'), config);
+      
+      Plotly.react('plot-bowl',[surface(zBowl)],
+        layout('Positive Definite (Positive Pivots): f(x,y) = 2x² + 12xy + 20y²<br><span style="font-size:14px; color:#847769;">Completes to 2(x+3y)² + 2y² — global minimum at origin</span>'), config);
+    }
+
+    renderPlots();
+
+    new MutationObserver(renderPlots).observe(document.documentElement, {
+      attributes:true, attributeFilter:['data-theme']
+    });
+  })();
+  </script>
+
+  <h3>Test 2 — Eigenvalue Test</h3>
+  <p>
+    The spectral theorem guarantees that a real symmetric matrix has an orthonormal eigenbasis: $S=Q\Lambda Q^T$ where $Q$ is orthogonal and $\Lambda=\operatorname{diag}(\lambda_1,\ldots,\lambda_n)$. Setting $y=Q^Tx$:
+  </p>
+  <div class="math-display">
+    $$x^TSx = y^T\Lambda y = \sum_{i=1}^n \lambda_i y_i^2$$
+  </div>
+  <p>
+    This sum is strictly positive for every nonzero $y$ if and only if every eigenvalue $\lambda_i>0$. Note how similar this looks to the pivot test ($d_1 z_1^2 + d_2 z_2^2$), but they are fundamentally different transformations. Pivots use a non-orthogonal shear ($L^T$), while eigenvalues use a rigid rotation ($Q^T$). The pivots and eigenvalues are not equal in general, but Sylvester's law of inertia guarantees they always have the same signs.
+  </p>
+  <p>
+    <strong>Cost for large matrices:</strong> Computing all eigenvalues via full eigendecomposition costs $O(n^3)$. However, for large sparse matrices, iterative methods (e.g., the Lanczos algorithm) can find just the smallest eigenvalue $\lambda_{\min}$ much faster. $S$ is PD if and only if $\lambda_{\min}>0$.
+  </p>
+
+  <h3>Test 3 — Sylvester's Criterion (Leading Principal Minors)</h3>
+  <p>
+    The leading principal minor of order $k$ is the determinant of the top-left $k\times k$ submatrix of $S$. Sylvester's criterion states that $S$ is PD if and only if all $n$ leading principal minors are positive:
+  </p>
+  <div class="math-display">
+    $$\Delta_1 = s_{11} > 0,\quad \Delta_2 = \det\begin{bmatrix}s_{11}&s_{12}\\s_{21}&s_{22}\end{bmatrix}>0,\quad\ldots,\quad\Delta_n=\det(S)>0$$
+  </div>
+  <p>
+    The connection to pivots is direct: the $k$-th pivot equals $\Delta_k/\Delta_{k-1}$ (with $\Delta_0=1$). So all pivots positive $\Leftrightarrow$ all leading minors positive — these two tests are the same thing in different clothing.
+  </p>
+  <p>
+    <strong>Cost:</strong> Computing a single determinant via LU costs $O(n^3)$, and you need $n$ of them, so naively this is $O(n^4)$. In practice you compute <em>one</em> $LDL^T$ factorization ($O(n^3)$) and read off all pivots at once; the minor test is then obtained for free. For a 2×2 or 3×3 matrix, directly checking minors is the fastest approach.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Why the Three Tests Are Equivalent</div>
+    <div class="math-box-body">
+      <p>The chain of equivalences runs as follows:</p>
+      <p>
+        <strong>Eigenvalues $\leftrightarrow$ Pivots.</strong> The spectral theorem gives $S = Q\Lambda Q^T$, and the $LDL^T$ factorization gives $S = LDL^T$. Both decompose the quadratic form into a sum of squares: $\sum \lambda_i y_i^2$ (via $y = Q^Tx$) and $\sum d_k z_k^2$ (via $z = L^Tx$). The change of variable between $y$ and $z$ is invertible, so the signs of the coefficients cannot change — this is <strong>Sylvester's law of inertia</strong>. All $\lambda_i > 0$ if and only if all $d_k > 0$.
+      </p>
+      <p>
+        <strong>Pivots $\leftrightarrow$ Upper-left determinants.</strong> The $k$-th pivot is the ratio $d_k = \Delta_k / \Delta_{k-1}$, where $\Delta_k$ is the determinant of the top-left $k \times k$ submatrix and $\Delta_0 = 1$. This means:
+      </p>
+      <div class="math-display">
+        $$d_1 = \Delta_1, \quad d_2 = \frac{\Delta_2}{\Delta_1}, \quad d_3 = \frac{\Delta_3}{\Delta_2}, \quad \ldots$$
+      </div>
+      <p>
+        If all pivots $d_k > 0$, the products telescope: $\Delta_k = d_1 d_2 \cdots d_k > 0$ for every $k$. Conversely if all $\Delta_k > 0$, then each ratio $\Delta_k / \Delta_{k-1} > 0$. The two conditions are identical.
+      </p>
+      <p>
+        So the complete equivalence chain for a real symmetric matrix is:
+      </p>
+      <div class="math-display">
+        $$\underbrace{x^TSx > 0 \; \forall x \neq 0}_{\text{definition}} \;\Longleftrightarrow\; \underbrace{\lambda_i > 0 \; \forall i}_{\text{eigenvalue test}} \;\Longleftrightarrow\; \underbrace{d_k > 0 \; \forall k}_{\text{pivot test}} \;\Longleftrightarrow\; \underbrace{\Delta_k > 0 \; \forall k}_{\text{upper-left det.\ test}}$$
+      </div>
+    </div>
+  </div>
+
+  <details class="toggle">
+    <summary>Proof: why the number of positive pivots equals the number of positive eigenvalues</summary>
+    <div class="toggle-body">
+
+      <p>
+        Both the pivot test and the eigenvalue test rewrite the same quadratic form $x^TSx$ as a <em>sum of squares</em> — just in different coordinate systems. The number of positive coefficients can't change when you switch between equivalent coordinate systems. That's the whole proof, unpacked carefully below.
+      </p>
+
+      <h4>Step A — Elimination gives $z = L^T x$</h4>
+
+      <p>
+        Go back to the 2×2 example from above. Completing the square gave:
+      </p>
+      <div class="math-display">
+        $$x^TSx = 2\!\left(x + 3y\right)^2 + 2y^2$$
+      </div>
+      <p>
+        We defined $z_1 = x + 3y$ and $z_2 = y$. Write those substitutions as a matrix equation:
+      </p>
+      <div class="math-display">
+        $$\begin{bmatrix}z_1\\z_2\end{bmatrix} = \begin{bmatrix}1 & 3\\0 & 1\end{bmatrix}\begin{bmatrix}x\\y\end{bmatrix}$$
+      </div>
+      <p>
+        That matrix is exactly $L^T$ from the $LDL^T$ factorization, where $L = \begin{bmatrix}1&0\\3&1\end{bmatrix}$. The elimination multiplier $3$ appears inside the square and simultaneously inside $L$. So the substitution is just:
+      </p>
+      <div class="math-display">
+        $$\boxed{z = L^T x}$$
+      </div>
+      <p>
+        And the quadratic form becomes a clean sum of squares weighted by the pivots:
+      </p>
+      <div class="math-display">
+        $$x^TSx = z^TDz = d_1 z_1^2 + d_2 z_2^2$$
+      </div>
+      <p>
+        In general, each elimination step introduces one substitution of the form $z_k = x_k + \sum_{j>k}(\text{multiplier}) \cdot x_j$. Stack all of them and you get $z = L^Tx$ exactly. The pivots $d_k$ are the coefficients in front of each square.
+      </p>
+
+      <h4>Step B — Eigenvectors give $y = Q^T x$</h4>
+
+      <p>
+        The spectral theorem decomposes $S = Q\Lambda Q^T$. Plug this into the quadratic form:
+      </p>
+      <div class="math-display">
+        $$x^TSx = x^T(Q\Lambda Q^T)x = (Q^Tx)^T \Lambda\, (Q^Tx)$$
+      </div>
+      <p>
+        Define $y = Q^Tx$. This is just expressing $x$ in the eigenvector coordinate system — standard basis becomes the columns of $Q$. The quadratic form becomes:
+      </p>
+      <div class="math-display">
+        $$\boxed{x^TSx = y^T\Lambda y = \lambda_1 y_1^2 + \lambda_2 y_2^2 + \cdots + \lambda_n y_n^2}$$
+      </div>
+      <p>
+        The eigenvalues $\lambda_i$ are the coefficients in front of each square.
+      </p>
+
+      <h4>The key comparison</h4>
+
+      <div class="math-display">
+        $$x^TSx \;=\; \underbrace{d_1 z_1^2 + d_2 z_2^2 + \cdots + d_n z_n^2}_{\text{pivots as coefficients, shear coord.}} \;=\; \underbrace{\lambda_1 y_1^2 + \lambda_2 y_2^2 + \cdots + \lambda_n y_n^2}_{\text{eigenvalues as coefficients, rotated coord.}}$$
+      </div>
+
+      <p>
+        These are two different representations of the <em>same function</em>. The change of variable from $z$ to $y$ is the composition $y = Q^Tx = Q^T(L^T)^{-1}z$, which is an invertible linear map. Sylvester's law of inertia says: <strong>any two ways of writing a quadratic form as a sum of squares must use the same number of positive coefficients, the same number of negative coefficients, and the same number of zeros</strong> — regardless of which invertible change of variables you use.
+      </p>
+      <p>
+        So the number of positive $d_k$'s must equal the number of positive $\lambda_i$'s. The number of negative pivots must equal the number of negative eigenvalues. And the number of zero pivots must equal the number of zero eigenvalues.
+      </p>
+      <p>
+        In particular: all pivots positive $\Longleftrightarrow$ all eigenvalues positive. $\square$
+      </p>
+
+      <div class="math-box" style="margin-top:1.2rem;">
+        <div class="math-box-label">Coordinate geometry intuition</div>
+        <div class="math-box-body">
+          <p>Think of the two representations as describing the same bowl from two different camera angles:</p>
+          <ul>
+            <li><strong>Elimination ($z = L^Tx$)</strong> tilts the axes by shearing — the new axes are no longer perpendicular, but the bowl's shape is unchanged.</li>
+            <li><strong>Eigenvectors ($y = Q^Tx$)</strong> rotates to perfectly axis-aligned coordinates — the bowl looks cleanest here, with no cross terms.</li>
+          </ul>
+          <p>Whether a direction "opens upward" or "opens downward" is a physical fact about the bowl. It cannot depend on which coordinate system you use to describe it.</p>
+        </div>
+      </div>
+
+    </div>
+  </details>
+
+  <h2>Positive Semidefinite (PSD): The Boundary Case</h2>
+
+  <p>
+    Replace every strict inequality above with $\geq$ to get the PSD conditions:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Tests for PSD (Symmetric Case)</div>
+    <div class="math-box-body">
+      <p>A real symmetric $n\times n$ matrix $S$ is positive semidefinite if and only if:</p>
+      <ol>
+        <li>$x^TSx\geq 0$ for all $x$ (at least one nonzero $x$ achieves equality).</li>
+        <li>All eigenvalues $\lambda_i\geq 0$ (at least one eigenvalue equals zero).</li>
+        <li>All pivots $d_i\geq 0$ — but zero pivots are allowed (indicating a singular matrix).</li>
+        <li>All <em>principal</em> minors (not just leading ones) $\geq 0$. Note: this requires checking <em>all</em> $2^n-1$ principal submatrices, not just the $n$ leading ones — Sylvester's criterion does not extend to PSD.</li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    <strong>Why Sylvester's criterion fails for PSD:</strong> A matrix can have all leading principal minors $\geq 0$ yet fail to be PSD. The standard counterexample is $\begin{pmatrix}0&0\\0&-1\end{pmatrix}$: its leading minors are $0\geq 0$ and $0\geq 0$, but the matrix is not PSD. For PSD you must check all $2^n-1$ principal minors — computationally expensive for large $n$.
+  </p>
+  <p>
+    <strong>Practical test for PSD of a large matrix:</strong> Compute the smallest eigenvalue $\lambda_{\min}$ (e.g., via Lanczos). If $\lambda_{\min}\geq 0$, the matrix is PSD.
+  </p>
+
+  <h2>Connection to Calculus: The Hessian Matrix</h2>
+
+  <p>
+    Positive definiteness is exactly the right tool for identifying minima of multivariable functions. For a function $f(x_1,\ldots,x_n)$, the matrix of all second partial derivatives is called the <strong>Hessian</strong>:
+  </p>
+  <div class="math-display">
+    $$H = \begin{pmatrix} f_{x_1x_1} & f_{x_1x_2} & \cdots \\ f_{x_2x_1} & f_{x_2x_2} & \cdots \\ \vdots & & \ddots \end{pmatrix}$$
+  </div>
+  <p>
+    Since $f_{x_ix_j}=f_{x_jx_i}$ (Clairaut's theorem), the Hessian is always symmetric. At a critical point where all first derivatives vanish, the local behavior of $f$ is governed entirely by the Hessian:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Second Derivative Test (Multivariable)</div>
+    <div class="math-box-body">
+      <p>Let $x^*$ be a critical point of $f$ (i.e., $\nabla f(x^*)=0$) and let $H$ be the Hessian evaluated at $x^*$.</p>
+      <ul>
+        <li>$H$ is <strong>positive definite</strong> $\Rightarrow$ $x^*$ is a <strong>strict local minimum</strong>.</li>
+        <li>$H$ is <strong>negative definite</strong> $\Rightarrow$ $x^*$ is a <strong>strict local maximum</strong>.</li>
+        <li>$H$ is <strong>indefinite</strong> (has both positive and negative eigenvalues) $\Rightarrow$ $x^*$ is a <strong>saddle point</strong>.</li>
+        <li>$H$ is PSD or NSD $\Rightarrow$ the test is inconclusive.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>
+    For the 2×2 case, this collapses to the familiar calculus rule: the critical point is a minimum when $f_{xx}>0$ and $f_{xx}f_{yy}-f_{xy}^2>0$ — which is exactly Sylvester's criterion applied to $H$. The quantity $f_{xx}f_{yy}-f_{xy}^2$ is the determinant of $H$, the second leading principal minor.
+  </p>
+  <p>
+    <strong>Why this matters for large problems.</strong> In optimization — training neural networks, fitting statistical models, solving physics problems — you repeatedly check whether the Hessian at the current iterate is PD. If it is, gradient descent with the right step size converges to a local minimum. If it is indefinite, you are at a saddle point and need to escape. The fastest check in practice is: attempt Cholesky on $H$. If it fails, you have a saddle.
+  </p>
+
+    <h2>Geometry: Graphs, Level Sets, and Conic Sections</h2>
+
+  <p>
+    To truly understand the geometry of a quadratic form $f(x) = x^TSx$, we must distinguish between two different geometric objects: the <strong>graph</strong> and the <strong>level set</strong>.
+  </p>
+  <ul>
+    <li><strong>The Graph ($z = x^TSx$):</strong> If $x \in \mathbb{R}^2$, the graph lives in 3D space ($\mathbb{R}^3$). This is the "bowl" or "saddle" surface we plotted earlier.</li>
+    <li><strong>The Level Set ($x^TSx = c$):</strong> This is a horizontal slice of the graph at a specific height $c$ (usually we choose $c=1$). This slice lives in the original 2D space ($\mathbb{R}^2$) and forms our conic sections: ellipses and hyperbolas.</li>
+  </ul>
+
+  <h3>1. The Ellipse (Positive Definite)</h3>
+  <p>
+    Let's look at the standard equation of an ellipse centered at the origin in 2D, aligned with the $x$ and $y$ axes:
+  </p>
+  <div class="math-display">
+    $$\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1$$
+  </div>
+  <p>
+    Here, $a$ and $b$ are the lengths of the semi-major and semi-minor axes. Now, let's see how our quadratic form $x^TSx = 1$ maps to this.
+  </p>
+
+  <p>
+    By the spectral theorem, a symmetric matrix can be diagonalized as $S = Q\Lambda Q^T$. Plugging this into our quadratic form gives $x^T(Q\Lambda Q^T)x = 1$.
+  </p>
+  <p>
+    If we define a new coordinate vector $y = Q^Tx$ (which means $y^T = x^TQ$), the equation simplifies to a purely diagonal form $y^T\Lambda y = 1$. Let's write out exactly what this looks like with vectors and matrices in 2D:
+  </p>
+  
+  <div class="math-display">
+    $$
+    \begin{bmatrix} y_1 & y_2 \end{bmatrix} 
+    \begin{bmatrix} \lambda_1 & 0 \\ 0 & \lambda_2 \end{bmatrix} 
+    \begin{bmatrix} y_1 \\ y_2 \end{bmatrix} 
+    = 1
+    $$
+  </div>
+
+  <p>
+    Multiplying the matrices out gives us the simple sum of squares:
+  </p>
+  <div class="math-display">
+    $$
+    \begin{bmatrix} \lambda_1 y_1 & \lambda_2 y_2 \end{bmatrix} 
+    \begin{bmatrix} y_1 \\ y_2 \end{bmatrix} 
+    = 1 
+    \implies \lambda_1 y_1^2 + \lambda_2 y_2^2 = 1
+    $$
+  </div>
+
+  <p>
+    To force this into the standard ellipse fraction format, we move the eigenvalues to the denominator (by taking their reciprocals) and express those denominators as squares:
+  </p>
+  <div class="math-display">
+    $$\frac{y_1^2}{(1/\sqrt{\lambda_1})^2} + \frac{y_2^2}{(1/\sqrt{\lambda_2})^2} = 1$$
+  </div>
+  
+  <div class="math-box">
+    <div class="math-box-label">The Anatomy of the Ellipsoid</div>
+    <div class="math-box-body">
+      <p>By writing it in this exact shape, we can just read the lengths of the semi-axes straight off the denominator. When $S$ is Positive Definite, the equation $x^TSx = 1$ describes an ellipse (or ellipsoid) where:</p>
+      <ul>
+        <li>The <strong>directions</strong> of the axes are the eigenvectors of $S$ (the columns of $Q$, handled by our substitution $y = Q^Tx$).</li>
+        <li>The <strong>lengths</strong> of the semi-axes are $a = 1/\sqrt{\lambda_1}$ and $b = 1/\sqrt{\lambda_2}$.</li>
+      </ul>
+      <p>Notice the inverse relationship: a <em>large</em> eigenvalue means a <em>steep</em> bowl, which results in a <em>short</em> axis for the level set. The quadratic form grows very fast in that direction, so it hits the height $z=1$ very quickly.</p>
+    </div>
+  </div>
+  <h3>2. The Circle (Equal Eigenvalues)</h3>
+  <p>
+    What happens if $\lambda_1 = \lambda_2 = \lambda$? (This means $S = \lambda I$, a multiple of the identity matrix). The equation becomes:
+  </p>
+  <div class="math-display">
+    $$\lambda y_1^2 + \lambda y_2^2 = 1 \implies y_1^2 + y_2^2 = \frac{1}{\lambda}$$
+  </div>
+  <p>
+    This is the standard equation of a circle $x^2 + y^2 = r^2$ with radius $r = 1/\sqrt{\lambda}$. Geometrically, the "bowl" is perfectly symmetrical (isotropic). Every direction is an eigenvector, so the level set is a perfect circle.
+  </p>
+
+  <h3>3. The Hyperbola (Indefinite Matrices)</h3>
+  <p>
+    What if $S$ is indefinite, meaning it has mixed eigenvalue signs? Suppose $\lambda_1 > 0$ and $\lambda_2 < 0$. The diagonalized level set equation $x^TSx = 1$ becomes:
+  </p>
+  <div class="math-display">
+    $$\lambda_1 y_1^2 - |\lambda_2| y_2^2 = 1 \implies \frac{y_1^2}{(1/\sqrt{\lambda_1})^2} - \frac{y_2^2}{(1/\sqrt{|\lambda_2|})^2} = 1$$
+  </div>
+  <p>
+    This is the standard equation for a <strong>hyperbola</strong>. Because the matrix is indefinite, the graph $z = x^TSx$ is a saddle. If you slice a saddle horizontally at $z=1$, the intersection is a hyperbola opening along the axis of the positive eigenvalue.
+  </p>
+
+  <h3>4. Where are the Parabolas? (The Paraboloid)</h3>
+  <p>
+    You might wonder: if we have ellipses and hyperbolas, can $x^TSx = 1$ ever be a 2D parabola? 
+  </p>
+  <p>
+    The answer is <strong>no</strong>. A pure quadratic form $x^TSx$ is strictly centered at the origin (it contains only $x^2, y^2,$ and $xy$ terms). To get a 2D parabola, the general conic equation requires a linear term (like $y = ax^2$, which has a plain $y$). 
+  </p>
+  <p>
+    To see a parabola in the domain, we have to look at the general quadratic function:
+  </p>
+  <div class="math-display">
+    $$f(x) = x^TSx + b^Tx + c = 0$$
+  </div>
+  <p>
+    If $S$ is positive <em>semidefinite</em> with a zero eigenvalue (e.g., $\lambda_1 > 0, \lambda_2 = 0$), the quadratic form lacks a $y_2^2$ term. If the linear $b^Tx$ term provides a non-zero slope in the $y_2$ direction, the resulting level curve is a parabola. 
+  </p>
+  <p>
+    However, the <em>graph</em> of a positive definite form ($z = x^TSx$) in 3D is a <strong>paraboloid</strong>. If you slice this 3D bowl vertically (e.g., set $y=0$), you get $z = \lambda_1 x^2$, which is exactly a 2D parabola.
+  </p>
+
+  <h2>Decision Guide: Which Test to Use and When</h2>
+
+  <p>
+    For a huge matrix in practice, the choice of test depends on structure:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Rectangular $A$ ($m\times n$):</strong> Check whether $\operatorname{rank}(A)=n$ using elimination or SVD. If yes, $A^TA$ is PD; if no, $A^TA$ is only PSD.
+    </li>
+    <li>
+      <strong>Dense square non-symmetric $A$:</strong> Form $S=\frac{A+A^T}{2}$ ($O(n^2)$), then apply any symmetric test to $S$.
+    </li>
+    <li>
+      <strong>Dense square symmetric $S$, small–medium $n$:</strong> $LDL^T$ factorization is simplest. Check all pivots — positive means PD, any zero means PSD, any negative means indefinite.
+    </li>
+    <li>
+      <strong>Sparse square symmetric $S$, large $n$:</strong> Use a sparse $LDL^T$ solver (e.g., CHOLMOD). Attempt Cholesky factorization $S=R^TR$; if it succeeds (no negative square roots encountered), $S$ is PD. This is the standard industrial test.
+    </li>
+    <li>
+      <strong>Need eigenvalue information anyway:</strong> Run the Lanczos algorithm to get $\lambda_{\min}$ and $\lambda_{\max}$ cheaply. Full eigendecomposition only if you need all $n$ eigenvalues.
+    </li>
+  </ul>
+
+  <h2>Cholesky Factorization: The Industrial Test</h2>
+
+  <p>
+    The Cholesky factorization $S=R^TR$ (where $R$ is upper triangular with positive diagonal) exists <em>if and only if</em> $S$ is symmetric and positive definite. This makes it the definitive computational test: attempt the factorization, and if it completes without encountering a non-positive pivot, $S$ is PD.
+  </p>
+  <div class="math-display">
+    $$S = R^TR, \qquad r_{kk}=\sqrt{d_k}>0$$
+  </div>
+  <p>
+    The Cholesky factor $R$ is related to the $LDL^T$ factorization by $R=D^{1/2}L^T$. It exists and has real entries if and only if all pivots $d_k>0$.
+  </p>
+  <p>
+    For a sparse PD matrix, Cholesky is about twice as fast as $LU$ decomposition and numerically extremely stable. Most scientific computing libraries (LAPACK's <code>dpotrf</code>, MATLAB's <code>chol</code>, NumPy's <code>linalg.cholesky</code>) implement this — a runtime exception or warning signals that $S$ is not PD.
+  </p>
+
+  <h2>Closure and Factorization Properties</h2>
+
+  <h3>Closure Under Addition</h3>
+  <p>
+    If $S$ and $T$ are symmetric PD $n\times n$ matrices, then $S+T$ is also symmetric PD. The proof is immediate: $(S+T)^T=S+T$ (symmetric), and $x^T(S+T)x=x^TSx+x^TTx>0+0=0$ for all nonzero $x$.
+  </p>
+
+  <h3>Three Standard Factorizations of a Symmetric PD Matrix</h3>
+  <p>
+    A symmetric PD matrix $S$ can always be written in three standard forms, each with its own use:
+  </p>
+  <ul>
+    <li>
+      <strong>Rectangular factor:</strong> $S=A^TA$ for some $A$ with independent columns. Common in least-squares and statistics.
+    </li>
+    <li>
+      <strong>Cholesky factor:</strong> $S=R^TR$ with $R$ upper triangular and positive diagonal. The go-to for numerical linear algebra — fast, stable, and the standard PD test.
+    </li>
+    <li>
+      <strong>Symmetric square root:</strong> $S=A_3^2=A_3^TA_3$ where $A_3=Q\Lambda^{1/2}Q^T$ is itself symmetric PD. Used in statistics (whitening transforms), optimization (preconditioning), and quantum mechanics.
+    </li>
+  </ul>
+
+</section>
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+</body>
+</html>

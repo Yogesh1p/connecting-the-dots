@@ -31,6 +31,16 @@ function getCurrentSection() {
   return 'home';
 }
 
+function getRootFromCurrentPath() {
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const libraryIndex = parts.findIndex(part => part.toLowerCase() === 'library');
+  if (libraryIndex === -1) return '';
+  const depthFromRoot = window.location.pathname.endsWith('/')
+    ? parts.length - libraryIndex
+    : parts.length - libraryIndex - 1;
+  return '../'.repeat(depthFromRoot);
+}
+
 /* ============================================================
    GLOBAL NAVIGATION
    ============================================================ */
@@ -38,7 +48,9 @@ function initGlobalNavigation(options = {}) {
   const navPlaceholder = document.getElementById('global-nav');
   if (!navPlaceholder) return;
 
-  const root = navPlaceholder.getAttribute('data-root') || '';
+  const configuredRoot = navPlaceholder.getAttribute('data-root') || '';
+  const inferredRoot = getRootFromCurrentPath();
+  const root = inferredRoot || configuredRoot;
   const stickyFromOptions = options.sticky ?? true;
   const currentSection = getCurrentSection();
   const homePath = root === '' ? './' : root;
@@ -287,6 +299,11 @@ window.injectGiscusComments = function(containerId) {
       .article-discussion-wrap { max-width: 720px; margin: 5rem auto 2rem; padding-top: 0; }
       .article-discussion-wrap > p { text-align: left; color: var(--muted); font-family: var(--font-sans, system-ui, sans-serif); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; margin-bottom: 1.35rem; }
       .giscus-box { width: 100%; min-height: 300px; }
+      .article-discussion-wrap iframe.giscus-frame {
+        width: 100% !important;
+        height: var(--giscus-frame-height, 640px) !important;
+        min-height: 520px;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -317,4 +334,21 @@ window.injectGiscusComments = function(containerId) {
   }).forEach(([key, value]) => script.setAttribute(key, value));
 
   el.querySelector('.giscus-box').appendChild(script);
+
+  const syncGiscusHeight = () => {
+    const frame = el.querySelector('iframe.giscus-frame');
+    if (!frame) return false;
+    const height = frame.style.height || frame.getAttribute('height');
+    if (height) el.style.setProperty('--giscus-frame-height', /^\d+$/.test(height) ? `${height}px` : height);
+    return true;
+  };
+
+  const observer = new MutationObserver(() => {
+    const frame = el.querySelector('iframe.giscus-frame');
+    if (!frame) return;
+    syncGiscusHeight();
+    observer.disconnect();
+    new MutationObserver(syncGiscusHeight).observe(frame, { attributes: true, attributeFilter: ['style', 'height'] });
+  });
+  observer.observe(el.querySelector('.giscus-box'), { childList: true, subtree: true });
 };

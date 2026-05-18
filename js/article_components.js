@@ -10,6 +10,7 @@ if ('scrollRestoration' in history) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const stripOrderPrefix = (segment) => String(segment || "").replace(/^\d+\s*[._ -]\s*/, "");
   const CONFIG = {
     navOffset: 96,
     tocTargetTop: 120,
@@ -34,10 +35,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }[char]));
 
   const getArticleRoot = () => {
+    const configuredRoot = document.getElementById("global-nav")?.getAttribute("data-root");
+    if (configuredRoot) return configuredRoot;
+
     const parts = window.location.pathname.split("/").filter(Boolean);
     const libraryIndex = parts.findIndex(part => part.toLowerCase() === "library");
     if (libraryIndex === -1) return "";
-    return "../".repeat(Math.max(1, parts.length - libraryIndex - 1));
+    const depthFromRoot = window.location.pathname.endsWith("/")
+      ? parts.length - libraryIndex
+      : parts.length - libraryIndex - 1;
+    return "../".repeat(Math.max(1, depthFromRoot));
   };
 
   const rootPath = getArticleRoot();
@@ -181,15 +188,10 @@ document.addEventListener("DOMContentLoaded", () => {
       nav.setAttribute("aria-label", "Article navigation");
     }
 
-    const pageWrap = document.querySelector(".page-wrap") || document.body;
-    if (!nav.isConnected) {
-      if (comments.isConnected && comments.parentNode) {
-        comments.parentNode.insertBefore(nav, comments);
-      } else {
-        pageWrap.appendChild(nav);
-      }
-    }
-    if (!comments.isConnected) pageWrap.appendChild(comments);
+    const footerHost = document.querySelector(".reading-container") || document.querySelector(".page-wrap") || document.body;
+    if (nav.parentNode !== footerHost) footerHost.appendChild(nav);
+    if (comments.parentNode !== footerHost) footerHost.appendChild(comments);
+    if (nav.nextElementSibling !== comments) footerHost.insertBefore(nav, comments);
 
     if (typeof window.injectGiscusComments === "function") {
       window.injectGiscusComments("article-comments");
@@ -247,7 +249,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const path = decodeURIComponent(window.location.pathname).replace(/\\/g, "/");
     const libraryIndex = path.toLowerCase().indexOf("/library/");
     if (libraryIndex === -1) return "";
-    return path.slice(libraryIndex + 1).replace(/^\/+/, "").toLowerCase();
+    return normalizeArticlePath(path.slice(libraryIndex + 1));
+  };
+
+  const normalizeArticlePath = (value) => String(value || "")
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/\/index\.html$/i, "/")
+    .split("/")
+    .map(segment => segment ? stripOrderPrefix(segment) : segment)
+    .join("/")
+    .toLowerCase();
+
+  const pageMatchesCurrent = (page, currentKey) => {
+    return [page.cleanPath, page.publicPath, page.sourcePath]
+      .some(candidate => normalizeArticlePath(candidate) === currentKey);
   };
 
   const orderedPages = (pages) => [...pages].sort((a, b) => (
@@ -268,9 +284,20 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const pages = orderedPages((window.rawPages || []).filter(page => page.status !== "hide"));
+    const allVisiblePages = (window.rawPages || []).filter(page => page.status !== "hide");
     const currentKey = getCurrentArticleKey();
-    const currentIndex = pages.findIndex(page => String(page.sourcePath || "").toLowerCase() === currentKey);
+    const currentPage = allVisiblePages.find(page => pageMatchesCurrent(page, currentKey));
+
+    if (!currentPage) {
+      container.remove();
+      return;
+    }
+
+    const currentBookKey = currentPage.bookSlug || currentPage.bookTitle || currentPage.book || "";
+    const pages = orderedPages(allVisiblePages.filter(page => (
+      (page.bookSlug || page.bookTitle || page.book || "") === currentBookKey
+    )));
+    const currentIndex = pages.findIndex(page => pageMatchesCurrent(page, currentKey));
 
     if (currentIndex === -1) {
       container.remove();
@@ -281,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!page) return `<span class="article-pagination__link article-pagination__link--empty" aria-hidden="true"></span>`;
       const label = direction === "prev" ? "Previously" : "Up next";
       const arrow = direction === "prev" ? "←" : "→";
-      const href = `${rootPath}${page.sourcePath}`;
+      const href = `${rootPath}${page.publicPath || page.sourcePath}`;
       return `
         <a class="article-pagination__link article-pagination__link--${direction}" href="${href}">
           <span class="article-pagination__label">${label}</span>

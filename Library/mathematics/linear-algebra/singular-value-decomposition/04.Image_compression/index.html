@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="article_id" content="09544490">
+    <meta charset="UTF-8">
+    <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+    <meta name="chapter_order" content="6">
+    <meta name="book_slug" content="linear-algebra">
+    <title>SVD for Image Compression</title>
+
+    <meta name="book" content="Linear Algebra">
+    <meta name="chapter" content="Singular Value Decomposition">
+    <meta name="part" content=" ">
+    <meta name="title" content="SVD for Image Compression">
+    <meta name="description" content="Understanding how the Singular Value Decomposition generalizes symmetric matrix compression to separate, rank, and compress the visual information of an image.">
+    <meta name="author" content="Yogesh">
+    <meta name="date" content="2026-04-26">
+    <meta name="chapterorder" content="3">
+    <meta name="lessonorder" content="3">
+    <meta name="status" content="draft">
+    <meta name="belongs_to" content="lib">
+    <meta name="keywords" content="singular value decomposition, image compression, truncated svd, low-rank approximation, outer product, symmetric matrix">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="reading_time" content="5">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../../../css/base.css">
+    <link rel="stylesheet" href="../../../../../css/articles.css">
+
+    <style>
+        /* ─────────────────────────────────────
+   Outer Product Animation Styles
+   ───────────────────────────────────── */
+.outer-product-demo {
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin: 3rem auto;
+    max-width: 600px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+.outer-product-demo .demo-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+.outer-product-demo .demo-header h3 {
+    margin: 0 0 8px 0;
+    color: var(--accent);
+}
+.outer-product-demo .demo-header p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+}
+.demo-layout {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: 40px 1fr;
+    gap: 12px;
+    width: fit-content;
+    margin: 0 auto;
+}
+.empty-corner { width: 40px; height: 40px; }
+
+.row-vector, .col-vector, .matrix-grid {
+    display: grid;
+    gap: 2px;
+}
+.row-vector {
+    grid-template-columns: repeat(8, 40px);
+    grid-template-rows: 40px;
+}
+.col-vector {
+    grid-template-columns: 40px;
+    grid-template-rows: repeat(8, 40px);
+}
+.matrix-grid {
+    grid-template-columns: repeat(8, 40px);
+    grid-template-rows: repeat(8, 40px);
+    background: var(--border);
+    padding: 2px;
+    border-radius: 4px;
+}
+.cell {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+}
+.cell.active-vector {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+    z-index: 2;
+}
+.demo-controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+.demo-controls button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+}
+.demo-controls button.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+.demo-controls button:hover { filter: brightness(0.9); }
+        /* ─────────────────────────────────────
+           Math display & Figures
+           ───────────────────────────────────── */
+        .math-display, .math-block { text-align: center; margin: 1.5rem 0; overflow-x: auto; overflow-y: hidden; max-width: 100%; -webkit-overflow-scrolling: touch; }
+        .reading-content mjx-container[display="true"] { margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; padding: 0 !important; overflow-x: auto; overflow-y: hidden; }
+        mjx-container svg { fill: currentColor; color: currentColor; }
+        
+        /* Table overrides for content */
+        .article-body table { width: 100%; border-collapse: collapse; margin: 2rem 0; font-size: 0.95rem; }
+        .article-body th { text-align: left; padding: 0.75rem 1rem; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
+        .article-body td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .article-body tr:last-child td { border-bottom: none; }
+
+        /* ─────────────────────────────────────
+           Interactive SVD Widget Styles
+           ───────────────────────────────────── */
+        .svd-story-widget {
+            font-family: Arial, sans-serif;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05), 0 4px 6px rgba(0,0,0,0.02);
+            max-width: 800px;
+            width: 100%;
+            margin: 3rem auto;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .svd-story-widget .widget-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .svd-story-widget .widget-header h2 { font-size: 1.25rem; font-weight: 600; margin: 0; }
+        .svd-story-widget .progress { display: flex; gap: 6px; }
+        .svd-story-widget .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+        .svd-story-widget .dot.active { background: var(--accent); }
+        .svd-story-widget .content {
+            display: flex;
+            flex-direction: column;
+            padding: 32px 24px;
+            align-items: center;
+        }
+        .svd-story-widget .canvas-wrapper { width: 100%; display: flex; justify-content: center; margin-bottom: 24px; }
+        .svd-story-widget canvas {
+            background: var(--surface);
+            border-radius: 8px;
+            box-shadow: inset 0 0 0 1px var(--border);
+        }
+        .svd-story-widget .info-panel { text-align: center; min-height: 80px; }
+        .svd-story-widget .info-panel h3 { font-size: 1.1rem; margin-bottom: 8px; color: var(--accent); margin-top: 0; }
+        .svd-story-widget .info-panel p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; max-width: 550px; margin: 0 auto; }
+        .svd-story-widget .controls {
+            display: flex;
+            gap: 12px;
+            padding: 20px 24px 24px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            justify-content: center;
+        }
+        .svd-story-widget button {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 120px;
+        }
+        .svd-story-widget button:hover:not(:disabled) { filter: brightness(0.95); }
+        .svd-story-widget button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+        .svd-story-widget button.primary:hover:not(:disabled) { filter: brightness(0.9); }
+        .svd-story-widget button:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+            // Update meta[theme-color] immediately during parse — before any
+            // defer scripts run. Safari reads this value on first paint and
+            // respects setAttribute only while the tag is being freshly parsed.
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
+        })();
+    </script>
+
+    <script src="../../../../../js/base.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], processEscapes: true },
+            svg: { fontCache: "global" }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <meta property="og:title" content="SVD for Image Compression">
+    <meta property="og:description" content="Understanding how the Singular Value Decomposition generalizes symmetric matrix compression to separate, rank, and compress the visual information of an image.">
+    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/mathematics/linear-algebra/singular-value-decomposition/04.Image_compression/">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-09544490.png?v=f7ce7c">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <style id="mobile-view-styles">
+        img, video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        iframe:not(.giscus-frame) {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        @media screen and (max-width: 768px) {
+            body, article, .content, main {
+                width: 100% !important;
+                max-width: 100vw !important;
+                padding: 10px 15px !important;
+                box-sizing: border-box !important;
+            }
+            /* FIXED: Do NOT put overflow-x:hidden on body — it clips Giscus iframe.
+               Instead, clip only the layout wrappers. */
+            article, .content, main, .page-wrap, .reading-container, .reading-content {
+                overflow-x: hidden !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    
+                    <section class="article-body">
+
+<p>
+    To truly understand how the SVD compresses data, we must start by examining the illusion of size. Matrices can be massive, but their size is often highly deceptive.
+</p>
+
+<h2>The Illusion of Size in Symmetric Matrices</h2>
+
+<p>
+    Imagine a massive dataset, perhaps representing the covariance of $n = 1,000,000$ variables. The resulting symmetric matrix $S$ would be an $n \times n$ grid containing $1,000,000,000,000$ entries. 
+</p>
+
+<p>
+    However, suppose we know that this symmetric matrix $S$ was actually generated by multiplying a much smaller feature matrix $A$ by its transpose: $S = A^TA$. If $A$ is $m \times n$, where $m = 100$ features, a profound realization occurs regarding storage:
+</p>
+
+<ul>
+    <li><strong>Storing $S$ directly:</strong> $n^2 = 1,000,000,000,000$ values.</li>
+    <li><strong>Storing $A$ instead:</strong> $mn = 100,000,000$ values.</li>
+</ul>
+
+<p>
+    Because $m \ll n$, we see that $mn \ll n^2$. Storing $A$ "compresses" the information of $S$. The massive matrix $S$ is mostly empty mathematical space and redundant correlations. All of its actual underlying information is entirely bottlenecked by the inner dimension $m$.
+</p>
+
+<h2>The Rank-1 DNA</h2>
+
+<p>
+    We can push this logic even further. We don't just have to store $A$; we can dissect the symmetric matrix $S$ into its fundamental atomic units using its eigenvectors. Because $S$ is symmetric, the Spectral Theorem guarantees we can break it down into a sum of purely <strong>rank-1 matrices</strong>:
+</p>
+
+<div class="math-display">
+    $$S = \sum_{i=1}^{r} \lambda_i v_i v_i^\top$$
+</div>
+
+<p>
+    Think about what $v_i v_i^\top$ physically is. It is a column vector $v_i$ multiplied by a row vector $v_i^\top$. If $v_i$ has length $n$, the resulting matrix is $n \times n$. But to store that entire $n \times n$ grid on a computer, you only need to save the single vector $v_i$ (which is $n$ numbers) and the scaling factor $\lambda_i$. You are generating a massive grid from a tiny handful of vectors.
+</p>
+
+<h2>The SVD Generalization</h2>
+
+<p>
+    But what if our data isn't a symmetric matrix $S$? What if it is just a standard, rectangular image matrix $A \in \mathbb{R}^{m \times n}$? 
+</p>
+
+<p>
+    We cannot use $v_i v_i^\top$ anymore, because $A$ has different dimensions for its rows ($n$) and columns ($m$). We need a vector to handle the vertical space, and a completely different vector to handle the horizontal space. This is precisely where SVD steps in. It generalizes the symmetric idea by giving us <em>two</em> sets of vectors: $u$ for the columns and $v$ for the rows.
+</p>
+
+<div class="math-display">
+    $$A = \sum_{i=1}^r \sigma_i u_i v_i^\top$$
+</div>
+
+<p>
+    Every piece of this sum, $\sigma_i u_i v_i^\top$, is a <strong>rank-1 matrix</strong>. It is formed by a single vertical column ($u_i$) dictating the vertical pattern, and a single horizontal row ($v_i^\top$) dictating the horizontal pattern, scaled by an importance factor ($\sigma_i$).
+</p>
+
+<h2>The Single-Color Background: Why Outer Products Save Space</h2>
+
+<p>
+    Let's ground this abstract math in a visual reality. Imagine an image of a person standing against a solid, single-color studio background.
+</p>
+
+<p>
+    In a standard digital format, the computer memorizes every single pixel blindly. If a horizontal row of pixels looks like <code>[Background, Subject, Subject, Background]</code>, and the twenty rows below it look exactly the same, the computer stores that sequence twenty separate times. This is a massive waste of mathematical space.
+</p>
+
+<p>
+    A rank-1 matrix ($u_1 v_1^\top$) exploits this redundancy by separating the <em>what</em> from the <em>where</em>. 
+</p>
+
+<ul>
+    <li><strong>The Pattern ($v_1^\top$):</strong> The row vector acts as a <strong>stencil</strong>. It holds the singular horizontal pattern of the image: <code>[Background, Subject, Subject, Background]</code>.</li>
+    <li><strong>The Intensity ($u_1$):</strong> The column vector acts as the <strong>instructions</strong>. It tells us how strongly to apply that stencil on every vertical step: <code>[1, 1, 1, 1, 1]</code>.</li>
+</ul>
+
+<p>
+    When you compute the outer product, you are mathematically "stamping" the row vector's pattern down the grid. As you move down the rows, the column vector dictates the brightness of the stamp. Instead of storing an $m \times n$ grid of redundant pixels, we only store $m + n + 1$ numbers (the column, the row, and the scaling weight $\sigma$). The entire grid is dynamically regenerated on the fly.
+</p>
+
+<div class="outer-product-demo">
+    <div class="demo-header">
+        <h3>Visualizing the Outer Product</h3>
+        <p>Watch how a single row vector (top) and a column vector (left) multiply to generate an entire 2D image grid.</p>
+    </div>
+    <div class="demo-layout">
+        <div class="empty-corner"></div>
+        <div class="row-vector" id="op-row-vector"></div>
+        <div class="col-vector" id="op-col-vector"></div>
+        <div class="matrix-grid" id="op-matrix"></div>
+    </div>
+    <div class="demo-controls">
+        <button id="op-btn-play" class="primary">Play Animation</button>
+        <button id="op-btn-reset">Reset</button>
+    </div>
+</div>
+
+<div class="svd-story-widget">
+    <div class="widget-header">
+        <h2>SVD Compression Story</h2>
+        <div class="progress" id="svd-progress-dots"></div>
+    </div>
+
+    <div class="content">
+        <div class="canvas-wrapper">
+            <canvas id="svd-canvas"></canvas>
+        </div>
+        <div class="info-panel">
+            <h3 id="svd-step-title">Loading...</h3>
+            <p id="svd-step-desc"></p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="svd-btn-prev">← Previous</button>
+        <button id="svd-btn-next" class="primary">Next Step →</button>
+    </div>
+</div>
+<h2>The Truncated SVD</h2>
+<p>
+    <strong>Important clarification:</strong> Real images are almost never low-rank matrices. In fact, they typically have <em>full rank</em>.
+</p>
+
+<p>
+    What makes compression possible is not low rank, but <strong>low effective rank</strong>. This means that while there may be many singular values, most of them are extremely small.
+</p>
+
+<p>
+    The singular values $\sigma_1 \geq \sigma_2 \geq \dots$ decay rapidly. The first few capture the dominant structure of the image (shapes, lighting, large regions), while the remaining ones contribute only tiny corrections—fine textures and noise.
+</p>
+
+<p>
+    This is why we can safely discard the tail:
+</p>
+
+<ul>
+    <li>We are <strong>not assuming the image is low-rank</strong>.</li>
+    <li>We are <strong>approximating it as low-rank</strong> by ignoring small singular values.</li>
+</ul>
+
+<p>
+    In practice, we do not transmit the full matrix $A$. We transmit a <strong>low-rank approximation</strong> constructed from only the largest singular values.
+</p>
+
+<p>
+    In a real photograph, one rank-1 matrix isn't enough to capture the fine details (like the texture of hair or a subtle gradient of a shadow). That is why the full SVD is a <em>sum</em> of these matrices. The first piece ($u_1 v_1^\top$) blocks out the massive background and the basic silhouette. The second piece adds the primary shadows. The 50th piece adds the tiny textures. As we reach the tail end of the expansion, the components are essentially mathematical noise.
+</p>
+
+<p>
+    This leads to our strategy: <strong>throw the small terms away.</strong> We form the <em>truncated SVD</em>, denoted as $A_k$, by stopping the sum at $k$ components:
+</p>
+
+<div class="math-display">
+    $$A_k = \sum_{i=1}^k \sigma_i u_i v_i^\top$$
+</div>
+
+<p>
+    By the <strong>Eckart-Young Theorem</strong>, $A_k$ is the <em>best possible</em> rank-$k$ approximation of the original image $A$. Let us look at the arithmetic of the data structures to see the savings.
+</p>
+
+<p>
+    Suppose our original image $A$ is $1000 \times 1000$. 
+    <br><strong>Original Storage:</strong> $1000 \times 1000 = 1,000,000$ values.
+</p>
+
+<p>
+    Now, suppose we use the truncated SVD and keep only the first $k = 50$ components. For each of the 50 layers, we must store the singular value $\sigma_i$ (1 value), the column $u_i$ (1000 values), and the row $v_i^\top$ (1000 values). That is 2001 values per component.
+</p>
+
+<p>
+    <strong>Compressed Storage:</strong> $50 \times 2001 = 100,050$ values.
+</p>
+
+<p>
+    By keeping just 50 components, we have reduced the storage requirement to roughly <strong>10% of the original size</strong>. When instructed, the computer multiplies the vectors to form grids and adds the 50 grids together. To the human eye, $A_{50}$ will look almost completely indistinguishable from the 1,000,000-value original.
+</p>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                if (typeof injectGiscusComments === 'function') {
+                    injectGiscusComments('article-comments');
+                }
+            });
+        </script>
+
+    </main>
+
+    <script>
+        const canvas = document.getElementById("svd-canvas");
+        const ctx = canvas.getContext("2d");
+
+        const logicalWidth = 750;
+        const logicalHeight = 360;
+
+        // Theme dynamic colors
+        let themeContext = {
+            textMain: '#0f172a',
+            accent: '#3b82f6',
+            border: '#e2e8f0',
+            muted: '#64748b'
+        };
+
+        function updateThemeContext() {
+            const style = getComputedStyle(document.documentElement);
+            themeContext.textMain = style.getPropertyValue('--text-main').trim() || '#0f172a';
+            themeContext.accent = style.getPropertyValue('--accent').trim() || '#3b82f6';
+            themeContext.border = style.getPropertyValue('--border').trim() || '#e2e8f0';
+            themeContext.muted = style.getPropertyValue('--text-muted').trim() || '#64748b';
+        }
+
+        // Watch for data-theme changes on the HTML tag
+        const themeObserver = new MutationObserver(updateThemeContext);
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        function setupCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = logicalWidth * dpr;
+            canvas.height = logicalHeight * dpr;
+            canvas.style.width = logicalWidth + "px";
+            canvas.style.maxWidth = "100%";
+            canvas.style.height = "auto";
+            ctx.scale(dpr, dpr);
+        }
+        setupCanvas();
+
+        const N = 60; // Matrix dimensions
+        const K = 5;  // Number of components to calculate
+
+        let step = 0;
+        const MAX_STEP = 5;
+        let t = 0; // Animation timer
+
+        // ---------- Create base image ----------
+        let A = Array.from({length:N}, () => Array(N).fill(0));
+
+        for(let i=0; i<N; i++){
+            for(let j=0; j<N; j++){
+                A[i][j] = 0.1; 
+            }
+        }
+        for(let i=10; i<50; i++){
+            for(let j=15; j<45; j++){
+                if (j > 15 + (50-i)*0.3 && j < 25 + (50-i)*0.3) A[i][j] = 0.9;
+                if (j < 45 - (50-i)*0.3 && j > 35 - (50-i)*0.3) A[i][j] = 0.9;
+                if (i > 30 && i < 38 && j > 20 && j < 40) A[i][j] = 0.9;
+            }
+        }
+
+        // ---------- Math & SVD Helpers ----------
+        function power(M){
+            let v = Array(N).fill(1);
+            for(let k=0; k<20; k++){
+                let Av = Array(N).fill(0);
+                for(let i=0; i<N; i++)
+                    for(let j=0; j<N; j++)
+                        Av[i] += M[i][j]*v[j];
+
+                let AtAv = Array(N).fill(0);
+                for(let j=0; j<N; j++)
+                    for(let i=0; i<N; i++)
+                        AtAv[j] += M[i][j]*Av[i];
+
+                let norm = Math.sqrt(AtAv.reduce((s,x)=>s+x*x,0));
+                v = AtAv.map(x => x/norm);
+            }
+
+            let u = Array(N).fill(0);
+            for(let i=0; i<N; i++)
+                for(let j=0; j<N; j++)
+                    u[i] += M[i][j]*v[j];
+
+            let sigma = Math.sqrt(u.reduce((s,x)=>s+x*x,0));
+            if(sigma > 0) u = u.map(x => x/sigma);
+
+            return {u, v, sigma};
+        }
+
+        function decompose(A, k){
+            let M = A.map(r => r.slice());
+            let comps = [];
+            for(let i=0; i<k; i++){
+                let {u, v, sigma} = power(M);
+                let piece = Array.from({length:N}, () => Array(N).fill(0));
+                for(let r=0; r<N; r++){
+                    for(let c=0; c<N; c++){
+                        let val = sigma * u[r] * v[c];
+                        piece[r][c] = val;
+                        M[r][c] -= val;
+                    }
+                }
+                comps.push({u, v, sigma, piece});
+            }
+            return comps;
+        }
+
+        let comps = decompose(A, K);
+
+        // Calculate Final Reconstructed Matrix
+        let Recon = Array.from({length:N}, () => Array(N).fill(0));
+        for(let k=0; k<K; k++){
+            for(let i=0; i<N; i++)
+                for(let j=0; j<N; j++)
+                    Recon[i][j] += comps[k].piece[i][j];
+        }
+
+        // ---------- Rendering Helpers ----------
+        function getColor(val) {
+            let v = Math.max(0, Math.min(255, Math.floor(val * 255)));
+            // Using standard RGB allows it to blend visibly in both light and dark modes
+            return `rgb(${v},${v},${v})`;
+        }
+
+        function drawMatrix(M, x, y, scale=3){
+            for(let i=0; i<N; i++){
+                for(let j=0; j<N; j++){
+                    ctx.fillStyle = getColor(M[i][j]);
+                    ctx.fillRect(x+j*scale, y+i*scale, scale, scale);
+                }
+            }
+        }
+
+        function drawCol(u, x, y, scale=3){
+            let maxAbs = Math.max(...u.map(Math.abs));
+            for(let i=0; i<N; i++){
+                let visualVal = maxAbs === 0 ? 0 : Math.abs(u[i]) / maxAbs; 
+                ctx.fillStyle = getColor(visualVal);
+                ctx.fillRect(x, y+i*scale, scale, scale);
+            }
+        }
+
+        function drawRow(v, x, y, scale=3){
+            let maxAbs = Math.max(...v.map(Math.abs));
+            for(let j=0; j<N; j++){
+                let visualVal = maxAbs === 0 ? 0 : Math.abs(v[j]) / maxAbs;
+                ctx.fillStyle = getColor(visualVal);
+                ctx.fillRect(x+j*scale, y, scale, scale);
+            }
+        }
+
+        // ---------- Story Configurations ----------
+        const storyContent = [
+            {
+                title: "1. The Original Matrix",
+                desc: "This is our starting image. Every pixel is a number between 0 (black) and 1 (white). It takes 3,600 individual values to store this 60x60 grid."
+            },
+            {
+                title: "2. The Most Important Vectors",
+                desc: "SVD finds a single column vector (u) and a row vector (v) that capture the absolute strongest structural pattern of the image."
+            },
+            {
+                title: "3. Forming a Rank-1 Matrix",
+                desc: "By multiplying the column by the row, their outer product copies the row's horizontal pattern down every active vertical pixel, creating a blocky silhouette."
+            },
+            {
+                title: "4. Multiple Components",
+                desc: "SVD calculates multiple layers, ordered by structural importance. Each subsequent piece adds finer details, edges, and shadows."
+            },
+            {
+                title: "5. Reconstructing the Image",
+                desc: "Adding these pieces back together gradually reconstructs the original shape. Just 5 pieces gives us a highly recognizable image!"
+            },
+            {
+                title: "6. The Illusion of Size",
+                desc: "Notice how the image physically separates. The tiny fraction of data in the middle (the compressed strips) is all it takes to build the entire reconstructed image on the right!"
+            }
+        ];
+
+        function updateUI() {
+            document.getElementById("svd-step-title").innerText = storyContent[step].title;
+            document.getElementById("svd-step-desc").innerText = storyContent[step].desc;
+            
+            document.getElementById("svd-btn-prev").disabled = step === 0;
+            
+            let nextBtn = document.getElementById("svd-btn-next");
+            if(step === MAX_STEP) {
+                nextBtn.innerText = "Restart";
+            } else {
+                nextBtn.innerText = "Next Step →";
+            }
+
+            const dots = document.querySelectorAll('.svd-story-widget .dot');
+            dots.forEach((dot, idx) => {
+                dot.className = idx <= step ? 'dot active' : 'dot';
+            });
+        }
+
+        // ---------- Main Render Loop ----------
+        function render(){
+            ctx.clearRect(0,0, logicalWidth, logicalHeight);
+            ctx.font = "14px Arial, sans-serif";
+            t += 0.02;
+
+            const mx = (logicalWidth / 2) - ((N*3) / 2); 
+            const my = 50;
+
+            if(step === 0){
+                drawMatrix(A, mx, my);
+            } 
+            else if(step === 1){
+                let {u, v} = comps[0];
+                drawCol(u, mx - 20, my);
+                drawRow(v, mx, my - 20);
+                ctx.strokeStyle = themeContext.border;
+                ctx.strokeRect(mx, my, N*3, N*3);
+            } 
+            else if(step === 2){
+                let {u, v, sigma} = comps[0];
+                drawCol(u, mx - 20, my);
+                drawRow(v, mx, my - 20);
+
+                for(let i=0; i<N; i++){
+                    if(i/N < t){
+                        for(let j=0; j<N; j++){
+                            let val = sigma * u[i] * v[j];
+                            ctx.fillStyle = getColor(val);
+                            ctx.fillRect(mx+j*3, my+i*3, 3, 3);
+                        }
+                    }
+                }
+            } 
+            else if(step === 3){
+                for(let k=0; k<K; k++){
+                    drawMatrix(comps[k].piece, 40 + k*140, 90, 1.5);
+                    ctx.fillStyle = themeContext.muted;
+                    ctx.textAlign = "center";
+                    ctx.fillText(`Component ${k+1}`, 40 + k*140 + 45, 195);
+                }
+                ctx.textAlign = "left"; 
+            } 
+            else if(step === 4){
+                let M = Array.from({length:N}, () => Array(N).fill(0));
+                let upto = Math.min(K, Math.floor(t*1.5)); 
+                
+                for(let k=0; k<upto; k++){
+                    for(let i=0; i<N; i++){
+                        for(let j=0; j<N; j++){
+                            M[i][j] += comps[k].piece[i][j];
+                        }
+                    }
+                }
+                drawMatrix(M, mx, my);
+                
+                ctx.fillStyle = themeContext.accent;
+                ctx.textAlign = "center";
+                ctx.fillText(`Summing up to piece: ${Math.max(1, upto)}`, logicalWidth/2, my + N*3 + 30);
+                ctx.textAlign = "left";
+            } 
+            else if(step === 5){
+                // Final Three-Way Split Animation
+                let originalSize = N * N;
+                let compressedSize = K * (2 * N + 1); 
+                let percentage = ((compressedSize / originalSize) * 100).toFixed(1);
+
+                // Timers for sequencing
+                let pMove = Math.max(0, Math.min(1, t / 1.5)); // Original slides left over 1.5s
+                let pReveal = Math.max(0, Math.min(1, (t - 1.5) / 1.0)); // Reconstructed fades in
+                let pText = Math.max(0, Math.min(1, (t - 2.5) / 1.0)); // Text fades in
+
+                ctx.textAlign = "center";
+
+                // X coordinates calculating the spread
+                let startX = mx; 
+                let leftX = startX - pMove * 200; 
+                let rightX = startX + pMove * 200; 
+                let midX = (logicalWidth / 2) - 40; 
+
+                // 1. Original Image (Moves Left)
+                drawMatrix(A, leftX, my, 3);
+                ctx.fillStyle = themeContext.textMain;
+                ctx.fillText("Original", leftX + 90, my + 180 + 25);
+
+                // 2. Compressed Data Strips (Appears in Center)
+                ctx.globalAlpha = pMove;
+                for(let k=0; k<K; k++) {
+                    drawCol(comps[k].u, midX + k*6, my + 15, 2.5);
+                    drawRow(comps[k].v, midX + 40, my + 15 + k*6, 2.5);
+                }
+                ctx.fillStyle = themeContext.accent;
+                ctx.fillText("Compressed Data", midX + 60, my + 180 + 25);
+
+                // 3. Reconstructed Image (Fades in on Right)
+                ctx.globalAlpha = pReveal;
+                drawMatrix(Recon, rightX, my, 3);
+                ctx.fillStyle = themeContext.textMain;
+                ctx.fillText("Reconstructed", rightX + 90, my + 180 + 25);
+
+                // 4. Final Text Stats (Fades in at Bottom)
+                ctx.globalAlpha = pText;
+                ctx.fillStyle = themeContext.textMain;
+                ctx.fillText(`Approximation uses ${compressedSize} values instead of the original ${originalSize} pixels.`, logicalWidth/2, my + 245);
+                
+                ctx.fillStyle = themeContext.accent;
+                ctx.font = "bold 15px Arial, sans-serif";
+                ctx.fillText(`We build the right image using only ${percentage}% of the original data!`, logicalWidth/2, my + 270);
+
+                ctx.globalAlpha = 1.0; 
+                ctx.textAlign = "left"; 
+            }
+        }
+
+        function loop(){
+            render();
+            requestAnimationFrame(loop);
+        }
+
+        // ---------- Initialization & Event Listeners ----------
+        function initSVDWidget() {
+            updateThemeContext(); // Initialize colors from CSS variables
+            const dotsContainer = document.getElementById('svd-progress-dots');
+            for(let i=0; i<=MAX_STEP; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dotsContainer.appendChild(dot);
+            }
+            updateUI();
+            loop();
+        }
+
+        document.getElementById("svd-btn-next").addEventListener("click", () => {
+            if (step === MAX_STEP) step = 0;
+            else step = Math.min(MAX_STEP, step + 1);
+            t = 0;
+            updateUI();
+        });
+
+        document.getElementById("svd-btn-prev").addEventListener("click", () => {
+            step = Math.max(0, step - 1);
+            t = 0;
+            updateUI();
+        });
+
+        window.addEventListener("keydown", (e) => {
+            if(e.key === "ArrowRight") document.getElementById("svd-btn-next").click();
+            if(e.key === "ArrowLeft") document.getElementById("svd-btn-prev").click();
+        });
+
+        initSVDWidget();
+        // ---------- Outer Product Animation ----------
+(function initOuterProductDemo() {
+    const rowVec = [0.1, 0.1, 0.9, 0.9, 0.1, 0.1, 0.1, 0.1]; // The "Subject" pattern
+    const colVec = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]; // The vertical intensity
+    
+    const rowContainer = document.getElementById('op-row-vector');
+    const colContainer = document.getElementById('op-col-vector');
+    const matrixContainer = document.getElementById('op-matrix');
+    
+    let matrixCells = [];
+    let colCells = [];
+    let rowCells = [];
+    let animationInterval;
+
+    // Helper to get hex color based on intensity (0 to 1)
+    function getCellColor(val) {
+        const v = Math.floor((1 - val) * 255);
+        return `rgb(${v}, ${v}, ${v})`;
+    }
+
+    // Initialize Grid
+    function buildGrid() {
+        rowContainer.innerHTML = '';
+        colContainer.innerHTML = '';
+        matrixContainer.innerHTML = '';
+        matrixCells = [];
+
+        // Build Row Vector
+        rowVec.forEach(val => {
+            let cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.style.background = getCellColor(val);
+            cell.innerText = val;
+            cell.style.color = val > 0.5 ? '#fff' : '#000';
+            rowContainer.appendChild(cell);
+            rowCells.push(cell);
+        });
+
+        // Build Col Vector
+        colVec.forEach(val => {
+            let cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.innerText = val;
+            colContainer.appendChild(cell);
+            colCells.push(cell);
+        });
+
+        // Build Empty Matrix
+        for (let i = 0; i < 8; i++) {
+            let rowArray = [];
+            for (let j = 0; j < 8; j++) {
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                matrixContainer.appendChild(cell);
+                rowArray.push(cell);
+            }
+            matrixCells.push(rowArray);
+        }
+    }
+
+    function resetGrid() {
+        clearInterval(animationInterval);
+        colCells.forEach(c => c.classList.remove('active-vector'));
+        rowCells.forEach(c => c.classList.remove('active-vector'));
+        matrixCells.forEach(row => row.forEach(cell => {
+            cell.style.background = '#fff';
+            cell.innerText = '';
+        }));
+    }
+
+    function playAnimation() {
+        resetGrid();
+        let step = 0;
+        
+        // Highlight the row vector as the "stencil"
+        rowCells.forEach(c => c.classList.add('active-vector'));
+
+        animationInterval = setInterval(() => {
+            if (step > 0) {
+                colCells[step - 1].classList.remove('active-vector');
+            }
+            
+            if (step < 8) {
+                // Highlight current column vector cell
+                colCells[step].classList.add('active-vector');
+                
+                // Fill the corresponding matrix row
+                for (let j = 0; j < 8; j++) {
+                    const val = colVec[step] * rowVec[j];
+                    const cell = matrixCells[step][j];
+                    cell.style.background = getCellColor(val);
+                    // Add slight delay for sweeping effect
+                    setTimeout(() => {
+                        cell.innerText = val.toFixed(1);
+                        cell.style.color = val > 0.5 ? '#fff' : '#000';
+                    }, j * 50); 
+                }
+                step++;
+            } else {
+                clearInterval(animationInterval);
+                rowCells.forEach(c => c.classList.remove('active-vector'));
+            }
+        }, 600); // 600ms per row
+    }
+
+    document.getElementById('op-btn-play').addEventListener('click', playAnimation);
+    document.getElementById('op-btn-reset').addEventListener('click', resetGrid);
+
+    buildGrid();
+})();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="article_id" content="7c4a91d2">
+  <meta charset="UTF-8">
+    <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+  <meta name="chapter_order" content="4">
+  <meta name="book_slug" content="linear-algebra">
+  <title>Properties of Determinants</title>
+
+  <meta name="book" content="Linear Algebra">
+  <meta name="chapter" content="Determinants">
+  <meta name="part" content=" ">
+  <meta name="title" content="Properties of Determinants">
+  <meta name="description" content="Understanding the determinant: its core properties, what it tells us about invertibility, how to compute it via elimination, and its connection to area and volume.">
+  <meta name="author" content="Yogesh">
+  <meta name="date" content="2026-04-25">
+  <meta name="chapterorder" content="3">
+  <meta name="lessonorder" content="1">
+  <meta name="status" content="draft">
+  <meta name="belongs_to" content="lib">
+  <meta name="keywords" content="determinant, properties of determinants, invertibility, cofactor, product rule, transpose">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="reading_time" content="22">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../../../../css/base.css">
+  <link rel="stylesheet" href="../../../../../css/articles.css">
+
+  <style>
+    .diagram-figure {
+      margin: 2.5rem auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      max-width: 550px;
+    }
+    .svg-container {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    .svg-container svg {
+      width: 100%;
+      height: auto;
+    }
+    .figure-caption {
+      margin-top: 1rem;
+      color: var(--text);
+      font-size: 0.9em;
+      line-height: 1.5;
+      max-width: 90%;
+    }
+    /* Cross-reference callout */
+    .xref-callout {
+      margin: 2rem 0;
+      border-left: 3px solid var(--accent, #D48C70);
+      background: var(--surface, #F4EFE6);
+      border-radius: 0 8px 8px 0;
+      overflow: hidden;
+    }
+    .xref-callout-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background: rgba(212,140,112,0.10);
+      border-bottom: 1px solid rgba(212,140,112,0.18);
+    }
+    .xref-callout-icon { font-size: 0.95rem; color: var(--accent, #D48C70); }
+    .xref-callout-label {
+      font-family: "Lora", serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: var(--accent, #D48C70);
+      text-transform: uppercase;
+    }
+    .xref-callout-body { padding: 1rem 1.2rem 1.1rem; }
+    .xref-callout-body p { margin: 0 0 0.6rem; font-size: 0.95rem; line-height: 1.6; color: var(--text); }
+    .xref-excerpt summary {
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--accent, #D48C70);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border-top: 1px solid rgba(212,140,112,0.20);
+      padding-top: 0.75rem;
+      user-select: none;
+    }
+    .xref-excerpt summary::before { content: "▶"; font-size: 0.65rem; transition: transform 0.2s ease; display: inline-block; }
+    .xref-excerpt[open] summary::before { transform: rotate(90deg); }
+    .xref-excerpt-body { padding: 0.9rem 0 0.2rem; }
+    .xref-excerpt-body p { font-size: 0.93rem; line-height: 1.65; margin: 0 0 0.7rem; color: var(--text); }
+    .xref-link {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--accent, #D48C70);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(212,140,112,0.40);
+      padding-bottom: 1px;
+    }
+    .xref-link:hover { border-bottom-color: var(--accent, #D48C70); }
+    [data-theme="dark"] .xref-callout { background: var(--surface, #1F1510); }
+
+    /* ── Animated matrix widget ────────────────────────────── */
+    .anim-wrap {
+      background: var(--surface);
+      border: 1px solid rgba(212, 140, 112, 0.4);
+      border-radius: 12px;
+      margin: 2.5rem auto;
+      max-width: 600px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+    }
+    [data-theme="dark"] .anim-wrap { box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+    .anim-header {
+      background: rgba(212, 140, 112, 0.15);
+      color: var(--text);
+      font-family: "Lora", serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(212, 140, 112, 0.2);
+    }
+    .anim-body {
+      padding: 1.5rem 1.2rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .anim-desc {
+      font-size: 0.95rem;
+      color: var(--text);
+      text-align: center;
+      min-height: 2.5rem;
+      transition: opacity 0.25s;
+    }
+    .step-counter { font-size: 0.75rem; color: var(--accent); opacity: 0.9; }
+    .anim-controls { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.5rem; }
+    .anim-btn {
+      background: transparent;
+      border: 1.5px solid rgba(212, 140, 112, 0.5);
+      border-radius: 6px;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 700;
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .anim-btn:hover { background: rgba(212, 140, 112, 0.1); border-color: var(--accent); }
+    .anim-btn:disabled { opacity: 0.3; cursor: default; }
+    .progress-dots { display: flex; gap: 6px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(212, 140, 112, 0.3); transition: background 0.2s; }
+    .dot.active { background: var(--accent); }
+
+    /* ── SVG matrix styles ─────────────────────────────────── */
+    .mx-svg { overflow: visible; }
+    .cell-bg { fill: transparent; stroke: rgba(132, 119, 105, 0.3); stroke-width: 1; rx: 4; transition: fill 0.3s, stroke 0.3s; }
+    .cell-text { font-family: 'Lora', serif; font-size: 15px; fill: var(--text); dominant-baseline: central; text-anchor: middle; transition: fill 0.3s; }
+    .cell-hi .cell-bg { fill: rgba(212, 140, 112, 0.15); stroke: var(--accent); stroke-width: 2; }
+    .cell-hi .cell-text { fill: var(--accent); font-weight: 600; }
+    .cell-dim .cell-text { fill: rgba(132, 119, 105, 0.5); }
+    .cell-dim .cell-bg { fill: transparent; }
+    .cell-zero .cell-bg { fill: transparent; }
+    .cell-zero .cell-text { fill: rgba(132, 119, 105, 0.4); }
+    .cell-neg .cell-bg { fill: rgba(180, 60, 60, 0.12); stroke: rgba(180, 60, 60, 0.5); stroke-width: 2; }
+    .cell-neg .cell-text { fill: #B43C3C; font-weight: 600; }
+    .cell-pivot .cell-bg { fill: rgba(212, 140, 112, 0.3); stroke: var(--accent); stroke-width: 2.5; }
+    .cell-pivot .cell-text { fill: var(--text); font-weight: 700; }
+    .row-label { font-family: 'Lora', serif; font-size: 13px; fill: rgba(132, 119, 105, 0.8); dominant-baseline: central; }
+    .bracket { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-linecap: round; opacity: 0.6; }
+    .det-badge { font-family: 'Lora', serif; font-size: 14px; fill: var(--accent); font-weight: 600; text-anchor: middle; }
+
+    /* ── Big formula stepper ───────────────────────────────── */
+    .perm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; width: 100%; margin-top: 0.5rem; }
+    .perm-card { background: transparent; border: 1px solid rgba(132, 119, 105, 0.2); border-radius: 8px; padding: 0.6rem 0.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; transition: background 0.3s, border-color 0.3s, transform 0.2s; }
+    .perm-card.active { background: rgba(212, 140, 112, 0.08); border-color: var(--accent); transform: scale(1.03); }
+    .perm-card.summed { opacity: 0.6; transform: scale(0.98); }
+    .perm-card.summed.included { opacity: 0.9; }
+    .perm-label { font-size: 0.75rem; color: var(--text); opacity: 0.8; font-family: 'Lora', serif; }
+    .perm-term { font-size: 0.85rem; font-weight: 600; font-family: 'Lora', serif; }
+    .perm-term.pos { color: #2A7A4F; }
+    .perm-term.neg { color: #B43C3C; }
+    .perm-term.zero { color: rgba(132, 119, 105, 0.5); }
+    .running-sum { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 600; text-align: center; color: var(--accent); min-height: 1.8rem; transition: opacity 0.25s; margin-top: 0.5rem; }
+  </style>
+
+  <script>
+    (() => {
+      const theme = localStorage.getItem("theme") || "light";
+      if (theme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      }
+    })();
+  </script>
+
+  <script src="../../../../../js/base.js" defer></script>
+  <script src="../../../../../js/components.js" defer></script>
+  <script src="../../../../../js/article_components.js" defer></script>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: {
+        fontCache: "global"
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta property="og:title" content="Properties of Determinants">
+  <meta property="og:description" content="Understanding the determinant: its core properties, what it tells us about invertibility, how to compute it via elimination, and its connection to area and volume.">
+  <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/mathematics/linear-algebra/determinants/01.properties/">
+  <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-7c4a91d2.png?v=b00764">
+  <meta name="twitter:card" content="summary_large_image">
+
+    <style id="mobile-view-styles">
+        img, video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        iframe:not(.giscus-frame) {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        @media screen and (max-width: 768px) {
+            body, article, .content, main {
+                width: 100% !important;
+                max-width: 100vw !important;
+                padding: 10px 15px !important;
+                box-sizing: border-box !important;
+            }
+            /* FIXED: Do NOT put overflow-x:hidden on body — it clips Giscus iframe.
+               Instead, clip only the layout wrappers. */
+            article, .content, main, .page-wrap, .reading-container, .reading-content {
+                overflow-x: hidden !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+  <div id="global-nav" data-root="../../../../../"></div>
+
+  <main class="page-wrap">
+    <div class="article-layout">
+      <div class="reading-container">
+        <article class="reading-content">
+
+          <div id="article-header"></div>
+          <section class="article-body">
+
+<h2>A Single Number That Says Everything</h2>
+
+<p>
+  We now make a significant turn. Up to this point, much of our work has involved rectangular matrices: projections, least squares, column spaces. From here on, we focus on square matrices, and the first major topic is the <strong>determinant</strong>.
+</p>
+
+<p>
+  The determinant is a single number associated with any square matrix $A$. We write it as $\det A$ or $|A|$. What makes this number so remarkable is how much it encodes. It can tell you, immediately and definitively, whether a matrix is invertible. It connects to the pivots from elimination, to volumes in geometry, and it will soon be the gateway to eigenvalues.
+</p>
+
+<p>
+  For a $2 \times 2$ matrix, you already know the formula:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} a & b \\ c & d \end{bmatrix} = ad - bc$$
+</div>
+
+<p>
+  Rather than immediately trying to extend this formula to larger matrices (which gets complicated fast), we will take a more powerful approach: we define the determinant through a short list of fundamental properties. Everything else follows from these properties alone.
+</p>
+
+
+<h2>The Three Defining Properties</h2>
+
+<p>
+  These three rules completely determine the determinant of any square matrix. Rules 4 through 10 are all consequences of these three.
+</p>
+
+<h3>Property 1: The Identity Has Determinant 1</h3>
+
+<p>
+  The most natural starting point: $\det I = 1$. The identity matrix represents the simplest possible transformation—doing nothing—and its determinant reflects that with the simplest possible value.
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = 1$$
+</div>
+
+<p>
+  Geometrically, think of the identity as a unit square. Its "area" is 1. The determinant, as we will see, is deeply connected to volume.
+</p>
+
+<h3>Property 2: Row Exchanges Reverse the Sign</h3>
+
+<p>
+  When you exchange two rows of a matrix, the determinant flips sign: from positive to negative, or from negative to positive.
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} c & d \\ a & b \end{bmatrix} = -\det \begin{bmatrix} a & b \\ c & d \end{bmatrix}$$
+</div>
+
+<p>
+  This rule is why permutation matrices have determinant $+1$ or $-1$. Starting from the identity (determinant $+1$), each row exchange flips the sign. An even number of swaps gives $+1$; an odd number gives $-1$.
+</p>
+
+<div class="anim-wrap" id="swap-anim">
+  <div class="anim-header">
+    <span>Row exchange · det sign flip</span>
+    <span class="step-counter" id="swap-step-label">Step 1 of 2</span>
+  </div>
+  <div class="anim-body">
+    <svg class="mx-svg" id="swap-svg" width="420" height="150" viewBox="0 0 420 150">
+      <g id="swap-matrix"></g>
+      <text id="swap-det" x="210" y="135" class="det-badge" text-anchor="middle"></text>
+    </svg>
+    <div class="anim-desc" id="swap-desc">Start: matrix A with det = ad − bc. Row 1 = (a,b), Row 2 = (c,d).</div>
+    <div class="anim-controls">
+      <button class="anim-btn" id="swap-prev">&#8592;</button>
+      <div class="progress-dots" id="swap-dots"></div>
+      <button class="anim-btn" id="swap-next">&#8594;</button>
+    </div>
+  </div>
+</div>
+
+<h3>Property 3: Linearity in Each Row</h3>
+
+<p>
+  The determinant is a linear function of each row, taken separately (with all other rows held fixed). This has two parts:
+</p>
+
+<ol>
+  <li>
+    <strong>Scaling:</strong> Multiplying one row by $t$ multiplies the determinant by $t$.
+    <div class="math-display">
+      $$\det \begin{bmatrix} ta & tb \\ c & d \end{bmatrix} = t \cdot \det \begin{bmatrix} a & b \\ c & d \end{bmatrix}$$
+    </div>
+  </li>
+  <li>
+    <strong>Additivity:</strong> If a row is a sum, the determinant splits into a sum.
+    <div class="math-display">
+      $$\det \begin{bmatrix} a + a' & b + b' \\ c & d \end{bmatrix} = \det \begin{bmatrix} a & b \\ c & d \end{bmatrix} + \det \begin{bmatrix} a' & b' \\ c & d \end{bmatrix}$$
+    </div>
+  </li>
+</ol>
+
+<p>
+  A critical warning: linearity does <em>not</em> mean $\det(A + B) = \det A + \det B$. That is false. It means the determinant is linear in <em>one row at a time</em>, holding the rest fixed. For example, $\det 2I = 2^n$, not $2 \cdot \det I$—because scaling every row multiplies the determinant $n$ times over.
+</p>
+
+<div class="math-box key-box">
+  <div class="math-box-label">The Three Defining Properties</div>
+  <div class="math-box-body">
+    <p style="margin: 0.3em 0;"><strong>1.</strong> $\det I = 1$</p>
+    <p style="margin: 0.3em 0;"><strong>2.</strong> Row exchange $\Rightarrow$ sign flip</p>
+    <p style="margin: 0.3em 0;"><strong>3.</strong> Linear in each row separately</p>
+  </div>
+</div>
+
+
+<h2>Seven Consequences</h2>
+
+<p>
+  From those three rules, we can derive everything else we need to know.
+</p>
+
+<h3>Property 4: Equal Rows Give Zero</h3>
+
+<p>
+  If two rows of $A$ are identical, then $\det A = 0$. Here is a concrete example:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 3 & 1 \\ 3 & 1 \end{bmatrix} = (3)(1) - (1)(3) = 0$$
+</div>
+
+<p>
+  The proof works by contradiction using Property 2. Start with a matrix that has two identical rows, and call its determinant $D$. Now swap those two rows. Because they are identical, the matrix does not change at all — so the determinant must still be $D$. But Property 2 says a row exchange reverses the sign, giving us $-D$. We need $D = -D$, which forces $D = 0$.
+</p>
+
+<p>
+  We can write this out explicitly for a $2 \times 2$ case. Let the two rows both equal $(a, b)$:
+</p>
+
+<div class="math-display">
+  $$\underbrace{\det \begin{bmatrix} a & b \\ a & b \end{bmatrix}}_{= D}
+  \xrightarrow{\text{swap rows}}
+  \underbrace{\det \begin{bmatrix} a & b \\ a & b \end{bmatrix}}_{\text{matrix unchanged}}
+  = \underbrace{-D}_{\text{sign flipped by Property 2}}
+  \implies D = 0$$
+</div>
+
+<div class="anim-wrap" id="eq-anim">
+  <div class="anim-header">
+    <span>Equal rows · det = 0</span>
+    <span class="step-counter" id="eq-step-label">Step 1 of 3</span>
+  </div>
+  <div class="anim-body">
+    <svg class="mx-svg" id="eq-svg" width="420" height="150" viewBox="0 0 420 150">
+      <g id="eq-matrix"></g>
+      <text id="eq-conclusion" x="210" y="140" class="det-badge" font-size="14" text-anchor="middle" opacity="0"></text>
+    </svg>
+    <div class="anim-desc" id="eq-desc">Both rows are identical: (3, 1). Call the determinant D.</div>
+    <div class="anim-controls">
+      <button class="anim-btn" id="eq-prev">&#8592;</button>
+      <div class="progress-dots" id="eq-dots"></div>
+      <button class="anim-btn" id="eq-next">&#8594;</button>
+    </div>
+  </div>
+</div>
+
+<p>
+  A matrix with two identical rows is singular — its rows are linearly dependent, so it cannot be inverted. Property 4 is the determinant confirming that fact.
+</p>
+
+
+<h3>Property 5: Elimination Doesn't Change the Determinant</h3>
+
+<p>
+  Subtracting a multiple of one row from another row leaves the determinant unchanged. This is what makes Gaussian elimination so useful for computing determinants.
+</p>
+
+<p>
+  Let's see it with numbers. Start with:
+</p>
+
+<div class="math-display">
+  $$A = \begin{bmatrix} 2 & 3 \\ 4 & 5 \end{bmatrix}, \qquad \det A = (2)(5) - (3)(4) = -2$$
+</div>
+
+<p>
+  Subtract $2$ times row 1 from row 2 — a standard elimination step:
+</p>
+
+<div class="math-display">
+  $$\begin{bmatrix} 2 & 3 \\ 4 - 2(2) & 5 - 2(3) \end{bmatrix} = \begin{bmatrix} 2 & 3 \\ 0 & -1 \end{bmatrix}, \qquad \det = (2)(-1) - (3)(0) = -2 \checkmark$$
+</div>
+
+<p>
+  The determinant is unchanged. To see why this always works, apply Property 3 to split the modified row into two separate matrices:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} a & b \\ c - \ell a & d - \ell b \end{bmatrix}
+  = \det \begin{bmatrix} a & b \\ c & d \end{bmatrix}
+  + \det \begin{bmatrix} a & b \\ -\ell a & -\ell b \end{bmatrix}$$
+</div>
+
+<p>
+  The second matrix has its second row equal to $-\ell$ times its first row — they are proportional, which means the two rows are effectively identical (up to a scalar). By Property 4, that determinant is zero. We are left with exactly the original determinant.
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} a & b \\ -\ell a & -\ell b \end{bmatrix}
+  \xrightarrow{\text{factor } -\ell \text{ from row 2 (Property 3)}}
+  -\ell \cdot \det \begin{bmatrix} a & b \\ a & b \end{bmatrix}
+  = -\ell \cdot 0 = 0$$
+</div>
+
+<div class="anim-wrap" id="elim-anim">
+  <div class="anim-header">
+    <span>Elimination · det unchanged</span>
+    <span class="step-counter" id="elim-step-label">Step 1 of 4</span>
+  </div>
+  <div class="anim-body">
+    <svg class="mx-svg" id="elim-svg" width="440" height="190" viewBox="0 0 440 190">
+      <g id="elim-matrix"></g>
+      <text id="elim-det" x="220" y="150" class="det-badge" text-anchor="middle" opacity="0"></text>
+      <text id="elim-op" x="220" y="175" class="row-label" text-anchor="middle" opacity="0" font-style="italic"></text>
+    </svg>
+    <div class="anim-desc" id="elim-desc">Start: A = [[2,3],[4,5]]. det A = (2)(5)−(3)(4) = −2.</div>
+    <div class="anim-controls">
+      <button class="anim-btn" id="elim-prev">&#8592;</button>
+      <div class="progress-dots" id="elim-dots"></div>
+      <button class="anim-btn" id="elim-next">&#8594;</button>
+    </div>
+  </div>
+</div>
+
+<p>
+  This is a hugely practical result: we can run Gaussian elimination freely without disturbing the determinant — the only exception being row <em>exchanges</em>, which flip the sign by Property 2.
+</p>
+
+
+<h3>Property 6: A Row of Zeros Gives Zero</h3>
+
+<p>
+  If any row of $A$ is all zeros, then $\det A = 0$. For example:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 5 & 7 \\ 0 & 0 \end{bmatrix} = (5)(0) - (7)(0) = 0$$
+</div>
+
+<p>
+  And in $3 \times 3$, it doesn't matter which row is zero:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 3 & 1 & 4 \\ 0 & 0 & 0 \\ 2 & 7 & 1 \end{bmatrix} = 0$$
+</div>
+
+<p>
+  The proof follows directly from Property 3. A zero row is just the zero vector — scaling any row by $t = 0$ turns it into a zero row and multiplies the determinant by $0$:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} a & b \\ 0 & 0 \end{bmatrix}
+  = \det \begin{bmatrix} a & b \\ t \cdot 0 & t \cdot 0 \end{bmatrix}
+  \xrightarrow{\text{Property 3, factor } t \text{ from row 2}}
+  t \cdot \det \begin{bmatrix} a & b \\ 0 & 0 \end{bmatrix}$$
+</div>
+
+<p>
+  For this to hold for every $t$, the determinant must be zero. A matrix with a zero row is clearly singular — the rows cannot span the whole space — and Property 6 reflects exactly that.
+</p>
+
+
+<h3>Property 7: Triangular Matrices — Product of Diagonal</h3>
+
+<p>
+  For any triangular matrix, the determinant is the product of the diagonal entries alone. The off-diagonal entries do not matter:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 3 & 7 & 2 \\ 0 & 5 & 8 \\ 0 & 0 & 4 \end{bmatrix} = 3 \cdot 5 \cdot 4 = 60$$
+</div>
+
+<p>
+  Here is why. Use Property 5 (elimination) to zero out every entry above the diagonal — this does not change the determinant. After elimination, we have a diagonal matrix:
+</p>
+
+<div class="math-display">
+  $$\begin{bmatrix} 3 & 7 & 2 \\ 0 & 5 & 8 \\ 0 & 0 & 4 \end{bmatrix}
+  \xrightarrow{\text{eliminate above diagonal (Property 5)}}
+  \begin{bmatrix} 3 & 0 & 0 \\ 0 & 5 & 0 \\ 0 & 0 & 4 \end{bmatrix}$$
+</div>
+
+<p>
+  Now factor each diagonal entry out of its row using Property 3:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 3 & 0 & 0 \\ 0 & 5 & 0 \\ 0 & 0 & 4 \end{bmatrix}
+  = 3 \cdot 5 \cdot 4 \cdot \det \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}
+  = 60 \cdot 1 = 60$$
+</div>
+
+<p>
+  The last step uses Property 1: $\det I = 1$. If any diagonal entry is zero, then that pivot is missing, elimination produces a zero row, and Property 6 gives $\det = 0$. So the formula $d_1 \cdot d_2 \cdots d_n$ handles both cases.
+</p>
+
+
+<h3>Property 8: Determinant as the Invertibility Test</h3>
+
+<p>
+  This is the most important application of properties 1–7. A square matrix $A$ is invertible if and only if $\det A \neq 0$.
+</p>
+
+<div class="math-box key-box">
+  <div class="math-box-label">The Invertibility Test</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      $$A \text{ is invertible} \iff \det A \neq 0$$
+    </div>
+  </div>
+</div>
+
+<p>
+  Let's see both cases with a $2 \times 2$ matrix. First, an invertible matrix:
+</p>
+
+<div class="math-display">
+  $$A = \begin{bmatrix} 2 & 1 \\ 3 & 4 \end{bmatrix}
+  \xrightarrow{R_2 \leftarrow R_2 - \frac{3}{2}R_1}
+  U = \begin{bmatrix} 2 & 1 \\ 0 & \frac{5}{2} \end{bmatrix}, \qquad
+  \det A = 2 \cdot \tfrac{5}{2} = 5 \neq 0 \quad \checkmark \text{ invertible}$$
+</div>
+
+<p>
+  Now a singular matrix — one where the rows are proportional:
+</p>
+
+<div class="math-display">
+  $$B = \begin{bmatrix} 2 & 4 \\ 1 & 2 \end{bmatrix}
+  \xrightarrow{R_2 \leftarrow R_2 - \frac{1}{2}R_1}
+  \begin{bmatrix} 2 & 4 \\ 0 & 0 \end{bmatrix}, \qquad
+  \det B = 2 \cdot 0 = 0 \quad \Rightarrow \text{ singular}$$
+</div>
+
+<p>
+  The connection to elimination is clean. If $A$ is invertible, elimination produces $n$ nonzero pivots $d_1, \ldots, d_n$. By Property 5, elimination didn't change $\det A$, so:
+</p>
+
+<div class="math-display">
+  $$\det A = \det U = d_1 \cdot d_2 \cdots d_n \neq 0$$
+</div>
+
+<p>
+  If $A$ is singular, elimination produces at least one zero row. By Property 6, $\det U = 0$, and therefore $\det A = 0$.
+</p>
+
+
+<h3>Property 9: The Product Rule</h3>
+
+<p>
+  The determinant of a product is the product of the determinants:
+</p>
+
+<div class="math-display">
+  $$\det AB = (\det A)(\det B)$$
+</div>
+
+<p>
+  Let's verify with a concrete example. Take:
+</p>
+
+<div class="math-display">
+  $$A = \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix}, \quad \det A = 3
+  \qquad
+  B = \begin{bmatrix} 4 & 1 \\ 1 & 2 \end{bmatrix}, \quad \det B = (4)(2)-(1)(1) = 7$$
+</div>
+
+<div class="math-display">
+  $$AB = \begin{bmatrix} 1 & 2 \\ 0 & 3 \end{bmatrix}\begin{bmatrix} 4 & 1 \\ 1 & 2 \end{bmatrix}
+  = \begin{bmatrix} 6 & 5 \\ 3 & 6 \end{bmatrix}, \qquad
+  \det(AB) = (6)(6)-(5)(3) = 21 = 3 \cdot 7 \checkmark$$
+</div>
+
+<p>
+  This is a striking fact. Note that $\det(A + B) \neq \det A + \det B$ in general — but the <em>product</em> rule holds perfectly. Some immediate consequences fall right out:
+</p>
+
+<div class="math-display">
+  $$A \cdot A^{-1} = I \implies (\det A)(\det A^{-1}) = 1 \implies \det A^{-1} = \frac{1}{\det A}$$
+</div>
+
+<div class="math-display">
+  $$\det(2A) = 2^n \det A \quad \text{(not } 2\det A\text{)}$$
+</div>
+
+<p>
+  That last point comes from Property 3: scaling every one of the $n$ rows by $2$ multiplies the determinant by $2$ each time, giving $2^n$ overall. For a $2 \times 2$ matrix with $\det A = 3$:
+</p>
+
+<div class="math-display">
+  $$\det(2A) = 2^2 \cdot 3 = 12, \qquad \text{not } 2 \cdot 3 = 6$$
+</div>
+
+
+<h3>Property 10: Transpose Preserves the Determinant</h3>
+
+<p>
+  The transpose of a matrix has the same determinant:
+</p>
+
+<div class="math-display">
+  $$\det A^T = \det A$$
+</div>
+
+<p>
+  We can verify this directly for a $2 \times 2$ matrix. The transpose swaps the off-diagonal entries, but the formula $ad - bc$ is symmetric in those positions:
+</p>
+
+<div class="math-display">
+  $$A = \begin{bmatrix} 1 & 2 \\ 5 & 6 \end{bmatrix}, \quad \det A = (1)(6)-(2)(5) = -4$$
+</div>
+
+<div class="math-display">
+  $$A^T = \begin{bmatrix} 1 & 5 \\ 2 & 6 \end{bmatrix}, \quad \det A^T = (1)(6)-(5)(2) = -4 \checkmark$$
+</div>
+
+<p>
+  For larger matrices, the proof runs through $LU$ factorization. Write $A = LU$ (assuming no row exchanges for simplicity). Transposing gives $A^T = U^T L^T$. Now apply Property 9 (product rule) to each side:
+</p>
+
+<div class="math-display">
+  $$\det A = \det L \cdot \det U$$
+  $$\det A^T = \det U^T \cdot \det L^T$$
+</div>
+
+<p>
+  Both $L$ and $L^T$ are triangular with 1s on the diagonal, so by Property 7: $\det L = \det L^T = 1$. And $U$ and $U^T$ share the same diagonal entries, so by Property 7 again: $\det U = \det U^T$. Therefore $\det A = \det A^T$.
+</p>
+
+<p>
+  The consequence is immediate and powerful: <em>every rule that applies to rows applies equally to columns</em>. Here are three column facts that follow directly:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 0 & 3 \\ 0 & 7 \end{bmatrix} = 0
+  \qquad \text{(zero column } \Rightarrow \text{ zero determinant)}$$
+</div>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 3 & 1 \\ 7 & 5 \end{bmatrix} = 8, \qquad
+  \det \begin{bmatrix} 1 & 3 \\ 5 & 7 \end{bmatrix} = -8
+  \qquad \text{(swapping two columns flips sign)}$$
+</div>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 2 & 3 \\ 4 & 2 \end{bmatrix} = \det \begin{bmatrix} 2 & 3t \\ 4 & 2t \end{bmatrix} \cdot \frac{1}{t}
+  \qquad \text{(determinant is linear in each column)}$$
+</div>
+
+
+<h2>Three Ways to Compute the Determinant</h2>
+
+<p>
+  With the ten properties in hand, we now have three distinct strategies for computing $\det A$. They are not competing methods—they are three different windows into the same number. To make the comparison concrete, we will run all three on the same matrix:
+</p>
+
+<div class="math-display">
+  $$A = \begin{bmatrix} 2 & 1 & 3 \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}$$
+</div>
+
+<p>
+  We chose this matrix because it is already upper triangular in the first column, which makes the elimination steps clean and lets us focus on the ideas rather than arithmetic. The answer we are aiming for is $\det A = 36$.
+</p>
+
+
+<h3>Method 1: The Pivot Formula</h3>
+
+<p>
+  This is how computers find determinants of large matrices. The strategy is to run Gaussian elimination on $A$ and read off the pivots from the diagonal of the resulting upper triangular matrix $U$. The determinant is then the product of those pivots, multiplied by $+1$ or $-1$ depending on whether an even or odd number of row exchanges were needed.
+</p>
+
+<p>
+  <strong>Why does this work?</strong> Property 5 tells us that subtracting a multiple of one row from another does not change the determinant. So elimination does not change the value of $\det A$—it only reshapes the matrix into something triangular. Then Property 7 gives us the determinant of a triangular matrix for free: it's just the product of the diagonal entries.
+</p>
+
+<p>
+  Let's eliminate. The matrix already has zeros below the first pivot, so we go straight to eliminating the $(3,2)$ entry. Subtract $\frac{1}{2}$ of row 2 from row 3:
+</p>
+
+<div class="math-display">
+  $$A = \begin{bmatrix} 2 & 1 & 3 \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}
+  \xrightarrow{R_3 \leftarrow R_3 - \frac{1}{2}R_2}
+  U = \begin{bmatrix} 2 & 1 & 3 \\ 0 & 4 & 1 \\ 0 & 0 & \frac{9}{2} \end{bmatrix}$$
+</div>
+
+<p>
+  No row exchanges were needed, so the sign is $+1$. The three pivots sitting on the diagonal of $U$ are $2$, $4$, and $\frac{9}{2}$. Their product is the determinant:
+</p>
+
+<div class="math-display">
+  $$\det A = (+1) \times 2 \times 4 \times \frac{9}{2} = 36$$
+</div>
+
+<div class="anim-wrap" id="pivot-anim">
+  <div class="anim-header">
+    <span>Pivot formula · elimination on 3×3</span>
+    <span class="step-counter" id="pivot-step-label">Step 1 of 5</span>
+  </div>
+  <div class="anim-body">
+    <svg class="mx-svg" id="pivot-svg" width="440" height="210" viewBox="0 0 440 210">
+      <g id="pivot-matrix"></g>
+      <text id="pivot-det" x="220" y="170" class="det-badge" text-anchor="middle" opacity="0"></text>
+      <text id="pivot-op" x="220" y="195" class="row-label" text-anchor="middle" opacity="0"></text>
+    </svg>
+    <div class="anim-desc" id="pivot-desc">Start: A = [[2,1,3],[0,4,1],[0,2,5]]. Goal: find the 3 pivots.</div>
+    <div class="anim-controls">
+      <button class="anim-btn" id="pivot-prev">&#8592;</button>
+      <div class="progress-dots" id="pivot-dots"></div>
+      <button class="anim-btn" id="pivot-next">&#8594;</button>
+    </div>
+  </div>
+</div>
+
+<div class="math-box key-box">
+  <div class="math-box-label">Pivot Formula</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      $$\det A = (\pm 1) \times d_1 \times d_2 \times \cdots \times d_n$$
+    </div>
+    <p style="margin: 0.5em 0 0 0;">where $d_1, \ldots, d_n$ are the pivots of $U$ and the sign tracks row exchanges.</p>
+  </div>
+</div>
+
+
+<h3>Method 2: The Big Formula</h3>
+
+<p>
+  The big formula is the complete, explicit expression for the determinant as a sum over all permutations. It trades computational efficiency for total transparency — every single term is visible and accounted for. To understand where it comes from, we need to watch Property 3 (linearity in each row) do its work.
+</p>
+
+<h4>Step 1: Expand row 1 using linearity</h4>
+
+<p>
+  Every row of $A$ can be written as a sum of contributions from individual columns. Property 3 says we can split the determinant on any one row. Applied to row 1 of our matrix:
+</p>
+
+<div class="math-display">
+  $$A = \begin{bmatrix} \mathbf{2} & \mathbf{1} & \mathbf{3} \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}$$
+</div>
+
+<p>
+  Row 1 is $[2, 1, 3]$. We split this into its three individual column contributions — each a matrix that keeps only one nonzero entry in row 1:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 2 & 1 & 3 \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}
+  =
+  \det \begin{bmatrix} 2 & 0 & 0 \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}
+  +
+  \det \begin{bmatrix} 0 & 1 & 0 \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}
+  +
+  \det \begin{bmatrix} 0 & 0 & 3 \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}$$
+</div>
+
+<p>
+  We now have three determinants to handle. Apply the same split to row 2 in each of them — row 2 is $[0, 4, 1]$, so it contributes entries in columns 1, 2, and 3:
+</p>
+
+<h4>Step 2: Expand row 2 in each piece — the rule that kills repeats</h4>
+
+<p>
+  Focus on the first piece, where row 1 already occupies column 1. When we try to split row 2, we get three sub-terms. But any sub-term that also puts row 2's entry in column 1 creates a matrix with two nonzero entries in column 1 — which means two rows are proportional and the determinant is zero by Property 4. So column 1 is already claimed by row 1; row 2 must choose from columns 2 or 3. The same logic applies to all three pieces:
+</p>
+
+<div class="math-display">
+  $$\det \begin{bmatrix} 2 & 0 & 0 \\ 0 & 4 & 1 \\ 0 & 2 & 5 \end{bmatrix}
+  \;\longrightarrow\;
+  \det \begin{bmatrix} 2 & 0 & 0 \\ 0 & 4 & 0 \\ 0 & 2 & 5 \end{bmatrix}
+  +
+  \det \begin{bmatrix} 2 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & 2 & 5 \end{bmatrix}$$
+</div>
+
+<p>
+  After applying this expansion to all three pieces from Step 1, we end up with $3 \times 2 = 6$ matrices, each with exactly one nonzero entry per row, from a different column. Row 3 then has no choice — only one column remains unclaimed. This is why the total is exactly $3! = 6$ terms.
+</p>
+
+<aside class="xref-callout">
+  <div class="xref-callout-header">
+    <span class="xref-callout-icon">↗</span>
+    <span class="xref-callout-label">From Counting: Why $n!$?</span>
+  </div>
+  <div class="xref-callout-body">
+    <p>
+      The count $3! = 6$ is not a coincidence — it is the number of ways to arrange 3 distinct items in order, which is exactly a <strong>permutation</strong>. Row 1 has 3 column choices, row 2 has 2 remaining, row 3 has 1. By the multiplication rule: $3 \times 2 \times 1 = 3! = 6$.
+    </p>
+    <p>
+      For an $n \times n$ matrix the same logic gives $n \times (n-1) \times \cdots \times 1 = n!$ terms. For $n = 10$ that is already $3{,}628{,}800$ — which is why the big formula is never used for computation.
+    </p>
+    <details class="xref-excerpt">
+      <summary>Read the counting argument in full</summary>
+      <div class="xref-excerpt-body">
+        <p>
+          <strong>Permutations (Sampling Without Replacement, Order Matters)</strong>
+        </p>
+        <p>
+          Imagine choosing which column each row of the matrix "claims." Row 1 picks first: it has $n$ options. Row 2 picks next, but one column is already claimed, so it has $n - 1$ options. Row 3 has $n - 2$, and so on. By the <strong>Multiplication Rule</strong> — if experiment A has $a$ outcomes and experiment B has $b$ outcomes, the compound experiment has $ab$ outcomes — the total number of complete column assignments is:
+        </p>
+        <div class="math-display">
+          $$n \times (n-1) \times (n-2) \times \cdots \times 1 = n!$$
+        </div>
+        <p>
+          This is a <strong>permutation</strong> of $n$ items taken $n$ at a time — written ${}^nP_n$ — where order matters and no column can be reused. Using the general permutation formula ${}^nP_k = \frac{n!}{(n-k)!}$ with $k = n$ gives $\frac{n!}{0!} = n!$.
+        </p>
+        <p>
+          For $n = 3$: $\;3! = 6$. For $n = 4$: $\;4! = 24$. For $n = 10$: $\;10! = 3{,}628{,}800$.
+        </p>
+        <a class="xref-link" href="../../../../../Library/03.stats/01.foundations-of-probability/01.probability-and-counting.html#permutations">Read Permutations in full → Probability &amp; Counting</a>
+      </div>
+    </details>
+  </div>
+</aside>
+
+<h4>Step 3: The 6 permutations — each picks one entry per row, no column repeated</h4>
+
+<p>
+  Here are all six resulting matrices. Each has one highlighted entry per row; those three entries — one from each row, never sharing a column — are exactly the product we multiply for that term. The column positions chosen are written as $(\sigma(1), \sigma(2), \sigma(3))$ below each matrix.
+</p>
+
+<p><strong>Term 1:</strong> Row 1 → col 1, Row 2 → col 2, Row 3 → col 3</p>
+<div class="math-display">
+  $$\begin{bmatrix} \mathbf{2} & 0 & 0 \\ 0 & \mathbf{4} & 0 \\ 0 & 0 & \mathbf{5} \end{bmatrix}
+  \qquad
+  \sigma = (1,2,3), \quad \text{0 swaps} \Rightarrow \text{sign} = +$$
+  $$\text{Term} = (+1)(2)(4)(5) = +40$$
+</div>
+
+<p><strong>Term 2:</strong> Row 1 → col 1, Row 2 → col 3, Row 3 → col 2</p>
+<div class="math-display">
+  $$\begin{bmatrix} \mathbf{2} & 0 & 0 \\ 0 & 0 & \mathbf{1} \\ 0 & \mathbf{2} & 0 \end{bmatrix}
+  \qquad
+  \sigma = (1,3,2), \quad \text{1 swap} \Rightarrow \text{sign} = -$$
+  $$\text{Term} = (-1)(2)(1)(2) = -4$$
+</div>
+
+<p><strong>Term 3:</strong> Row 1 → col 2, Row 2 → col 1, Row 3 → col 3</p>
+<div class="math-display">
+  $$\begin{bmatrix} 0 & \mathbf{1} & 0 \\ \mathbf{0} & 0 & 0 \\ 0 & 0 & \mathbf{5} \end{bmatrix}
+  \qquad
+  \sigma = (2,1,3), \quad \text{1 swap} \Rightarrow \text{sign} = -$$
+  $$\text{Term} = (-1)(1)(0)(5) = 0$$
+</div>
+
+<p><strong>Term 4:</strong> Row 1 → col 2, Row 2 → col 3, Row 3 → col 1</p>
+<div class="math-display">
+  $$\begin{bmatrix} 0 & \mathbf{1} & 0 \\ 0 & 0 & \mathbf{1} \\ \mathbf{0} & 0 & 0 \end{bmatrix}
+  \qquad
+  \sigma = (2,3,1), \quad \text{2 swaps} \Rightarrow \text{sign} = +$$
+  $$\text{Term} = (+1)(1)(1)(0) = 0$$
+</div>
+
+<p><strong>Term 5:</strong> Row 1 → col 3, Row 2 → col 1, Row 3 → col 2</p>
+<div class="math-display">
+  $$\begin{bmatrix} 0 & 0 & \mathbf{3} \\ \mathbf{0} & 0 & 0 \\ 0 & \mathbf{2} & 0 \end{bmatrix}
+  \qquad
+  \sigma = (3,1,2), \quad \text{2 swaps} \Rightarrow \text{sign} = +$$
+  $$\text{Term} = (+1)(3)(0)(2) = 0$$
+</div>
+
+<p><strong>Term 6:</strong> Row 1 → col 3, Row 2 → col 2, Row 3 → col 1</p>
+<div class="math-display">
+  $$\begin{bmatrix} 0 & 0 & \mathbf{3} \\ 0 & \mathbf{4} & 0 \\ \mathbf{0} & 0 & 0 \end{bmatrix}
+  \qquad
+  \sigma = (3,2,1), \quad \text{3 swaps} \Rightarrow \text{sign} = -$$
+  $$\text{Term} = (-1)(3)(4)(0) = 0$$
+</div>
+
+<h4>Step 4: Add the six terms</h4>
+
+<div class="math-display">
+  $$\det A = \underbrace{+40}_{\sigma=(1,2,3)}
+           \underbrace{-4}_{\sigma=(1,3,2)}
+           \underbrace{+0}_{\sigma=(2,1,3)}
+           \underbrace{+0}_{\sigma=(2,3,1)}
+           \underbrace{+0}_{\sigma=(3,1,2)}
+           \underbrace{+0}_{\sigma=(3,2,1)}
+           = 36 \checkmark$$
+</div>
+
+<p>
+  Four of the six terms are zero because they involve $a_{21} = 0$ or $a_{31} = 0$ — the zeros in the first column of $A$. This is not a coincidence: it is exactly the cancellation that makes the pivot method (Method 1) so efficient. Elimination is essentially doing this same accounting, but skipping all the zero terms automatically.
+</p>
+
+<h4>How the sign works: counting column swaps</h4>
+
+<p>
+  Each permutation $\sigma = (\sigma(1), \sigma(2), \sigma(3))$ tells you which column each row contributes. The sign is $+1$ if the sequence $(\sigma(1), \sigma(2), \sigma(3))$ can be sorted back to $(1,2,3)$ with an <em>even</em> number of adjacent swaps, and $-1$ if it takes an <em>odd</em> number. For example:
+</p>
+
+<div class="math-display">
+  $$\sigma = (1, 3, 2): \quad (1, \mathbf{3}, \mathbf{2}) \xrightarrow{\text{swap positions 2,3}} (1, 2, 3) \quad \Rightarrow 1 \text{ swap} \Rightarrow \text{sign} = -1$$
+</div>
+
+<div class="math-display">
+  $$\sigma = (2, 3, 1): \quad (\mathbf{2}, \mathbf{3}, 1) \xrightarrow{\text{swap}} (1, 3, \mathbf{2}) \cdot\text{wait} \implies
+  (2,3,1) \xrightarrow{\text{swap 1,2}} (3,2,1) \xrightarrow{\text{swap 2,3}} (3,1,2) \xrightarrow{\text{swap 1,2}} (1,3,2) \xrightarrow{\text{swap 2,3}} (1,2,3)$$
+</div>
+
+<p>
+  Wait — a cleaner way to count: for $\sigma = (2,3,1)$, the number of <em>inversions</em> (pairs $(i,j)$ where $i < j$ but $\sigma(i) > \sigma(j)$) is 2: the pair $(2,1)$ and $(3,1)$. Two inversions is even, so the sign is $+1$. You can always count inversions as a shortcut instead of simulating swaps.
+</p>
+
+<div class="anim-wrap" id="big-anim">
+  <div class="anim-header">
+    <span>Big formula stepper</span>
+    <span class="step-counter" id="big-step-label">Step 1 of 8</span>
+  </div>
+  <div class="anim-body">
+    <svg class="mx-svg" id="big-svg" width="500" height="145" viewBox="0 0 500 145">
+      <g id="big-matrix"></g>
+      <text id="col1-lbl" x="200" y="22" class="row-label" text-anchor="middle">col 1</text>
+      <text id="col2-lbl" x="250" y="22" class="row-label" text-anchor="middle">col 2</text>
+      <text id="col3-lbl" x="300" y="22" class="row-label" text-anchor="middle">col 3</text>
+     <text id="big-sigma" x="350" y="75" class="det-badge" style="text-anchor: start;" font-size="12"></text>
+<text id="big-sign-txt" x="350" y="95" class="det-badge" style="text-anchor: start;" font-size="12"></text>
+<text id="big-term-txt" x="350" y="115" class="det-badge" style="text-anchor: start;" font-size="12"></text>
+    </svg>
+    <div class="perm-grid" id="perm-cards"></div>
+    <div class="running-sum" id="running-sum"></div>
+    <div class="anim-desc" id="big-desc">Matrix A with det = 36. Each permutation selects one highlighted entry per row.</div>
+    <div class="anim-controls">
+      <button class="anim-btn" id="big-prev">&#8592;</button>
+      <div class="progress-dots" id="big-dots"></div>
+      <button class="anim-btn" id="big-next">&#8594;</button>
+    </div>
+  </div>
+</div>
+
+<div class="math-box key-box">
+  <div class="math-box-label">The Big Formula</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      $$\det A = \sum_{\sigma} (\operatorname{sign} \sigma)\, a_{1\sigma(1)}\, a_{2\sigma(2)} \cdots a_{n\sigma(n)}$$
+    </div>
+    <p style="margin: 0.5em 0 0 0;">Each term picks exactly one entry from each row, never repeating a column. The sign is $+1$ for even permutations, $-1$ for odd. There are $n!$ terms total.</p>
+  </div>
+</div>
+
+
+<h3>Method 3: The Cofactor Formula</h3>
+
+<p>
+  The cofactor formula is recursive. Instead of summing over all $n!$ permutations at once, we break the $n \times n$ determinant into $n$ smaller determinants of size $(n-1) \times (n-1)$. Those smaller determinants can be broken down further, all the way to $2 \times 2$ matrices where we know the answer. This is called <strong>cofactor expansion</strong>, and it works along any row or any column.
+</p>
+
+<p>
+  The <strong>cofactor $C_{ij}$</strong> of entry $a_{ij}$ is the determinant of the matrix left after deleting row $i$ and column $j$, multiplied by a sign:
+</p>
+
+<div class="math-display">
+  $$C_{ij} = (-1)^{i+j} \cdot M_{ij}$$
+</div>
+
+<p>
+  where $M_{ij}$ is called the <strong>minor</strong>—the determinant of the $(n-1) \times (n-1)$ submatrix formed by deleting row $i$ and column $j$. The sign $(-1)^{i+j}$ follows a checkerboard pattern: $+$ when $i+j$ is even, $-$ when $i+j$ is odd.
+</p>
+
+<div class="math-display">
+  $$\text{Sign pattern: } \begin{bmatrix} + & - & + \\ - & + & - \\ + & - & + \end{bmatrix}$$
+</div>
+
+<p>
+  Expanding along row 1 of $A$, we get:
+</p>
+
+<div class="math-display">
+  $$\det A = a_{11} C_{11} + a_{12} C_{12} + a_{13} C_{13}$$
+</div>
+
+<p>
+  Let's compute each cofactor. For $C_{11}$, delete row 1 and column 1, leaving a $2 \times 2$ matrix:
+</p>
+
+<div class="math-display">
+  $$C_{11} = (+1) \det \begin{bmatrix} 4 & 1 \\ 2 & 5 \end{bmatrix} = (4)(5) - (1)(2) = 18$$
+</div>
+
+<p>
+  For $C_{12}$, delete row 1 and column 2. The sign is $(-1)^{1+2} = -1$:
+</p>
+
+<div class="math-display">
+  $$C_{12} = (-1) \det \begin{bmatrix} 0 & 1 \\ 0 & 5 \end{bmatrix} = (-1)\bigl[(0)(5) - (1)(0)\bigr] = 0$$
+</div>
+
+<p>
+  For $C_{13}$, delete row 1 and column 3. The sign is $(-1)^{1+3} = +1$:
+</p>
+
+<div class="math-display">
+  $$C_{13} = (+1) \det \begin{bmatrix} 0 & 4 \\ 0 & 2 \end{bmatrix} = (0)(2) - (4)(0) = 0$$
+</div>
+
+<p>
+  Now assemble the full expansion:
+</p>
+
+<div class="math-display">
+  $$\det A = a_{11} C_{11} + a_{12} C_{12} + a_{13} C_{13} = (2)(18) + (1)(0) + (3)(0) = 36 \checkmark$$
+</div>
+
+<p>
+  We got lucky here: the zeros in column 1 (below the first entry) made two of the three cofactors vanish before we even computed them. In general, it is always worth expanding along the row or column that has the most zeros—each zero kills one cofactor and saves you a whole sub-determinant calculation.
+</p>
+
+<div class="math-box key-box">
+  <div class="math-box-label">Cofactor Expansion Along Row $i$</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      $$\det A = a_{i1} C_{i1} + a_{i2} C_{i2} + \cdots + a_{in} C_{in}$$
+    </div>
+    <p style="margin: 0.5em 0 0 0;">where $C_{ij} = (-1)^{i+j} M_{ij}$ and $M_{ij}$ is the determinant of the submatrix with row $i$ and column $j$ removed.</p>
+  </div>
+</div>
+
+
+<h3>Which Method to Use?</h3>
+
+<p>
+  All three methods give the same answer—they are computing the same number via different paths. The right choice depends on context:
+</p>
+
+<ul>
+  <li><strong>Pivot formula</strong> — the workhorse. Use it whenever you want a numerical answer, especially for matrices larger than $3 \times 3$. It is the method computers use.</li>
+  <li><strong>Big formula</strong> — the theoretical foundation. It proves the determinant is well-defined, connects it to permutations, and gives the $2 \times 2$ formula $ad - bc$ as a special case. Rarely used for direct computation.</li>
+  <li><strong>Cofactor formula</strong> — the recursive tool. Most useful for symbolic matrices, deriving formulas for the inverse ($A^{-1} = \frac{1}{\det A} C^T$, where $C$ is the cofactor matrix), and Cramer's Rule. Also practical for small matrices with many zeros.</li>
+</ul>
+
+
+<h2>Determinants and Volume</h2>
+
+<p>
+  Why does this single number matter so much? One of the most satisfying answers is geometric: <strong>the absolute value of the determinant is the volume of the parallelepiped spanned by the rows of $A$</strong>.
+</p>
+
+<p>
+  In two dimensions, the rows of a $2 \times 2$ matrix define two vectors. The area of the parallelogram they span is $|\det A|$. When the matrix is the identity, the two rows are the standard basis vectors, spanning a unit square with area $1$—matching $\det I = 1$. When the rows are linearly dependent (one row is a multiple of the other), they collapse to a line, the parallelogram has zero area, and $\det A = 0$.
+</p>
+
+<p>
+  The sign of the determinant captures orientation: positive if the rows go "counterclockwise," negative if "clockwise." Row exchanges flip orientation, which is exactly Property 2.
+</p>
+
+<p>
+  This geometric picture extends cleanly to $n$ dimensions. The $n$ rows of an $n \times n$ matrix define the edges of an $n$-dimensional box. Its volume is $|\det A|$.
+</p>
+
+<div class="math-box key-box">
+  <div class="math-box-label">Geometric Meaning</div>
+  <div class="math-box-body">
+    <p style="margin: 0.3em 0;">$|\det A|$ = volume of the box whose edges are the rows of $A$</p>
+    <p style="margin: 0.3em 0;">$\det A = 0$ means the rows lie in a lower-dimensional subspace</p>
+  </div>
+</div>
+
+          </section>
+        </article>
+      </div>
+    </div>
+
+    <div id="article-comments"></div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof injectGiscusComments === 'function') {
+          injectGiscusComments('article-comments');
+        }
+
+        // --- ANIMATION JAVASCRIPT LOGIC ---
+        const $ = id => document.getElementById(id);
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+
+        function svgEl(tag, attrs={}) {
+          const el = document.createElementNS(SVG_NS, tag);
+          for(const[k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+          return el;
+        }
+
+        function draw2x2(g, opts) {
+          const {x=20,y=30,cellW=56,cellH=44,data,classes=[]} = opts;
+          g.innerHTML='';
+          const bL=svgEl('path',{d:`M${x-4},${y} L${x-12},${y} L${x-12},${y+cellH*2} L${x-4},${y+cellH*2}`,class:'bracket'});
+          const bR=svgEl('path',{d:`M${x+cellW*2+4},${y} L${x+cellW*2+12},${y} L${x+cellW*2+12},${y+cellH*2} L${x+cellW*2+4},${y+cellH*2}`,class:'bracket'});
+          g.appendChild(bL); g.appendChild(bR);
+
+          const cells = [];
+          for(let r=0;r<2;r++) for(let c=0;c<2;c++){
+            const cx=x+c*cellW, cy=y+r*cellH;
+            const cls=(classes[r]?.[c]||'');
+            const isHi = cls.includes('cell-hi') || cls.includes('cell-pivot') || cls.includes('cell-neg');
+            const grp=svgEl('g',{class:'cell '+cls});
+            const bg=svgEl('rect',{x:cx,y:cy,width:cellW,height:cellH,class:'cell-bg',rx:4});
+            const tx=svgEl('text',{x:cx+cellW/2,y:cy+cellH/2,class:'cell-text'});
+            tx.textContent=data[r][c];
+            grp.appendChild(bg); grp.appendChild(tx);
+            cells.push({ grp, isHi });
+          }
+          cells.sort((a,b) => (a.isHi === b.isHi ? 0 : a.isHi ? 1 : -1)).forEach(c => g.appendChild(c.grp));
+        }
+
+        function draw3x3(g, opts) {
+          const {x=20,y=30,cellW=50,cellH=44,data,classes=[]} = opts;
+          g.innerHTML='';
+          const W=cellW*3, H=cellH*3;
+          const bL=svgEl('path',{d:`M${x-4},${y} L${x-12},${y} L${x-12},${y+H} L${x-4},${y+H}`,class:'bracket'});
+          const bR=svgEl('path',{d:`M${x+W+4},${y} L${x+W+12},${y} L${x+W+12},${y+H} L${x+W+4},${y+H}`,class:'bracket'});
+          g.appendChild(bL); g.appendChild(bR);
+
+          const cells = [];
+          for(let r=0;r<3;r++) for(let c=0;c<3;c++){
+            const cx=x+c*cellW, cy=y+r*cellH;
+            const cls=(classes[r]?.[c]||'');
+            const isHi = cls.includes('cell-hi') || cls.includes('cell-pivot') || cls.includes('cell-neg');
+            const grp=svgEl('g',{class:'cell '+cls});
+            const bg=svgEl('rect',{x:cx,y:cy,width:cellW,height:cellH,class:'cell-bg',rx:4});
+            const tx=svgEl('text',{x:cx+cellW/2,y:cy+cellH/2,class:'cell-text'});
+            tx.textContent=data[r][c];
+            grp.appendChild(bg); grp.appendChild(tx);
+            cells.push({ grp, isHi });
+          }
+          cells.sort((a,b) => (a.isHi === b.isHi ? 0 : a.isHi ? 1 : -1)).forEach(c => g.appendChild(c.grp));
+        }
+
+        // --- Persistent 2x2 Renderer for CSS Animations ---
+        function initPersistent2x2(containerId, x, y, cellW, cellH, data) {
+          const container = $(containerId);
+          container.innerHTML = '';
+          const bL = svgEl('path', {d:`M${x-4},${y} L${x-12},${y} L${x-12},${y+cellH*2} L${x-4},${y+cellH*2}`, class:'bracket'});
+          const bR = svgEl('path', {d:`M${x+cellW*2+4},${y} L${x+cellW*2+12},${y} L${x+cellW*2+12},${y+cellH*2} L${x+cellW*2+4},${y+cellH*2}`, class:'bracket'});
+          container.appendChild(bL); container.appendChild(bR);
+
+          const rowGs = [];
+          for(let r=0; r<2; r++) {
+            const rowG = svgEl('g', {style: 'transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);'});
+            for(let c=0; c<2; c++) {
+              const cx = x + c*cellW, cy = y + r*cellH;
+              const grp = svgEl('g', {class: 'cell'});
+              const bg = svgEl('rect', {x: cx, y: cy, width: cellW, height: cellH, class: 'cell-bg', rx: 4});
+              const tx = svgEl('text', {x: cx+cellW/2, y: cy+cellH/2, class: 'cell-text'});
+              tx.textContent = data[r][c];
+              grp.appendChild(bg); grp.appendChild(tx);
+              rowG.appendChild(grp);
+            }
+            container.appendChild(rowG);
+            rowGs.push(rowG);
+          }
+          return rowGs;
+        }
+
+        function updatePersistent2x2(rowGs, cellH, step) {
+          // Physical swap via CSS transform
+          rowGs[0].style.transform = step.swap ? `translateY(${cellH}px)` : `translateY(0px)`;
+          rowGs[1].style.transform = step.swap ? `translateY(-${cellH}px)` : `translateY(0px)`;
+          
+          if (step.rclasses) {
+            rowGs.forEach((rowG, r) => {
+               const cells = rowG.querySelectorAll('.cell');
+               cells[0].setAttribute('class', 'cell ' + (step.rclasses[r][0] || ''));
+               cells[1].setAttribute('class', 'cell ' + (step.rclasses[r][1] || ''));
+            });
+          }
+        }
+
+        function makeDots(containerId, n, active) {
+          const c=$(containerId); c.innerHTML='';
+          for(let i=0;i<n;i++){
+            const d=document.createElement('div');
+            d.className='dot'+(i===active?' active':'');
+            c.appendChild(d);
+          }
+        }
+
+        function makeController(prevId, nextId, dotsId, labelId, steps, renderFn) {
+          let cur=0;
+          const total=steps.length;
+          function render(){
+            renderFn(steps[cur], cur);
+            $(labelId).textContent=`Step ${cur+1} of ${total}`;
+            makeDots(dotsId, total, cur);
+            $(prevId).disabled = cur===0;
+            $(nextId).disabled = cur===total-1;
+          }
+          $(prevId).addEventListener('click', () => { if(cur>0){cur--;render();} });
+          $(nextId).addEventListener('click', () => { if(cur<total-1){cur++;render();} });
+          render();
+        }
+
+        /* 1. Row Swap Anim (Updated to native translate) */
+        let swapRows;
+        if ($('swap-anim')) {
+          const A=[['a','b'],['c','d']];
+          const swapSteps=[
+            { swap: false, rclasses: [['',''],['','']], det: 'det A = ad − bc', desc: 'Original matrix A. The determinant is ad − bc.'},
+            { swap: true, rclasses: [['cell-hi','cell-hi'],['cell-hi','cell-hi']], det: 'det = −(ad − bc)  (sign flipped)', desc: 'After the physical swap: Property 2 forces the sign to flip.'}
+          ];
+          swapRows = initPersistent2x2('swap-matrix', 154, 20, 56, 44, A);
+          makeController('swap-prev','swap-next','swap-dots','swap-step-label',swapSteps,(step, i) => {
+            updatePersistent2x2(swapRows, 44, step);
+            $('swap-det').textContent = step.det;
+            $('swap-desc').textContent = step.desc;
+          });
+        }
+
+        /* 2. Equal Rows Anim (Updated to native translate) */
+        let eqRows;
+        if ($('eq-anim')) {
+          const Aeq=[['3','1'],['3','1']];
+          const eqSteps=[
+            {swap:false, rclasses:[['',''],['','']], desc:'Both rows are identical: (3, 1). Call the determinant D.', conc:''},
+            {swap:true, rclasses:[['cell-hi','cell-hi'],['cell-hi','cell-hi']], desc:'Swap the rows. The physical swap occurs, so det → −D by Property 2.', conc:''},
+            {swap:true, rclasses:[['cell-neg','cell-neg'],['cell-neg','cell-neg']], desc:'But the resulting matrix is identical to the original! The only number equal to its own negative is 0.', conc:'∴ D = −D ⟹ D = 0'},
+          ];
+          eqRows = initPersistent2x2('eq-matrix', 146, 20, 64, 48, Aeq);
+          makeController('eq-prev','eq-next','eq-dots','eq-step-label',eqSteps,(step, i) => {
+            updatePersistent2x2(eqRows, 48, step);
+            $('eq-conclusion').textContent = step.conc;
+            $('eq-conclusion').setAttribute('opacity', step.conc ? '1' : '0');
+            $('eq-desc').textContent = step.desc;
+          });
+        }
+
+        /* 3. Elimination Anim (Centered and spaced) */
+        if ($('elim-anim')) {
+          const elimStates=[
+            {data:[['2','3'],['4','5']], classes:[[],[]], op:'', det:'det A = (2)(5)−(3)(4) = −2', showDet:true, showOp:false, desc:'Start: A = [[2,3],[4,5]]. Verify: det A = (2)(5) − (3)(4) = −2.'},
+            {data:[['2','3'],['4','5']], classes:[['cell-hi','cell-hi'],[]], op:'R₂ ← R₂ − 2·R₁', det:'det = −2 (unchanged)', showDet:true, showOp:true, desc:'Multiply row 1 by 2 and prepare to subtract from row 2. The determinant will not change.'},
+            {data:[['2','3'],['0','-1']], classes:[[],['cell-zero','cell-hi']], op:'R₂ − 2·R₁ = [4−4, 5−6] = [0, −1]', det:'det = (2)(−1)−(3)(0) = −2 ✓', showDet:true, showOp:true, desc:'After elimination: U = [[2,3],[0,−1]]. Product of pivots: 2 × (−1) = −2. Same as before.'},
+            {data:[['2','3'],['0','-1']], classes:[['cell-pivot',''],['','cell-pivot']], op:'Pivots: d₁ = 2, d₂ = −1', det:'det A = d₁ × d₂ = 2 × (−1) = −2 ✓', showDet:true, showOp:true, desc:'The pivots sit on the diagonal of U. Their product gives det A directly — no formula needed.'},
+          ];
+          makeController('elim-prev','elim-next','elim-dots','elim-step-label',elimStates, step => {
+            draw2x2($('elim-matrix'), {x:154,y:20,cellW:66,cellH:52,data:step.data,classes:step.classes});
+            $('elim-op').textContent = step.op; $('elim-op').setAttribute('opacity',step.showOp?'1':'0');
+            $('elim-det').textContent = step.det; $('elim-det').setAttribute('opacity',step.showDet?'1':'0');
+            $('elim-desc').textContent = step.desc;
+          });
+        }
+
+        /* 4. Big Formula Anim (Widened SVG, centered matrix, text safely on right) */
+        if ($('big-anim')) {
+          const A3=[[2,1,3],[0,4,1],[0,2,5]];
+          const perms=[
+            {sigma:'(1,2,3)', cols:[0,1,2], sign:+1, term:'+40', termVal:40, label:'σ=(1,2,3), 0 swaps → +', product:'(+1)(2)(4)(5)=+40'},
+            {sigma:'(1,3,2)', cols:[0,2,1], sign:-1, term:'−4', termVal:-4, label:'σ=(1,3,2), 1 swap → −', product:'(−1)(2)(1)(2)=−4'},
+            {sigma:'(2,1,3)', cols:[1,0,2], sign:-1, term:'0', termVal:0, label:'σ=(2,1,3), 1 swap → −', product:'(−1)(1)(0)(5)=0'},
+            {sigma:'(2,3,1)', cols:[1,2,0], sign:+1, term:'0', termVal:0, label:'σ=(2,3,1), 2 swaps → +', product:'(+1)(1)(1)(0)=0'},
+            {sigma:'(3,1,2)', cols:[2,0,1], sign:+1, term:'0', termVal:0, label:'σ=(3,1,2), 2 swaps → +', product:'(+1)(3)(0)(2)=0'},
+            {sigma:'(3,2,1)', cols:[2,1,0], sign:-1, term:'0', termVal:0, label:'σ=(3,2,1), 3 swaps → −', product:'(−1)(3)(4)(0)=0'},
+          ];
+
+          const grid=$('perm-cards');
+          perms.forEach((p,i)=>{
+            const card=document.createElement('div');
+            card.className='perm-card'; card.id='pcard-'+i;
+            const termCls=p.termVal>0?'pos':p.termVal<0?'neg':'zero';
+            card.innerHTML=`<div class="perm-label">${p.sigma}</div>
+              <svg width="90" height="80" viewBox="0 0 90 80" style="overflow:visible" id="pm-svg-${i}"></svg>
+              <div class="perm-term ${termCls}">${p.term}</div>`;
+            grid.appendChild(card);
+          });
+
+          perms.forEach((p, idx) => {
+            const svg=$(`pm-svg-${idx}`);
+            const cw=22,ch=22,ox=8,oy=5;
+            svg.appendChild(svgEl('path',{d:`M${ox-2},${oy} L${ox-6},${oy} L${ox-6},${oy+ch*3} L${ox-2},${oy+ch*3}`,class:'bracket'}));
+            svg.appendChild(svgEl('path',{d:`M${ox+cw*3+2},${oy} L${ox+cw*3+6},${oy} L${ox+cw*3+6},${oy+ch*3} L${ox+cw*3+2},${oy+ch*3}`,class:'bracket'}));
+            const cells = [];
+            for(let r=0;r<3;r++) for(let c=0;c<3;c++){
+              const isHi = p.cols[r]===c;
+              const val=A3[r][c];
+              const cls = isHi ? 'cell-hi' : (val===0 ? 'cell-zero' : 'cell-dim');
+              const grp=svgEl('g',{class:'cell '+cls});
+              grp.appendChild(svgEl('rect',{x:ox+c*cw,y:oy+r*ch,width:cw,height:ch,class:'cell-bg',rx:2}));
+              const tx=svgEl('text',{x:ox+c*cw+cw/2,y:oy+r*ch+ch/2,class:'cell-text','font-size':'11','dominant-baseline':'central','text-anchor':'middle'});
+              tx.textContent=val; grp.appendChild(tx);
+              cells.push({grp, isHi});
+            }
+            cells.sort((a,b) => a.isHi ? 1 : -1).forEach(c => svg.appendChild(c.grp));
+          });
+
+          const bigSteps=[ {type:'intro'}, ...perms.map((p,i)=>({type:'perm',idx:i})), {type:'final'} ];
+          let bigCur=0;
+          const bigTotal=bigSteps.length;
+
+          function bigRender(){
+            let runningSum=0, included=[];
+            for(let i=1;i<=Math.min(bigCur,bigSteps.length-1);i++){
+              const s=bigSteps[i];
+              if(s.type==='perm'){ runningSum+=perms[s.idx].termVal; included.push(s.idx); }
+            }
+            const step = bigSteps[bigCur];
+
+            const cls=[];
+            for(let r=0;r<3;r++){
+              cls.push([]);
+              for(let c=0;c<3;c++){
+                const isActive = step.type==='perm' && perms[step.idx].cols[r]===c;
+                cls[r].push(isActive ? 'cell-hi' : (A3[r][c]===0 ? 'cell-zero' : ''));
+              }
+            }
+            // SVG width is 500. Matrix is ~150 wide. Center is exactly x=175.
+            draw3x3($('big-matrix'), {x:175,y:30,cellW:50,cellH:40,data:A3,classes:cls});
+
+            if(step.type==='intro'){
+              perms.forEach((_,i) => $('pcard-'+i).className='perm-card');
+              $('big-sigma').textContent=''; $('big-sign-txt').textContent=''; $('big-term-txt').textContent=''; $('running-sum').textContent='';
+              $('big-desc').textContent='Matrix A. Step through each of the 6 permutations — each picks one bold entry per row.';
+            } else if(step.type==='perm'){
+              const p=perms[step.idx];
+              perms.forEach((_,i)=>{
+                const card=$('pcard-'+i);
+                if(i===step.idx) card.className='perm-card active';
+                else if(included.includes(i)) card.className='perm-card summed included';
+                else card.className='perm-card';
+              });
+              $('big-sigma').textContent='σ = '+p.sigma;
+              $('big-sign-txt').textContent='sign = '+(p.sign>0?'+1':'−1')+' ('+p.label.split('→')[1].trim()+')';
+              $('big-term-txt').textContent='term = '+p.product;
+              $('running-sum').textContent='Running total: '+runningSum;
+              $('big-desc').textContent='Permutation '+p.sigma+': pick entries at positions '+p.cols.map((c,r)=>`(${r+1},${c+1})`).join(', ')+'.';
+            } else {
+              perms.forEach((_,i)=> $('pcard-'+i).className='perm-card summed included');
+              $('big-sigma').textContent=''; $('big-sign-txt').textContent=''; $('big-term-txt').textContent='';
+              $('running-sum').textContent='det A = 40 − 4 + 0 + 0 + 0 + 0 = 36 ✓';
+              $('big-desc').textContent='All 6 terms summed. Four terms vanish because A has zeros in column 1 below the pivot.';
+            }
+            $('big-step-label').textContent=`Step ${bigCur+1} of ${bigTotal}`;
+            makeDots('big-dots',bigTotal,bigCur);
+            $('big-prev').disabled=bigCur===0;
+            $('big-next').disabled=bigCur===bigTotal-1;
+          }
+          $('big-prev').addEventListener('click',()=>{if(bigCur>0){bigCur--;bigRender();}});
+          $('big-next').addEventListener('click',()=>{if(bigCur<bigTotal-1){bigCur++;bigRender();}});
+          bigRender();
+        }
+
+        /* 5. Pivot Formula Anim (Centered and spaced) */
+        if ($('pivot-anim')) {
+          const pivotStates=[
+            {data:[['2','1','3'],['0','4','1'],['0','2','5']], classes:[['cell-pivot','',''],['','',''],['','','']], op:'', det:'', showDet:false, showOp:false, desc:'Matrix A. Pivot 1 is at (1,1): value = 2. The column below it is already zero.'},
+            {data:[['2','1','3'],['0','4','1'],['0','2','5']], classes:[['cell-pivot','',''],['','cell-hi',''],['','cell-hi','']], op:'R₃ ← R₃ − (1/2)·R₂   [eliminate (3,2) entry]', det:'', showDet:false, showOp:true, desc:'Pivot 2 is at (2,2): value = 4. Entry (3,2) = 2. Multiplier = 2/4 = 1/2.'},
+            {data:[['2','1','3'],['0','4','1'],['0','0','9/2']], classes:[['cell-pivot','',''],['','cell-pivot',''],['','','cell-hi']], op:'(3,2) → 2−(1/2)(4)=0   (3,3) → 5−(1/2)(1)=9/2', det:'', showDet:false, showOp:true, desc:'After one elimination step: U emerges. Entry (3,3) = 9/2 is the third pivot.'},
+            {data:[['2','1','3'],['0','4','1'],['0','0','9/2']], classes:[['cell-pivot','',''],['','cell-pivot',''],['','','cell-pivot']], op:'Pivots: d₁=2, d₂=4, d₃=9/2', det:'', showDet:false, showOp:true, desc:'U is upper triangular. All three pivots sit on the diagonal. Multiply them.'},
+            {data:[['2','1','3'],['0','4','1'],['0','0','9/2']], classes:[['cell-pivot','',''],['','cell-pivot',''],['','','cell-pivot']], op:'No row exchanges → sign = +1', det:'det A = (+1) × 2 × 4 × 9/2 = 36 ✓', showDet:true, showOp:true, desc:'No row exchanges were needed, so the sign is +1. Product of pivots: 2 × 4 × 4.5 = 36.'},
+          ];
+          makeController('pivot-prev','pivot-next','pivot-dots','pivot-step-label',pivotStates, step => {
+            draw3x3($('pivot-matrix'), {x:139,y:20,cellW:54,cellH:44,data:step.data,classes:step.classes});
+            $('pivot-op').textContent = step.op; $('pivot-op').setAttribute('opacity',step.showOp?'1':'0');
+            $('pivot-det').textContent = step.det; $('pivot-det').setAttribute('opacity',step.showDet?'1':'0');
+            $('pivot-desc').textContent = step.desc;
+          });
+        }
+      });
+    </script>
+  </main>
+</body>
+</html>

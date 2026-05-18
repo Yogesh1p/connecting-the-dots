@@ -25,7 +25,9 @@ function getAllHtmlFiles(dirPath, arrayOfFiles = []) {
         const fullPath = path.join(dirPath, file);
         if (fs.statSync(fullPath).isDirectory()) {
             arrayOfFiles = getAllHtmlFiles(fullPath, arrayOfFiles);
-        } else if (file.endsWith(".html") && file !== "index.html") {
+        } else if (file.endsWith(".html") && !(file === "index.html" && dirPath === libraryDir)) {
+            const content = fs.readFileSync(fullPath, "utf8");
+            if (content.includes('name="generated_clean_copy"')) return;
             arrayOfFiles.push(fullPath);
         }
     });
@@ -146,24 +148,82 @@ function ensureCoreArticleHead(content, relativePath) {
     return { content, changed };
 }
 
+function ensureGlobalNavRoot(content, relativePath) {
+    const root = getRootPrefix(relativePath);
+    const rx = /(<div\b[^>]*\bid=["']global-nav["'][^>]*\bdata-root=["'])([^"']*)(["'][^>]*>)/i;
+
+    if (rx.test(content)) {
+        const updated = content.replace(rx, `$1${root}$3`);
+        return { content: updated, changed: updated !== content };
+    }
+
+    const navRx = /(<div\b[^>]*\bid=["']global-nav["'][^>]*)(>)/i;
+    if (navRx.test(content)) {
+        return { content: content.replace(navRx, `$1 data-root="${root}"$2`), changed: true };
+    }
+
+    return { content, changed: false };
+}
+
+function ensureArticleAssetRoots(content, relativePath) {
+    const navRoot = ensureGlobalNavRoot(content, relativePath);
+    return navRoot;
+}
+
 function getPathOrder(relativePath, index = 0) {
     const segment = relativePath.replace(/\\/g, "/").split("/")[index] || "";
+    return getSegmentOrder(segment);
+}
+
+function getSegmentOrder(segment) {
     const match = segment.match(/^(\d+)/);
     return match ? parseInt(match[1], 10) : 999;
 }
 
+function stripOrderPrefix(segment) {
+    return String(segment || "").replace(/^\d+\s*[._ -]\s*/, "");
+}
+
+function getArticleSegments(relativePath) {
+    const segments = relativePath.replace(/\\/g, "/").split("/");
+    const isIndexPage = segments[segments.length - 1] === "index.html";
+    const lessonSegment = isIndexPage ? segments[segments.length - 2] : segments[segments.length - 1].replace(/\.html$/i, "");
+    const chapterSegment = isIndexPage ? segments[segments.length - 3] : segments[segments.length - 2];
+
+    return { segments, isIndexPage, lessonSegment, chapterSegment };
+}
+
+function toDirectoryUrlPath(relativePath) {
+    const sourcePath = relativePath.replace(/\\/g, "/");
+    return sourcePath.replace(/\/index\.html$/i, "/");
+}
+
+function toCleanUrlPath(relativePath) {
+    const publicPath = toDirectoryUrlPath(relativePath);
+    return publicPath
+        .split("/")
+        .map(segment => segment ? stripOrderPrefix(segment) : segment)
+        .join("/");
+}
+
 function createPageObject(relativePath, content, readingTime) {
     const sourcePath = relativePath.replace(/\\/g, "/");
+    const publicPath = toDirectoryUrlPath(sourcePath);
+    const cleanPath = toCleanUrlPath(sourcePath);
+    const { lessonSegment, chapterSegment } = getArticleSegments(sourcePath);
     const bookTitle = getMeta(content, "book") || "";
     const bookSlug = getMeta(content, "book_slug") || slugify(bookTitle);
-    const pathChapterOrder = getPathOrder(relativePath, 1);
-    const pathLessonOrder = getPathOrder(relativePath, 2);
+    const pathChapterOrder = getSegmentOrder(chapterSegment);
+    const pathLessonOrder = getSegmentOrder(lessonSegment);
     const chapterOrder = pathChapterOrder !== 999 ? pathChapterOrder : (parseInt(getMeta(content, "chapter_order")) || 999);
     const lessonorder = pathLessonOrder !== 999 ? pathLessonOrder : (parseInt(getMeta(content, "lessonorder")) || 999);
 
     return {
-        url:         `../Library/${sourcePath}`,
+        url:         `../Library/${publicPath}`,
+        cleanUrl:    `../Library/${cleanPath}`,
         sourcePath:  `Library/${sourcePath}`,
+        publicPath:  `Library/${publicPath}`,
+        cleanPath:   `Library/${cleanPath}`,
         book:        bookTitle,
         bookTitle,
         bookSlug,
@@ -171,6 +231,7 @@ function createPageObject(relativePath, content, readingTime) {
         title:       getTitle(content),
         description: getMeta(content, "description") || "",
         date:        getMeta(content, "date")        || "",
+        section:     getMeta(content, "section")     || "",
         chapter:     getMeta(content, "chapter")     || "",
         chapterOrder,
         chapterNumber: chapterOrder === 999 ? "" : String(chapterOrder),
@@ -312,6 +373,10 @@ function buildStaticIndex(libPages) {
     return html;
 }
 
+function buildLibData(libPages) {
+    return `// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\n`;
+}
+
 // ─── Main build ───────────────────────────────────────────────────────────────
 
 async function build() {
@@ -373,12 +438,19 @@ async function build() {
                 fileChanged = true;
             }
 
+            const assetRoots = ensureArticleAssetRoots(content, relativePath);
+            if (assetRoots.changed) {
+                content = assetRoots.content;
+                fileChanged = true;
+            }
+
             // A. Reading time
             const readingTime = estimateReadingTime(content);
             const withTime = syncReadingTime(content, readingTime);
             if (withTime !== content) { content = withTime; fileChanged = true; }
 
             if ((getMeta(content, "status") || "").toLowerCase() === "hide") {
+                if (fileChanged) fs.writeFileSync(filePath, content, "utf8");
                 cachedHashMap[relativePath] = getHash(content);
                 fs.writeFileSync(metaCachePath, JSON.stringify(cachedHashMap, null, 2), "utf8");
                 continue;
@@ -413,7 +485,9 @@ async function build() {
             const chapter      = getMeta(content, "chapter")      || "Connecting the Dots";
             const book         = getMeta(content, "book")         || "";
             const description  = getMeta(content, "description")  || "";
-            const chapterOrder = getPathOrder(relativePath, 1);
+            const { chapterSegment } = getArticleSegments(relativePath);
+            const pathChapterOrder = getSegmentOrder(chapterSegment);
+            const chapterOrder = pathChapterOrder !== 999 ? pathChapterOrder : (parseInt(getMeta(content, "chapter_order")) || 999);
 
             // B. Inject or Retrieve Article ID
             const idResult = ensureArticleId(content);
@@ -451,7 +525,7 @@ async function build() {
             // D. Meta tag injection / update
             const fileHash = getHash(content).substring(0, 6);
             const absoluteImageUrl = `${SITE_URL}/assets/og/${outputFilename}?v=${fileHash}`;
-            const absolutePageUrl  = `${SITE_URL}/Library/${relativePath.replace(/\\/g, "/")}`;
+            const absolutePageUrl  = `${SITE_URL}/Library/${toDirectoryUrlPath(relativePath)}`;
             const hasOg = /property=["']og:image["']/i.test(content);
 
             if (!hasOg) {
@@ -487,7 +561,7 @@ async function build() {
         }
     }
 
-    // 5. Rebuild static index in Library/index.html
+    // 5. Rebuild generated library data and static index in Library/index.html
     const libPages = [];
     for (const filePath of files) {
         try {
@@ -501,6 +575,9 @@ async function build() {
             libPages.push(createPageObject(relativePath, content, readingTime));
         } catch (_) {}
     }
+
+    fs.writeFileSync(path.join(builderDir, "lib-data.js"), buildLibData(libPages), "utf8");
+    console.log(`  ✅ Library data updated (${libPages.length} pages) in builder/lib-data.js`);
 
     const indexPath = path.join(libraryDir, "index.html");
     if (!fs.existsSync(indexPath)) {

@@ -306,6 +306,54 @@
   .loading-state { text-align: center; padding: 4rem; color: var(--muted); font-style: italic; }
   .empty-state { text-align: center; padding: 3rem; color: var(--muted); font-family: -apple-system, sans-serif; }
 
+  /* ── Outer Section Accordion ── */
+  .toc-section-block {
+    margin: 2.5rem 0 0;
+  }
+  .toc-section-block > summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  .toc-section-block > summary::-webkit-details-marker { display: none; }
+
+  .section-summary-title {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1 rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex: 1;
+  }
+  .section-summary-meta {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.9rem;
+    color: var(--muted);
+    opacity: 0.6;
+    white-space: nowrap;
+  }
+  .section-summary-arrow {
+    width: 14px;
+    height: 14px;
+    color: var(--muted);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+  .toc-section-block[open] .section-summary-arrow { transform: rotate(90deg); }
+  .section-chapters { display: flex; flex-direction: column; }
+
+  @media (max-width: 640px) {
+    .toc-section-block { margin-top: 2rem; }
+  }
+
   /* --- Draft Badge --- */
   .status-badge {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.65rem; font-weight: 700;
@@ -483,29 +531,27 @@
   <section class="toc-page">
 
     <nav class="book-switcher" aria-label="Book selection">
-      <button class="book-tab" data-book="generative">Generative Models</button>
-      <button class="book-tab" data-book="linear-algebra">Linear Algebra</button>
-      <button class="book-tab" data-book="Stats">Stats</button>
+      <button class="book-tab" data-book="ai">AI</button>
+      <button class="book-tab" data-book="mathematics">Mathematics</button>
     </nav>
 
     <div class="toc-book-header">
-      <div class="toc-book-eyebrow">Connecting the Dots · Book I</div>
+      <div class="toc-book-eyebrow">Connecting the Dots</div>
       <div class="title-dropdown-wrapper" id="bookDropdown">
         <h1 class="toc-book-title book-dropdown-trigger" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
-          <span id="currentBookName">Generative Models</span>
+          <span id="currentBookName">AI</span>
           <svg class="title-dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </h1>
         <div class="book-dropdown-menu" role="menu">
-          <button class="dropdown-item" data-book="generative" role="menuitem">Generative Models</button>
-          <button class="dropdown-item" data-book="linear-algebra" role="menuitem">Linear Algebra</button>
-          <button class="dropdown-item" data-book="Stats" role="menuitem">Stats</button>
+          <button class="dropdown-item" data-book="ai" role="menuitem">AI</button>
+          <button class="dropdown-item" data-book="mathematics" role="menuitem">Mathematics</button>
         </div>
       </div>
       <p class="toc-book-desc">
-        Explicit likelihoods, latent variables, and modern generative architectures —
-        with interactive visualisations at every step.
+        Generative models, world models, representation learning, modern architectures, scaling, alignment,
+        and agents — from first principles to research frontiers.
       </p>
 
       <div class="book-progress-hero" id="bookProgressHero">
@@ -556,24 +602,19 @@ if ('history' in window && 'scrollRestoration' in history) {
 }
 
 const BOOK_CONFIG = {
-  generative: {
-    eyebrow: "Connecting the Dots ",
-    title: "Generative Models",
-    description: "Explicit likelihoods, latent variables, and modern generative architectures — with interactive visualisations at every step."
+  ai: {
+    eyebrow: "Connecting the Dots",
+    title: "AI",
+    description: "Generative models, world models, representation learning, modern architectures, scaling, alignment, and agents — from first principles to research frontiers."
   },
-  "linear-algebra": {
-    eyebrow: "Connecting the Dots ",
-    title: "Linear Algebra",
-    description: "Vectors, matrix transformations, eigenspaces, and the geometry behind modern machine learning. To build intuition, drawing heavily from the lectures and books of Gilbert Strang."
-  },
-  Stats: {
-    eyebrow: "Connecting the Dots ",
-    title: "Stats",
-    description: "Distributions, expected values, Bayes' theorem, and the statistical foundations of uncertainty."
+  mathematics: {
+    eyebrow: "Connecting the Dots",
+    title: "Mathematics",
+    description: "Linear algebra, probability, statistics, optimization, and information theory — the mathematical foundations that underpin everything in AI."
   }
 };
 
-let activeBook = "generative"; 
+let activeBook = "ai"; 
 let currentSearchQuery = ""; 
 const LOCAL_WORKSPACE_ROOT = "/Users/yogesh/Documents/connecting-the-dots";
 
@@ -585,7 +626,11 @@ function saveCurrentBookState() {
   document.querySelectorAll('details.toc-block[open]').forEach(details => {
     openChapters.push(details.dataset.chapter);
   });
-  bookMemory[activeBook] = { scrollY: window.scrollY, openChapters: openChapters };
+  const openSections = [];
+  document.querySelectorAll('details.toc-section-block[open]').forEach(details => {
+    openSections.push(details.dataset.section);
+  });
+  bookMemory[activeBook] = { scrollY: window.scrollY, openChapters, openSections };
   sessionStorage.setItem('bookMemory', JSON.stringify(bookMemory));
 }
 
@@ -701,9 +746,51 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const CHAPTER_ORDER = {
-    "generative": ["Untitled", "Autoregressive Models", "Latent Variable Models", "Normalizing Flows", "Variational Autoencoders", "Generative Adversarial Networks", "Diffusion Models"],
-    "linear-algebra": ["Solving Linear Systems", "Vector Spaces and Subspaces", "Orthogonality and Projections", "Determinants", "Eigenvalues and Eigenvectors", "Singular Value Decomposition","Applications"],
-    "Stats": ["Foundations of Probability", "Distributions", "Statistical Inference", "Bayesian Thinking"],
+    "ai": ["Autoregressive Models", "Latent Variable Models", "Normalizing Flows", "Variational Autoencoders", "Generative Adversarial Networks", "Diffusion Models", "Landscape", "Discriminative Models", "Representation Learning", "Transformers & Scaling", "Multimodal Models", "Reinforcement Learning", "Alignment & RLHF", "Agents"],
+    "mathematics": ["Solving Linear Systems", "Vector Spaces and Subspaces", "Orthogonality and Projections", "Determinants", "Eigenvalues and Eigenvectors", "Singular Value Decomposition", "Applications", "Foundations of Probability", "Distributions", "Statistical Inference", "Bayesian Thinking", "Optimization", "Information Theory"],
+  };
+
+  // Section definitions: order matters, chapters listed in display order
+  const SECTION_CONFIG = {
+    "ai": [
+      {
+        key: "generative-models",
+        title: "Generative Models",
+        chapters: ["Autoregressive Models", "Latent Variable Models", "Normalizing Flows", "Variational Autoencoders", "Generative Adversarial Networks", "Diffusion Models", "Landscape"]
+      },
+      {
+        key: "world-models",
+        title: "World Models",
+        chapters: ["Joint Embeddings"]
+      },
+      {
+        key: "discriminative-models",
+        title: "Discriminative Models",
+        chapters: ["Discriminative Models", "Representation Learning"]
+      },
+      {
+        key: "modern-systems",
+        title: "Modern Systems",
+        chapters: ["Transformers & Scaling", "Multimodal Models", "Reinforcement Learning", "Alignment & RLHF", "Agents"]
+      }
+    ],
+    "mathematics": [
+      {
+        key: "linear-algebra",
+        title: "Linear Algebra",
+        chapters: ["Solving Linear Systems", "Vector Spaces and Subspaces", "Orthogonality and Projections", "Determinants", "Eigenvalues and Eigenvectors", "Singular Value Decomposition", "Applications"]
+      },
+      {
+        key: "probability-statistics",
+        title: "Probability & Statistics",
+        chapters: ["Foundations of Probability", "Distributions", "Statistical Inference", "Hypothesis Testing", "Bayesian Thinking"]
+      },
+      {
+        key: "optimization",
+        title: "Optimization",
+        chapters: ["Optimization", "Information Theory"]
+      }
+    ]
   };
 
   const partPriority = { "Transformer Foundations": 0, "Large Language Models": 1, "Stats and Statistics Foundations": 0, "Main": 2 };
@@ -722,10 +809,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof window.rawPages === 'undefined') return; 
     
     let filteredPages = window.rawPages.filter(page => {
+      if (book === "mathematics") {
+        return page.bookSlug === "linear-algebra" || page.book === "Linear Algebra" ||
+               page.bookSlug === "Stats" || page.book === "Stats" ||
+               page.bookSlug === "mathematics" || page.book === "Mathematics";
+      }
+      if (book === "ai") {
+        return page.bookSlug === "ai" || page.book === "AI";
+      }
       const config = BOOK_CONFIG[book];
       return page.bookSlug === book || page.book === book || page.book === config?.title;
     });
-    
     updateHero(book, filteredPages);
 
     if (currentSearchQuery) {
@@ -733,6 +827,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return (page.title && page.title.toLowerCase().includes(currentSearchQuery)) ||
                    (page.description && page.description.toLowerCase().includes(currentSearchQuery)) ||
                    (page.bookTitle && page.bookTitle.toLowerCase().includes(currentSearchQuery)) ||
+                   (page.section && page.section.toLowerCase().includes(currentSearchQuery)) ||
                    (page.chapter && page.chapter.toLowerCase().includes(currentSearchQuery)) ||
                    (page.chapterNumber && page.chapterNumber.toLowerCase().includes(currentSearchQuery)) ||
                    (page.keywords && page.keywords.toLowerCase().includes(currentSearchQuery));
@@ -749,6 +844,7 @@ document.addEventListener("DOMContentLoaded", () => {
         library[page.chapter] = {
           order: page.chapterOrder ?? 999,
           number: page.chapterNumber || "",
+          section: page.section || "",
           parts: {}
         };
       }
@@ -760,100 +856,134 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLibrary(library, !!currentSearchQuery);
   }
 
-  function renderLibrary(library, isSearching) {
-    const container = document.getElementById("library-content");
-    let html = "";
-    const chapterList = CHAPTER_ORDER[activeBook] || [];
+  function renderChapter(chapter, chapterMeta, isSearching) {
     const currentState = bookMemory[activeBook] || { openChapters: [] };
+    const parts = chapterMeta.parts;
+    const chapterTitle = chapterMeta.number ? `${chapterMeta.number}. ${chapter}` : chapter;
+    let coreRowsHtml = "";
+    let deepDiveRowsHtml = "";
+    let totalSections = 0;
 
-    const chapters = Object.keys(library);
-    
-    if (chapters.length === 0) {
-        container.innerHTML = `<div class="empty-state">No lessons found matching your search.</div>`;
-        return;
-    }
-
-    chapters.sort((a, b) => {
-        const ao = library[a].order ?? 999;
-        const bo = library[b].order ?? 999;
-        if (ao !== bo) return ao - bo;
-        const ai = chapterList.indexOf(a);
-        const bi = chapterList.indexOf(b);
-        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-      })
-      .forEach(chapter => {
-        const chapterMeta = library[chapter];
-        const parts = chapterMeta.parts;
-        const chapterTitle = chapterMeta.number ? `${chapterMeta.number}. ${chapter}` : chapter;
-        let coreRowsHtml = "";
-        let deepDiveRowsHtml = "";
-        let totalSections = 0;
-
-        Object.keys(parts)
-          .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
-          .forEach(part => {
-            if (part !== "Main" && part !== "undefined" && part.trim()) {
-              const partHeader = `<div class="toc-part">${part}</div>`;
-              coreRowsHtml += partHeader; 
-            }
-
-            parts[part]
-              .sort((a, b) => {
-                const ao = a.lessonorder ?? 999;
-                const bo = b.lessonorder ?? 999;
-                if (ao !== bo) return ao - bo;
-                return (a.title || "").localeCompare(b.title || "");
-              })
-              .forEach(page => {
-                totalSections++;
-                const status = (page.status || 'draft').toLowerCase();
-                const statusBadge = status === 'draft' ? `<span class="status-badge status-draft">Draft</span>` : '';
-                
-                let displayTitle = page.lessonNumber ? `${page.lessonNumber}. ${page.title}` : page.title;
-
-                const rowHTML = `
-                  <div class="toc-row ${page.tier === 'deep-dive' ? 'is-deep-dive' : ''}">
-                    <a href="${page.url}" data-source-path="${page.sourcePath || ''}">
-                      <span class="row-title">${displayTitle} ${statusBadge}</span>
-                    </a>
-                  </div>
-                `;
-
-                if (page.tier === 'deep-dive') {
-                    deepDiveRowsHtml += rowHTML;
-                } else {
-                    coreRowsHtml += rowHTML;
-                }
-              });
-          });
-
-        if (deepDiveRowsHtml) {
-            deepDiveRowsHtml = `
-              <div class="deep-dive-section">
-                <div class="deep-dive-header">Supplementary & Deep Dives</div>
-                ${deepDiveRowsHtml}
+    Object.keys(parts)
+      .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
+      .forEach(part => {
+        if (part !== "Main" && part !== "undefined" && part.trim()) {
+          coreRowsHtml += `<div class="toc-part">${part}</div>`;
+        }
+        parts[part]
+          .sort((a, b) => {
+            const ao = a.lessonorder ?? 999;
+            const bo = b.lessonorder ?? 999;
+            if (ao !== bo) return ao - bo;
+            return (a.title || "").localeCompare(b.title || "");
+          })
+          .forEach(page => {
+            totalSections++;
+            const status = (page.status || 'draft').toLowerCase();
+            const statusBadge = status === 'draft' ? `<span class="status-badge status-draft">Draft</span>` : '';
+            let displayTitle = page.lessonNumber ? `${page.lessonNumber}. ${page.title}` : page.title;
+            const rowHTML = `
+              <div class="toc-row ${page.tier === 'deep-dive' ? 'is-deep-dive' : ''}">
+                <a href="${page.url}" data-source-path="${page.sourcePath || ''}">
+                  <span class="row-title">${displayTitle} ${statusBadge}</span>
+                </a>
               </div>
             `;
-        }
-
-        const isOpen = (isSearching || currentState.openChapters.includes(chapter)) ? "open" : "";
-
-        html += `
-          <details class="toc-block" data-chapter="${chapter}" ${isOpen}>
-            <summary>
-              <span class="ch-summary-title">${chapterTitle}</span>
-              <span class="ch-summary-count">${totalSections} Lessons</span>
-              <svg class="ch-summary-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </summary>
-            <div class="toc-section-group">
-              ${coreRowsHtml}
-              ${deepDiveRowsHtml}
-            </div>
-          </details>
-        `;
+            if (page.tier === 'deep-dive') deepDiveRowsHtml += rowHTML;
+            else coreRowsHtml += rowHTML;
+          });
       });
+
+    if (deepDiveRowsHtml) {
+      deepDiveRowsHtml = `
+        <div class="deep-dive-section">
+          <div class="deep-dive-header">Supplementary & Deep Dives</div>
+          ${deepDiveRowsHtml}
+        </div>
+      `;
+    }
+
+    const isOpen = (isSearching || currentState.openChapters.includes(chapter)) ? "open" : "";
+    return { html: `
+      <details class="toc-block" data-chapter="${chapter}" ${isOpen}>
+        <summary>
+          <span class="ch-summary-title">${chapterTitle}</span>
+          <span class="ch-summary-count">${totalSections} Lessons</span>
+          <svg class="ch-summary-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </summary>
+        <div class="toc-section-group">
+          ${coreRowsHtml}
+          ${deepDiveRowsHtml}
+        </div>
+      </details>
+    `, lessonCount: totalSections };
+  }
+
+  function renderLibrary(library, isSearching) {
+    const container = document.getElementById("library-content");
+    const sections = SECTION_CONFIG[activeBook] || [];
+    const currentState = bookMemory[activeBook] || { openChapters: [], openSections: [] };
+
+    if (Object.keys(library).length === 0) {
+      container.innerHTML = `<div class="empty-state">No lessons found matching your search.</div>`;
+      return;
+    }
+
+    let html = "";
+
+    // Track which chapters are claimed by sections
+    const claimedChapters = new Set();
+
+    sections.forEach(section => {
+      const sectionChapters = Object.keys(library)
+        .filter(ch => library[ch].section === section.title || section.chapters.includes(ch))
+        .sort((a, b) => {
+          const ao = library[a].order ?? 999;
+          const bo = library[b].order ?? 999;
+          if (ao !== bo) return ao - bo;
+          const ai = section.chapters.indexOf(a);
+          const bi = section.chapters.indexOf(b);
+          return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+        });
+      if (sectionChapters.length === 0) return;
+      sectionChapters.forEach(ch => claimedChapters.add(ch));
+
+      let sectionInnerHtml = "";
+      let totalSectionLessons = 0;
+
+      sectionChapters.forEach(chapter => {
+        const { html: chHtml, lessonCount } = renderChapter(chapter, library[chapter], isSearching);
+        sectionInnerHtml += chHtml;
+        totalSectionLessons += lessonCount;
+      });
+
+      const hasNoSavedState = !bookMemory[activeBook];
+      const isSectionOpen = (isSearching || hasNoSavedState || (currentState.openSections || []).includes(section.key)) ? "open" : "";
+
+      html += `
+        <details class="toc-section-block" data-section="${section.key}" ${isSectionOpen}>
+          <summary>
+            <span class="section-summary-title">${section.title}</span>
+            <span class="section-summary-meta">${sectionChapters.length} Chapters · ${totalSectionLessons} Lessons</span>
+            <svg class="section-summary-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </summary>
+          <div class="section-chapters">
+            ${sectionInnerHtml}
+          </div>
+        </details>
+      `;
+    });
+
+    // Render any orphan chapters not in any section
+    const orphans = Object.keys(library).filter(ch => !claimedChapters.has(ch));
+    orphans.forEach(chapter => {
+      const { html: chHtml } = renderChapter(chapter, library[chapter], isSearching);
+      html += chHtml;
+    });
 
     container.innerHTML = html;
   }
@@ -873,7 +1003,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("popstate", () => {
     saveCurrentBookState(); 
     const currentParams = new URLSearchParams(window.location.search);
-    const poppedBook = currentParams.get('book') || localStorage.getItem('libraryActiveBook') || 'generative';
+    const poppedBook = currentParams.get('book') || localStorage.getItem('libraryActiveBook') || 'ai';
     
     if (BOOK_CONFIG[poppedBook]) {
       activeBook = poppedBook;
@@ -908,107 +1038,113 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 <!-- AUTO-GENERATED static index for crawlers/LLMs — do not edit -->
 <div id="static-index" aria-hidden="true" style="display:none">
-  <section data-book="Generative Models">
-    <h2>Generative Models</h2>
+  <section data-book="AI">
+    <h2>AI</h2>
+    <section data-chapter="Joint Embeddings">
+      <h3>Joint Embeddings</h3>
+      <ul>
+        <li><a href="../Library/ai/World_models/Jepa/">The Predictive Path: JEPA and World Models</a></li>
+      </ul>
+    </section>
     <section data-chapter="Autoregressive Models">
       <h3>Autoregressive Models</h3>
       <ul>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/01.intro-to-autoregression-models.html">Intro to Autoregression Models</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models.html">Fixed-Length Autoregressive Models</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/03.word-representation.html">Word Representation</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory.html">Recurrent Neural Networks and Sequence Memory</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/05.attention-mechanism.html">Attention Mechanism</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/06.the-transformer-architecture.html">The Transformer Architecture</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/07.position-representation.html">Position Representation</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/09.attention-approximation.html">Attention Approximation</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/10.shared-attention.html">Shared Attention</a></li>
-        <li><a href="../Library/01.generative-models/01.autoregressive-models/15.the-architecture-of-scale.html">The Architecture of Scale</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/01.intro-to-autoregression-models/">Intro to Autoregression Models</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models/">Fixed-Length Autoregressive Models</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/03.word-representation/">Word Representation</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory/">Recurrent Neural Networks and Sequence Memory</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/05.attention-mechanism/">Attention Mechanism</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/06.the-transformer-architecture/">The Transformer Architecture</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/07.position-representation/">Position Representation</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/09.attention-approximation/">Attention Approximation</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/10.shared-attention/">Shared Attention</a></li>
+        <li><a href="../Library/ai/generative-models/01.autoregressive-models/15.the-architecture-of-scale/">The Architecture of Scale</a></li>
       </ul>
     </section>
     <section data-chapter="Latent Variable Models">
       <h3>Latent Variable Models</h3>
       <ul>
-        <li><a href="../Library/01.generative-models/02.latent-variable-models/01.introduction-to-latent-variable-models.html">Introduction to Latent Variable Models</a></li>
+        <li><a href="../Library/ai/generative-models/02.latent-variable-models/01.introduction-to-latent-variable-models/">Introduction to Latent Variable Models</a></li>
       </ul>
     </section>
-    <section data-chapter="Untitled">
-      <h3>Untitled</h3>
+    <section data-chapter="Landscape">
+      <h3>Landscape</h3>
       <ul>
-        <li><a href="../Library/01.generative-models/10.untitled/01.taxonomy-of-generative-models.html">Taxonomy of Generative Models</a></li>
-        <li><a href="../Library/01.generative-models/10.untitled/02.ai-evolution-timeline.html">AI Evolution Timeline</a></li>
+        <li><a href="../Library/ai/generative-models/10.Landscape/01.taxonomy-of-generative-models/">Taxonomy of Generative Models</a></li>
+        <li><a href="../Library/ai/generative-models/10.Landscape/02.ai-evolution-timeline/">AI Evolution Timeline</a></li>
       </ul>
     </section>
   </section>
   <section data-book="Linear Algebra">
     <h2>Linear Algebra</h2>
-    <section data-chapter="Solving Linear Systems">
-      <h3>Solving Linear Systems</h3>
-      <ul>
-        <li><a href="../Library/02.linear-algebra/01.solving-linear-systems/01.solving-linear-equations.html">Solving Linear Equations</a></li>
-        <li><a href="../Library/02.linear-algebra/01.solving-linear-systems/02.the-complete-solution.html">The Complete Solution</a></li>
-      </ul>
-    </section>
-    <section data-chapter="Vector Spaces and Subspaces">
-      <h3>Vector Spaces and Subspaces</h3>
-      <ul>
-        <li><a href="../Library/02.linear-algebra/02.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces.html">The Four Fundamental Subspaces</a></li>
-        <li><a href="../Library/02.linear-algebra/02.vector-spaces-and-subspaces/02.null-space-from-block-rref.html">Null Space from Block RREF</a></li>
-        <li><a href="../Library/02.linear-algebra/02.vector-spaces-and-subspaces/03.independence-basis-and-dimension.html">Independence, Basis, and Dimension</a></li>
-      </ul>
-    </section>
-    <section data-chapter="Orthogonality and Projections">
-      <h3>Orthogonality and Projections</h3>
-      <ul>
-        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces.html">Orthogonality of the Four Subspaces</a></li>
-        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/02.projections-onto-subspaces.html">Projections onto Subspaces</a></li>
-        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/03.projection-matrices-and-least-squares.html">Projection Matrices and Least Squares</a></li>
-        <li><a href="../Library/02.linear-algebra/03.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt.html">Orthogonal Matrices and Gram-Schmidt</a></li>
-      </ul>
-    </section>
     <section data-chapter="Determinants">
       <h3>Determinants</h3>
       <ul>
-        <li><a href="../Library/02.linear-algebra/04.determinants/01.properties.html">Properties of Determinants</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/determinants/01.properties/">Properties of Determinants</a></li>
       </ul>
     </section>
     <section data-chapter="Eigenvalues and Eigenvectors">
       <h3>Eigenvalues and Eigenvectors</h3>
       <ul>
-        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/01.eigenvectors.html">Eigenvectors</a></li>
-        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem.html">Diagonalisation, Spectral Theorem</a></li>
-        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/03.positive-defnite-matrices.html">Positive Defnite Matrices</a></li>
-        <li><a href="../Library/02.linear-algebra/05.eigenvalues-and-eigenvectors/04.google-search.html">Applications- Google search</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/01.eigenvectors/">Eigenvectors</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/">Diagonalisation, Spectral Theorem</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/03.positive-defnite-matrices/">Positive Defnite Matrices</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/04.google-search/">Applications- Google search</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Orthogonality and Projections">
+      <h3>Orthogonality and Projections</h3>
+      <ul>
+        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/01.orthogonality-of-the-four-subspaces/">Orthogonality of the Four Subspaces</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/02.projections-onto-subspaces/">Projections onto Subspaces</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/03.projection-matrices-and-least-squares/">Projection Matrices and Least Squares</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt/">Orthogonal Matrices and Gram-Schmidt</a></li>
       </ul>
     </section>
     <section data-chapter="Singular Value Decomposition">
       <h3>Singular Value Decomposition</h3>
       <ul>
-        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/01.the-singular-value-decomposition-svd.html">The Singular Value Decomposition (SVD)</a></li>
-        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/02.svd-properties.html">SVD Properties and Analytical Mechanics</a></li>
-        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/03.svd-applications.html">Applications of SVD</a></li>
-        <li><a href="../Library/02.linear-algebra/06.singular-value-decomposition/04.Image_compression.html">SVD for Image Compression</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/01.the-singular-value-decomposition-svd/">The Singular Value Decomposition (SVD)</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/02.svd-properties/">SVD Properties and Analytical Mechanics</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/03.svd-applications/">Applications of SVD</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/04.Image_compression/">SVD for Image Compression</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Solving Linear Systems">
+      <h3>Solving Linear Systems</h3>
+      <ul>
+        <li><a href="../Library/mathematics/linear-algebra/solving-linear-systems/01.solving-linear-equations/">Solving Linear Equations</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/solving-linear-systems/02.the-complete-solution/">The Complete Solution</a></li>
+      </ul>
+    </section>
+    <section data-chapter="Vector Spaces and Subspaces">
+      <h3>Vector Spaces and Subspaces</h3>
+      <ul>
+        <li><a href="../Library/mathematics/linear-algebra/vector-spaces-and-subspaces/01.the-four-fundamental-subspaces/">The Four Fundamental Subspaces</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/vector-spaces-and-subspaces/02.null-space-from-block-rref/">Null Space from Block RREF</a></li>
+        <li><a href="../Library/mathematics/linear-algebra/vector-spaces-and-subspaces/03.independence-basis-and-dimension/">Independence, Basis, and Dimension</a></li>
       </ul>
     </section>
   </section>
   <section data-book="Stats">
     <h2>Stats</h2>
-    <section data-chapter="Foundations of Probability">
-      <h3>Foundations of Probability</h3>
+    <section data-chapter="Hypothesis Testing">
+      <h3>Hypothesis Testing</h3>
       <ul>
-        <li><a href="../Library/03.stats/01.foundations-of-probability/01.probability-and-counting.html">Probability and Counting</a></li>
+        <li><a href="../Library/mathematics/probability-statistics/Hypothesis_test/01. Hypothesis_test/">Hypothesis Testing: Z, T, and Chi-Squared Tests</a></li>
       </ul>
     </section>
     <section data-chapter="Distributions">
       <h3>Distributions</h3>
       <ul>
-        <li><a href="../Library/03.stats/02.distributions/01.common-probability-distributions.html">Common Probability Distributions</a></li>
-        <li><a href="../Library/03.stats/02.distributions/02.the-central-limit-theorem-and-maximum-entropy.html">The Central Limit Theorem & Maximum Entropy</a></li>
+        <li><a href="../Library/mathematics/probability-statistics/distributions/01.common-probability-distributions/">Common Probability Distributions</a></li>
+        <li><a href="../Library/mathematics/probability-statistics/distributions/02.the-central-limit-theorem-and-maximum-entropy/">The Central Limit Theorem & Maximum Entropy</a></li>
       </ul>
     </section>
-    <section data-chapter="Hypothesis Testing">
-      <h3>Hypothesis Testing</h3>
+    <section data-chapter="Foundations of Probability">
+      <h3>Foundations of Probability</h3>
       <ul>
-        <li><a href="../Library/03.stats/08.Hypothesis_test/01. Hypothesis_test.html">Hypothesis Testing: Z, T, and Chi-Squared Tests</a></li>
+        <li><a href="../Library/mathematics/probability-statistics/foundations-of-probability/01.probability-and-counting/">Probability and Counting</a></li>
       </ul>
     </section>
   </section>

@@ -370,9 +370,16 @@ mjx-container svg {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   column-gap: 3rem;
+  position: static;
+  top: auto;
+  z-index: auto;
   max-width: 720px;
   margin: 5rem auto 0;
   padding: 0;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 0;
 }
 
 .article-pagination--has-next:not(.article-pagination--has-prev) {
