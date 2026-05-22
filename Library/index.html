@@ -783,12 +783,12 @@ document.addEventListener("DOMContentLoaded", () => {
       {
         key: "probability-statistics",
         title: "Probability & Statistics",
-        chapters: ["Foundations of Probability", "Distributions", "Statistical Inference", "Hypothesis Testing", "Bayesian Thinking"]
+        chapters: ["Foundations of Probability", "Distributions", "Statistical Inference", "Hypothesis Testing", "Bayesian Thinking","Information Theory"]
       },
       {
         key: "optimization",
         title: "Optimization",
-        chapters: ["Optimization", "Information Theory"]
+        chapters: ["Optimization"]
       }
     ]
   };
@@ -1037,118 +1037,924 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <!-- AUTO-GENERATED static index for crawlers/LLMs — do not edit -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- END static-index -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div id="static-index" aria-hidden="true" style="display:none">
   <section data-book="AI">
     <h2>AI</h2>
-    <section data-chapter="Joint Embeddings">
-      <h3>Joint Embeddings</h3>
-      <ul>
-        <li><a href="../Library/ai/World_models/Jepa/">The Predictive Path: JEPA and World Models</a></li>
-      </ul>
-    </section>
     <section data-chapter="Autoregressive Models">
       <h3>Autoregressive Models</h3>
       <ul>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/01.intro-to-autoregression-models/">Intro to Autoregression Models</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models/">Fixed-Length Autoregressive Models</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/03.word-representation/">Word Representation</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory/">Recurrent Neural Networks and Sequence Memory</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/05.attention-mechanism/">Attention Mechanism</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/06.the-transformer-architecture/">The Transformer Architecture</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/07.position-representation/">Position Representation</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/09.attention-approximation/">Attention Approximation</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/10.shared-attention/">Shared Attention</a></li>
-        <li><a href="../Library/ai/generative-models/01.autoregressive-models/15.the-architecture-of-scale/">The Architecture of Scale</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/01.intro-to-autoregression-models/">Intro to Autoregression Models</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models/">Fixed-Length Autoregressive Models</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/03.word-representation/">Word Representation</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory/">Recurrent Neural Networks and Sequence Memory</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/05.attention-mechanism/">Attention Mechanism</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/">The Transformer Architecture</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/07.position-representation/">Position Representation</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/09.attention-approximation/">Attention Approximation</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/10.shared-attention/">Shared Attention</a></li>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/15.the-architecture-of-scale/">The Architecture of Scale</a></li>
       </ul>
     </section>
     <section data-chapter="Latent Variable Models">
       <h3>Latent Variable Models</h3>
       <ul>
-        <li><a href="../Library/ai/generative-models/02.latent-variable-models/01.introduction-to-latent-variable-models/">Introduction to Latent Variable Models</a></li>
+        <li><a href="../Library/ai/01.generative-models/02.latent-variable-models/01.introduction-to-latent-variable-models/">Introduction to Latent Variable Models</a></li>
+        <li><a href="../Library/ai/01.generative-models/02.latent-variable-models/06.jepa/">The Predictive Path: JEPA and World Models</a></li>
       </ul>
     </section>
     <section data-chapter="Landscape">
       <h3>Landscape</h3>
       <ul>
-        <li><a href="../Library/ai/generative-models/10.Landscape/01.taxonomy-of-generative-models/">Taxonomy of Generative Models</a></li>
-        <li><a href="../Library/ai/generative-models/10.Landscape/02.ai-evolution-timeline/">AI Evolution Timeline</a></li>
+        <li><a href="../Library/ai/01.generative-models/10.Landscape/01.taxonomy-of-generative-models/">Taxonomy of Generative Models</a></li>
+        <li><a href="../Library/ai/01.generative-models/10.Landscape/02.ai-evolution-timeline/">AI Evolution Timeline</a></li>
       </ul>
     </section>
   </section>
-  <section data-book="Linear Algebra">
-    <h2>Linear Algebra</h2>
+  <section data-book="Library">
+    <h2>Library</h2>
+    <section data-chapter="Autoregressive Models">
+      <h3>Autoregressive Models</h3>
+      <ul>
+        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/11.Residual_attention/">Untitled</a></li>
+      </ul>
+    </section>
+  </section>
+  <section data-book="Mathematics">
+    <h2>Mathematics</h2>
+    <section data-chapter="Information Theory">
+      <h3>Information Theory</h3>
+      <ul>
+        <li><a href="../Library/mathematics/01.information-theory/01.Entropy, Cross-Entropy, Divergence/">Entropy, Cross-Entropy, and KL Divergence</a></li>
+      </ul>
+    </section>
     <section data-chapter="Determinants">
       <h3>Determinants</h3>
       <ul>
-        <li><a href="../Library/mathematics/linear-algebra/determinants/01.properties/">Properties of Determinants</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/02.determinants/01.properties/">Properties of Determinants</a></li>
       </ul>
     </section>
-    <section data-chapter="Eigenvalues and Eigenvectors">
-      <h3>Eigenvalues and Eigenvectors</h3>
+    <section data-chapter="Eigenvalues And Eigenvectors">
+      <h3>Eigenvalues And Eigenvectors</h3>
       <ul>
-        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/01.eigenvectors/">Eigenvectors</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/">Diagonalisation, Spectral Theorem</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/03.positive-defnite-matrices/">Positive Defnite Matrices</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/eigenvalues-and-eigenvectors/04.google-search/">Applications- Google search</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/01.eigenvectors/">Eigenvectors</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/">Diagonalisation, Spectral Theorem</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/03.positive-defnite-matrices/">Positive Defnite Matrices</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/04.google-search/">Applications- Google search</a></li>
       </ul>
     </section>
-    <section data-chapter="Orthogonality and Projections">
-      <h3>Orthogonality and Projections</h3>
+    <section data-chapter="Orthogonality And Projections">
+      <h3>Orthogonality And Projections</h3>
       <ul>
-        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/01.orthogonality-of-the-four-subspaces/">Orthogonality of the Four Subspaces</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/02.projections-onto-subspaces/">Projections onto Subspaces</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/03.projection-matrices-and-least-squares/">Projection Matrices and Least Squares</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt/">Orthogonal Matrices and Gram-Schmidt</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/04.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces/">Orthogonality of the Four Subspaces</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/04.orthogonality-and-projections/02.projections-onto-subspaces/">Projections onto Subspaces</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/04.orthogonality-and-projections/03.projection-matrices-and-least-squares/">Projection Matrices and Least Squares</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/04.orthogonality-and-projections/04.orthogonal-matrices-and-gram-schmidt/">Orthogonal Matrices and Gram-Schmidt</a></li>
       </ul>
     </section>
     <section data-chapter="Singular Value Decomposition">
       <h3>Singular Value Decomposition</h3>
       <ul>
-        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/01.the-singular-value-decomposition-svd/">The Singular Value Decomposition (SVD)</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/02.svd-properties/">SVD Properties and Analytical Mechanics</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/03.svd-applications/">Applications of SVD</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/singular-value-decomposition/04.Image_compression/">SVD for Image Compression</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/05.singular-value-decomposition/01.the-singular-value-decomposition-svd/">The Singular Value Decomposition (SVD)</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/05.singular-value-decomposition/02.svd-properties/">SVD Properties and Analytical Mechanics</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/05.singular-value-decomposition/03.svd-applications/">Applications of SVD</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/05.singular-value-decomposition/04.Image_compression/">SVD for Image Compression</a></li>
       </ul>
     </section>
     <section data-chapter="Solving Linear Systems">
       <h3>Solving Linear Systems</h3>
       <ul>
-        <li><a href="../Library/mathematics/linear-algebra/solving-linear-systems/01.solving-linear-equations/">Solving Linear Equations</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/solving-linear-systems/02.the-complete-solution/">The Complete Solution</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/06.solving-linear-systems/01.solving-linear-equations/">Solving Linear Equations</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/06.solving-linear-systems/02.the-complete-solution/">The Complete Solution</a></li>
       </ul>
     </section>
-    <section data-chapter="Vector Spaces and Subspaces">
-      <h3>Vector Spaces and Subspaces</h3>
+    <section data-chapter="Vector Spaces And Subspaces">
+      <h3>Vector Spaces And Subspaces</h3>
       <ul>
-        <li><a href="../Library/mathematics/linear-algebra/vector-spaces-and-subspaces/01.the-four-fundamental-subspaces/">The Four Fundamental Subspaces</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/vector-spaces-and-subspaces/02.null-space-from-block-rref/">Null Space from Block RREF</a></li>
-        <li><a href="../Library/mathematics/linear-algebra/vector-spaces-and-subspaces/03.independence-basis-and-dimension/">Independence, Basis, and Dimension</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces/">The Four Fundamental Subspaces</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/02.null-space-from-block-rref/">Null Space from Block RREF</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/03.independence-basis-and-dimension/">Independence, Basis, and Dimension</a></li>
+        <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/04.vector-spaces-and-subspaces/">Vector Spaces and the Four Fundamental Subspaces</a></li>
       </ul>
     </section>
-  </section>
-  <section data-book="Stats">
-    <h2>Stats</h2>
-    <section data-chapter="Hypothesis Testing">
-      <h3>Hypothesis Testing</h3>
+    <section data-chapter="Hypothesis Test">
+      <h3>Hypothesis Test</h3>
       <ul>
-        <li><a href="../Library/mathematics/probability-statistics/Hypothesis_test/01. Hypothesis_test/">Hypothesis Testing: Z, T, and Chi-Squared Tests</a></li>
+        <li><a href="../Library/mathematics/03.probability-statistics/01.Hypothesis_test/01. Hypothesis_test/">Hypothesis Testing: Z, T, and Chi-Squared Tests</a></li>
       </ul>
     </section>
     <section data-chapter="Distributions">
       <h3>Distributions</h3>
       <ul>
-        <li><a href="../Library/mathematics/probability-statistics/distributions/01.common-probability-distributions/">Common Probability Distributions</a></li>
-        <li><a href="../Library/mathematics/probability-statistics/distributions/02.the-central-limit-theorem-and-maximum-entropy/">The Central Limit Theorem & Maximum Entropy</a></li>
+        <li><a href="../Library/mathematics/03.probability-statistics/02.distributions/01.common-probability-distributions/">Common Probability Distributions</a></li>
+        <li><a href="../Library/mathematics/03.probability-statistics/02.distributions/02.the-central-limit-theorem-and-maximum-entropy/">The Central Limit Theorem & Maximum Entropy</a></li>
       </ul>
     </section>
-    <section data-chapter="Foundations of Probability">
-      <h3>Foundations of Probability</h3>
+    <section data-chapter="Foundations Of Probability">
+      <h3>Foundations Of Probability</h3>
       <ul>
-        <li><a href="../Library/mathematics/probability-statistics/foundations-of-probability/01.probability-and-counting/">Probability and Counting</a></li>
+        <li><a href="../Library/mathematics/03.probability-statistics/03.foundations-of-probability/01.probability-and-counting/">Probability and Counting</a></li>
       </ul>
     </section>
   </section>
 </div>
-<!-- END static-index -->
+
 </body>
 </html>

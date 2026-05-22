@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="article_id" content="bfd42033">
+<meta name="book" content="AI">
+<meta name="section" content="Generative Models">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="title" content="Attention Mechanism">
+<meta name="description" content="From the seq2seq bottleneck to scaled dot-product attention, self-attention, masking, and multi-head attention—the core ideas that replace recurrence in Transformers.">
+<meta name="keywords" content="attention, cross-attention, self-attention, masked attention, scaled dot-product attention, multi-head attention, transformer, seq2seq bottleneck, queries keys values, autoregressive decoding">
+<meta name="status" content="draft">
+<meta name="date" content="2026-04-09">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="21">
+
+<meta property="og:title" content="Attention Mechanism">
+<meta property="og:description" content="From the seq2seq bottleneck to scaled dot-product attention, self-attention, masking, and multi-head attention—the core ideas that replace recurrence in Transformers.">
+<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/05.attention-mechanism/">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-bfd42033.png?v=63913a">
+<meta name="twitter:card" content="summary_large_image">
+
+<style id="mobile-view-styles">
+    img, iframe, video { max-width: 100% !important; height: auto !important; }
+    @media screen and (max-width: 768px) {
+        body, article, .content, main {
+            width: 100% !important; max-width: 100vw !important;
+            padding: 10px 15px !important; box-sizing: border-box !important;
+            overflow-x: hidden !important;
+        }
+    }
+</style>
+
+    <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<title>Attention Mechanism</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../../../css/base.css">
+    <link rel="stylesheet" href="../../../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
+        })();
+    </script>
+
+    <script src="../../../../../js/base.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<h2>Dynamic Retrieval: Let the Decoder Look Back</h2>
+
+<p>In the encoder–decoder architecture from the previous article, the entire source sequence is compressed into a single fixed-length context vector $c \in \mathbb{R}^{d \times 1}$. The decoder then generates every output token conditioned on this one vector. For short sentences this is workable; for long ones it is not. A fixed-size vector is a hard information bottleneck — no matter how powerful the encoder, it cannot transmit an arbitrarily long source sentence through a constant-width channel without loss. Translation quality degrades visibly with source length precisely because of this structural constraint.</p>
+
+<p>The natural fix is simple: keep all the encoder hidden states available and let the decoder look at them directly.</p>
+
+<p>Let the encoder produce a sequence of hidden state column vectors</p>
+<div class="math-display">
+  $$\mathbf{h}_1, \mathbf{h}_2, \dots, \mathbf{h}_{T_x}, \qquad \mathbf{h}_j \in \mathbb{R}^{d \times 1}$$
+</div>
+<p>where each $\mathbf{h}_j$ represents the $j$-th English word in the context of its neighbours. These vectors are not discarded after encoding. Instead, the decoder can access all of them at every step.</p>
+
+<p>When generating the $i$-th German word, the decoder constructs a <em>dynamic context vector</em> by taking a weighted combination:</p>
+<div class="math-display">
+  $$\mathbf{c}_i = \sum_{j=1}^{T_x} \alpha_{ij}\, \mathbf{h}_j.$$
+</div>
+
+<p>The weights $\alpha_{ij}$ determine how relevant each English word is to the current decoding step. They are computed by scoring the compatibility between the previous decoder state column vector $\mathbf{s}_{i-1} \in \mathbb{R}^{d \times 1}$ and each encoder state $\mathbf{h}_j$, then normalising via softmax:</p>
+<div class="math-display">
+  $$\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_k \exp(e_{ik})}.$$
+</div>
+
+<p>The weights form a probability distribution over the source positions. When the decoder generates the German verb <em>schläft</em>, it places high weight on the English word <em>sleeps</em> and low weight on unrelated words such as <em>the</em> or <em>rug</em>. When generating a noun, the focus shifts accordingly.</p>
+
+<p>The retrieval is dynamic and input-dependent. At each decoding step the model decides which parts of the source sentence matter most.</p>
+
+<p>This mechanism is <em>attention</em>.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Attention</div>
+  <div class="math-box-body">
+    <p>Attention converts a set of static representations into a dynamic contextual representation by computing a relevance-weighted mixture of those representations.</p>
+  </div>
+</div>
+
+<p>The bottleneck disappears. The decoder no longer extracts everything from a single vector; it selectively retrieves information from the entire encoded sequence. This raises a key question:</p>
+
+<p><strong>How should compatibility be scored?</strong></p>
+
+<p>Everything hinges on computing the compatibility score $e_{ij}$ well. This is the central design question of attention.</p>
+
+<h2>First Design: Score with a Network</h2>
+
+<p>The most expressive option is to learn a small neural network that takes the decoder state column vector $\mathbf{s}$ and encoder state column vector $\mathbf{h}$, pushes them through a shared hidden layer, and projects to a scalar compatibility score via a learned column vector $\mathbf{u}$:</p>
+<div class="math-display">
+  $$e = \mathbf{u}^\top \tanh(W_1 \mathbf{s} + W_2 \mathbf{h}).$$
+</div>
+
+<p>The network learns directly from translation data what compatibility means. It can capture complex nonlinear interactions between the decoder and encoder representations.</p>
+
+<p>This approach works well, but it has a structural cost. The network must be evaluated for <em>every pair</em> of decoder and encoder positions. Because decoder states are generated sequentially, the computation cannot be parallelised easily. For long sentences this becomes expensive.</p>
+
+<h2>Second Design: Score with a Dot Product</h2>
+
+<p>A much simpler alternative is to replace the neural network with a standard vector inner product:</p>
+<div class="math-display">
+  $$e = \mathbf{s}^\top \mathbf{h}.$$
+</div>
+
+<p>The inner product requires no additional parameters and is extremely cheap to compute. It performs competitively in practice.</p>
+
+<p>But taking inner products between raw hidden states introduces two problems.</p>
+
+<p><strong>The relevance problem.</strong></p>
+
+<p>An inner product measures raw similarity between vectors. Two states will score highly if their representations happen to be close, even if the words are not actually relevant to each other in this particular sentence. Similarity is not necessarily relevance.</p>
+
+<p><strong>The scale problem.</strong></p>
+
+<p>When the hidden state dimension $d$ is large, dot products tend to grow in magnitude proportionally to $d$. This pushes the softmax into saturation, where gradients become very small and training slows down.</p>
+
+<p>Both issues arise because the vectors are being compared in the wrong space.</p>
+
+<h2>A Note on Notation: Switching to Row Vectors</h2>
+
+<p>The previous article treated hidden states, inputs, and context vectors as <strong>column vectors</strong> in $\mathbb{R}^{d \times 1}$, with weight matrices left-multiplying. This is the natural layout for describing a recurrent update step by step.</p>
+
+<p>From here onward, we switch to <strong>row vectors</strong> in $\mathbb{R}^{1 \times d}$, with weight matrices right-multiplying. The reason is practical: when processing an entire sequence at once, stacking token representations as rows of a matrix and right-multiplying a weight matrix is how attention is implemented in every major deep learning framework. The switch aligns the equations with the batch computation that follows. The underlying mathematics is identical — only the layout convention changes.</p>
+
+<h2>The Fix: Project Before You Compare</h2>
+
+<p>The solution is to project the states into a learned interaction space before computing the dot product.</p>
+
+<p>Consider the English sentence</p>
+<div class="math-display">
+  $$\textit{``The black cat sleeps on the rug.''}$$
+</div>
+
+<p>Suppose the decoder has produced the German phrase <em>``Die schwarze Katze''</em> and must now generate the next word. It needs to locate the English verb <em>sleeps</em>.</p>
+
+<p>The decoder state $\mathbf{s}$ encodes everything known so far about the German sentence. The encoder states $\mathbf{h}_1,\dots,\mathbf{h}_n$ encode the English words. But these vectors live in different representation spaces. Comparing them directly is like comparing measurements expressed in different units.</p>
+
+<p>The fix is to learn projections that place them in a common space.</p>
+
+<p>Throughout this text, we treat all individual token representations consistently as <strong>row vectors</strong> ($\mathbb{R}^{1 \times d}$). To transform them, we multiply by a standard projection weight matrix from the right. This ensures our equations flow intuitively from left to right, matching exactly how expressions are written for both individual tokens and full batches.</p>
+
+<p>The decoder state row vector is projected into a <strong>query row vector</strong>:</p>
+<div class="math-display">
+  $$\mathbf{q} = \mathbf{s} W_Q, \qquad W_Q \in \mathbb{R}^{d \times d_k}.$$
+</div>
+
+<p>Each encoder state row vector is projected into a <strong>key row vector</strong>:</p>
+<div class="math-display">
+  $$\mathbf{k}_j = \mathbf{h}_j W_K, \qquad W_K \in \mathbb{R}^{d \times d_k}.$$
+</div>
+
+<p>Both projections produce row vectors in the same $d_k$-dimensional interaction space. The compatibility score becomes the vector inner product:</p>
+<div class="math-display">
+  $$e_j = \frac{\mathbf{q} \mathbf{k}_j^\top}{\sqrt{d_k}}.$$
+</div>
+
+<p>The scaling factor $\sqrt{d_k}$ prevents dot products from growing too large and stabilises training. Here $d_k$ is a free hyperparameter — a design choice for single-head attention. When attention is extended to multiple heads in the final section, $d_k$ will be constrained to $d_{\mathrm{model}} / H$ so that the total computation across all heads remains comparable to single-head attention over the full dimension.</p>
+
+<p>Now the decoder query for the next German verb aligns strongly with the key of the English word <em>sleeps</em> and weakly with unrelated words.</p>
+
+<p>The projections solve <strong>Relevance</strong>: the model learns how queries and keys should align. They solve <strong>Scale</strong>: the $\sqrt{d_k}$ factor keeps the softmax inputs in a well-conditioned range regardless of the dimension.</p>
+
+<h2>What Gets Retrieved: The Value Projection</h2>
+
+<p>Once attention weights are computed, the model takes a weighted sum of vectors from the encoder. But a weighted sum of <em>what</em>?</p>
+
+<p>Using the key vectors themselves would mix two roles that should remain separate: how a word is <em>found</em> and what it <em>contributes</em> once found.</p>
+
+<p>Keys are optimised for discoverability. But the decoder ultimately needs the meaning of the word.</p>
+
+<p>To separate these roles, each encoder state is also projected into a <strong>value row vector</strong>:</p>
+<div class="math-display">
+  $$\mathbf{v}_j = \mathbf{h}_j W_V, \qquad W_V \in \mathbb{R}^{d \times d_v}.$$
+</div>
+
+<p>Queries and keys determine how much each word contributes. Values determine what information is actually retrieved.</p>
+
+<p>The resulting context vector is a row vector in $\mathbb{R}^{1 \times d_v}$:</p>
+<div class="math-display">
+  $$\mathbf{c}_i = \sum_j \alpha_{ij} \mathbf{v}_j.$$
+</div>
+
+<p>The word <em>sleeps</em> is located because its key matches the query. What is retrieved, however, is its value — a representation encoding its semantic and grammatical content.</p>
+
+<p><strong>What projection means geometrically.</strong></p>
+
+<p>For each English word the encoder produces a hidden state row vector $\mathbf{h}_j \in \mathbb{R}^{1 \times d}$. This state is projected into a key $\mathbf{k}_j \in \mathbb{R}^{1 \times d_k}$, while the decoder state $\mathbf{s} \in \mathbb{R}^{1 \times d}$ is projected into a query $\mathbf{q} \in \mathbb{R}^{1 \times d_k}$.</p>
+
+<p>Seven English words therefore produce seven keys. The decoder produces one query. Their inner products measure how well each source word matches the decoder's current need.</p>
+
+<p>Softmax converts these scores into weights, and the decoder retrieves a weighted mixture of value row vectors.</p>
+
+<p>Geometrically, the projections isolate the components of the representations that are relevant for interaction. The query isolates the features that express what the decoder is searching for. The keys isolate the features that advertise what each word contains. The values isolate the features that need to be retrieved once a word is found.</p>
+
+<p>This observation leads to an important question. Attention does not depend on how the vectors $\mathbf{h}_1,\dots,\mathbf{h}_{T_x}$ were produced. It only requires that each position in the sentence is associated with a vector that can be projected into queries, keys, and values.</p>
+
+<p>In the encoder–decoder architecture these vectors come from a recurrent encoder:</p>
+<div class="math-display">
+  $$\mathbf{h}_j = f(\mathbf{x}_j, \mathbf{h}_{j-1}).$$
+</div>
+
+<p>But once attention allows the decoder to retrieve information directly from any position in the source sentence, the role of the recurrent chain changes. In the original encoder, the dependence on the previous state was necessary because contextual information had to be carried forward through the sequence. Each hidden state inherited information from the previous one so that earlier words could influence later representations.</p>
+
+<p>Attention removes this requirement. The decoder can now access every position in the source sentence directly and retrieve whatever information it needs through the attention weights. Context no longer has to be transported step by step through the recurrent chain.</p>
+
+<p>Once this mechanism exists, the dependence on the previous hidden state becomes unnecessary. The representation associated with each word no longer needs to carry the entire sentence history forward. The encoder transformation can therefore be simplified to</p>
+<div class="math-display">
+  $$\mathbf{h}_j = f(\mathbf{x}_j).$$
+</div>
+
+<p>At this point the role of $f$ itself becomes unclear. Word embeddings $\mathbf{x}_j$ are learned parameters of the model. If a particular vector representation of a word is useful for the attention mechanism, the training process can move the embedding in that direction.</p>
+
+<p>In effect, the embedding itself can serve as the vector that attention operates on. The model can simply learn the embedding of each word to be the representation that best supports attention. We can therefore identify the initial layer's hidden state with the word vector itself,</p>
+<div class="math-display">
+  $$\mathbf{h}_j = \mathbf{x}_j.$$
+</div>
+
+<p>The same reasoning applies on the decoder side. The decoder state $\mathbf{s}$ was previously the representation used to form queries. But if the model already maintains a vector representation for each generated token, that representation can directly serve as the query source. Attention therefore operates on the word representations themselves rather than on hidden states produced by a recurrent network.</p>
+
+<h2>From Vectors to Matrices: The Standard Formulation</h2>
+
+<p>When computing attention for an entire sequence at once, we simply stack these individual token row vectors vertically to form a sequence matrix—exactly how it is done in standard deep learning papers and framework codebases. If a sequence has $n$ tokens, each represented by a row of dimension $d$, we form the sequence matrix $X \in \mathbb{R}^{n \times d}$:</p>
+<div class="math-display">
+  $$X = \begin{bmatrix} — \mathbf{h}_1 — \\ — \mathbf{h}_2 — \\ \vdots \\ — \mathbf{h}_n — \end{bmatrix} \in \mathbb{R}^{n \times d}.$$
+</div>
+
+<p>To project our sequences into the interaction space at batch scale, we right-multiply by our weight matrices. Because individual tokens are already rows, the transformation equations maintain the exact same structural direction whether applied to one token or a batch of a thousand:</p>
+<div class="math-display">
+  $$Q = Y W_Q, \qquad K = X W_K, \qquad V = X W_V,$$
+</div>
+<p>where $Y \in \mathbb{R}^{n_q \times d}$ represents the target decoder sequence matrix, $X \in \mathbb{R}^{n_k \times d}$ represents the source encoder sequence matrix, and our weights are shaped as $W_Q, W_K \in \mathbb{R}^{d \times d_k}$ and $W_V \in \mathbb{R}^{d \times d_v}$. All query–key inner products are then computed simultaneously as the matrix product $QK^\top$.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Scaled Dot-Product Attention</div>
+  <div class="math-box-body">
+    <p>Let $Q \in \mathbb{R}^{n_q \times d_k}$, $K \in \mathbb{R}^{n_k \times d_k}$, and $V \in \mathbb{R}^{n_k \times d_v}$ be matrices whose rows represent query, key, and value vectors respectively. Scaled dot-product attention is defined as</p>
+    <div class="math-display">
+      $$\mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left(\frac{Q K^\top}{\sqrt{d_k}}\right) V.$$
+    </div>
+    <ul>
+      <li><strong>Query Matrix</strong> ($Q = Y W_Q$): each row $i$ holds a query row vector $\mathbf{q}_i$.</li>
+      <li><strong>Key Matrix</strong> ($K = X W_K$): each row $j$ holds a key row vector $\mathbf{k}_j$.</li>
+      <li><strong>Value Matrix</strong> ($V = X W_V$): each row $j$ holds a value row vector $\mathbf{v}_j$.</li>
+      <li><strong>$\sqrt{d_k}$</strong>: scaling factor that prevents dot products from growing large and saturating the softmax.</li>
+    </ul>
+    <p>The softmax is applied row-wise: each row of $QK^\top$ is a set of raw scores for one query, evaluating to $(QK^\top)_{ij} = \mathbf{q}_i \mathbf{k}_j^\top$. Softmax converts them into a probability distribution over the $n_k$ key positions. The output is a matrix of shape $\mathbb{R}^{n_q \times d_v}$, where each row is an aggregated context row vector $\mathbf{c}_i$.</p>
+  </div>
+</div>
+
+<p>The mechanism developed so far is <em>cross-attention</em>: the German decoder attends to the English encoder. The query comes from the German side; the keys and values come from the English side. The two sequences are different.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Cross-Attention</div>
+  <div class="math-box-body">
+    <p>Cross-attention applies the attention operator to two different sequences. Queries are produced from the decoder representations, while keys and values are produced from the encoder representations.</p>
+    <p>Let $Y \in \mathbb{R}^{n_{\mathrm{dec}} \times d}$ be the matrix of decoder representations and $X \in \mathbb{R}^{n_{\mathrm{enc}} \times d}$ the matrix of encoder representations. Cross-attention is defined as</p>
+    <div class="math-display">
+      $$\mathrm{CrossAttention}(Y,X) = \mathrm{Attention}(Y W_Q,\; X W_K,\; X W_V),$$
+    </div>
+    <p>with $W_Q, W_K \in \mathbb{R}^{d \times d_k}$ and $W_V \in \mathbb{R}^{d \times d_v}$. Each decoder position forms a query that searches over the encoder representations to retrieve the information most relevant to the next prediction.</p>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Example: Parallel Cross-Attention</div>
+  <div class="math-box-body">
+    <p>The encoder produces representations</p>
+    <div class="math-display">
+      $$X_{\mathrm{enc}} \in \mathbb{R}^{7 \times d}$$
+    </div>
+    <p>for the English words</p>
+    <div class="math-display">
+      $$(\text{The},\ \text{black},\ \text{cat},\ \text{sleeps},\ \text{on},\ \text{the},\ \text{rug}),$$
+    </div>
+    <p>where row $j$ of $X_{\mathrm{enc}}$ is the row representation $\mathbf{h}_j$ of the $j$-th word. The decoder currently contains the partial German sequence</p>
+    <div class="math-display">
+      $$(\text{Die},\ \text{schwarze},\ \text{Katze},\ \text{schläft}),$$
+    </div>
+    <p>stacked as rows of $Y \in \mathbb{R}^{4 \times d}$. The projection matrices $W_Q, W_K \in \mathbb{R}^{d \times d_k}$ and $W_V \in \mathbb{R}^{d \times d_v}$ are applied directly from the right:</p>
+    <div class="math-display">
+      $$Q = Y W_Q \in \mathbb{R}^{4 \times d_k}, \qquad K = X_{\mathrm{enc}} W_K \in \mathbb{R}^{7 \times d_k}, \qquad V = X_{\mathrm{enc}} W_V \in \mathbb{R}^{7 \times d_v}.$$
+    </div>
+    <p>Row $i$ of $Q$ is the query $\mathbf{q}_i$ for the $i$-th German token; row $j$ of $K$ is the key $\mathbf{k}_j$ for the $j$-th English token. All query–key compatibilities are computed simultaneously as the matrix product</p>
+    <div class="math-display">
+      $$S = \frac{Q K^\top}{\sqrt{d_k}} \in \mathbb{R}^{4 \times 7}.$$
+    </div>
+    <p>Applying softmax row-wise produces the attention matrix</p>
+    <div class="math-display">
+      $$A = \mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} \right) \in \mathbb{R}^{4 \times 7}.$$
+    </div>
+
+<div style="overflow-x: auto; margin: 24px 0; background: var(--box-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px;">
+  <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 14px;">
+    <thead>
+      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
+        <th style="padding: 10px;"></th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">The</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">black</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">cat</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">sleeps</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">on</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">the</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">rug</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;">sum</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600; color: var(--text);">Die</td>
+        <td style="background: rgba(var(--accent-rgb), 0.35); padding: 10px; border-radius: 6px;">0.62</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.19</td>
+        <td style="padding: 10px; font-weight: 600;">1.00</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">schwarze</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.38); padding: 10px; border-radius: 6px;">0.68</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.15</td>
+        <td style="padding: 10px; font-weight: 600;">1.00</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">Katze</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.42); padding: 10px; border-radius: 6px;"><strong>0.70</strong></td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.11</td>
+        <td style="padding: 10px; font-weight: 600;">1.00</td>
+      </tr>
+      <tr>
+        <td style="text-align: left; padding: 10px; font-weight: 600;">schläft</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.02</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="background: rgba(var(--accent-rgb), 0.10); padding: 10px;">0.06</td>
+        <td style="background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 6px;"><strong>0.77</strong></td>
+        <td style="background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.05</td>
+        <td style="background: rgba(var(--accent-rgb), 0.04); padding: 10px;">0.04</td>
+        <td style="background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.03</td>
+        <td style="padding: 10px; font-weight: 600;">1.00</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+    <p>Each row corresponds to one decoder query; each column corresponds to one encoder key. Row $i$ of $A$ is a probability distribution over the 7 source positions, indicating how much each source word contributes to the representation of the $i$-th German token.</p>
+
+    <p>The table shows how different German words attend to different parts of the English sentence:</p>
+    <ul>
+      <li><em>Die</em> attends strongly to <em>The</em>.</li>
+      <li><em>schwarze</em> attends strongly to <em>black</em>.</li>
+      <li><em>Katze</em> attends strongly to <em>cat</em>.</li>
+      <li><em>schläft</em> attends strongly to <em>sleeps</em>.</li>
+    </ul>
+
+    <p>Because $QK^\top$ is a matrix product, all 28 query–key scores are obtained in a single parallel operation.</p>
+
+    <p>The context vectors for all decoder positions are then computed simultaneously as rows in the final matrix:</p>
+    <div class="math-display">
+      $$C = AV \in \mathbb{R}^{4 \times d_v}.$$
+    </div>
+
+    <p><strong>Computing the context vectors.</strong></p>
+    <p>Row $i$ of $C$ is the context row vector $\mathbf{c}_i$ for the $i$-th German token: a weighted sum of the 7 English value row vectors, where the weights come from row $i$ of $A$. For the highlighted row corresponding to <em>schläft</em>:</p>
+
+    <div class="math-display">
+      $$
+      C = 
+      \begin{bmatrix}
+      0.62 & 0.05 & 0.04 & 0.03 & 0.03 & 0.04 & 0.19 \\
+      0.03 & 0.68 & 0.05 & 0.03 & 0.03 & 0.03 & 0.15 \\
+      0.03 & 0.05 & 0.70 & 0.04 & 0.04 & 0.03 & 0.11 \\
+      0.02 & 0.03 & 0.06 & \mathbf{0.77} & 0.05 & 0.04 & 0.03
+      \end{bmatrix}
+      \quad
+      \begin{array}{c}
+      V \\
+      \begin{bmatrix}
+      — \mathbf{v}_1 — \\ — \mathbf{v}_2 — \\ — \mathbf{v}_3 — \\ — \mathbf{v}_4 — \\ — \mathbf{v}_5 — \\ — \mathbf{v}_6 — \\ — \mathbf{v}_7 —
+      \end{bmatrix}
+      \end{array}
+      $$
+    </div>
+
+    <p>where $\mathbf{v}_j$ denotes row $j$ of $V$. Multiplying the highlighted row with $V$ gives</p>
+    <div class="math-display">
+      $$\mathbf{c}_{\text{schläft}} = 0.02\,\mathbf{v}_1 + 0.03\,\mathbf{v}_2 + 0.06\,\mathbf{v}_3 + 0.77\,\mathbf{v}_4 + 0.05\,\mathbf{v}_5 + 0.04\,\mathbf{v}_6 + 0.03\,\mathbf{v}_7.$$
+    </div>
+    <p>The weights sum to $0.02 + 0.03 + 0.06 + 0.77 + 0.05 + 0.04 + 0.03 = 1.00$, as required of a softmax output.</p>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">A Gap That Attention Introduces</div>
+  <div class="math-box-body">
+    <p>By removing the recurrent encoder, attention also removes the implicit encoding of token order. A recurrent network processes tokens one by one, so position is baked into the hidden state chain — the representation at step $t$ is built from the representation at $t{-}1$. Attention has no such chain: it treats the sequence as a set and is <em>permutation-invariant</em>. Feeding <em>``cat the sleeps black''</em> produces exactly the same attention weights as <em>``The black cat sleeps''</em>.</p>
+    <p>Order must therefore be re-introduced explicitly. This is done via <strong>positional encodings</strong> added to the token embeddings before attention is applied — whether through fixed sinusoidal functions or learned embeddings. How positional information is encoded is the subject of the next article.</p>
+  </div>
+</div>
+
+<h2>Self-Attention: Turning the Mechanism Inward</h2>
+
+<p>But now consider the English sentence itself, before translation begins. The meaning of each English word depends on the words around it. The word <em>bank</em> means something different beside <em>river</em> than beside <em>loan</em>. The recurrent encoder from the previous article handled this through gated state updates — the LSTM's forget and input gates control what the cell state carries forward. But this has a cost: to influence a word at position $t + k$, a word at position $t$ must propagate its signal through every hidden state in between, accumulating distortion at each gate. Long-range relationships are structurally harder to maintain than short-range ones.</p>
+
+<p>The same attention mechanism can be applied within a single sequence. Each English word produces its own query, key, and value vectors, and attends over all other words in the same sentence. This is <em>self-attention</em>: the sequence attending to itself.</p>
+
+<p>The effect is significant. Any two positions interact directly in a single operation — <em>bank</em> can immediately attend to <em>river</em> or <em>loan</em> to resolve its meaning, without the relationship having to propagate through every intermediate hidden state. Long-range dependencies are no harder to capture than short-range ones, and the entire computation runs in parallel.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Self-Attention</div>
+  <div class="math-box-body">
+    <p>Let $X \in \mathbb{R}^{n \times d}$ be a matrix whose rows are the token row vectors. Self-attention derives queries, keys, and values all from the same input by right-multiplying weight matrices directly:</p>
+    <div class="math-display">
+      $$\mathrm{SelfAttention}(X) = \mathrm{Attention}(X W_Q,\; X W_K,\; X W_V),$$
+    </div>
+    <p>with $W_Q, W_K \in \mathbb{R}^{d \times d_k}$ and $W_V \in \mathbb{R}^{d \times d_v}$. Each position attends over all other positions in the same sequence, allowing direct interaction between any two tokens regardless of their distance. This enables the model to refine the representation of each token using information from the entire sentence.</p>
+  </div>
+</div>
+
+<p>Self-attention in the encoder allows every position to attend to every other position in the sentence. The decoder, however, generates the target sentence one token at a time. When predicting the token at position $i$, the model must not see future tokens.</p>
+
+<h2>Masked Self-Attention</h2>
+
+<p>In the encoder, every token can attend to every other token in the sentence because the entire input is known in advance.</p>
+
+<p>The decoder is different. It generates the German sentence one word at a time. Suppose the model has produced</p>
+<div class="math-display">
+  $$\textit{``Die schwarze Katze''}$$
+</div>
+<p>and is about to generate the next word <em>schläft</em>. When computing the representation for the next position, the decoder may attend to the words that already exist — <em>Die</em>, <em>schwarze</em>, and <em>Katze</em> — but it must not look ahead to words that have not yet been generated, such as <em>auf</em>, <em>dem</em>, or <em>Teppich</em>. Allowing this during training would reveal the future and make the task trivial.</p>
+
+<p>To enforce this causal ordering, attention to future positions is masked.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Masked Self-Attention</div>
+  <div class="math-box-body">
+    <p>Let $Y \in \mathbb{R}^{n \times d}$ be the matrix of decoder representations. Masked self-attention computes attention within this sequence while preventing position $i$ from attending to any position $j > i$:</p>
+    <div class="math-display">
+      $$\mathrm{MaskedAttention}(Q,K,V) = \mathrm{softmax}\!\left( \frac{QK^\top + M}{\sqrt{d_k}} \right)V,$$
+    </div>
+    <p>where $Q = YW_Q$, $K = YW_K$, $V = YW_V$, and the mask matrix $M \in \mathbb{R}^{n \times n}$ is defined entry-wise as</p>
+    <div class="math-display">
+      $$M_{ij} = \begin{cases} 0 & j \le i \\ -\infty & j > i. \end{cases}$$
+    </div>
+    <p>Adding $-\infty$ to a score before softmax drives the corresponding weight to zero, so token $i$ can only aggregate information from tokens at positions $j \le i$.</p>
+  </div>
+</div>
+
+<h2>Multiple Heads: Multiple Notions of Relevance</h2>
+
+<p>A single set of projection matrices $W_Q$, $W_K$, and $W_V$ learns one notion of relevance. At each decoding step, the attention mechanism produces a single distribution over the source sequence — one decision about what information to retrieve. The difficulty is that relevance is not a single concept.</p>
+
+<p>Even within one sentence, generating a word may require answering several different questions simultaneously. When the German decoder generates <em>schläft</em>, it may need to determine: <em>what is the verb?</em> (to retrieve <em>sleeps</em>), <em>what is the subject?</em> (to enforce agreement with <em>cat</em>), and <em>what completes the predicate?</em> (to understand the role of <em>rug</em>). These relationships are structurally different. A single attention distribution must place its weight somewhere — it cannot simultaneously focus sharply on all of these positions. The model is therefore forced to average together relationships that should remain distinct.</p>
+
+<p>The Transformer resolves this limitation by running multiple attention mechanisms in parallel. Instead of learning a single notion of relevance, the model learns $H$ different ones, each operating in its own projection subspace. This mechanism is known as <em>multi-head attention</em>.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Multi-Head Attention (MHA)</div>
+  <div class="math-box-body">
+    <p>Let $X_Q \in \mathbb{R}^{n_q \times d_{\mathrm{model}}}$, $X_K \in \mathbb{R}^{n_k \times d_{\mathrm{model}}}$, and $X_V \in \mathbb{R}^{n_k \times d_{\mathrm{model}}}$ be input sequence matrices where each row is a token vector. Multi-head attention runs $H$ attention heads in parallel. Each head $h$ uses its own learned projection matrices</p>
+    <div class="math-display">
+      $$W_Q^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \quad W_K^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \quad W_V^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_v},$$
+    </div>
+    <p>to compute per-head attention:</p>
+    <div class="math-display">
+      $$\mathrm{head}_h = \mathrm{Attention}\left(X_Q W_Q^{(h)},\; X_K W_K^{(h)},\; X_V W_V^{(h)}\right).$$
+    </div>
+    <p>The $H$ head outputs are concatenated along the feature dimension and projected back to $d_{\mathrm{model}}$ by right-multiplying the output projection matrix $W^O \in \mathbb{R}^{H d_v \times d_{\mathrm{model}}}$. This projection mixes the signals discovered by each independent head into a single unified representation:</p>
+    <div class="math-display">
+      $$\mathrm{MHA}(X_Q, X_K, X_V) = \mathrm{Concat}(\mathrm{head}_1,\ldots,\mathrm{head}_H) W^O.$$
+    </div>
+    <p>In practice $d_k = d_v = d_{\mathrm{model}} / H$, so each head operates in a reduced subspace and the concatenated output naturally restores the full $d_{\mathrm{model}}$ width. This is the relationship between the free hyperparameter $d_k$ introduced in single-head attention and the multi-head setting: here $d_k$ is determined by the ratio $d_{\mathrm{model}} / H$ so that total computation stays comparable to a single wide attention layer.</p>
+  </div>
+</div>
+
+<p>Each head learns its own notion of what makes two positions relevant to each other. One head may capture syntactic agreement, another lexical correspondence, another long-range coreference. Because all heads operate on the same representations simultaneously, the model can represent multiple relationships without forcing them into a single attention pattern.</p>
+
+<p>Two important special cases of multi-head attention appear in the Transformer architecture.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Multi-Head Self-Attention (MHSA)</div>
+  <div class="math-box-body">
+    <p>Let $X \in \mathbb{R}^{n \times d_{\mathrm{model}}}$ be a sequence of token row representations. Multi-head self-attention runs $H$ attention heads in parallel, with each head using its own projections:</p>
+    <div class="math-display">
+      $$W_Q^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \qquad W_K^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \qquad W_V^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_v}.$$
+    </div>
+    <p>Each head computes</p>
+    <div class="math-display">
+      $$\mathrm{head}_h = \mathrm{Attention}\left(X W_Q^{(h)},\; X W_K^{(h)},\; X W_V^{(h)}\right).$$
+    </div>
+    <p>The outputs of all heads are concatenated and projected:</p>
+    <div class="math-display">
+      $$\mathrm{MHSA}(X) = \mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_H) W^O.$$
+    </div>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Masked Multi-Head Self-Attention (MMHSA)</div>
+  <div class="math-box-body">
+    <p>Let $Y \in \mathbb{R}^{n \times d_{\mathrm{model}}}$ be a sequence of decoder token representations. Masked multi-head self-attention runs $H$ attention heads in parallel, with each head using its own projections:</p>
+    <div class="math-display">
+      $$W_Q^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \qquad W_K^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \qquad W_V^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_v}.$$
+    </div>
+    <p>Each head applies the masked attention mechanism:</p>
+    <div class="math-display">
+      $$\mathrm{head}_h = \mathrm{MaskedAttention}\left(Y W_Q^{(h)},\; Y W_K^{(h)},\; Y W_V^{(h)}\right).$$
+    </div>
+    <p>The outputs of all heads are concatenated and projected:</p>
+    <div class="math-display">
+      $$\mathrm{MMHSA}(Y) = \mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_H) W^O.$$
+    </div>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Multi-Head Cross-Attention (MHCA)</div>
+  <div class="math-box-body">
+    <p>Let $Y \in \mathbb{R}^{n_{\mathrm{dec}} \times d_{\mathrm{model}}}$ and $X \in \mathbb{R}^{n_{\mathrm{enc}} \times d_{\mathrm{model}}}$ be decoder and encoder matrices. Multi-head cross-attention runs $H$ attention heads in parallel. For each head $h$, queries come from the decoder and keys and values come from the encoder:</p>
+    <div class="math-display">
+      $$W_Q^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k},$$
+      $$W_K^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k},$$
+      $$W_V^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_v}.$$
+    </div>
+    <p>Each head computes</p>
+    <div class="math-display">
+      $$\mathrm{head}_h = \mathrm{Attention}\left(Y W_Q^{(h)},\; X W_K^{(h)},\; X W_V^{(h)}\right).$$
+    </div>
+    <p>The outputs of all heads are concatenated and projected:</p>
+    <div class="math-display">
+      $$\mathrm{MHCA}(Y,X) = \mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_H) W^O.$$
+    </div>
+  </div>
+</div>
+
+<ul>
+  <li>Each head operates in a reduced-dimensional subspace with $d_k = d_v = d_{\mathrm{model}} / H$, so the per-head projection matrices are tall and narrow: $W_Q^{(h)}, W_K^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}$.</li>
+  <li>Concatenating the $H$ head outputs restores the full width: $\mathrm{Concat}(\mathrm{head}_1,\dots,\mathrm{head}_H) \in \mathbb{R}^{n \times H d_v} = \mathbb{R}^{n \times d_{\mathrm{model}}}$.</li>
+  <li>Because each head works in a smaller space, the total computational cost remains comparable to that of single-head attention over the full dimension.</li>
+  <li>The output projection matrix $W^O \in \mathbb{R}^{H d_v \times d_{\mathrm{model}}}$ mixes information across heads, combining the signals discovered by different heads into a unified representation space.</li>
+</ul>
+
+<p><strong>Recurrence was never the goal.</strong></p>
+
+<p>Looking back at the full arc: recurrence was not a fundamental principle. It was a mechanism for propagating dependencies step by step because no direct alternative existed. Attention is that alternative — any two positions can interact directly, without a sequential chain between them.</p>
+
+<p>Cross-attention lets the German decoder retrieve information from the English encoder. Self-attention lets a sequence refine its own representation by allowing its tokens to interact with one another. In the decoder this interaction must respect causal order: when predicting the word at position $t$, the model must rely only on the words that have already been generated. This is enforced through <em>masked self-attention</em>, which blocks attention to future positions.</p>
+
+<p>Both cross-attention and self-attention rely on the same underlying mechanism: queries, keys, and values are computed, compatibility scores determine which positions are relevant, and the resulting information is aggregated.</p>
+
+<p>Three components remain before attention can fully replace recurrence at scale: positional encodings to restore the sense of order that the recurrent chain once provided implicitly, a feed-forward network to perform position-wise nonlinear transformation, and residual connections to allow these operations to stack across many layers without destroying earlier information. These are assembled in the next article, which presents the complete Transformer architecture.</p>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

@@ -1,47 +1,80 @@
-const fs = require('fs');
+#!/usr/bin/env node
+/**
+ * node patch [dir]
+ *
+ * Fixes redundant boilerplate in article HTML files:
+ *   1. Duplicate <meta charset="UTF-8"> — keeps only the first
+ *   2. Duplicate mobile-view styles — removes the copy inside the second <style> block
+ *
+ * Defaults to current directory if no path is given.
+ */
 
-// The exact path to the target article
-const targetFile = '/Users/yogesh/Documents/connecting-the-dots/Library/ai/generative-models/01.autoregressive-models/02.fixed-length-autoregressive-models/index.html';
+const fs   = require('fs');
+const path = require('path');
 
-function patchArticle() {
-    try {
-        // Probe and read the file
-        let html = fs.readFileSync(targetFile, 'utf8');
+// ── transforms ───────────────────────────────────────────────────────────────
 
-        // Check if we've already applied the patch
-        if (html.includes('id="blend-figures-patch"')) {
-            console.log('⚠️ The article is already patched!');
-            return;
-        }
-
-        // The CSS override to strip boxes and blend the animations
-        const patchCSS = `
-    <!-- PATCH: Blend interactive figures into the page -->
-    <style id="blend-figures-patch">
-        .raster-figure, .fvsbn-figure, .nade-matrix-figure, .nade-figure {
-            padding: 2rem 0 !important;
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-        .raster-array, .fvsbn-formula-box, .nade-formula-box {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-    </style>
-</head>`;
-
-        // Inject the patch right before the closing </head> tag
-        const patchedHtml = html.replace('</head>', patchCSS);
-
-        // Save the modifications back to the file
-        fs.writeFileSync(targetFile, patchedHtml, 'utf8');
-        console.log('✅ Successfully patched the fixed-length autoregressive models article!');
-
-    } catch (err) {
-        console.error('❌ Error patching the file:', err.message);
-    }
+function removeDuplicateCharset(html) {
+  let first = true;
+  return html.replace(/<meta\s+charset=["']UTF-8["']\s*\/?>/gi, match => {
+    if (first) { first = false; return match; }
+    return '';
+  });
 }
 
-patchArticle();
+function removeDuplicateMobileStyles(html) {
+  // Matches the img/iframe/video rule + @media block (multiline)
+  const pattern = /\s*img,\s*iframe,\s*video\s*\{[^}]*max-width[^}]*\}\s*@media\s+screen\s+and\s+\(max-width:\s*768px\)\s*\{[^}]*body,[^}]*\}[^}]*\}/gs;
+  const matches = [...html.matchAll(pattern)];
+  if (matches.length < 2) return html;
+
+  // Remove all but the first match (walk backwards to preserve offsets)
+  let result = html;
+  for (const m of matches.slice(1).reverse()) {
+    result = result.slice(0, m.index) + result.slice(m.index + m[0].length);
+  }
+  return result;
+}
+
+// ── file handling ─────────────────────────────────────────────────────────────
+
+function patchFile(filePath) {
+  const original = fs.readFileSync(filePath, 'utf8');
+  let patched = original;
+  patched = removeDuplicateCharset(patched);
+  patched = removeDuplicateMobileStyles(patched);
+
+  if (patched === original) {
+    console.log(`  skip   ${filePath}`);
+    return false;
+  }
+
+  fs.writeFileSync(filePath, patched, 'utf8');
+  console.log(`  fixed  ${filePath}`);
+  return true;
+}
+
+function collectHtmlFiles(dir) {
+  const results = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) results.push(...collectHtmlFiles(full));
+    else if (entry.isFile() && entry.name.endsWith('.html')) results.push(full);
+  }
+  return results;
+}
+
+// ── main ──────────────────────────────────────────────────────────────────────
+
+const target = process.argv[2] || '.';
+const stat    = fs.statSync(target);
+const files   = stat.isFile() ? [target] : collectHtmlFiles(target);
+
+if (!files.length) {
+  console.log('No HTML files found.');
+  process.exit(0);
+}
+
+let changed = 0;
+for (const f of files) changed += patchFile(f) ? 1 : 0;
+console.log(`\nDone — ${changed}/${files.length} file(s) patched.`);

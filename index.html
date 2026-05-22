@@ -289,6 +289,10 @@
     .desktop-only { display: flex; align-items: center; gap: 0.55rem; }
 
     /* ── D3 node/link styles ── */
+    .graph-link[link-type="cross_reference"] { stroke: var(--accent) !important; stroke-dasharray: 4 4 !important; stroke-opacity: 0.65 !important; stroke-width: 2px !important; }
+
+    
+    .graph-link[type="cross_reference"] { stroke: var(--accent); stroke-dasharray: 4 4; stroke-opacity: 0.55; stroke-width: 1.5px; }
     .graph-link { stroke: var(--muted); stroke-opacity: 0.18; stroke-width: 1.5px; transition: stroke-opacity 0.25s, stroke-width 0.25s; }
     
     .graph-node-book { fill: var(--dark); stroke: var(--bg); stroke-width: 4px; }
@@ -470,7 +474,7 @@ window.addEventListener('load', () => {
 
   function nodeR(g) { return isMobile() ? (g==='book'?20:g==='hub'?14:g==='sub'?10:6) : (g==='book'?16:g==='hub'?11:g==='sub'?7:4); }
 
-  function createGraphData() {
+        function createGraphData() {
     const nodesMap = new Map();
     const linksMap = new Map();
 
@@ -483,6 +487,7 @@ window.addEventListener('load', () => {
 
     const pages = window.rawPages || [];
 
+    // Clean sequential parser pipeline bypassing "part" blocks entirely
     pages.forEach(page => {
       if (page.status === 'hide') return; 
 
@@ -490,26 +495,39 @@ window.addEventListener('load', () => {
       if (!title) return; 
       
       const book = (page.book || "Library").trim();
+      const section = (page.section || "General").trim();
       const chapter = (page.chapter || "General").trim(); 
-      const part = (page.part || "").trim();      
 
+      // Build unique deterministic keys matching your linear sequence requirements
       const bookId = `book_${book}`;
-      const chapterId = `chap_${book}_${chapter}`;
-      const titleId = `title_${book}_${chapter}_${part}_${title}`;
+      const sectionId = `sec_${book}_${section}`;
+      const chapterId = `chap_${book}_${section}_${chapter}`;
+      const titleId = `title_${book}_${section}_${chapter}_${title}`;
 
+      // Define structural nodes with precise styling weights
       addNode(bookId, "book", book);
-      addNode(chapterId, "hub", chapter);
-      addNode(titleId, "leaf", title, page.url); 
+      addNode(sectionId, "hub", section);     // Section acts as the first main branch hub
+      addNode(chapterId, "sub", chapter);     // Chapter acts as the child sub-hub
+      addNode(titleId, "leaf", title, page.url); // Lesson/Article acts as the leaf vector
 
-      linksMap.set(`${bookId}->${chapterId}`, { source: bookId, target: chapterId });
+      // Chain the layout boundaries deterministically
+      linksMap.set(`${bookId}->${sectionId}`, { source: bookId, target: sectionId });
+      linksMap.set(`${sectionId}->${chapterId}`, { source: sectionId, target: chapterId });
+      linksMap.set(`${chapterId}->${titleId}`, { source: chapterId, target: titleId });
+    });
 
-      if (part !== "") { 
-        const partId = `part_${book}_${chapter}_${part}`;
-        addNode(partId, "sub", part);
-        linksMap.set(`${chapterId}->${partId}`, { source: chapterId, target: partId });
-        linksMap.set(`${partId}->${titleId}`, { source: partId, target: titleId });
-      } else {
-        linksMap.set(`${chapterId}->${titleId}`, { source: chapterId, target: titleId });
+    // Ingest cross references into the active D3 link collection canvas
+    const crossLinks = window.rawLinks || [];
+    crossLinks.forEach(cl => {
+      if (nodesMap.has(cl.source) && nodesMap.has(cl.target)) {
+        const uniqueKey = `${cl.source}->${cl.target}`;
+        if (!linksMap.has(uniqueKey)) {
+          linksMap.set(uniqueKey, { 
+            source: cl.source, 
+            target: cl.target,
+            type: "cross_reference" 
+          });
+        }
       }
     });
 
@@ -587,7 +605,7 @@ window.addEventListener('load', () => {
     d3sim.stop();
     for (let i = 0; i < 300; i++) d3sim.tick();
 
-    const link  = g.append('g').selectAll('line').data(sceneData.links).join('line').attr('class','graph-link');
+    const link  = g.append('g').selectAll('line').data(sceneData.links).join('line').attr('class','graph-link').attr('link-type', d => d.type || 'hierarchy');
     const node  = g.append('g').selectAll('circle').data(sceneData.nodes).join('circle').attr('class',d=>`graph-node-${d.group}`).attr('r',d=>d.radius).call(makeDrag(d3sim));
 
     const hit   = g.append('g').selectAll('circle').data(sceneData.nodes).join('circle')

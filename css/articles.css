@@ -487,6 +487,53 @@ mjx-container svg {
 .article-pagination__link:hover .article-pagination__title {
   color: var(--accent);
 }
+/* Inline links in article body */
+.article-body a {
+  color: var(--accent, #D48C70);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(212, 140, 112, 0.4);
+  transition: border-bottom-color 0.2s ease;
+}
+
+.article-body a:visited {
+  color: var(--accent, #D48C70); /* Stops the browser from making it purple */
+}
+
+.article-body a:hover {
+  border-bottom-color: var(--accent, #D48C70);
+}
+
+
+
+        /* Improved Table Design */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 1rem;
+            background: transparent;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+        .styled-table thead {
+            background: var(--box-bg);
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+        }
+        .styled-table th, .styled-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .styled-table tbody tr:last-of-type td {
+            border-bottom: none;
+        }
+        .styled-table th {
+            font-weight: 600;
+            color: var(--box-label-text);
+        }
+
 
 @media (max-width: 640px) {
   .article-pagination {

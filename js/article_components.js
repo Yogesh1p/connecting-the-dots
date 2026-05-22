@@ -1,6 +1,6 @@
 /* ============================================================
    article_components.js (Optimized & Robust)
-   Handles: Article Shell, Header Injection, Prev/Next, and Progress Recovery
+   Handles: Article Shell, Header Injection, Prev/Next, Progress Recovery, and ID Routing
    ============================================================ */
 
 // 1. SILENCE BROWSER SCROLL RESTORATION
@@ -349,7 +349,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const scrollY = window.scrollY;
     let headingId = "";
 
-    // Identify current heading for context
     if (state.tocItems.length > 0) {
       let closestIdx = 0;
       let minDistance = Infinity;
@@ -371,7 +370,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
   };
 
-  // FORCE SAVE ON REFRESH/EXIT: Fixes the 5s lag
   window.addEventListener("beforeunload", () => saveProgress(true));
 
   // ============================================================
@@ -408,7 +406,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     document.body.appendChild(container);
 
-    // --- NEW: Auto-scroll TOC to active item on hover ---
     container.addEventListener("mouseenter", () => {
       const activeItem = container.querySelector(".toc-item.toc-bold");
       if (activeItem) {
@@ -418,7 +415,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     });
-    // ----------------------------------------------------
 
     container.addEventListener("click", (e) => {
       const btn = e.target.closest(".toc-item");
@@ -451,7 +447,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // 4. RESTORATION & EXECUTION
   // ============================================================
   const restoreProgress = () => {
-    // 1. Priority: URL Hash
     if (window.location.hash) {
       const el = document.getElementById(window.location.hash.substring(1));
       if (el) {
@@ -460,7 +455,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // 2. Fallback: LocalStorage
     const saved = localStorage.getItem(CONFIG.progressKey);
     if (saved) {
       const data = JSON.parse(saved);
@@ -470,21 +464,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // ============================================================
+  // 5. ARTICLE ID ROUTER (Intercepts links by ID)
+  // ============================================================
+  const initializeRouter = () => {
+    document.addEventListener("click", async (e) => {
+      // Find the closest clicked anchor tag
+      const link = e.target.closest("a");
+      if (!link) return;
+
+      const href = link.getAttribute("href") || "";
+      const dataId = link.getAttribute("data-article-id");
+      
+      let targetId = dataId;
+      
+      // If there's no data-article-id, check if the href matches /article/{id}
+      if (!targetId && href.includes("article/")) {
+        const match = href.match(/^\/?article\/([a-zA-Z0-9_-]+)\/?$/i);
+        if (match) targetId = match[1];
+      }
+
+      if (targetId) {
+        e.preventDefault(); // Stop normal browser navigation (prevents 404)
+        
+        try {
+          // Fetch the library JSON file so we can look up the ID
+          await loadScriptOnce(`${rootPath}builder/lib-data.js`, () => Array.isArray(window.rawPages));
+          
+          const pages = window.rawPages || [];
+          // Search for the article by its article_id
+          const targetPage = pages.find(p => p.article_id === targetId || p.id === targetId);
+          
+          if (targetPage) {
+            // Reconstruct the correct relative path and navigate!
+            window.location.href = `${rootPath}${targetPage.publicPath || targetPage.sourcePath}`;
+          } else {
+            console.error(`Router Error: Article with ID "${targetId}" not found in lib-data.js.`);
+          }
+        } catch (err) {
+          console.error("Router Error: Failed to load library data for routing.", err);
+        }
+      }
+    });
+  };
+
   // Launch sequence
   ensureArticleShell();
   injectArticleHeader();
   initializeToc();
   ensureArticleFooter();
   renderArticlePagination();
+  initializeRouter(); // Start listening for routed links
   
-  // High-frequency scroll listener using requestAnimationFrame
+  // High-frequency scroll listener
   let ticking = false;
   window.addEventListener("scroll", () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {
         if (!state.isScrollingProgrammatically) {
           saveProgress();
-          // Logic for updating active TOC highlight...
           let closest = 0;
           state.tocItems.forEach((item, i) => {
             if (item.element.getBoundingClientRect().top < CONFIG.tocTargetTop + 50) closest = i;
