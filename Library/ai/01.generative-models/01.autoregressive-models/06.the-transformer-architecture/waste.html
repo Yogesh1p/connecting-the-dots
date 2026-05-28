@@ -1,0 +1,482 @@
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/library-untitled.png">
+    <meta property="og:description" content="">
+    <meta property="og:title" content="Untitled">
+  <meta name="reading_time" content="4">
+    <script src="../../../../../js/article_components.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/base.js" defer></script>
+    <link rel="stylesheet" href="../../../../../css/articles.css">
+    <link rel="stylesheet" href="../../../../../css/base.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="article_id" content="a0960ea9">
+
+
+  <figure style="margin:2.5rem 0;text-align:center;">
+    <div class="rsa-wrap" id="rsa2" style="max-width: 720px; height: 640px;">
+        <div class="rsa-spine" style="top: 10px; bottom: 50px;"></div>
+
+        <div class="rsa-layer-lbl" style="top: 154px;">Layer 2</div>
+        <div class="rsa-layer-lbl" style="top: 440px;">Layer 1</div>
+
+        <div class="rsa-divider" style="top: 303px;"></div>
+
+        <svg class="rsa-overlay">
+            <path id="rsa2-arc-msa1" d="M 270,484 C 270,462 230,462 202,462" />
+            <path id="rsa2-arc-ffn1" d="M 270,376 C 270,354 230,354 202,354" />
+            <path id="rsa2-arc-msa2" d="M 270,198 C 270,176 230,176 202,176" />
+            <path id="rsa2-arc-ffn2" d="M 270,90  C 270,68  230,68  202,68" />
+        </svg>
+
+        <div class="rsa-plus" id="rsa2-p-ffn2" style="top: 54px;">+</div>
+        <div class="rsa-bar" style="top: 138px;"></div> 
+        <div class="rsa-box" id="rsa2-b-ffn2" style="top: 90px;">
+            <div class="rsa-box-title">Feed-Forward Network (L2)</div>
+            <div class="rsa-box-math">$\Delta_\text{ffn}^{(2)} = \text{FFN}_2(\text{LN}($ <span class="rsa-hl" id="rsa2-h-ffn2">$Y^{(0)}{+}\Delta^{(1)}{+}\Delta_\text{sa}^{(2)}$</span> $))$</div>
+        </div>
+
+        <div class="rsa-plus" id="rsa2-p-msa2" style="top: 162px;">+</div>
+        <div class="rsa-bar" style="top: 246px;"></div>
+        <div class="rsa-box" id="rsa2-b-msa2" style="top: 198px;">
+            <div class="rsa-box-title hi">Masked Self-Attention (L2)</div>
+            <div class="rsa-box-math">$\Delta_\text{sa}^{(2)} = \text{MMHSA}_2(\text{LN}($ <span class="rsa-hl" id="rsa2-h-msa2">$Y^{(0)}{+}\Delta^{(1)}$</span> $))$</div>
+        </div>
+
+        <div class="rsa-plus" id="rsa2-p-ffn1" style="top: 340px;">+</div>
+        <div class="rsa-bar" style="top: 424px;"></div>
+        <div class="rsa-box" id="rsa2-b-ffn1" style="top: 376px;">
+            <div class="rsa-box-title">Feed-Forward Network (L1)</div>
+            <div class="rsa-box-math">$\Delta_\text{ffn}^{(1)} = \text{FFN}_1(\text{LN}($ <span class="rsa-hl" id="rsa2-h-ffn1">$Y^{(0)}{+}\Delta_\text{sa}^{(1)}$</span> $))$</div>
+        </div>
+
+        <div class="rsa-plus" id="rsa2-p-msa1" style="top: 448px;">+</div>
+        <div class="rsa-bar" style="top: 532px;"></div>
+        <div class="rsa-box" id="rsa2-b-msa1" style="top: 484px;">
+            <div class="rsa-box-title hi">Masked Self-Attention (L1)</div>
+            <div class="rsa-box-math">$\Delta_\text{sa}^{(1)} = \text{MMHSA}_1(\text{LN}($ <span class="rsa-hl" id="rsa2-h-msa1">$Y^{(0)}$</span> $))$</div>
+        </div>
+
+        <div class="rsa-input-lbl" style="top: 575px;">Input: $Y^{(0)}$</div>
+        <div class="rsa-signal" id="rsa2-sig" style="top: 565px; opacity: 0;"></div>
+
+        <div class="rsa-ctrl">
+            <button class="rsa-btn" id="rsa2-btn">▶&nbsp;Trace Residual Stream</button>
+        </div>
+    </div>
+    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
+        The residual stream as a running accumulator. Each layer contributes two increments — masked self-attention then FFN — added in sequence. Press <em>Trace Residual Stream</em> to animate the computation.
+    </figcaption>
+</figure>
+
+<h2>Worked Example: A Complete Pre-Norm Block</h2>
+
+<p>The preceding sections described the Transformer's components at the level of equations and diagrams. This section works through a single Pre-Norm block numerically from raw token embeddings to the final output, tracking every matrix computation with concrete numbers.</p>
+
+<div class="math-box">
+  <div class="math-box-label">The Pre-Norm Block</div>
+  <div class="math-box-body">
+    <p>LayerNorm is applied <em>before</em> each sub-layer, not after:</p>
+    <div class="math-display">
+      $$X_{\text{attn}} = X + \mathrm{MHA}\!\bigl(\mathrm{LN}(X)\bigr), \qquad X_{\text{out}} = X_{\text{attn}} + \mathrm{FFN}\!\bigl(\mathrm{LN}(X_{\text{attn}})\bigr).$$
+    </div>
+    <p>The raw input $X$ flows unchanged through both skip connections; only the normalized branch enters each sub-layer.</p>
+  </div>
+</div>
+
+<p><strong>Toy configuration:</strong> sequence length $n=3$, embedding dimension $d_{\text{model}}=4$, number of heads $h=2$, per-head dimension $d_{\text{head}}=2$.</p>
+
+<h3>Step 1 — Raw Input</h3>
+
+<div class="math-display">
+$$X = \begin{bmatrix} 1 & 0 & 1 & 0 \\ 0 & 1 & 1 & 0 \\ 1 & 1 & 0 & 1 \end{bmatrix} \in \mathbb{R}^{3 \times 4}.$$
+</div>
+
+<p>Rows are tokens $w_1, w_2, w_3$. $X$ is the <em>residual stream</em> — the block only ever adds increments to it; it is never overwritten.</p>
+
+<h3>Step 2 — LayerNorm Before Attention</h3>
+
+<p>Applied independently to each row: $\mathrm{LN}(x) = (x - \mu)/\sigma$ where $\mu, \sigma$ are the row mean and standard deviation.</p>
+
+<p><strong>$w_1$:</strong> $\mu = 0.5,\; \sigma = 0.5 \;\Rightarrow\; \hat{x}_1 = [1, -1, 1, -1]$.</p>
+<p><strong>$w_2$:</strong> $\mu = 0.5,\; \sigma = 0.5 \;\Rightarrow\; \hat{x}_2 = [-1, 1, 1, -1]$.</p>
+<p><strong>$w_3$:</strong> $\mu = 0.75,\; \sigma \approx 0.433 \;\Rightarrow\; \hat{x}_3 \approx [0.58, 0.58, -1.73, 0.58]$.</p>
+
+<div class="math-display">
+$$\hat{X} = \begin{bmatrix} 1 & -1 & 1 & -1 \\ -1 & 1 & 1 & -1 \\ 0.58 & 0.58 & -1.73 & 0.58 \end{bmatrix}.$$
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Important</div>
+  <div class="math-box-body">
+    <p><strong>Projections use $\hat{X}$, skip connections use $X$.</strong> All query/key/value matrices are computed from $\hat{X}$. The raw $X$ appears <em>only</em> in the residual additions.</p>
+  </div>
+</div>
+
+<h3>Step 3 — Multi-Head Self-Attention</h3>
+
+<p>Each head projects $\hat{X}$ into 2-dimensional Q/K/V spaces. The causal mask sets $M_{ij} = -\infty$ for $j > i$, ensuring each token only attends to earlier positions.</p>
+
+<p>After computing attention weights for both heads, we observe two distinct patterns:</p>
+
+<div style="overflow-x: auto; margin: 24px 0; background: var(--box-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: left;">
+  <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+    <thead>
+      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
+        <th style="padding: 10px;"></th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;" colspan="3">Head 1 attention weights $A^{(1)}$</th>
+        <th style="padding: 10px; color: var(--muted); font-weight: 600;" colspan="3">Head 2 attention weights $A^{(2)}$</th>
+      </tr>
+      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
+        <th style="padding: 10px;"></th>
+        <th style="padding: 10px; color: var(--muted);">$w_1$</th>
+        <th style="padding: 10px; color: var(--muted);">$w_2$</th>
+        <th style="padding: 10px; color: var(--muted);">$w_3$</th>
+        <th style="padding: 10px; color: var(--muted);">$w_1$</th>
+        <th style="padding: 10px; color: var(--muted);">$w_2$</th>
+        <th style="padding: 10px; color: var(--muted);">$w_3$</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">$w_1$</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 4px;"><strong>1.00</strong></td>
+        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
+        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 4px;"><strong>1.00</strong></td>
+        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
+        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--table-rule);">
+        <td style="text-align: left; padding: 10px; font-weight: 600;">$w_2$</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.20); padding: 10px;">0.50</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.20); padding: 10px;">0.50</td>
+        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.12</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.38); padding: 10px; border-radius: 4px;"><strong>0.88</strong></td>
+        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
+      </tr>
+      <tr>
+        <td style="text-align: left; padding: 10px; font-weight: 600;">$w_3$</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.02); padding: 10px;">0.006</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.30); padding: 10px; border-radius: 4px;"><strong>0.61</strong></td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.19); padding: 10px;">0.38</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.42); padding: 10px; border-radius: 4px;"><strong>0.84</strong></td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.10</td>
+        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.03); padding: 10px;">0.06</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Two Heads, Two Patterns</div>
+  <div class="math-box-body">
+    <p>Head 1 has $w_3$ attending mostly to $w_2$ (0.61); Head 2 has $w_3$ attending mostly to $w_1$ (0.84). Each head independently extracts a different relational signal from the same sequence — the core motivation for multi-head attention.</p>
+  </div>
+</div>
+
+<h3>Steps 4–8 — The Residual Stream View</h3>
+
+<p>After computing contextual outputs for each head, concatenating, and applying the output projection, we obtain the attention increment $\Delta_{\text{attn}}$. The first residual addition gives:</p>
+<p>A second LayerNorm, then the FFN, then the second residual addition gives the final output. The entire block is simply three matrices added together:</p>
+
+<div class="math-display">
+$$\boxed{X_{\text{out}} = X + \Delta_{\text{attn}} + \Delta_{\text{ffn}}.}$$
+</div>
+
+<div class="math-display">
+$$X_{\text{attn}} = X + \Delta_{\text{attn}} \approx \begin{bmatrix} 1 & 0 & 3.00 & -1.00 \\ 0 & 1 & 1.24 & -0.12 \\ 1.44 & 0.56 & 1.61 & 0.23 \end{bmatrix}.$$
+</div>
+
+<figure style="margin: 0 0 2rem 0; text-align: center;">
+    <div class="rsa-wrap" id="rsa-dec" style="max-width: 720px; height: 360px;">
+        <div class="rsa-spine" style="top: 10px; bottom: 50px;"></div>
+        <div class="rsa-layer-lbl" style="top: 154px;">Layer $l$</div>
+        
+        <svg class="rsa-overlay">
+            <path id="dec-arc-msa" d="M 270,198 C 270,176 230,176 202,176" />
+            <path id="dec-arc-ffn" d="M 270,90  C 270,68  230,68  202,68" />
+        </svg>
+
+        <div class="rsa-plus" id="dec-p-ffn" style="top: 54px;">+</div>
+        <div class="rsa-bar" style="top: 138px;"></div> 
+        <div class="rsa-box" id="dec-b-ffn" style="top: 90px;">
+            <div class="rsa-box-title">Feed-Forward Network</div>
+            <div class="rsa-box-math">$\Delta_\text{ffn}^{(l)} = \text{FFN}(\text{LN}($ <span class="rsa-hl" id="dec-h-ffn">$Y^{(l)}{+}\Delta_\text{sa}^{(l)}$</span> $))$</div>
+        </div>
+
+        <div class="rsa-plus" id="dec-p-msa" style="top: 162px;">+</div>
+        <div class="rsa-bar" style="top: 246px;"></div>
+        <div class="rsa-box" id="dec-b-msa" style="top: 198px;">
+            <div class="rsa-box-title hi">Masked Self-Attention</div>
+            <div class="rsa-box-math">$\Delta_\text{sa}^{(l)} = \text{MMHSA}(\text{LN}($ <span class="rsa-hl" id="dec-h-msa">$Y^{(l)}$</span> $))$</div>
+        </div>
+
+        <div class="rsa-input-lbl" style="top: 290px;">Input: $Y^{(l)}$</div>
+        <div class="rsa-signal" id="dec-sig" style="top: 280px; opacity: 0;"></div>
+
+        <div class="rsa-ctrl">
+            <button class="rsa-btn" id="dec-btn">▶&nbsp;Trace Decoder Stream</button>
+        </div>
+    </div>
+    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
+        One decoder-only layer, as used in GPT-style language models. No cross-attention — the model attends only to its own previous tokens via the causal mask.
+    </figcaption>
+</figure>
+<style>
+    .rsa-wrap {
+        position: relative; width: 100%; margin: 0 auto;
+        background: var(--box-bg, #FBF6F2); overflow: hidden;
+        border: 1px solid var(--border, #E8DFD1); border-radius: 14px;
+        box-sizing: border-box; font-family: inherit;
+    }
+    /* Central main processing spine line */
+    .rsa-spine-center {
+        position: absolute; left: 50%; transform: translateX(-50%); width: 3px;
+        background: var(--border, #E8DFD1); border-radius: 2px; z-index: 1;
+    }
+    .rsa-layer-lbl {
+        position: absolute; left: 24px; font-size: 0.85rem; font-weight: 700; 
+        letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted, #847769);
+        z-index: 20; pointer-events: none;
+    }
+    .rsa-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
+    .rsa-overlay path {
+        fill: none; stroke: var(--accent, #D48C70); stroke-width: 6;
+        stroke-linecap: round; stroke-linejoin: round;
+        stroke-dasharray: 200; stroke-dashoffset: 200;
+        opacity: 0; transition: stroke-dashoffset 0.6s linear, opacity 0.3s ease;
+    }
+    .rsa-overlay path.live { opacity: 1; stroke-dashoffset: 0; }
+    
+    /* Centralized positioning for junction nodes */
+    .rsa-plus-center {
+        position: absolute; left: 50%; transform: translateX(-50%); width: 28px; height: 28px;
+        border-radius: 50%; border: 2px solid var(--border, #E8DFD1);
+        background: var(--box-bg, #FBF6F2); display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.1rem; color: var(--muted, #847769);
+        z-index: 12; transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.22s;
+    }
+    .rsa-plus-center.on { border-color: var(--accent, #D48C70); color: var(--accent, #D48C70); box-shadow: 0 0 0 5px rgba(212,140,112,0.18); transform: scale(1.15); }
+    
+    /* Centered boxes layout matching drawio layout dimensions */
+    .rsa-box-center {
+        position: absolute; left: 50%; transform: translateX(-50%); width: 240px; height: 46px;
+        background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1);
+        border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        z-index: 10; transition: border-color 0.3s, box-shadow 0.3s; text-align: center; box-sizing: border-box;
+    }
+    .rsa-box-center.on { border-color: var(--accent, #D48C70); box-shadow: 0 0 10px rgba(212,140,112,0.15); }
+    .rsa-box-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted, #847769); }
+    .rsa-box-title.hi { color: var(--accent, #D48C70); }
+    .rsa-box-math { font-size: 0.9rem; color: var(--text, #4A3F35); margin-top: 1px; }
+    
+    /* Center traveling signal tracking chip */
+    .rsa-signal-center {
+        position: absolute; left: 50%; transform: translateX(-50%);
+        background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70);
+        padding: 5px 12px; border-radius: 6px; font-size: 0.9rem; white-space: nowrap;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08); z-index: 50; color: var(--text, #4A3F35);
+        transition: top 0.5s linear, background 0.3s, color 0.3s, border-color 0.3s;
+    }
+    .rsa-signal-center.morph { background: var(--accent, #D48C70); color: #fff; border-color: var(--accent, #D48C70); }
+    .rsa-ctrl { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; z-index: 200; }
+    .rsa-btn {
+        padding: 8px 22px; background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70);
+        color: var(--accent, #D48C70); border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1rem;
+        transition: background 0.2s, color 0.2s;
+    }
+    .rsa-btn:hover { background: var(--accent, #D48C70); color: #fff; }
+    .rsa-btn:disabled { opacity: 0.38; cursor: not-allowed; background: var(--surface,#F4EFE6); color: var(--accent,#D48C70); }
+    .rsa-input-lbl { position:absolute; font-size:0.9rem; color:var(--muted,#847769); font-style:italic; }
+</style>
+
+<figure style="margin: 2.5rem 0; text-align: left;">
+    <div class="rsa-wrap" id="rsa-drawio-exact-layout" style="max-width: 600px; height: 660px;">
+        <div class="rsa-spine-center" style="top: 40px; bottom: 60px;"></div>
+        <div class="rsa-layer-lbl" style="top: 50px;">Layer 1</div>
+
+        <svg class="rsa-overlay" viewBox="0 0 600 660" preserveAspectRatio="none">
+            <path id="exact-drawio-arc-msa" d="M 300,478 L 450,478 L 450,290 L 300,290" />
+            <path id="exact-drawio-arc-ffn" d="M 300,232 L 450,232 L 450,65 L 300,65" />
+        </svg>
+
+        <div class="rsa-box-center" id="drawio-b-ffndelta" style="top: 45px; height: 40px; width: 100px;">
+            <div class="rsa-box-math" style="margin:0; font-weight:700;">$\Delta$ffn</div>
+        </div>
+
+        <div class="rsa-box-center" id="drawio-b-ffn" style="top: 100px; height: 50px;">
+            <div class="rsa-box-title">Feed Forward</div>
+            <div class="rsa-box-math">$\text{FFN}(\cdot)$</div>
+        </div>
+
+        <div class="rsa-box-center" id="drawio-b-norm2" style="top: 165px; height: 34px; width: 100px;">
+            <div class="rsa-box-title" style="margin:0;">Norm</div>
+        </div>
+
+        <div class="rsa-input-lbl" style="left: 52%; top: 210px; font-size: 0.75rem; font-weight: bold;">$X' = X + \Delta_{\text{attn}}$</div>
+
+        <div class="rsa-box-center" id="drawio-b-attdelta" style="top: 255px; height: 42px; width: 260px;">
+            <div class="rsa-box-math" style="font-size:0.8rem; margin:0;">$\Delta_{\text{attn}} = \text{concat}(h_1, h_2, \dots)W_o$</div>
+        </div>
+
+        <div class="rsa-box-center" id="drawio-b-msa" style="top: 315px; height: 80px; width: 200px; box-shadow: 4px 4px 0 var(--border), 8px 8px 0 var(--surface);">
+            <div class="rsa-box-title hi">Masked</div>
+            <div class="rsa-box-title hi">Self-Attention head</div>
+        </div>
+
+        <div class="rsa-box-center" id="drawio-b-norm1" style="top: 420px; height: 34px; width: 100px;">
+            <div class="rsa-box-title" style="margin:0;">Norm</div>
+        </div>
+
+        <div class="rsa-plus-center" id="drawio-p-pe" style="top: 510px;">+</div>
+        <div class="rsa-box-center" id="drawio-b-pe" style="left: 68%; top: 507px; height: 34px; width: 130px;">
+            <div class="rsa-box-title" style="margin:0; color:var(--text);">Positional encoding</div>
+        </div>
+
+        <div class="rsa-box-center" id="drawio-b-input" style="top: 580px; height: 36px; width: 140px;">
+            <div class="rsa-box-math" style="margin:0; font-size:0.85rem; font-weight:600;">Input</div>
+        </div>
+
+        <div class="rsa-signal-center" id="drawio-exact-sig" style="top: 585px; opacity: 0;"></div>
+
+        <div class="rsa-ctrl">
+            <button class="rsa-btn" id="drawio-exact-btn">▶&nbsp;Trace Layer 1</button>
+        </div>
+    </div>
+    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
+        Pre-Norm processing loop layout. Notice that the residual streams fork right before the normalizations and trace outwards on the right hand side to converge back into the center line.
+    </figcaption>
+</figure>
+
+<script>
+    (function(){
+        function setupRSAInstance(config) {
+            const sig = document.getElementById(config.sigId);
+            const btn = document.getElementById(config.btnId);
+            if (!sig || !btn) return;
+
+            const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+            async function tex(el, src, morph) {
+                el.innerHTML = `$${src}$`;
+                if (morph !== undefined) el.classList.toggle('morph', morph);
+                if (window.MathJax) await MathJax.typesetPromise([el]);
+            }
+
+            function move(y, dur=540) {
+                sig.style.transition = `top ${dur}ms linear, background .3s, color .3s, border-color .3s`;
+                sig.style.top = `${y}px`;
+                return sleep(dur);
+            }
+
+            function drawArc(id, dur=500) {
+                const p = document.getElementById(id);
+                if (!p) return sleep(dur);
+                const L = Math.ceil(p.getTotalLength()) + 2;
+                p.style.transition       = 'none';
+                p.style.strokeDasharray  = `${L}`;
+                p.style.strokeDashoffset = `${L}`;
+                p.classList.add('live');
+                p.getBoundingClientRect(); 
+                p.style.transition       = `stroke-dashoffset ${dur}ms linear, opacity 0.3s ease`;
+                p.style.strokeDashoffset = '0';
+                return sleep(dur);
+            }
+
+            function dimArc(id) {
+                const p = document.getElementById(id);
+                if(p) {
+                    p.style.transition = 'opacity .5s';
+                    p.style.opacity = '.18';
+                }
+            }
+
+            function resetArc(id) {
+                const p = document.getElementById(id);
+                if(p) {
+                    p.style.transition = p.style.strokeDasharray = p.style.strokeDashoffset = '';
+                    p.classList.remove('live');
+                    p.style.opacity = '';
+                }
+            }
+
+            function hi(id)  { document.getElementById(id).classList.add('on'); }
+            function lo(id)  { document.getElementById(id).classList.remove('on'); }
+
+            btn.addEventListener('click', async () => {
+                if(btn.disabled) return;
+                btn.disabled = true;
+                btn.textContent = 'Animating...';
+
+                await config.sequence({ sig, tex, move, drawArc, dimArc, resetArc, hi, lo, sleep });
+
+                btn.disabled = false;
+                btn.textContent = '↺ Replay';
+            });
+        }
+
+        setupRSAInstance({
+            sigId: 'drawio-exact-sig', 
+            btnId: 'drawio-exact-btn',
+            sequence: async (api) => {
+                ['exact-drawio-arc-msa', 'exact-drawio-arc-ffn'].forEach(api.resetArc);
+                api.sig.style.transition = 'none';
+                api.sig.style.top = '585px';
+                api.sig.style.opacity = '1';
+                api.sig.classList.remove('morph');
+                await api.tex(api.sig, '\\text{Tokens}');
+                await api.sleep(150);
+
+                // Step 1: Up to Positional Encoding addition
+                await api.move(512);
+                api.hi('drawio-p-pe'); api.hi('drawio-b-pe');
+                await api.sleep(500);
+                await api.tex(api.sig, 'X');
+                api.lo('drawio-p-pe'); api.lo('drawio-b-pe');
+
+                // Fork occurs right here before LayerNorm 1. Trigger the residual pathway line drawing.
+                await api.drawArc('exact-drawio-arc-msa', 700);
+
+                // Step 2: Main stream passes up into Norm 1 and Masked Attention
+                await api.move(420);
+                api.hi('drawio-b-norm1'); await api.sleep(300); api.lo('drawio-b-norm1');
+
+                await api.move(330);
+                api.hi('drawio-b-msa'); await api.sleep(600); api.lo('drawio-b-msa');
+                
+                await api.move(255);
+                api.hi('drawio-b-attdelta'); await api.sleep(400); api.lo('drawio-b-attdelta');
+
+                // Step 3: Meet at the top of the attention block to add back the residual X
+                await api.move(215);
+                await api.tex(api.sig, "X' = X + \\Delta_{\\text{attn}}");
+                api.dimArc('exact-drawio-arc-msa');
+                await api.sleep(400);
+
+                // Next bypass pathway triggers right here before Norm 2 begins
+                await api.drawArc('exact-drawio-arc-ffn', 700);
+
+                // Step 4: Run up through Norm 2, Feed Forward Block, and Δffn box
+                await api.move(165);
+                api.hi('drawio-b-norm2'); await api.sleep(300); api.lo('drawio-b-norm2');
+
+                await api.move(100);
+                api.hi('drawio-b-ffn'); await api.sleep(600); api.lo('drawio-b-ffn');
+
+                await api.move(45);
+                api.hi('drawio-b-ffndelta'); await api.sleep(400); api.lo('drawio-b-ffndelta');
+
+                // Step 5: Merge final loop accumulation values
+                await api.move(10);
+                await api.tex(api.sig, "X' + \\Delta_{\\text{ffn}}", true);
+                api.dimArc('exact-drawio-arc-ffn');
+                await api.sleep(500);
+            }
+        });
+    })();
+</script>

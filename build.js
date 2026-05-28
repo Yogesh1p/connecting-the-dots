@@ -196,7 +196,7 @@ function ensureCoreArticleHead(content, relativePath) {
         },
         {
             tag: `    <script src="${root}js/base.js" defer></script>`,
-            test: /<script[^>]+src=["'][^"']*js\/base\.js["']/i
+            test: /<script[^+]+src=["'][^"']*js\/base\.js["']/i
         },
         {
             tag: `    <script src="${root}js/components.js" defer></script>`,
@@ -219,7 +219,7 @@ function ensureCoreArticleHead(content, relativePath) {
 
 function ensureGlobalNavRoot(content, relativePath) {
     const root = getRootPrefix(relativePath);
-    const rx = /(<div\b[^>]*\bid=["']global-nav["'][^>]*\bdata-root=["'])([^"']*)(["'][^>]*>)/i;
+    const rx = /(<div\b[^>]*\bid=["']global-nav["'][^>]*data-root=["'])([^"']*)(["'][^>]*>)/i;
 
     if (rx.test(content)) {
         const updated = content.replace(rx, `$1${root}$3`);
@@ -236,6 +236,41 @@ function ensureGlobalNavRoot(content, relativePath) {
 
 function ensureArticleAssetRoots(content, relativePath) {
     return ensureGlobalNavRoot(content, relativePath);
+}
+
+// NEW HELPER: Handles clean addition/updating of Open Graph meta tags inside the HTML head environment
+function ensureOgMetaTags(content, pageObj, ogImageFileName) {
+    let changed = false;
+    const ogImageUrl = `${SITE_URL}/assets/og/${ogImageFileName}`;
+    
+    const ogTags = [
+        { tag: `    <meta property="og:title" content="${pageObj.title}">`, test: /<meta\s+property=["']og:title["']/i },
+        { tag: `    <meta property="og:description" content="${pageObj.description}">`, test: /<meta\s+property=["']og:description["']/i },
+        { tag: `    <meta property="og:image" content="${ogImageUrl}">`, test: /<meta\s+property=["']og:image["']/i },
+        { tag: `    <meta property="og:type" content="article">`, test: /<meta\s+property=["']og:type["']/i },
+        { tag: `    <meta name="twitter:card" content="summary_large_image">`, test: /<meta\s+name=["']twitter:card["']/i }
+    ];
+
+    for (const item of ogTags) {
+        // If it exists, update it dynamically to point to the correct data state
+        if (item.test.test(content)) {
+            const oldContent = content;
+            if (item.test.source.includes('og:image')) {
+                content = content.replace(/<meta\s+property=["']og:image["']\s+content=["'][^"']*["']\s*\/?>/i, item.tag.trim());
+            } else if (item.test.source.includes('og:title')) {
+                content = content.replace(/<meta\s+property=["']og:title["']\s+content=["'][^"']*["']\s*\/?>/i, item.tag.trim());
+            } else if (item.test.source.includes('og:description')) {
+                content = content.replace(/<meta\s+property=["']og:description["']\s+content=["'][^"']*["']\s*\/?>/i, item.tag.trim());
+            }
+            if (oldContent !== content) changed = true;
+        } else {
+            const result = ensureHeadTag(content, item.tag, item.test);
+            content = result.content;
+            changed = changed || result.changed;
+        }
+    }
+
+    return { content, changed };
 }
 
 function getPathOrder(relativePath, index = 0) {
@@ -280,7 +315,6 @@ function createPageObject(relativePath, content, readingTime) {
     const cleanPath = toCleanUrlPath(sourcePath);
     const { lessonSegment, chapterSegment } = getArticleSegments(sourcePath);
     
-    // Structure from physical location on disk acts as our primary anchor
     const diskFallback = parseFileMetadata(path.join(libraryDir, relativePath));
 
     const bookTitle = getMeta(content, "book") || "Library";
@@ -305,7 +339,6 @@ function createPageObject(relativePath, content, readingTime) {
         description: getMeta(content, "description") || "",
         date:        getMeta(content, "date")        || "",
         
-        // FIX: Prioritize physical disk location properties over hardcoded meta tags to allow drag-and-drop structural updates
         section:     diskFallback.section || getMeta(content, "section"),
         chapter:     diskFallback.chapter || getMeta(content, "chapter"),
         
@@ -458,12 +491,10 @@ function removeStaticIndexBlock(html) {
 }
 
 // ─── Main build ───────────────────────────────────────────────────────────────
-
 async function build() {
     console.log("🔍 Scanning library for changes…");
     const files = getAllHtmlFiles(libraryDir).sort();
 
-    // Safe multi-environment validation for the force flag
     const force = process.argv.includes("--force") || process.argv.includes("-force");
 
     let cachedHashMap = {};
@@ -471,23 +502,38 @@ async function build() {
         try { cachedHashMap = JSON.parse(fs.readFileSync(metaCachePath, "utf8")); } catch (_) {}
     }
 
-    const changedFiles = new Set(
-        files.filter(f => {
-            if (force) return true;
-            try {
-                const content = fs.readFileSync(f, "utf8");
-                return cachedHashMap[f] !== getHash(content);
-            } catch (_) {
-                return true;
-            }
-        })
-    );
+    // Pass 0: Compute properties first to check if structural attributes changed
+    const changedFiles = new Set();
+    const computedPages = [];
+
+    for (const f of files) {
+        let content;
+        try { content = fs.readFileSync(f, "utf8"); } catch (_) { changedFiles.add(f); continue; }
+
+        const title = getTitle(content);
+        if (title.toLowerCase().includes("template") || f.includes("_template")) continue;
+
+        const relativePath = path.relative(libraryDir, f);
+        const readingTime = estimateReadingTime(content);
+        const pageObj = createPageObject(relativePath, content, readingTime);
+        
+        computedPages.push({ f, content, pageObj, readingTime, relativePath });
+
+        const ogImageName = `${slugify(pageObj.book || "lib")}-${slugify(pageObj.title)}.png`;
+        const expectedOgPath = path.join(ogOutputDir, ogImageName);
+
+        // FIX: Verify hash, image existence, AND check if the title metadata change implies an update is needed
+        const currentHash = getHash(content);
+        if (force || cachedHashMap[f] !== currentHash || !fs.existsSync(expectedOgPath)) {
+            changedFiles.add(f);
+        }
+    }
 
     const changedCount = changedFiles.size;
     if (force) {
         console.log(`🔄 Force flag detected — Re-processing all ${files.length} library entries structural metadata…`);
     } else {
-        console.log(`📝 ${changedCount} file(s) changed — processing…`);
+        console.log(`📝 ${changedCount} file(s) changed or missing OG images — processing…`);
     }
 
     if (changedCount === 0 && !force) {
@@ -516,12 +562,21 @@ async function build() {
     const tempPageCache = [];
     const newHashMap = force ? {} : { ...cachedHashMap };
 
-    // Pass 1: Build structural components and output IDs
-    for (const filePath of files) {
+    // Pass 1: Build structural components, output IDs, and generate OG cards
+    for (const item of computedPages) {
+        const { f: filePath, relativePath, readingTime } = item;
+        let content = item.content;
+        let pageObj = item.pageObj;
+        let fileChanged = false;
+
         try {
-            let content = fs.readFileSync(filePath, "utf8");
-            let fileChanged = false;
-            const relativePath = path.relative(libraryDir, filePath);
+            const idResult = ensureArticleId(content);
+            const articleId = idResult.id;
+            if (idResult.modified) { content = idResult.content; fileChanged = true; }
+
+            pageObj.article_id = articleId;
+            const ogImageName = `${slugify(pageObj.book || "lib")}-${slugify(pageObj.title)}.png`;
+            const targetOgPath = path.join(ogOutputDir, ogImageName);
 
             if (changedFiles.has(filePath)) {
                 const coreHead = ensureCoreArticleHead(content, relativePath);
@@ -530,28 +585,27 @@ async function build() {
                 const assetRoots = ensureArticleAssetRoots(content, relativePath);
                 if (assetRoots.changed) { content = assetRoots.content; fileChanged = true; }
 
-                const readingTime = estimateReadingTime(content);
                 const withTime = syncReadingTime(content, readingTime);
                 if (withTime !== content) { content = withTime; fileChanged = true; }
+
+                const ogMeta = ensureOgMetaTags(content, pageObj, ogImageName);
+                if (ogMeta.changed) { content = ogMeta.content; fileChanged = true; }
+
+                if (!fs.existsSync(targetOgPath) || force) {
+                    console.log(`🎨 Generating OG Card Image -> ${ogImageName}`);
+                    const markupNode = buildOgMarkup(html, pageObj);
+                    const svg = await satori(markupNode, { width: 1200, height: 630, fonts });
+                    const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
+                    fs.writeFileSync(targetOgPath, resvg.render().asPng());
+                }
             }
-
-            const title = getTitle(content);
-            if (title.toLowerCase().includes("template") || relativePath.includes("_template")) continue;
-
-            const idResult = ensureArticleId(content);
-            const articleId = idResult.id;
-            if (idResult.modified) { content = idResult.content; fileChanged = true; }
 
             if (fileChanged) {
                 fs.writeFileSync(filePath, content, "utf8");
             }
 
+            // Always cache the absolute latest version text hash
             newHashMap[filePath] = getHash(content);
-
-            const readingTime = estimateReadingTime(content);
-            const pageObj = createPageObject(relativePath, content, readingTime);
-            pageObj.article_id = articleId;
-
             tempPageCache.push({ filePath, content, pageObj });
         } catch (err) {
             console.warn(`⚠️  Skipped ${filePath}: ${err.message}`);
@@ -559,7 +613,6 @@ async function build() {
     }
 
     fs.writeFileSync(metaCachePath, JSON.stringify(newHashMap, null, 2), "utf8");
-
     // Pass 2: Extract explicit cross reference mapping lists
     const crossLinks = [];
     const activePagesList = tempPageCache.map(p => p.pageObj);

@@ -19,7 +19,7 @@
 <meta property="og:title" content="Intro to Autoregression Models">
 <meta property="og:description" content="From exponential joint distributions to tractable autoregressive factorization">
 <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/01.intro-to-autoregression-models/">
-<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-ee398b68.png?v=fcca43">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-intro-to-autoregression-models.png">
 <meta name="twitter:card" content="summary_large_image">
 
 <style id="mobile-view-styles">
@@ -87,6 +87,7 @@
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
 
+    <meta property="og:type" content="article">
 </head>
 <body>
 
@@ -520,8 +521,10 @@
     position: relative;
     z-index: 2;
     display: flex;
+    /* Changed to column to maintain vertical stacking */
     flex-direction: column;
     align-items: center;
+    /* Ensures consistent distance between top model and bottom row */
     gap: 60px;
   }
 
@@ -549,11 +552,12 @@
     position: relative;
   }
 
+  /* Modified translation to drop downward while forming */
   .ar-node.building {
     border: 2px solid var(--accent);
     color: var(--accent);
     background: var(--highlight);
-    transform: translateY(-6px) scale(1.1);
+    transform: translateY(6px) scale(1.1);
     opacity: 1;
     box-shadow: 0 4px 12px var(--highlight);
   }
@@ -567,7 +571,6 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
 
-  /* UPDATED: Flex layout to stack the math and the label beautifully */
   .ar-model-core {
     display: flex;
     flex-direction: column;
@@ -584,7 +587,6 @@
     transition: all 0.3s ease;
   }
 
-  /* NEW: Subtitle style that inherits color dynamically */
   .ar-model-subtitle {
     font-size: 0.85rem;
     font-weight: 400;
@@ -690,17 +692,19 @@
   <svg class="ar-svg-layer" id="ar-svg"></svg>
 
   <div class="ar-nodes-layer">
+    <!-- SWAPPED: Model structure is now declared first to sit on top -->
+    <div class="ar-model-core" id="ar-model">
+      <span id="ar-model-formula">$f_\theta(x_{\lt i})$</span>
+      <span class="ar-model-subtitle">Autoregressive Model</span>
+    </div>
+
+    <!-- SWAPPED: Sequence row is now declared second to sit underneath -->
     <div class="ar-sequence-row" id="ar-row">
       <div class="ar-node" id="n-1">x₁</div>
       <div class="ar-node" id="n-2">x₂</div>
       <div class="ar-node" id="n-3">x₃</div>
       <div class="ar-node" id="n-4">x₄</div>
       <div class="ar-node" id="n-5">x₅</div>
-    </div>
-    
-    <div class="ar-model-core" id="ar-model">
-      <span id="ar-model-formula">$f_\theta(x_{\lt i})$</span>
-      <span class="ar-model-subtitle">Autoregressive Model</span>
     </div>
   </div>
 
@@ -720,7 +724,6 @@
   const arTotal = 5;
   let isAnimating = false;
 
-  // UPDATED: Made this function generic to update any element's MathJax
   function updateMath(elementId, text) {
       const el = document.getElementById(elementId);
       el.innerHTML = text;
@@ -740,6 +743,8 @@
 
   function drawBezier(svg, start, end, type) {
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      // The curve calculation remains flexible using an intermediate factor 
+      // of the delta distance, automatically adapting to the inverted Y trajectory.
       const controlY1 = start.y + (end.y - start.y) * 0.5;
       const controlY2 = start.y + (end.y - start.y) * 0.5;
       const d = `M ${start.x} ${start.y} C ${start.x} ${controlY1}, ${end.x} ${controlY2}, ${end.x} ${end.y}`;
@@ -766,30 +771,32 @@
       clearSvg();
       const modelCenter = getCenterCoords(model, container);
       
-      // Step 1: Context flows IN (Only if past the first token)
+      // Step 1: Context flows UP from generated nodes into the model above
       if (arStep === 1) {
           updateMath('ar-math-status', `$x_1 \\sim p(x_1)$`);
-          updateMath('ar-model-formula', `$p(x_1)$`); // Initial state uses probability distribution
+          updateMath('ar-model-formula', `$p(x_1)$`); 
       } else {
           let context = [];
           for(let i = 1; i < arStep; i++) {
               context.push(`x_${i}`);
               const prevNode = document.getElementById(`n-${i}`);
               const prevCenter = getCenterCoords(prevNode, container);
+              // Line direction travels from bottom tokens up to the model node
               drawBezier(svg, prevCenter, modelCenter, 'flow-in');
           }
           const contextStr = context.join(', ');
           updateMath('ar-math-status', `$x_${arStep} \\sim f_{\\theta}(${contextStr})$`);
-          updateMath('ar-model-formula', `$f_{\\theta}(${contextStr})$`); // Update core formula dynamically
+          updateMath('ar-model-formula', `$f_{\\theta}(${contextStr})$`); 
       }
 
       // Step 2: Model Computes
       await new Promise(r => setTimeout(r, 300));
       model.classList.add('pulsing');
       
-      // Step 3: Output flows OUT to build the new variable
+      // Step 3: Output flows DOWN from the bottom edge of the model to the target token block below
       const targetCenter = getCenterCoords(targetNode, container);
-      drawBezier(svg, {x: modelCenter.x, y: modelCenter.y - 20}, {x: targetCenter.x, y: targetCenter.y + 20}, 'flow-out');
+      // Adjusted the offset markers (+20 instead of -20) to route downward gracefully
+      drawBezier(svg, {x: modelCenter.x, y: modelCenter.y + 20}, {x: targetCenter.x, y: targetCenter.y - 20}, 'flow-out');
       
       targetNode.classList.add('building');
 
@@ -819,7 +826,7 @@
       document.getElementById('ar-model').classList.remove('pulsing');
       
       updateMath('ar-math-status', `Ready to generate sequence.`);
-      updateMath('ar-model-formula', `$f_\\theta(x_{\\lt i})$`); // Reset back to abstract representation
+      updateMath('ar-model-formula', `$f_\\theta(x_{\\lt i})$`); 
       
       for(let i=1; i<=arTotal; i++) {
           const node = document.getElementById(`n-${i}`);

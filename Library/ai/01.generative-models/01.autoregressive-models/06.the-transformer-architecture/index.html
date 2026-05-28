@@ -10,32 +10,41 @@
 <meta name="chapter" content="Autoregressive Models">
 <meta name="title" content="The Transformer Architecture">
 <meta name="description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
-<meta name="keywords" content="transformer, positional encoding, masked self-attention, cross-attention, feed-forward network, residual connections, layer normalization, encoder-decoder, decoder-only, autoregressive, pre-norm, GPT, BERT">
+<meta name="keywords" content="transformer, positional encoding, masked self-attention, cross-attention, feed-forward network, residual connections, layer normalization, encoder-decoder, decoder-only, autoregressive, GPT, BERT">
 <meta name="status" content="draft">
 <meta name="date" content="2026-04-22">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="14">
+<meta name="reading_time" content="15">
 
 <meta property="og:title" content="The Transformer Architecture">
 <meta property="og:description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
 <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/">
-<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-5f8e3408.png?v=fbef2d">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-the-transformer-architecture.png">
 <meta name="twitter:card" content="summary_large_image">
 
 <style id="mobile-view-styles">
     img, iframe, video { max-width: 100% !important; height: auto !important; }
+    
+    .interactive-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 0;
+    }
+    .interactive-wrapper::-webkit-scrollbar { height: 6px; }
+    .interactive-wrapper::-webkit-scrollbar-thumb { background: var(--border, #E8DFD1); border-radius: 4px; }
+    
     @media screen and (max-width: 768px) {
         body, article, .content, main {
             width: 100% !important; max-width: 100vw !important;
             padding: 10px 15px !important; box-sizing: border-box !important;
             overflow-x: hidden !important;
         }
+        .rsa-wrap { min-width: 600px; }
+        .dec-wrap, .enc-anim-wrap { min-width: 380px; }
     }
 </style>
-
-
-
-
 
     <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
@@ -158,7 +167,6 @@
         }
         .rsa-badge strong { color: var(--text); display: block; margin-bottom: 2px; }
 
-        /* SVG specific styling to match theme automatically */
         .svg-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5px; rx: 6px; }
         .svg-box-hi { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5px; rx: 6px; }
         .svg-text { fill: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; text-anchor: middle; dominant-baseline: middle; }
@@ -169,6 +177,7 @@
         .svg-plus-text { fill: var(--muted); font-family: inherit; font-size: 18px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; }
     </style>
 
+    <meta property="og:type" content="article">
 </head>
 <body>
 
@@ -185,67 +194,881 @@
 
 <h2>What Recurrence Was Providing</h2>
 
-<p>Token embeddings carry over unchanged to the Transformer. Given a tokenized sequence $(y_1, y_2, \ldots, y_N)$, an embedding matrix maps each token to a dense vector, producing a matrix $Y \in \mathbb{R}^{N \times d_{\text{model}}}$.</p>
+<p>Token embeddings carry over unchanged to the Transformer. Given a tokenized sequence $(y_1, y_2, \ldots, y_{n_{\mathrm{dec}}})$, an embedding matrix maps each token to a dense vector, producing a matrix $Y \in \mathbb{R}^{n_{\mathrm{dec}} \times d_{\mathrm{model}}}$. Throughout this article, $d_{\mathrm{model}}$ denotes the uniform representation dimension — the same $d$ used in the previous article on attention.</p>
 
 <p>What recurrence naturally provided was an implicit encoding of token order. Recurrent models process tokens sequentially, so the representation at position $t$ is built from the representation at $t-1$. Through this chain, the model encodes the order of the sequence via its evolving hidden state.</p>
 
-<p>Self-attention does not have this property. It processes all tokens simultaneously and is therefore <em>permutation-invariant</em>: it has no intrinsic notion of which token came first.</p>
+<p>Self-attention does not have this property. It processes all tokens simultaneously and is therefore <em>permutation-invariant</em>: it has no intrinsic notion of which token came first. Swap two tokens and the attention weights rearrange accordingly, but nothing in the mechanism resists that swap.</p>
 
-<p>Removing recurrence therefore removes this implicit encoding of order. The Transformer reintroduces this information by adding a <strong>positional encoding</strong> to each token embedding:</p>
+<p>Removing recurrence therefore removes this implicit ordering signal. The Transformer reintroduces it explicitly by adding a <strong>positional encoding</strong> to each token embedding:</p>
 
 <div class="math-display">
 $$Y^{(0)} = \textit{TokenEmbedding} + \textit{PositionEmbedding}.$$
 </div>
 
-<p>
-  Each representation now contains both the identity of the token and its position in the sequence.
-  The exact mechanism by which positional information is encoded and integrated into the model
-  will be explored in the next article, which focuses entirely on positional embeddings.
-</p>
+<p>Each representation now encodes both the identity of the token and its position in the sequence. The exact mechanism by which positional information is constructed and integrated — sinusoidal encodings, learned embeddings, rotary encodings — will be explored in the next article.</p>
 
 <h2>Re-engineering the Decoder</h2>
 
-<p>In the recurrent architecture, the decoder updated its internal state according to</p>
+<p>In the recurrent architecture, the decoder updated its internal state at each step according to</p>
 
 <div class="math-display">
 $$s_t = f(s_{t-1},\, y_{t-1},\, c_t).$$
 </div>
 
-<p>This update combines three distinct roles: incorporating previously generated tokens, retrieving relevant information from the source sequence, and transforming the resulting information into a representation suitable for prediction.</p>
+<p>This single update bundles three distinct responsibilities: tracking the history of previously generated tokens via $s_{t-1}$ and $y_{t-1}$, retrieving relevant information from the source sequence via the context vector $c_t$, and transforming the combined signal into a representation suitable for prediction via $f$.</p>
 
-<p>The Transformer preserves these roles but implements them using <em>separate transformations</em> operating on an entire sequence of token representations rather than a single evolving state.</p>
+<p>The Transformer preserves all three responsibilities but implements them as <em>separate, explicit transformations</em> applied to an entire sequence of token representations simultaneously rather than to a single evolving scalar state.</p>
 
 <h3>Target History</h3>
 
-<p>In the recurrent model, the pair $(s_{t-1}, y_{t-1})$ summarized the prefix of previously generated tokens. The Transformer replaces this mechanism with <strong>masked multi-head self-attention</strong>. Given decoder representations $Y$, this transformation allows each token to attend to earlier positions in the sequence:</p>
+<p>In the recurrent model, the pair $(s_{t-1}, y_{t-1})$ summarized the prefix of previously generated tokens. The Transformer replaces this with <strong>masked multi-head self-attention</strong>. Applied to decoder representations $Y$, it allows each position to attend to earlier positions while being blocked from seeing future ones:</p>
 
 <div class="math-display">
-$$H_{\text{sa}} = \text{Masked Multi-Head Self-Attention}(Y).$$
+$$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y).$$
 </div>
 
-<p>Each token can therefore gather information from the generated prefix.</p>
+<p>This is the causal masking mechanism developed at the end of the previous article — the same $-\infty$ mask, now lifted into the multi-head setting. Each token gathers information from all prior generated tokens in a single parallel operation.</p>
 
 <h3>Source Retrieval</h3>
 
-<p>The recurrent decoder obtained source information through the context vector $c_t$. In the Transformer this role is performed by <strong>multi-head cross-attention</strong>. Decoder representations act as queries, while encoder representations provide keys and values:</p>
+<p>The recurrent decoder obtained source information through the attention-weighted context vector $c_t$. The Transformer makes this role explicit with <strong>multi-head cross-attention</strong>. Decoder representations act as queries while encoder representations provide the keys and values:</p>
 
 <div class="math-display">
-$$H_{\text{ca}} = \text{Multi-Head Cross-Attention}(H_{\text{sa}},\, X_{\text{enc}}).$$
+$$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}},\, X_{\mathrm{enc}}).$$
 </div>
 
-<p>This transformation retrieves information from the encoded source sequence that is relevant for each decoder position.</p>
+<p>Every decoder position can retrieve whatever source information is most relevant to the token being generated. We will see exactly how the Encoder builds this rich, bidirectional $X_{\mathrm{enc}}$ matrix shortly, but for now, treat it as a static memory bank of the source text. The encoder representation $X_{\mathrm{enc}}$ is fixed for the entire decoding process; only the queries change as the decoder progresses.</p>
 
 <h3>Local Transformation</h3>
 
-<p>Finally, the recurrent update function $f(\cdot)$ transformed the combined information into the next decoder state. In the Transformer, this transformation is implemented by a <strong>position-wise feed-forward network</strong>:</p>
+<p>Finally, the recurrent update function $f(\cdot)$ transformed the combined information into the next decoder state through a nonlinear mapping. The Transformer replaces this with a <strong>position-wise feed-forward network</strong> (FFN):</p>
 
 <div class="math-display">
-$$Y' = \text{FFN}(H_{\text{ca}}).$$
+$$Y' = \mathrm{FFN}(H_{\mathrm{ca}}).$$
 </div>
 
-<p>Together these computations form a transformation that maps one set of decoder representations into another, $Y' = F(Y, X_{\text{enc}})$. Rather than evolving a single hidden state over time, the Transformer transforms the entire set of token representations simultaneously.</p>
+<div class="math-box">
+  <div class="math-box-label">Definition: Position-Wise Feed-Forward Network</div>
+  <div class="math-box-body">
+    <p>
+      The feed-forward network (FFN) is a position-wise nonlinear transformation
+      applied independently to each token representation. For an input token
+      vector $\mathbf{x} \in \mathbb{R}^{1 \times d_{\mathrm{model}}}$:
+    </p>
+
+    <div class="math-display">
+      $$\mathrm{FFN}(\mathbf{x}) = f(\mathbf{x}; \theta_{\mathrm{ffn}}),$$
+    </div>
+
+    <p>
+      where $f(\cdot)$ denotes a learned nonlinear mapping with parameters
+      $\theta_{\mathrm{ffn}}$. The same FFN is applied identically at every
+      sequence position, with no communication between positions inside the
+      FFN itself.
+    </p>
+
+
+  </div>
+</div>
+
+<p>Together, the three sub-layers form a single decoder block: a transformation $Y' = F(Y, X_{\mathrm{enc}})$ that maps one set of decoder representations into a richer one. Rather than evolving a single hidden state step by step, the decoder transforms the entire sequence of token representations in one forward pass.</p>
+
+<figure style="margin: 3.5rem auto; max-width: 380px; text-align: left;">
+    
+    <div style="text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--text, #4A3F35); margin-bottom: 0.75rem;">
+        Updated Target Representations ($Y'$)
+    </div>
+
+    <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
+
+    <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
+        <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">3. Position-Wise Feed-Forward Network</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$Y' = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
+    </div>
+
+    <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
+
+    <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; text-align: center; width: 100%;">2. Multi-Head Cross-Attention</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); text-align: center; width: 100%;">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}}, X_{\mathrm{enc}})$</div>
+        
+        <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--muted, #847769); font-style: italic; background: var(--box-bg, #FBF6F2); padding: 2px 5px; border: 1px dashed var(--border, #E8DFD1); border-radius: 4px; white-space: nowrap;">
+            ← $X_{\mathrm{enc}}$
+        </div>
+    </div>
+
+    <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
+
+    <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
+        <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">1. Masked Multi-Head Self-Attention</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y)$</div>
+    </div>
+
+    <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0 1rem 0;">↑</div>
+
+    <div style="font-size: 0.85rem; text-align: center; color: var(--text, #4A3F35); line-height: 1.3;">
+        Input Target Embeddings<br><span style="font-size: 0.9em; font-family: monospace; font-weight: bold; color: var(--muted, #847769);">$Y = \textit{Embed}(y) + \textit{Pos}$</span>
+    </div>
+
+    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top: 1.75rem;line-height:1.6;padding:0 0.5rem;text-align:center;">
+        The functional pipeline of the decoder block: target vectors pass sequentially through target-history aggregation, source retrieval, and position-wise transformation.
+    </figcaption>
+</figure>
+
+
+<h2>Stacking Blocks: Repeated Refinement</h2>
+
+<p>Whether encoder or decoder, applying the block transformation once is not enough. Representations are stacked $L$ times, with each layer receiving the output of the previous one:</p>
+
+<div class="math-display">
+$$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow Y^{(L)}.$$
+</div>
+
+<p>The motivation is hierarchical. In an early layer, masked self-attention might only resolve local relationships — the subject of a verb, the modifier of a noun. Once these local structures are encoded in $Y^{(1)}$, a second layer can reason about them: not just "what is the subject?" but "what does that subject imply about what comes next?" Each layer refines the representation constructed by the layer below, building progressively more abstract structure from the same token sequence.</p>
+
+<figure style="margin: 3.5rem auto;">
+<div class="interactive-wrapper">
+<style>
+.dec-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.dec-scene {
+  position: relative;
+  width: 100%;
+  height: 560px;
+  perspective: 900px;
+  overflow: visible;
+}
+.dec-rig {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.4,0,0.2,1);
+}
+.dec-card {
+  position: absolute;
+  left: 0; right: 0;
+  background: var(--surface, #F4EFE6);
+  border: 1.5px solid var(--border, #E8DFD1);
+  border-radius: 14px;
+  padding: 2.2rem 1.1rem 1.1rem;
+  box-sizing: border-box;
+  transition:
+    transform  0.85s cubic-bezier(0.4,0,0.2,1),
+    opacity    0.75s ease,
+    box-shadow 0.75s ease;
+}
+.dec-card.l1 {
+  bottom: 0;
+  border-color: var(--accent, #D48C70);
+  z-index: 40;
+}
+.dec-card.l2 { bottom: 0; opacity: 0; z-index: 30; }
+.dec-card.l3 { bottom: 0; opacity: 0; z-index: 20; }
+.dec-card.ll { bottom: 0; opacity: 0; z-index: 10; }
+
+.dec-badge {
+  position: absolute;
+  top: -11px; left: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--accent, #D48C70);
+  white-space: nowrap;
+  font-family: inherit;
+}
+.dec-badge.alt { background: var(--muted, #847769); }
+
+.dec-comps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.dec-comp {
+  background: var(--box-bg, #FBF6F2);
+  border: 1px solid var(--border, #E8DFD1);
+  border-radius: 7px;
+  padding: .6rem .85rem;
+  text-align: center;
+  transition: padding 0.5s ease;
+}
+.dec-comp-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted, #847769);
+  margin: 0 0 3px;
+  font-family: inherit;
+}
+.dec-comp-math {
+  font-size: 0.82rem;
+  color: var(--text, #4A3F35);
+  margin: 0;
+}
+.dec-int-arrow {
+  text-align: center;
+  color: var(--accent, #D48C70);
+  font-size: 14px;
+  line-height: 1;
+  padding: 5px 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+  max-height: 30px;
+}
+
+.dec-bridge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  z-index: 50;
+}
+.dec-bridge-line {
+  width: 2px;
+  background: var(--accent, #D48C70);
+  flex-shrink: 0;
+}
+.dec-bridge-label {
+  background: var(--box-bg, #FBF6F2);
+  border: 1px solid var(--accent, #D48C70);
+  color: var(--accent, #D48C70);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.dec-bridge-head {
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid var(--accent, #D48C70);
+  flex-shrink: 0;
+}
+
+.dec-status {
+  text-align: center;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--muted, #847769);
+  margin-top: 80px;
+  min-height: 1.2em;
+  transition: opacity 0.3s;
+  font-family: inherit;
+}
+
+.p-bridge .dec-int-arrow,
+.p-depth  .dec-int-arrow {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+}
+.p-bridge .dec-comp,
+.p-depth  .dec-comp {
+  padding: .3rem .85rem;
+}
+</style>
+
+<div class="dec-wrap" id="decWrap">
+  <div class="dec-scene" id="decScene">
+    <div class="dec-rig" id="decRig">
+
+            <div class="dec-card ll" id="cL">
+        <div class="dec-badge alt">Decoder Block — Layer L</div>
+        <div class="dec-comps" style="opacity:.5">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(L)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(L)})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}}^{(L)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(L)}, X_{\mathrm{enc}})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}}^{(L)} = \mathrm{MMHSA}(Y^{(L-1)})$</div>
+          </div>
+        </div>
+      </div>
+
+            <div class="dec-card l3" id="c3">
+        <div class="dec-badge alt">Decoder Block — Layer 3</div>
+        <div class="dec-comps">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(3)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(3)})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}}^{(3)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(3)}, X_{\mathrm{enc}})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}}^{(3)} = \mathrm{MMHSA}(Y^{(2)})$</div>
+          </div>
+        </div>
+      </div>
+
+            <div class="dec-card l2" id="c2">
+        <div class="dec-badge alt">Decoder Block — Layer 2</div>
+        <div class="dec-comps">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(2)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(2)})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}}^{(2)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(2)}, X_{\mathrm{enc}})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}}^{(2)} = \mathrm{MMHSA}(Y^{(1)})$</div>
+          </div>
+        </div>
+      </div>
+
+            <div class="dec-bridge" id="decBridge">
+        <div class="dec-bridge-head"></div>
+        <div class="dec-bridge-line" style="height:16px"></div>
+        <div class="dec-bridge-label">$Y^{(1)}$ → input to Layer 2</div>
+        <div class="dec-bridge-line" style="height:16px"></div>
+      </div>
+
+            <div class="dec-card l1" id="c1">
+        <div class="dec-badge">Decoder Block — Layer 1</div>
+        <div class="dec-comps">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(1)} = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}},\, X_{\mathrm{enc}})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y^{(0)})$</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="dec-status" id="decStatus">Exploded view — each sub-layer visible inside every decoder block.</div>
+</div>
+</div>
+
+<figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;line-height:1.6;padding:0 0.2rem;text-align:center;max-width:380px;margin-left:auto;margin-right:auto;">
+  The decoder stack: one shared three-part structure repeated $L$ times, each layer refining representations passed up from the layer below.
+</figcaption>
+</figure>
+
+<script>
+(function () {
+  const wrap   = document.getElementById('decWrap');
+  const rig    = document.getElementById('decRig');
+  const bridge = document.getElementById('decBridge');
+  const status = document.getElementById('decStatus');
+  const c1 = document.getElementById('c1');
+  const c2 = document.getElementById('c2');
+  const c3 = document.getElementById('c3');
+  const cL = document.getElementById('cL');
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function cardH(card) { return card.getBoundingClientRect().height; }
+
+  function clearPhases() {
+    ['p-bridge','p-depth'].forEach(c => wrap.classList.remove(c));
+  }
+  function setStatus(txt) { status.textContent = txt; }
+
+  function reset() {
+    clearPhases();
+    rig.style.cssText = 'position:absolute;bottom:0;left:0;right:0;transform-style:preserve-3d;transition:none;';
+    [c1, c2, c3, cL].forEach(c => {
+      c.style.transform       = '';
+      c.style.transformOrigin = '';
+      c.style.boxShadow       = '';
+      c.style.bottom          = '0';
+      c.style.top             = '';
+      c.style.zIndex          = '';
+      c.style.transition      = '';
+    });
+    [c2, c3, cL].forEach(c => { c.style.opacity = '0'; });
+    c1.style.opacity   = '1';
+    bridge.style.opacity = '0';
+    bridge.style.bottom  = '';
+  }
+
+  async function phase1() {
+    reset();
+    setStatus('Exploded view — each sub-layer visible inside every decoder block.');
+    await sleep(3500);
+  }
+
+  async function phase2() {
+    clearPhases();
+    wrap.classList.add('p-bridge');
+    setStatus('Sub-layers compile into one block — Y⁽¹⁾ flows up into Layer 2.');
+    await sleep(620);
+
+    const h1  = cardH(c1);
+    const gap = 88;
+
+    c2.style.transition = 'bottom 0.75s cubic-bezier(0.4,0,0.2,1), opacity 0.6s ease, box-shadow 0.6s ease';
+    c2.style.bottom     = (h1 + gap) + 'px';
+    c2.style.opacity    = '1';
+    c2.style.boxShadow  = '0 6px 20px rgba(0,0,0,0.07)';
+
+    bridge.style.bottom  = (h1 + 4) + 'px';
+    bridge.style.opacity = '1';
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      MathJax.typesetPromise([bridge]).catch(() => {});
+    }
+
+    await sleep(3800);
+  }
+
+  async function phase3() {
+    clearPhases();
+    wrap.classList.add('p-depth');
+    setStatus('Stacking into depth…');
+
+    await sleep(320);
+    bridge.style.opacity = '0';
+
+    const liftY = -195;
+
+    c2.style.transition = '';
+    c2.style.bottom     = '0';
+
+    const cardTx = 'transform 0.78s cubic-bezier(0.4,0,0.2,1), opacity 0.7s ease, box-shadow 0.65s ease';
+    [c1, c2, c3, cL].forEach(c => {
+      c.style.bottom          = '0';
+      c.style.top             = '';
+      c.style.transformOrigin = 'center center';
+      c.style.transition      = cardTx;
+    });
+
+    rig.style.transition      = 'transform 0.82s cubic-bezier(0.4,0,0.2,1)';
+    rig.style.transformOrigin = 'center center';
+
+    rig.style.transform = `translateY(${liftY}px) rotateY(0deg)`;
+    c1.style.transform  = 'translateZ(54px)';
+    c1.style.zIndex     = '40';
+    c1.style.boxShadow  = '0 10px 36px rgba(0,0,0,0.13)';
+
+    await sleep(860);
+
+    rig.style.transform = `translateY(${liftY}px) rotateY(28deg)`;
+
+    await sleep(380);
+
+    c2.style.transform  = 'translateZ(18px)';
+    c2.style.zIndex     = '30';
+    c2.style.opacity    = '1';
+    c2.style.boxShadow  = '0 5px 18px rgba(0,0,0,0.09)';
+
+    await sleep(230);
+
+    c3.style.transform  = 'translateZ(-18px)';
+    c3.style.zIndex     = '20';
+    c3.style.opacity    = '0.88';
+    c3.style.boxShadow  = '0 3px 10px rgba(0,0,0,0.05)';
+
+    await sleep(230);
+
+    cL.style.transform  = 'translateZ(-54px)';
+    cL.style.zIndex     = '10';
+    cL.style.opacity    = '0.6';
+
+    setStatus('Layer 1 is the front card — the same structure repeats L times behind it.');
+    await sleep(4200);
+  }
+
+  async function loop() {
+    while (true) {
+      await phase1();
+      await phase2();
+      await phase3();
+      reset();
+      setStatus('Resetting…');
+      await sleep(700);
+    }
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { obs.disconnect(); loop(); }
+  }, { threshold: 0.2 });
+  obs.observe(wrap);
+})();
+</script>
+<h2>The Encoder: Bidirectional Contextualization</h2>
+ 
+<p>If the decoder is an autoregressive engine that generates tokens one at a time, the encoder is a bidirectional engine that reads a complete sequence all at once. In sequence-to-sequence tasks like translation, the full source sentence is available before decoding begins. The encoder's job is to build a rich, context-aware representation of every source token so the decoder has something useful to attend to.</p>
+ 
+<p>Because the entire source is known upfront, there is no "future" to hide. The causal mask is removed. Every encoder token can attend to every other — both forward and backward — in a single unmasked pass.</p>
+ 
+<p>Each encoder block contains two sub-layers rather than three. There is no cross-attention because the encoder has no external sequence to attend to; it is itself the external sequence that the decoder will later consult.</p>
+ 
+<ol>
+    <li><strong>Multi-Head Self-Attention (unmasked):</strong> every token queries every other token in the sequence, mixing contextual information freely across all positions.
+        <div class="math-display">
+        $$H_{\mathrm{attn}} = \mathrm{MHSA}(X)$$
+        </div>
+    </li>
+    <li><strong>Position-Wise Feed-Forward Network:</strong> the newly mixed representations are refined independently at each position through the same two-layer nonlinear transformation defined above.
+        <div class="math-display">
+        $$X' = \mathrm{FFN}(H_{\mathrm{attn}})$$
+        </div>
+    </li>
+</ol>
+ 
+<p>Just as in the decoder, a single pass is not enough to build deep representations. The encoder repeats this two-part block $L$ times:</p>
+ 
+<div class="math-display">
+$$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow X^{(L)}.$$
+</div>
+ 
+<p>Early layers resolve local structure — adjacent words form phrases, modifiers attach to their heads. Later layers resolve long-range dependencies, coreference, and overall semantic framing. By layer $L$, the output matrix $X_{\mathrm{enc}} \in \mathbb{R}^{n_{\mathrm{enc}} \times d_{\mathrm{model}}}$ contains holistic, context-saturated representations of every source token. This is what gets passed to the decoder's cross-attention mechanism.</p>
+ 
+<figure style="margin: 3.5rem auto;">
+<div class="interactive-wrapper">
+<style>
+.enc-anim-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.enc-anim-scene {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  perspective: 900px;
+  overflow: visible;
+}
+.enc-anim-rig {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.4,0,0.2,1);
+}
+.enc-anim-card {
+  position: absolute;
+  left: 0; right: 0;
+  background: var(--surface, #F4EFE6);
+  border: 1.5px solid var(--border, #E8DFD1);
+  border-radius: 14px;
+  padding: 2.2rem 1.1rem 1.1rem;
+  box-sizing: border-box;
+  transition:
+    transform  0.85s cubic-bezier(0.4,0,0.2,1),
+    opacity    0.75s ease,
+    box-shadow 0.75s ease;
+}
+.enc-anim-card.l1 { bottom: 0; border-color: var(--accent, #D48C70); z-index: 40; }
+.enc-anim-card.l2 { bottom: 0; opacity: 0; z-index: 30; }
+.enc-anim-card.l3 { bottom: 0; opacity: 0; z-index: 20; }
+.enc-anim-card.ll { bottom: 0; opacity: 0; z-index: 10; }
+ 
+.enc-anim-badge {
+  position: absolute;
+  top: -11px; left: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--accent, #D48C70);
+  white-space: nowrap;
+  font-family: inherit;
+}
+.enc-anim-badge.alt { background: var(--muted, #847769); }
+ 
+.enc-anim-comps { display: flex; flex-direction: column; gap: 0; }
+.enc-anim-comp {
+  background: var(--box-bg, #FBF6F2);
+  border: 1px solid var(--border, #E8DFD1);
+  border-radius: 7px;
+  padding: .6rem .85rem;
+  text-align: center;
+  transition: padding 0.5s ease;
+}
+.enc-anim-comp-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--muted, #847769); margin: 0 0 3px; font-family: inherit;
+}
+.enc-anim-comp-math { font-size: 0.82rem; color: var(--text, #4A3F35); margin: 0; }
+.enc-anim-int-arrow {
+  text-align: center; color: var(--accent, #D48C70); font-size: 14px;
+  line-height: 1; padding: 5px 0; overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease; max-height: 30px;
+}
+ 
+.enc-anim-bridge {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: 200px; display: flex; flex-direction: column; align-items: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 50;
+}
+.enc-anim-bridge-line { width: 2px; background: var(--accent, #D48C70); flex-shrink: 0; }
+.enc-anim-bridge-label {
+  background: var(--box-bg, #FBF6F2); border: 1px solid var(--accent, #D48C70);
+  color: var(--accent, #D48C70); font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; font-family: inherit;
+}
+.enc-anim-bridge-head {
+  width: 0; height: 0; border-left: 6px solid transparent;
+  border-right: 6px solid transparent; border-bottom: 8px solid var(--accent, #D48C70); flex-shrink: 0;
+}
+ 
+.enc-anim-status {
+  text-align: center; font-size: 0.78rem; font-style: italic; color: var(--muted, #847769);
+  margin-top: 50px; min-height: 1.2em; transition: opacity 0.3s; font-family: inherit;
+}
+ 
+.enc-p-bridge .enc-anim-int-arrow, .enc-p-depth .enc-anim-int-arrow { max-height: 0; opacity: 0; padding: 0; }
+.enc-p-bridge .enc-anim-comp, .enc-p-depth .enc-anim-comp { padding: .3rem .85rem; }
+</style>
+ 
+<div class="enc-anim-wrap" id="encAnimWrap">
+  <div class="enc-anim-scene" id="encAnimScene">
+    <div class="enc-anim-rig" id="encAnimRig">
+ 
+      <div class="enc-anim-card ll" id="eL">
+        <div class="enc-anim-badge alt">Encoder Block — Layer L</div>
+        <div class="enc-anim-comps" style="opacity:.5">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(L)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(L)})$</div>
+          </div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(L)} = \mathrm{MHSA}(X^{(L-1)})$</div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="enc-anim-card l3" id="e3">
+        <div class="enc-anim-badge alt">Encoder Block — Layer 3</div>
+        <div class="enc-anim-comps">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(3)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(3)})$</div>
+          </div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(3)} = \mathrm{MHSA}(X^{(2)})$</div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="enc-anim-card l2" id="e2">
+        <div class="enc-anim-badge alt">Encoder Block — Layer 2</div>
+        <div class="enc-anim-comps">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(2)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(2)})$</div>
+          </div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(2)} = \mathrm{MHSA}(X^{(1)})$</div>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="enc-anim-bridge" id="encAnimBridge">
+        <div class="enc-anim-bridge-head"></div>
+        <div class="enc-anim-bridge-line" style="height:16px"></div>
+        <div class="enc-anim-bridge-label">$X^{(1)}$ → input to Layer 2</div>
+        <div class="enc-anim-bridge-line" style="height:16px"></div>
+      </div>
+ 
+      <div class="enc-anim-card l1" id="e1">
+        <div class="enc-anim-badge">Encoder Block — Layer 1</div>
+        <div class="enc-anim-comps">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(1)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(1)})$</div>
+          </div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(1)} = \mathrm{MHSA}(X^{(0)})$</div>
+          </div>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+  <div class="enc-anim-status" id="encAnimStatus">Exploded view — unmasked self-attention and FFN.</div>
+</div>
+</div>
+ 
+<figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;line-height:1.6;padding:0 0.2rem;text-align:center;max-width:380px;margin-left:auto;margin-right:auto;">
+  The encoder stack: a simpler two-part structure (no cross-attention) repeated $L$ times to build fully bidirectional source representations.
+</figcaption>
+</figure>
+ 
+<script>
+(function () {
+  const wrap   = document.getElementById('encAnimWrap');
+  const rig    = document.getElementById('encAnimRig');
+  const bridge = document.getElementById('encAnimBridge');
+  const status = document.getElementById('encAnimStatus');
+  const e1 = document.getElementById('e1');
+  const e2 = document.getElementById('e2');
+  const e3 = document.getElementById('e3');
+  const eL = document.getElementById('eL');
+ 
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  function cardH(card) { return card.getBoundingClientRect().height; }
+  function clearPhases() { ['enc-p-bridge','enc-p-depth'].forEach(c => wrap.classList.remove(c)); }
+  function setStatus(txt) { status.textContent = txt; }
+ 
+  function reset() {
+    clearPhases();
+    rig.style.cssText = 'position:absolute;bottom:0;left:0;right:0;transform-style:preserve-3d;transition:none;';
+    [e1, e2, e3, eL].forEach(c => {
+      c.style.transform = ''; c.style.transformOrigin = '';
+      c.style.boxShadow = ''; c.style.bottom = '0';
+      c.style.top = ''; c.style.zIndex = ''; c.style.transition = '';
+    });
+    [e2, e3, eL].forEach(c => { c.style.opacity = '0'; });
+    e1.style.opacity = '1';
+    bridge.style.opacity = '0'; bridge.style.bottom = '';
+  }
+ 
+  async function phase1() {
+    reset();
+    setStatus('Exploded view — unmasked self-attention and FFN.');
+    await sleep(3500);
+  }
+ 
+  async function phase2() {
+    clearPhases(); wrap.classList.add('enc-p-bridge');
+    setStatus('Sub-layers compile into one block — X⁽¹⁾ flows up into Layer 2.');
+    await sleep(620);
+    const h1 = cardH(e1); const gap = 88;
+    e2.style.transition = 'bottom 0.75s cubic-bezier(0.4,0,0.2,1), opacity 0.6s ease, box-shadow 0.6s ease';
+    e2.style.bottom = (h1 + gap) + 'px'; e2.style.opacity = '1';
+    e2.style.boxShadow = '0 6px 20px rgba(0,0,0,0.07)';
+    bridge.style.bottom = (h1 + 4) + 'px'; bridge.style.opacity = '1';
+    if (window.MathJax && window.MathJax.typesetPromise) { MathJax.typesetPromise([bridge]).catch(() => {}); }
+    await sleep(3800);
+  }
+ 
+  async function phase3() {
+    clearPhases(); wrap.classList.add('enc-p-depth');
+    setStatus('Stacking into depth…');
+    await sleep(320); bridge.style.opacity = '0';
+    const liftY = -145;
+    e2.style.transition = ''; e2.style.bottom = '0';
+    const cardTx = 'transform 0.78s cubic-bezier(0.4,0,0.2,1), opacity 0.7s ease, box-shadow 0.65s ease';
+    [e1, e2, e3, eL].forEach(c => {
+      c.style.bottom = '0'; c.style.top = ''; c.style.transformOrigin = 'center center'; c.style.transition = cardTx;
+    });
+    rig.style.transition = 'transform 0.82s cubic-bezier(0.4,0,0.2,1)';
+    rig.style.transformOrigin = 'center center';
+    rig.style.transform = `translateY(${liftY}px) rotateY(0deg)`;
+    e1.style.transform = 'translateZ(54px)'; e1.style.zIndex = '40'; e1.style.boxShadow = '0 10px 36px rgba(0,0,0,0.13)';
+    await sleep(860);
+    rig.style.transform = `translateY(${liftY}px) rotateY(28deg)`;
+    await sleep(380);
+    e2.style.transform = 'translateZ(18px)'; e2.style.zIndex = '30'; e2.style.opacity = '1'; e2.style.boxShadow = '0 5px 18px rgba(0,0,0,0.09)';
+    await sleep(230);
+    e3.style.transform = 'translateZ(-18px)'; e3.style.zIndex = '20'; e3.style.opacity = '0.88'; e3.style.boxShadow = '0 3px 10px rgba(0,0,0,0.05)';
+    await sleep(230);
+    eL.style.transform = 'translateZ(-54px)'; eL.style.zIndex = '10'; eL.style.opacity = '0.6';
+    setStatus('Layer 1 is the front card — the two-part structure repeats L times.');
+    await sleep(4200);
+  }
+ 
+  async function loop() {
+    while (true) {
+      await phase1(); await phase2(); await phase3();
+      reset(); setStatus('Resetting…'); await sleep(700);
+    }
+  }
+ 
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { obs.disconnect(); loop(); }
+  }, { threshold: 0.2 });
+  obs.observe(wrap);
+})();
+</script>
+
+<h2>Residual Refinement</h2>
+
+<p>Deep stacks of nonlinear transformations are difficult to train because gradients must propagate backward through many layers. Each nonlinearity squashes or saturates some fraction of the gradient signal, so by the time it reaches the earliest layers it may be too small to drive useful learning.</p>
+
+<p>Residual networks addressed this by introducing skip connections. Instead of learning a complete replacement transformation $F(x)$, each block learns only a <em>correction</em> to the current representation:</p>
+
+<div class="math-display">
+$$\text{output} = x + F(x).$$
+</div>
+
+<p>The identity path allows gradients to flow backward unimpeded: no matter how many nonlinear blocks lie between a loss and an early parameter, there is always a straight path through the skip connections that carries an unscaled gradient signal.</p>
+
+<p>Transformers adopt the same principle. Rather than replacing the current representation, each sub-layer predicts a refinement that is added to it. For a decoder block, unrolling all three sub-layers:</p>
+
+<div class="math-display">
+$$Y^{(l+1)} = Y^{(l)} + \underbrace{\Delta_{\mathrm{sa}}^{(l)}}_{\text{masked self-attn}} + \underbrace{\Delta_{\mathrm{ca}}^{(l)}}_{\text{cross-attn}} + \underbrace{\Delta_{\mathrm{ffn}}^{(l)}}_{\text{FFN}}.$$
+</div>
+
+<p>For an encoder block, there is no cross-attention term, so the update simplifies to $X^{(l+1)} = X^{(l)} + \Delta_{\mathrm{attn}}^{(l)} + \Delta_{\mathrm{ffn}}^{(l)}$. Unrolling across all $L$ decoder layers reveals the full accumulation structure:</p>
+
+<div class="math-display">
+$$Y^{(L)} = Y^{(0)} + \sum_{l=1}^{L} \bigl(\Delta_{\mathrm{sa}}^{(l)} + \Delta_{\mathrm{ca}}^{(l)} + \Delta_{\mathrm{ffn}}^{(l)}\bigr).$$
+</div>
+
+<p>The final representation is the initial embedding plus every correction contributed across all layers and all sub-layers. Information is never overwritten — it is progressively accumulated.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Key Insight: The Residual Stream</div>
+  <div class="math-box-body">
+    <p>A Transformer block never <em>overwrites</em> representations — it <em>accumulates</em> them. Attention writes a context-aware increment; the FFN writes a local nonlinear increment. Both gradients flow unimpeded backward through the skip connections, bypassing every nonlinearity. This is why deep Transformers are trainable despite their depth.</p>
+  </div>
+</div>
 
 <figure style="margin: 2.5rem 0; text-align: left;">
+    <div class="interactive-wrapper">
     <div class="rsa-wrap" id="rsa-encdec" style="max-width: 720px; height: 460px;">
         <div class="rsa-spine" style="top: 40px; bottom: 50px;"></div>
         <div class="rsa-layer-lbl" style="top: 210px;">Layer $l$</div>
@@ -253,7 +1076,7 @@ $$Y' = \text{FFN}(H_{\text{ca}}).$$
         <div class="rsa-input-lbl" style="top: 12px; right: 20px; left: auto; text-align: right; line-height: 1.4; max-width: 400px;">
             <strong>Output:</strong> $Y^{(l)} + \Delta^{(l)}$<br>
             <span style="font-size: 0.85em; font-weight: normal; color: var(--muted, #666);">
-                where $\Delta^{(l)} = \Delta_\text{sa}^{(l)} + \Delta_\text{ca}^{(l)} + \Delta_\text{ffn}^{(l)}$
+                where $\Delta^{(l)} = \Delta_\mathrm{sa}^{(l)} + \Delta_\mathrm{ca}^{(l)} + \Delta_\mathrm{ffn}^{(l)}$
             </span>
         </div>
 
@@ -267,24 +1090,24 @@ $$Y' = \text{FFN}(H_{\text{ca}}).$$
         <div class="rsa-bar" style="top: 138px;"></div> 
         <div class="rsa-box" id="encdec-b-ffn" style="top: 90px;">
             <div class="rsa-box-title">Feed-Forward Network</div>
-            <div class="rsa-box-math">$\Delta_\text{ffn}^{(l)} = \text{FFN}(\text{LN}($ <span class="rsa-hl" id="encdec-h-ffn">$Y^{(l)}{+}\Delta_\text{sa}^{(l)}{+}\Delta_\text{ca}^{(l)}$</span> $))$</div>
+            <div class="rsa-box-math">$\Delta_\mathrm{ffn}^{(l)} = \mathrm{FFN}(\mathrm{LN}($ <span class="rsa-hl" id="encdec-h-ffn">$Y^{(l)}{+}\Delta_\mathrm{sa}^{(l)}{+}\Delta_\mathrm{ca}^{(l)}$</span> $))$</div>
         </div>
 
         <div class="rsa-plus" id="encdec-p-mca" style="top: 162px;">+</div>
         <div class="rsa-bar" style="top: 246px;"></div>
         <div class="rsa-box" id="encdec-b-mca" style="top: 198px;">
             <div class="rsa-badge" style="top: 5px; right: 5px; padding: 0.3rem 0.5rem; text-align: left;">
-                <span style="font-weight:700;color:var(--accent);">K, V</span> $\leftarrow X_{\text{enc}}$
+                <span style="font-weight:700;color:var(--accent);">K, V</span> $\leftarrow X_{\mathrm{enc}}$
             </div>
             <div class="rsa-box-title hi" style="color:var(--box-border);">Multi-Head Cross-Attention</div>
-            <div class="rsa-box-math">$\Delta_\text{ca}^{(l)} = \text{MHCA}(\text{LN}($ <span class="rsa-hl" id="encdec-h-mca">$Y^{(l)}{+}\Delta_\text{sa}^{(l)}$</span> $), X_{\text{enc}})$</div>
+            <div class="rsa-box-math">$\Delta_\mathrm{ca}^{(l)} = \mathrm{MHCA}(\mathrm{LN}($ <span class="rsa-hl" id="encdec-h-mca">$Y^{(l)}{+}\Delta_\mathrm{sa}^{(l)}$</span> $), X_{\mathrm{enc}})$</div>
         </div>
 
         <div class="rsa-plus" id="encdec-p-msa" style="top: 270px;">+</div>
         <div class="rsa-bar" style="top: 354px;"></div>
         <div class="rsa-box" id="encdec-b-msa" style="top: 306px;">
             <div class="rsa-box-title hi">Masked Self-Attention</div>
-            <div class="rsa-box-math">$\Delta_\text{sa}^{(l)} = \text{MMHSA}(\text{LN}($ <span class="rsa-hl" id="encdec-h-msa">$Y^{(l)}$</span> $))$</div>
+            <div class="rsa-box-math">$\Delta_\mathrm{sa}^{(l)} = \mathrm{MMHSA}(\mathrm{LN}($ <span class="rsa-hl" id="encdec-h-msa">$Y^{(l)}$</span> $))$</div>
         </div>
 
         <div class="rsa-input-lbl" style="top: 400px; left: 16px;">Input: $Y^{(l)}$</div>
@@ -294,306 +1117,13 @@ $$Y' = \text{FFN}(H_{\text{ca}}).$$
             <button class="rsa-btn" id="encdec-btn">▶&nbsp;Trace Decoder Stream</button>
         </div>
     </div>
-    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
-        One Transformer decoder layer (pre-norm layout). Masked self-attention builds target context; cross-attention retrieves from $X_\mathrm{enc}$; the FFN refines locally. Residual connections accumulate all three deltas into $Y^{(l)} + \Delta^{(l)}$.
-    </figcaption>
-</figure>
-
-<h2>Repeated Transformation</h2>
-
-<p>Applying this transformation once is rarely sufficient. Instead, the computation is repeated, progressively refining the sequence representation:</p>
-
-<div class="math-display">
-$$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow Y^{(L)}.$$
-</div>
-
-<p>Each stage receives the representation produced by the previous stage and applies another transformation of the same form. The network therefore constructs increasingly structured representations as information propagates through the computation.</p>
-
-<p>Consider <em>"The black cat sleeps on the rug."</em> In an early stage, self-attention resolves local relationships: <em>sleeps</em> attends to <em>cat</em> to identify its subject, while <em>black</em> attaches to <em>cat</em> as its modifier. Once these relationships are encoded, later transformations can reason about higher-level structure, such as how the predicate constrains what tokens may follow.</p>
-
-<p>Each step therefore refines the representation constructed by the previous one.</p>
-
-<h2>Residual Refinement</h2>
-
-<p>Deep stacks of nonlinear transformations are difficult to train because gradients must propagate through many stages of computation. Residual networks addressed this difficulty by introducing skip connections that allow information to pass directly through the network.</p>
-
-<p>Instead of learning a complete transformation $F(x)$, a block learns only how the representation should change:</p>
-
-<div class="math-display">
-$$\text{output} = x + F(x).$$
-</div>
-
-<p>The identity path preserves the current representation while the learned transformation contributes a correction.</p>
-
-<p>Transformers adopt the same principle. Rather than replacing the current representation, each stage predicts a <em>refinement</em> that is added to it:</p>
-
-<div class="math-display">
-$$Y^{(l+1)} = Y^{(l)} + \Delta^{(l)}.$$
-</div>
-
-<p>This correction is generated by the three computations introduced earlier, decomposed into contributions from masked self-attention, cross-attention, and the feed-forward network:</p>
-
-<div class="math-display">
-$$\Delta^{(l)} = \Delta_{\text{sa}}^{(l)} + \Delta_{\text{ca}}^{(l)} + \Delta_{\text{ffn}}^{(l)}.$$
-</div>
-
-<p>Unrolling the residual updates across all transformations reveals how the final representation is constructed:</p>
-
-<div class="math-display">
-$$Y^{(L)} = Y^{(0)} + \sum_{l=1}^{L} \bigl(\Delta_{\text{sa}}^{(l)} + \Delta_{\text{ca}}^{(l)} + \Delta_{\text{ffn}}^{(l)}\bigr).$$
-</div>
-
-<p>The representation produced by the network is therefore the initial embedding plus every refinement contributed during the computation. Information is not overwritten; it is progressively accumulated.</p>
-
-<div class="math-box">
-  <div class="math-box-label">Key Insight: The Residual Stream</div>
-  <div class="math-box-body">
-    <p>A Transformer block never <em>overwrites</em> representations — it <em>accumulates</em> them. Attention writes a context-aware increment; the FFN writes a local nonlinear increment. Both gradients flow unimpeded backward through the skip connections, bypassing every nonlinearity. This is why deep Transformers are trainable despite their depth.</p>
-  </div>
-</div>
-
-<figure style="margin:2.5rem 0;text-align:center;">
-    <div class="rsa-wrap" id="rsa2" style="max-width: 720px; height: 640px;">
-        <div class="rsa-spine" style="top: 10px; bottom: 50px;"></div>
-
-        <div class="rsa-layer-lbl" style="top: 154px;">Layer 2</div>
-        <div class="rsa-layer-lbl" style="top: 440px;">Layer 1</div>
-
-        <div class="rsa-divider" style="top: 303px;"></div>
-
-        <svg class="rsa-overlay">
-            <path id="rsa2-arc-msa1" d="M 270,484 C 270,462 230,462 202,462" />
-            <path id="rsa2-arc-ffn1" d="M 270,376 C 270,354 230,354 202,354" />
-            <path id="rsa2-arc-msa2" d="M 270,198 C 270,176 230,176 202,176" />
-            <path id="rsa2-arc-ffn2" d="M 270,90  C 270,68  230,68  202,68" />
-        </svg>
-
-        <div class="rsa-plus" id="rsa2-p-ffn2" style="top: 54px;">+</div>
-        <div class="rsa-bar" style="top: 138px;"></div> 
-        <div class="rsa-box" id="rsa2-b-ffn2" style="top: 90px;">
-            <div class="rsa-box-title">Feed-Forward Network (L2)</div>
-            <div class="rsa-box-math">$\Delta_\text{ffn}^{(2)} = \text{FFN}_2(\text{LN}($ <span class="rsa-hl" id="rsa2-h-ffn2">$Y^{(0)}{+}\Delta^{(1)}{+}\Delta_\text{sa}^{(2)}$</span> $))$</div>
-        </div>
-
-        <div class="rsa-plus" id="rsa2-p-msa2" style="top: 162px;">+</div>
-        <div class="rsa-bar" style="top: 246px;"></div>
-        <div class="rsa-box" id="rsa2-b-msa2" style="top: 198px;">
-            <div class="rsa-box-title hi">Masked Self-Attention (L2)</div>
-            <div class="rsa-box-math">$\Delta_\text{sa}^{(2)} = \text{MMHSA}_2(\text{LN}($ <span class="rsa-hl" id="rsa2-h-msa2">$Y^{(0)}{+}\Delta^{(1)}$</span> $))$</div>
-        </div>
-
-        <div class="rsa-plus" id="rsa2-p-ffn1" style="top: 340px;">+</div>
-        <div class="rsa-bar" style="top: 424px;"></div>
-        <div class="rsa-box" id="rsa2-b-ffn1" style="top: 376px;">
-            <div class="rsa-box-title">Feed-Forward Network (L1)</div>
-            <div class="rsa-box-math">$\Delta_\text{ffn}^{(1)} = \text{FFN}_1(\text{LN}($ <span class="rsa-hl" id="rsa2-h-ffn1">$Y^{(0)}{+}\Delta_\text{sa}^{(1)}$</span> $))$</div>
-        </div>
-
-        <div class="rsa-plus" id="rsa2-p-msa1" style="top: 448px;">+</div>
-        <div class="rsa-bar" style="top: 532px;"></div>
-        <div class="rsa-box" id="rsa2-b-msa1" style="top: 484px;">
-            <div class="rsa-box-title hi">Masked Self-Attention (L1)</div>
-            <div class="rsa-box-math">$\Delta_\text{sa}^{(1)} = \text{MMHSA}_1(\text{LN}($ <span class="rsa-hl" id="rsa2-h-msa1">$Y^{(0)}$</span> $))$</div>
-        </div>
-
-        <div class="rsa-input-lbl" style="top: 575px;">Input: $Y^{(0)}$</div>
-        <div class="rsa-signal" id="rsa2-sig" style="top: 565px; opacity: 0;"></div>
-
-        <div class="rsa-ctrl">
-            <button class="rsa-btn" id="rsa2-btn">▶&nbsp;Trace Residual Stream</button>
-        </div>
     </div>
     <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
-        The residual stream as a running accumulator. Each layer contributes two increments — masked self-attention then FFN — added in sequence. Press <em>Trace Residual Stream</em> to animate the computation.
+        One Transformer decoder layer. Masked self-attention builds target context; cross-attention retrieves from $X_\mathrm{enc}$; the FFN refines locally. Residual connections accumulate all three deltas into $Y^{(l)} + \Delta^{(l)}$.
     </figcaption>
 </figure>
-
-<h2>Pre-Norm vs. Post-Norm</h2>
-<p>The architecture outlined above relies on <strong>Pre-Norm</strong>—applying Layer Normalization <em>before</em> the sub-layer computation (e.g., self-attention or FFN), leaving the residual addition untouched:</p>
-
-<div class="math-display">
-$$x_{l+1} = x_l + \text{SubLayer}(\text{LN}(x_l))$$
-</div>
-
-<p>The original Transformer paper used <strong>Post-Norm</strong>, where normalization occurs <em>after</em> the addition:</p>
-
-<div class="math-display">
-$$x_{l+1} = \text{LN}(x_l + \text{SubLayer}(x_l))$$
-</div>
-
-<p>While Post-Norm works well for shallower models, it causes gradient vanishing in deep networks. Pre-Norm guarantees a direct, unscaled identity path from the very first layer to the last, making deep Transformers dramatically easier to train.</p>
-
-<p><strong>Nowadays: Pre-Norm + RMSNorm</strong><br>
-Modern architectures (like LLaMA and Mistral) take this stability a step further by replacing Layer Normalization with <strong>RMSNorm</strong> (Root Mean Square Normalization). RMSNorm skips the mean-centering step of traditional LayerNorm, scaling vectors only by their variance. This modification is computationally faster while perfectly maintaining all the training stability benefits of Pre-Norm.</p>
-
-<h2>Worked Example: A Complete Pre-Norm Block</h2>
-
-<p>The preceding sections described the Transformer's components at the level of equations and diagrams. This section works through a single Pre-Norm block numerically from raw token embeddings to the final output, tracking every matrix computation with concrete numbers.</p>
-
-<div class="math-box">
-  <div class="math-box-label">The Pre-Norm Block</div>
-  <div class="math-box-body">
-    <p>LayerNorm is applied <em>before</em> each sub-layer, not after:</p>
-    <div class="math-display">
-      $$X_{\text{attn}} = X + \mathrm{MHA}\!\bigl(\mathrm{LN}(X)\bigr), \qquad X_{\text{out}} = X_{\text{attn}} + \mathrm{FFN}\!\bigl(\mathrm{LN}(X_{\text{attn}})\bigr).$$
-    </div>
-    <p>The raw input $X$ flows unchanged through both skip connections; only the normalized branch enters each sub-layer.</p>
-  </div>
-</div>
-
-<p><strong>Toy configuration:</strong> sequence length $n=3$, embedding dimension $d_{\text{model}}=4$, number of heads $h=2$, per-head dimension $d_{\text{head}}=2$.</p>
-
-<h3>Step 1 — Raw Input</h3>
-
-<div class="math-display">
-$$X = \begin{bmatrix} 1 & 0 & 1 & 0 \\ 0 & 1 & 1 & 0 \\ 1 & 1 & 0 & 1 \end{bmatrix} \in \mathbb{R}^{3 \times 4}.$$
-</div>
-
-<p>Rows are tokens $w_1, w_2, w_3$. $X$ is the <em>residual stream</em> — the block only ever adds increments to it; it is never overwritten.</p>
-
-<h3>Step 2 — LayerNorm Before Attention</h3>
-
-<p>Applied independently to each row: $\mathrm{LN}(x) = (x - \mu)/\sigma$ where $\mu, \sigma$ are the row mean and standard deviation.</p>
-
-<p><strong>$w_1$:</strong> $\mu = 0.5,\; \sigma = 0.5 \;\Rightarrow\; \hat{x}_1 = [1, -1, 1, -1]$.</p>
-<p><strong>$w_2$:</strong> $\mu = 0.5,\; \sigma = 0.5 \;\Rightarrow\; \hat{x}_2 = [-1, 1, 1, -1]$.</p>
-<p><strong>$w_3$:</strong> $\mu = 0.75,\; \sigma \approx 0.433 \;\Rightarrow\; \hat{x}_3 \approx [0.58, 0.58, -1.73, 0.58]$.</p>
-
-<div class="math-display">
-$$\hat{X} = \begin{bmatrix} 1 & -1 & 1 & -1 \\ -1 & 1 & 1 & -1 \\ 0.58 & 0.58 & -1.73 & 0.58 \end{bmatrix}.$$
-</div>
-
-<div class="math-box">
-  <div class="math-box-label">Important</div>
-  <div class="math-box-body">
-    <p><strong>Projections use $\hat{X}$, skip connections use $X$.</strong> All query/key/value matrices are computed from $\hat{X}$. The raw $X$ appears <em>only</em> in the residual additions.</p>
-  </div>
-</div>
-
-<h3>Step 3 — Multi-Head Self-Attention</h3>
-
-<p>Each head projects $\hat{X}$ into 2-dimensional Q/K/V spaces. The causal mask sets $M_{ij} = -\infty$ for $j > i$, ensuring each token only attends to earlier positions.</p>
-
-<p>After computing attention weights for both heads, we observe two distinct patterns:</p>
-
-<div style="overflow-x: auto; margin: 24px 0; background: var(--box-bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: left;">
-  <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-    <thead>
-      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
-        <th style="padding: 10px;"></th>
-        <th style="padding: 10px; color: var(--muted); font-weight: 600;" colspan="3">Head 1 attention weights $A^{(1)}$</th>
-        <th style="padding: 10px; color: var(--muted); font-weight: 600;" colspan="3">Head 2 attention weights $A^{(2)}$</th>
-      </tr>
-      <tr style="background: var(--surface); border-bottom: 1px solid var(--table-rule);">
-        <th style="padding: 10px;"></th>
-        <th style="padding: 10px; color: var(--muted);">$w_1$</th>
-        <th style="padding: 10px; color: var(--muted);">$w_2$</th>
-        <th style="padding: 10px; color: var(--muted);">$w_3$</th>
-        <th style="padding: 10px; color: var(--muted);">$w_1$</th>
-        <th style="padding: 10px; color: var(--muted);">$w_2$</th>
-        <th style="padding: 10px; color: var(--muted);">$w_3$</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr style="border-bottom: 1px solid var(--table-rule);">
-        <td style="text-align: left; padding: 10px; font-weight: 600;">$w_1$</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 4px;"><strong>1.00</strong></td>
-        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
-        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.45); padding: 10px; border-radius: 4px;"><strong>1.00</strong></td>
-        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
-        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
-      </tr>
-      <tr style="border-bottom: 1px solid var(--table-rule);">
-        <td style="text-align: left; padding: 10px; font-weight: 600;">$w_2$</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.20); padding: 10px;">0.50</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.20); padding: 10px;">0.50</td>
-        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.06); padding: 10px;">0.12</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.38); padding: 10px; border-radius: 4px;"><strong>0.88</strong></td>
-        <td style="text-align: center; padding: 10px; color: var(--muted);">—</td>
-      </tr>
-      <tr>
-        <td style="text-align: left; padding: 10px; font-weight: 600;">$w_3$</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.02); padding: 10px;">0.006</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.30); padding: 10px; border-radius: 4px;"><strong>0.61</strong></td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.19); padding: 10px;">0.38</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.42); padding: 10px; border-radius: 4px;"><strong>0.84</strong></td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.05); padding: 10px;">0.10</td>
-        <td style="text-align: center; background: rgba(var(--accent-rgb), 0.03); padding: 10px;">0.06</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<div class="math-box">
-  <div class="math-box-label">Two Heads, Two Patterns</div>
-  <div class="math-box-body">
-    <p>Head 1 has $w_3$ attending mostly to $w_2$ (0.61); Head 2 has $w_3$ attending mostly to $w_1$ (0.84). Each head independently extracts a different relational signal from the same sequence — the core motivation for multi-head attention.</p>
-  </div>
-</div>
-
-<h3>Steps 4–8 — The Residual Stream View</h3>
-
-<p>After computing contextual outputs for each head, concatenating, and applying the output projection, we obtain the attention increment $\Delta_{\text{attn}}$. The first residual addition gives:</p>
-
-<div class="math-display">
-$$X_{\text{attn}} = X + \Delta_{\text{attn}} \approx \begin{bmatrix} 1 & 0 & 3.00 & -1.00 \\ 0 & 1 & 1.24 & -0.12 \\ 1.44 & 0.56 & 1.61 & 0.23 \end{bmatrix}.$$
-</div>
-
-<p>A second LayerNorm, then the FFN, then the second residual addition gives the final output. The entire block is simply three matrices added together:</p>
-
-<div class="math-display">
-$$\boxed{X_{\text{out}} = X + \Delta_{\text{attn}} + \Delta_{\text{ffn}}.}$$
-</div>
-
-<h2>Training and Inference</h2>
-
-<h3>Training Objective</h3>
-
-<p>The model is trained to predict each word in a sequence given the words that came before it. This left-to-right factorization is the autoregressive property:</p>
-
-<div class="math-display">
-$$p_\theta(x_1, \ldots, x_N) = \prod_{i=1}^{N} p_\theta(x_i \mid x_{\lt i}).$$
-</div>
-
-<p>Training maximizes this probability — equivalently, it minimizes the cross-entropy loss:</p>
-
-<div class="math-display">
-$$\mathcal{J}(\theta) = -\sum_{i=1}^{N} \log p_\theta(x_i \mid x_{\lt i}).$$
-</div>
-
-<h3>Why Training Can Be Fully Parallel</h3>
-
-<p>In the recurrent decoder, training was sequential: computing the hidden state at step $t$ required the hidden state at step $t-1$ to already be ready. The Transformer breaks this dependency entirely.</p>
-
-<p>During training, the full sequence $(x_1, \ldots, x_N)$ is fed to the model at once. The causal mask does the work that the sequential chain used to do: it ensures that when computing the representation at position $i$, attention cannot see any token at position $j > i$. The guarantee comes from a mask applied in parallel, not from running the model step by step.</p>
-
-<p>The result is that $X^{(L)}$ contains all $N$ prefix-conditioned representations at once. Every conditional distribution is computed in a single forward pass. The loss over the entire sequence is computed and gradients are propagated in one shot. This is what makes training on sequences of thousands of tokens tractable.</p>
-
-<h3>Autoregressive Inference</h3>
-
-<p>At inference time, the situation is different. There is no full sequence to feed in — the model is generating one that does not yet exist. Only a prefix $(x_1, \ldots, x_k)$ is available.</p>
-
-<p>The model processes this prefix, and the representation at the final position encodes everything the model knows about what should come next. It computes $p_\theta(x_{k+1} \mid x_{\le k})$ and selects a token — by taking the most likely word, or by sampling. That token is appended to the prefix, and the whole process runs again for position $k+2$.</p>
-
-<p>Unlike training, this is inherently sequential. Each new token depends on the one just generated, so the model must run once per token. The causal mask is still there — it is just that every "future" position is genuinely unknown rather than deliberately hidden.</p>
-
-<h2>Encoder–Decoder vs. Decoder-Only</h2>
-
-<p>The decoder-only architecture described above is designed for language modelling: given a sequence of tokens, predict the next one. A different class of tasks requires <strong>sequence transduction</strong> — mapping one sequence to another, such as translating English to French.</p>
-
-<h3>The Encoder</h3>
-
-<p>The encoder processes the entire source sequence at once. Because the full source is available before decoding begins, there is no need to restrict tokens from attending to future positions — the causal mask is removed. Each encoder layer applies <em>unmasked</em> self-attention followed by a feed-forward network:</p>
-
-<div class="math-display">
-$$\begin{aligned} X' &= X + \text{MHA}(\text{LayerNorm}(X)), \\ Y &= X' + \text{FFN}(\text{LayerNorm}(X')). \end{aligned}$$
-</div>
-
-<p>After multiple encoder layers, the source sequence is represented as a matrix of contextual vectors $H^{\text{enc}} \in \mathbb{R}^{N \times d_{\text{model}}}$, where each row is a richly contextualized representation of a source token.</p>
-
 <figure style="margin: 2rem 0; text-align: center;">
+    <div class="interactive-wrapper">
     <div class="rsa-wrap" id="rsa-enc" style="max-width: 720px; height: 360px;">
         <div class="rsa-spine" style="top: 10px; bottom: 50px;"></div>
         <div class="rsa-layer-lbl" style="top: 154px;">Layer $l$</div>
@@ -607,14 +1137,14 @@ $$\begin{aligned} X' &= X + \text{MHA}(\text{LayerNorm}(X)), \\ Y &= X' + \text{
         <div class="rsa-bar" style="top: 138px;"></div> 
         <div class="rsa-box" id="enc-b-ffn" style="top: 90px;">
             <div class="rsa-box-title">Feed-Forward Network</div>
-            <div class="rsa-box-math">$\Delta_\text{ffn}^{(l)} = \text{FFN}(\text{LN}($ <span class="rsa-hl" id="enc-h-ffn">$X^{(l)}{+}\Delta_\text{attn}^{(l)}$</span> $))$</div>
+            <div class="rsa-box-math">$\Delta_\mathrm{ffn}^{(l)} = \mathrm{FFN}(\mathrm{LN}($ <span class="rsa-hl" id="enc-h-ffn">$X^{(l)}{+}\Delta_\mathrm{attn}^{(l)}$</span> $))$</div>
         </div>
 
         <div class="rsa-plus" id="enc-p-msa" style="top: 162px;">+</div>
         <div class="rsa-bar" style="top: 246px;"></div>
         <div class="rsa-box" id="enc-b-msa" style="top: 198px;">
             <div class="rsa-box-title hi">Multi-Head Self-Attention</div>
-            <div class="rsa-box-math">$\Delta_\text{attn}^{(l)} = \text{MHSA}(\text{LN}($ <span class="rsa-hl" id="enc-h-msa">$X^{(l)}$</span> $))$</div>
+            <div class="rsa-box-math">$\Delta_\mathrm{attn}^{(l)} = \mathrm{MHSA}(\mathrm{LN}($ <span class="rsa-hl" id="enc-h-msa">$X^{(l)}$</span> $))$</div>
         </div>
 
         <div class="rsa-input-lbl" style="top: 290px;">Input: $X^{(l)}$</div>
@@ -624,109 +1154,137 @@ $$\begin{aligned} X' &= X + \text{MHA}(\text{LayerNorm}(X)), \\ Y &= X' + \text{
             <button class="rsa-btn" id="enc-btn">▶&nbsp;Trace Encoder Stream</button>
         </div>
     </div>
-    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
-        One encoder layer. Unmasked self-attention allows every token to attend to every other. The FFN refines each representation locally. No causal mask is applied.
-    </figcaption>
-</figure>
-
-<h3>Decoder Layer Structure</h3>
-
-<p>Each encoder–decoder decoder layer contains three sub-blocks:</p>
-
-<div class="math-display">
-$$\begin{aligned} X' &= X + \text{MaskedMHA}(\text{LayerNorm}(X)), \\ X'' &= X' + \text{CrossMHA}(\text{LayerNorm}(X'),\, H^{\text{enc}}), \\ Y &= X'' + \text{FFN}(\text{LayerNorm}(X'')). \end{aligned}$$
-</div>
-
-<p>The masked self-attention maintains autoregressive generation over the target sequence, cross-attention retrieves relevant source context, and the FFN refines the representation locally.</p>
-
-<p>In sequence transduction, the encoder builds a full contextual representation of the source without masking, while the decoder generates the target autoregressively, attending to both its own past outputs and the encoder representation through cross-attention.</p>
-
-<h2>The Full Picture</h2>
-
-<figure style="margin: 0 0 2rem 0; text-align: center;">
-    <div class="rsa-wrap" id="rsa-dec" style="max-width: 720px; height: 360px;">
-        <div class="rsa-spine" style="top: 10px; bottom: 50px;"></div>
-        <div class="rsa-layer-lbl" style="top: 154px;">Layer $l$</div>
-        
-        <svg class="rsa-overlay">
-            <path id="dec-arc-msa" d="M 270,198 C 270,176 230,176 202,176" />
-            <path id="dec-arc-ffn" d="M 270,90  C 270,68  230,68  202,68" />
-        </svg>
-
-        <div class="rsa-plus" id="dec-p-ffn" style="top: 54px;">+</div>
-        <div class="rsa-bar" style="top: 138px;"></div> 
-        <div class="rsa-box" id="dec-b-ffn" style="top: 90px;">
-            <div class="rsa-box-title">Feed-Forward Network</div>
-            <div class="rsa-box-math">$\Delta_\text{ffn}^{(l)} = \text{FFN}(\text{LN}($ <span class="rsa-hl" id="dec-h-ffn">$Y^{(l)}{+}\Delta_\text{sa}^{(l)}$</span> $))$</div>
-        </div>
-
-        <div class="rsa-plus" id="dec-p-msa" style="top: 162px;">+</div>
-        <div class="rsa-bar" style="top: 246px;"></div>
-        <div class="rsa-box" id="dec-b-msa" style="top: 198px;">
-            <div class="rsa-box-title hi">Masked Self-Attention</div>
-            <div class="rsa-box-math">$\Delta_\text{sa}^{(l)} = \text{MMHSA}(\text{LN}($ <span class="rsa-hl" id="dec-h-msa">$Y^{(l)}$</span> $))$</div>
-        </div>
-
-        <div class="rsa-input-lbl" style="top: 290px;">Input: $Y^{(l)}$</div>
-        <div class="rsa-signal" id="dec-sig" style="top: 280px; opacity: 0;"></div>
-
-        <div class="rsa-ctrl">
-            <button class="rsa-btn" id="dec-btn">▶&nbsp;Trace Decoder Stream</button>
-        </div>
     </div>
     <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
-        One decoder-only layer, as used in GPT-style language models. No cross-attention — the model attends only to its own previous tokens via the causal mask.
+        One encoder layer. Unmasked self-attention allows every token to attend to every other. The FFN refines each representation locally. No causal mask; no cross-attention.
     </figcaption>
 </figure>
 
-<p>Every component in the Transformer was forced by a concrete problem. Token embeddings convert discrete symbols into vectors. Positional encodings restore the notion of order that recurrence previously provided. Masked self-attention replaces the recurrent target history without requiring sequential processing. Cross-attention retrieves information from the source sequence. The feed-forward network replaces the nonlinear integration once performed by the recurrent update $f$. Residual connections allow these transformations to accumulate across depth without destroying earlier computations.</p>
 
-<p>The architecture therefore accumulates corrections across depth rather than overwriting state across time. Initial token embeddings enter the first layer and emerge from layer $L$ as rich contextual representations after repeated rounds of communication (attention) and transformation (FFN).</p>
 
-<p>Somewhere in the model's $d_{\text{model}}$-dimensional representation space lie directions and regions corresponding to concepts expressed in language. A token embedding provides only a context-independent starting point in this space. Words like <em>bank</em> begin with the same vector regardless of whether the sentence refers to finance or a river. The role of the Transformer is to transform this initial vector into a contextual representation that reflects the meaning of the word in its specific sentence.</p>
+<h2>Training and Inference</h2>
 
-<p>In this sense, the Transformer does not store meanings for words directly. Instead, it computes meaning dynamically by moving token representations through a high-dimensional space until they reach positions that best explain the sentence and predict what comes next.</p>
+<h3>Training Objective</h3>
 
-<p>This process of continually transforming representations is reflected in the name <strong>Transformer</strong>.</p>
+<p>The model is trained to predict each token in a sequence given all preceding tokens — the autoregressive factorization:</p>
+
+<div class="math-display">
+$$p_\theta(y_1, \ldots, y_{n_{\mathrm{dec}}}) = \prod_{i=1}^{n_{\mathrm{dec}}} p_\theta(y_i \mid y_{&lt;i}).$$
+</div>
+
+<p>Maximizing this probability is equivalent to minimizing the cross-entropy loss summed over every position:</p>
+
+<div class="math-display">
+$$\mathcal{J}(\theta) = -\sum_{i=1}^{n_{\mathrm{dec}}} \log p_\theta(y_i \mid y_{&lt;i}).$$
+</div>
+
+<h3>Why Training Can Be Fully Parallel</h3>
+
+<p>In the recurrent decoder, training was sequential: computing the hidden state at step $t$ required the hidden state at $t-1$ to be ready first. This dependency chain forced the model to process positions one after another, making training on long sequences slow.</p>
+
+<p>The Transformer breaks this dependency entirely. During training, the full target sequence $(y_1, \ldots, y_{n_{\mathrm{dec}}})$ is fed to the model at once. The causal mask performs the work that the sequential chain used to do: it ensures that when computing the representation at position $i$, no attention weight reaches any position $j > i$. The causal constraint is enforced by a mask applied in parallel, not by running the model step by step.</p>
+
+<p>The result is that $Y^{(L)}$ contains all $n_{\mathrm{dec}}$ prefix-conditioned representations simultaneously. Every conditional distribution $p_\theta(y_i \mid y_{&lt;i})$ is computed in a single forward pass. The loss over the entire sequence and its gradients are computed in one shot — this is what makes training on sequences of thousands of tokens tractable.</p>
+
+<h3>Autoregressive Inference</h3>
+
+<p>At inference time the situation reverses. There is no complete target sequence to feed in — the model is generating one token at a time. Given a prefix $(y_1, \ldots, y_k)$, the model computes the distribution $p_\theta(y_{k+1} \mid y_{\leq k})$, selects a token by argmax or sampling, appends it to the prefix, and runs again for position $k+2$.</p>
+
+<p>Unlike training, this is inherently sequential. Each new token depends on the one just generated, so the model must run a full forward pass once per output token. The causal mask is still present — now it simply reflects that future positions are genuinely unknown rather than deliberately hidden.</p>
+
+
+
+
+<h2>Encoder–Decoder vs. Decoder-Only</h2>
+
+<p>The full encoder–decoder design described above targets <strong>sequence transduction</strong>: mapping one sequence to another, such as translating English to German. The encoder builds a complete contextual representation of the source; the decoder generates the target autoregressively, attending to both its own past outputs and the encoder output through cross-attention.</p>
+
+<p>For tasks that are purely generative — language modelling, code generation, dialogue — there is no separate source sequence to encode. The <strong>decoder-only</strong> architecture drops the encoder and the cross-attention sub-layer entirely. Each decoder block contains only masked self-attention and an FFN:</p>
+
+<div class="math-display">
+$$\begin{aligned} Y' &= Y + \mathrm{MMHSA}(\mathrm{LN}(Y)), \\ Y'' &= Y' + \mathrm{FFN}(\mathrm{LN}(Y')). \end{aligned}$$
+</div>
+
+<p>The model is trained to predict the next token given all previous tokens in a single unified sequence — source and target are concatenated if the task involves conditioning. GPT and its successors are decoder-only models. Their simpler architecture, combined with the efficiency of training on vast text corpora, made them the dominant paradigm for large language models.</p>
+
+<p>The full encoder–decoder equations for completeness:</p>
+
+<div class="math-display">
+$$\begin{aligned} X' &= X + \mathrm{MHSA}(\mathrm{LN}(X)), \\ X'' &= X' + \mathrm{FFN}(\mathrm{LN}(X')), \\[8pt] Y' &= Y + \mathrm{MMHSA}(\mathrm{LN}(Y)), \\ Y'' &= Y' + \mathrm{MHCA}(\mathrm{LN}(Y'),\, X_{\mathrm{enc}}), \\ Y''' &= Y'' + \mathrm{FFN}(\mathrm{LN}(Y'')). \end{aligned}$$
+</div>
+
+
+
+<details class="toggle">
+  <summary>Encoder-Only Models and BERT</summary>
+
+  <p>
+    A third Transformer variant — the <strong>encoder-only</strong> architecture — removes the decoder entirely.
+    <strong>BERT</strong> (Bidirectional Encoder Representations from Transformers) is the most influential example.
+  </p>
+
+  <p>
+    Unlike autoregressive models, encoder-only models do not predict tokens strictly from left to right.
+    Since there is no causal mask restricting attention, every token can attend to every other token in both directions during training.
+    This allows the model to build deeply contextual, bidirectional representations of language.
+  </p>
+
+  <p>
+    Because of this design, BERT excels at understanding-oriented tasks such as text classification,
+    named entity recognition, semantic similarity, sentiment analysis, and question answering.
+  </p>
+
+  <p>
+    Instead of next-token prediction, BERT is trained primarily using a
+    <strong>masked language modeling</strong> objective: random tokens in a sentence are hidden,
+    and the model learns to predict them using surrounding context from both directions.
+  </p>
+</details>
+<h2>The Full Picture</h2>
+
+<p>Every component in the Transformer was forced by a concrete problem. Token embeddings convert discrete symbols into vectors. Positional encodings restore the notion of order that recurrence previously provided. Masked self-attention replaces the recurrent target history without requiring sequential processing. Cross-attention retrieves information from the source sequence. The FFN replaces the nonlinear integration once performed by the recurrent update $f$. Residual connections allow these transformations to accumulate across depth without destroying earlier computations. Layer normalization stabilizes training at each stage.</p>
+
+<p>The architecture therefore accumulates corrections across depth rather than overwriting state across time. Initial token embeddings enter the first layer and emerge from layer $L$ as rich contextual representations after $L$ rounds of communication through attention and local transformation through the FFN.</p>
+
+<p>Somewhere in the model's $d_{\mathrm{model}}$-dimensional representation space lie directions and regions corresponding to concepts expressed in language. A token embedding provides only a context-independent starting point. The word <em>bank</em> begins with the same vector regardless of whether the sentence concerns finance or a river. The role of the Transformer is to move this initial vector through the representation space until it reaches a position that reflects the word's meaning in its specific context and best predicts what comes next.</p>
+
+<p>The architecture does not store meanings. It computes them — dynamically, from the structure of the sequence. This process of continually transforming representations is reflected in the name <strong>Transformer</strong>.</p>
+
+<p>To ground these abstract variables, the original Transformer paper used $d_{\mathrm{model}} = 512$, $L = 6$ layers for both encoder and decoder, and 8 parallel attention heads. While modern Large Language Models scale these up to $d_{\mathrm{model}} > 8000$ and $L > 80$, the fundamental machinery remains identical.</p>
 
 <h2>Historical Evolution of Ideas</h2>
 
 <p>The Transformer architecture did not emerge in isolation. It is the result of several lines of research that progressively shaped its components.</p>
 
 <ul>
-  <li><strong>Recurrent Neural Networks (1990s).</strong> Early sequence models introduced the idea of processing tokens sequentially while accumulating history in a hidden state, establishing the need for contextual representations.</li>
-  <li><strong>LSTM and GRU (1997–2014).</strong> Gated recurrent models addressed long-range dependencies and enabled deep stacked sequence models. The practice of stacking multiple layers later reappears in Transformer architectures.</li>
+  <li><strong>Recurrent Neural Networks (1990s).</strong> Early sequence models introduced processing tokens sequentially while accumulating history in a hidden state — establishing the need for contextual representations.</li>
+  <li><strong>LSTM and GRU (1997–2014).</strong> Gated recurrent models addressed long-range dependencies and enabled stacked sequence models. The practice of stacking multiple layers reappears directly in the Transformer.</li>
   <li><strong>Encoder–Decoder Seq2Seq Models (2014).</strong> Neural machine translation introduced the encoder–decoder paradigm. The original Transformer preserves this high-level structure.</li>
-  <li><strong>Early Attention Mechanisms (2014–2015).</strong> Attention replaced the fixed-size context vector with dynamically computed weighted combinations of encoder states, directly inspiring self-attention.</li>
-  <li><strong>MADE and Autoregressive Masking (2015).</strong> Masked feed-forward networks demonstrated that autoregressive generation can be enforced using structural masking. Transformer decoders adopt the same principle through causal masking.</li>
-  <li><strong>Residual Networks (2015).</strong> Skip connections enabled stable training of deep networks. Transformers apply residual connections around both attention and feed-forward blocks.</li>
-  <li><strong>Layer Normalization (2016).</strong> Layer normalization stabilized deep sequence models and became a standard component of Transformer layers.</li>
-  <li><strong>Convolutional Seq2Seq Models (2017).</strong> Fully parallel sequence models using convolution demonstrated that recurrence was not strictly necessary, paving the way for the Transformer's non-recurrent design.</li>
+  <li><strong>Early Attention Mechanisms (2014–2015).</strong> Bahdanau et al. replaced the fixed-size context vector with dynamically computed weighted combinations of encoder states, directly inspiring scaled dot-product and self-attention.</li>
+  <li><strong>MADE and Autoregressive Masking (2015).</strong> Masked feed-forward networks demonstrated that autoregressive generation can be enforced through structural masking. Transformer decoders adopt the same principle with causal attention masks.</li>
+  <li><strong>Residual Networks (2015).</strong> Skip connections enabled stable training of very deep vision networks. Transformers apply residual connections around both attention and feed-forward blocks for the same reason.</li>
+  <li><strong>Layer Normalization (2016).</strong> Layer normalization stabilized deep sequence models and became a standard component of every Transformer layer.</li>
+  <li><strong>Convolutional Seq2Seq Models (2017).</strong> Fully parallel sequence models using convolution demonstrated that recurrence was not strictly necessary for sequence modeling — paving the way for the Transformer's non-recurrent design.</li>
 </ul>
 
 <div class="math-box">
   <div class="math-box-label">Summary: A Synthesis of Ideas</div>
   <div class="math-box-body">
-    <p>The Transformer can be viewed as a synthesis of earlier ideas: stacked sequence modeling from RNNs, dynamic context via attention, autoregressive masking from feed-forward autoregressive models, residual learning from deep vision networks, and fully parallel computation from convolutional and attention-based sequence models.</p>
+    <p>The Transformer synthesizes stacked sequence modeling from RNNs, dynamic context retrieval from attention, autoregressive masking from feed-forward autoregressive models (including MADE, covered in the NADE article), residual learning from deep vision networks, and fully parallel computation from convolutional sequence models. No single component is novel in isolation; the contribution is how they fit together.</p>
   </div>
 </div>
 
 <h2>A Unifying View</h2>
 
-<p>All of the architectures discussed in this chapter arise from the same objective. Using the chain rule, the joint distribution of a sequence can be written as</p>
+<p>All of the architectures discussed in this chapter arise from the same objective. Using the chain rule, the joint distribution of a sequence factors as</p>
 
 <div class="math-display">
-$$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
+$$p(y_1, \dots, y_{n}) = \prod_{i=1}^{n} p(y_i \mid y_{&lt;i}).$$
 </div>
 
-<p>Autoregressive architectures therefore differ primarily in how they construct a representation of the prefix $x_{\lt n}$ used to predict $x_n$. NADE accumulates contributions from previous inputs, RNNs repeatedly transform a state representation as new elements arrive, and Transformers compute context dynamically through attention over previous tokens.</p>
+<p>Autoregressive architectures therefore differ primarily in how they construct a representation of the prefix $y_{&lt;i}$ used to predict $y_i$. NADE accumulates contributions from previous inputs through a shared masked network. RNNs repeatedly transform a fixed-size state as new elements arrive — compressing the entire past into a single vector before knowing what future steps will need. Transformers compute context dynamically: rather than compressing, each step directly retrieves whatever past information is most relevant through attention.</p>
 
-<p>The key conceptual shift from RNNs to attention is a move from <em>compression</em> to <em>retrieval</em>. An RNN must summarize the entire past into a single hidden state before knowing what future steps will need. Attention postpones this decision: each step directly retrieves whatever past information is most relevant.</p>
-
-<h2>Extras</h2>
-
-<h3>The Encoder-Only Branch: BERT</h3>
-<p>While this article focused heavily on autoregressive generation and the encoder-decoder architecture, it is worth noting the profound impact of <strong>encoder-only</strong> models. Architectures like <strong>BERT</strong> (Bidirectional Encoder Representations from Transformers) drop the decoder entirely. By using unmasked self-attention across the entire sequence during training, they learn deep, bidirectional context. This makes them exceptionally powerful for understanding-focused tasks like text classification, sentiment analysis, and question answering. For a deeper intuition on how these bidirectional representations are learned and applied, refer to the dedicated companion article on BERT.</p>
+<p>The conceptual shift is from <em>compression</em> to <em>retrieval</em>. An RNN must commit to a summary of the past before seeing the future. Attention postpones that commitment indefinitely — each new position queries the full available history and pulls out exactly what it needs.</p>
 
                     </section>
                 </article>
@@ -744,7 +1302,6 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
 
     <script>
     (function(){
-        // Factory function to handle the animation lifecycle for any diagram instance
         function initRSA(config) {
             const sig = document.getElementById(config.sigId);
             const btn = document.getElementById(config.btnId);
@@ -772,7 +1329,7 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 p.style.strokeDasharray  = `${L}`;
                 p.style.strokeDashoffset = `${L}`;
                 p.classList.add('live');
-                p.getBoundingClientRect(); // force reflow
+                p.getBoundingClientRect();
                 p.style.transition       = `stroke-dashoffset ${dur}ms linear, opacity 0.3s ease`;
                 p.style.strokeDashoffset = '0';
                 return sleep(dur);
@@ -804,7 +1361,6 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 const originalText = btn.innerHTML;
                 btn.textContent = 'Animating...';
 
-                // Pass the API to the specific sequence
                 await config.sequence({ sig, tex, move, drawArc, dimArc, resetArc, hi, lo, sleep });
 
                 btn.disabled = false;
@@ -812,7 +1368,7 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
             });
         }
 
-        // 1. Encoder-Decoder Layer Initialization
+        // 1. Encoder-Decoder Layer
         initRSA({
             sigId: 'encdec-sig', btnId: 'encdec-btn',
             sequence: async (api) => {
@@ -824,7 +1380,6 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 await api.tex(api.sig, 'Y^{(l)}');
                 await api.sleep(180);
 
-                // MSA
                 await api.move(340, 400);
                 api.hi('encdec-b-msa'); api.hi('encdec-h-msa');
                 await api.sleep(660);
@@ -832,11 +1387,10 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 await api.drawArc('encdec-arc-msa', 440);
                 api.hi('encdec-p-msa'); await api.sleep(130);
                 await api.move(270, 140);
-                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\text{sa}^{(l)}');
+                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)}');
                 await api.sleep(340);
                 api.lo('encdec-p-msa'); api.dimArc('encdec-arc-msa');
 
-                // MHCA
                 await api.move(232, 420);
                 api.hi('encdec-b-mca'); api.hi('encdec-h-mca');
                 await api.sleep(660);
@@ -844,11 +1398,10 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 await api.drawArc('encdec-arc-mca', 440);
                 api.hi('encdec-p-mca'); await api.sleep(130);
                 await api.move(162, 140);
-                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\text{sa}^{(l)} + \\Delta_\\text{ca}^{(l)}');
+                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)} + \\Delta_\\mathrm{ca}^{(l)}');
                 await api.sleep(360);
                 api.lo('encdec-p-mca'); api.dimArc('encdec-arc-mca');
 
-                // FFN
                 await api.move(124, 420);
                 api.hi('encdec-b-ffn'); api.hi('encdec-h-ffn');
                 await api.sleep(660);
@@ -856,90 +1409,17 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 await api.drawArc('encdec-arc-ffn', 440);
                 api.hi('encdec-p-ffn'); await api.sleep(130);
                 await api.move(54, 140);
-                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\text{sa}^{(l)} + \\Delta_\\text{ca}^{(l)} + \\Delta_\\text{ffn}^{(l)}');
+                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)} + \\Delta_\\mathrm{ca}^{(l)} + \\Delta_\\mathrm{ffn}^{(l)}');
                 await api.sleep(360);
                 api.lo('encdec-p-ffn'); api.dimArc('encdec-arc-ffn');
 
-                // Final
                 await api.move(15, 280);
                await api.tex(api.sig, '\\text{Layer } l \\text{ Output: } Y^{(l)} + \\Delta^{(l)}', true);
                 await api.sleep(400);
             }
         });
 
-        // 2. The Big 2-Layer Animation (rsa2)
-        initRSA({
-            sigId: 'rsa2-sig', btnId: 'rsa2-btn',
-            sequence: async (api) => {
-                ['rsa2-arc-msa1','rsa2-arc-ffn1','rsa2-arc-msa2','rsa2-arc-ffn2'].forEach(api.resetArc);
-                api.sig.style.transition = 'none';
-                api.sig.style.top = '565px';
-                api.sig.style.opacity = '1';
-                api.sig.classList.remove('morph');
-                await api.tex(api.sig, 'Y^{(0)}');
-                await api.sleep(180);
-
-                // L1 MSA
-                await api.move(518, 400);
-                api.hi('rsa2-b-msa1'); api.hi('rsa2-h-msa1');
-                await api.sleep(660);
-                api.lo('rsa2-h-msa1'); api.lo('rsa2-b-msa1');
-                await api.drawArc('rsa2-arc-msa1', 440);
-                api.hi('rsa2-p-msa1'); await api.sleep(130);
-                await api.move(448, 140);
-                await api.tex(api.sig, 'Y^{(0)} + \\Delta_\\text{sa}^{(1)}');
-                await api.sleep(340);
-                api.lo('rsa2-p-msa1'); api.dimArc('rsa2-arc-msa1');
-
-                // L1 FFN
-                await api.move(410, 420);
-                api.hi('rsa2-b-ffn1'); api.hi('rsa2-h-ffn1');
-                await api.sleep(660);
-                api.lo('rsa2-h-ffn1'); api.lo('rsa2-b-ffn1');
-                await api.drawArc('rsa2-arc-ffn1', 440);
-                api.hi('rsa2-p-ffn1'); await api.sleep(130);
-                await api.move(340, 140);
-                await api.tex(api.sig, 'Y^{(0)} + \\Delta_\\text{sa}^{(1)} + \\Delta_\\text{ffn}^{(1)}');
-                await api.sleep(360);
-                api.lo('rsa2-p-ffn1'); api.dimArc('rsa2-arc-ffn1');
-
-                // Collapse L1
-                await api.tex(api.sig, 'Y^{(0)} + \\Delta^{(1)}', true);
-                await api.sleep(820);
-                await api.tex(api.sig, 'Y^{(0)} + \\Delta^{(1)}', false);
-
-                // L2 MSA
-                await api.move(232, 460);
-                api.hi('rsa2-b-msa2'); api.hi('rsa2-h-msa2');
-                await api.sleep(660);
-                api.lo('rsa2-h-msa2'); api.lo('rsa2-b-msa2');
-                await api.drawArc('rsa2-arc-msa2', 440);
-                api.hi('rsa2-p-msa2'); await api.sleep(130);
-                await api.move(162, 140);
-                await api.tex(api.sig, 'Y^{(0)} + \\Delta^{(1)} + \\Delta_\\text{sa}^{(2)}');
-                await api.sleep(340);
-                api.lo('rsa2-p-msa2'); api.dimArc('rsa2-arc-msa2');
-
-                // L2 FFN
-                await api.move(124, 420);
-                api.hi('rsa2-b-ffn2'); api.hi('rsa2-h-ffn2');
-                await api.sleep(660);
-                api.lo('rsa2-h-ffn2'); api.lo('rsa2-b-ffn2');
-                await api.drawArc('rsa2-arc-ffn2', 440);
-                api.hi('rsa2-p-ffn2'); await api.sleep(130);
-                await api.move(54, 140);
-                await api.tex(api.sig, 'Y^{(0)} + \\Delta^{(1)} + \\Delta_\\text{sa}^{(2)} + \\Delta_\\text{ffn}^{(2)}');
-                await api.sleep(360);
-                api.lo('rsa2-p-ffn2'); api.dimArc('rsa2-arc-ffn2');
-
-                // Final
-                await api.move(15, 280);
-                await api.tex(api.sig, '\\text{Layer 2 Output: } Y^{(0)} + \\Delta^{(1)} + \\Delta^{(2)}', true);
-                await api.sleep(400);
-            }
-        });
-
-        // 3. Encoder Layer
+        // 2. Encoder Layer
         initRSA({
             sigId: 'enc-sig', btnId: 'enc-btn',
             sequence: async (api) => {
@@ -958,7 +1438,7 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 await api.drawArc('enc-arc-msa', 440);
                 api.hi('enc-p-msa'); await api.sleep(130);
                 await api.move(162, 140);
-                await api.tex(api.sig, 'X^{(l)} + \\Delta_\\text{attn}^{(l)}');
+                await api.tex(api.sig, 'X^{(l)} + \\Delta_\\mathrm{attn}^{(l)}');
                 await api.sleep(340);
                 api.lo('enc-p-msa'); api.dimArc('enc-arc-msa');
 
@@ -969,52 +1449,12 @@ $$p(x_1, \dots, x_N) = \prod_{n=1}^{N} p(x_n \mid x_{\lt n}).$$
                 await api.drawArc('enc-arc-ffn', 440);
                 api.hi('enc-p-ffn'); await api.sleep(130);
                 await api.move(54, 140);
-                await api.tex(api.sig, 'X^{(l)} + \\Delta_\\text{attn}^{(l)} + \\Delta_\\text{ffn}^{(l)}');
+                await api.tex(api.sig, 'X^{(l)} + \\Delta_\\mathrm{attn}^{(l)} + \\Delta_\\mathrm{ffn}^{(l)}');
                 await api.sleep(360);
                 api.lo('enc-p-ffn'); api.dimArc('enc-arc-ffn');
 
                 await api.move(15, 280);
                 await api.tex(api.sig, '\\text{Layer } l \\text{ Output: } X^{(l+1)}', true);
-                await api.sleep(400);
-            }
-        });
-
-        // 4. Decoder-Only Layer
-        initRSA({
-            sigId: 'dec-sig', btnId: 'dec-btn',
-            sequence: async (api) => {
-                ['dec-arc-msa', 'dec-arc-ffn'].forEach(api.resetArc);
-                api.sig.style.transition = 'none';
-                api.sig.style.top = '280px';
-                api.sig.style.opacity = '1';
-                api.sig.classList.remove('morph');
-                await api.tex(api.sig, 'Y^{(l)}');
-                await api.sleep(180);
-
-                await api.move(232, 400);
-                api.hi('dec-b-msa'); api.hi('dec-h-msa');
-                await api.sleep(660);
-                api.lo('dec-h-msa'); api.lo('dec-b-msa');
-                await api.drawArc('dec-arc-msa', 440);
-                api.hi('dec-p-msa'); await api.sleep(130);
-                await api.move(162, 140);
-                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\text{sa}^{(l)}');
-                await api.sleep(340);
-                api.lo('dec-p-msa'); api.dimArc('dec-arc-msa');
-
-                await api.move(124, 420);
-                api.hi('dec-b-ffn'); api.hi('dec-h-ffn');
-                await api.sleep(660);
-                api.lo('dec-h-ffn'); api.lo('dec-b-ffn');
-                await api.drawArc('dec-arc-ffn', 440);
-                api.hi('dec-p-ffn'); await api.sleep(130);
-                await api.move(54, 140);
-                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\text{sa}^{(l)} + \\Delta_\\text{ffn}^{(l)}');
-                await api.sleep(360);
-                api.lo('dec-p-ffn'); api.dimArc('dec-arc-ffn');
-
-                await api.move(15, 280);
-                await api.tex(api.sig, '\\text{Layer } l \\text{ Output: } Y^{(l+1)}', true);
                 await api.sleep(400);
             }
         });

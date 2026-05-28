@@ -14,12 +14,12 @@
 <meta name="status" content="draft">
 <meta name="date" content="2026-04-09">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="21">
+<meta name="reading_time" content="19">
 
 <meta property="og:title" content="Attention Mechanism">
 <meta property="og:description" content="From the seq2seq bottleneck to scaled dot-product attention, self-attention, masking, and multi-head attention—the core ideas that replace recurrence in Transformers.">
 <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/05.attention-mechanism/">
-<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/og-bfd42033.png?v=63913a">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-attention-mechanism.png">
 <meta name="twitter:card" content="summary_large_image">
 
 <style id="mobile-view-styles">
@@ -80,6 +80,7 @@
         src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
     </script>
 
+    <meta property="og:type" content="article">
 </head>
 <body>
 
@@ -95,13 +96,13 @@
 
 <h2>Dynamic Retrieval: Let the Decoder Look Back</h2>
 
-<p>In the encoder–decoder architecture from the previous article, the entire source sequence is compressed into a single fixed-length context vector $c \in \mathbb{R}^{d \times 1}$. The decoder then generates every output token conditioned on this one vector. For short sentences this is workable; for long ones it is not. A fixed-size vector is a hard information bottleneck — no matter how powerful the encoder, it cannot transmit an arbitrarily long source sentence through a constant-width channel without loss. Translation quality degrades visibly with source length precisely because of this structural constraint.</p>
+<p>The root cause of the seq2seq bottleneck is that the decoder is cut off from the source sentence. Once the encoder finishes, the entire input must be reconstructed from a single fixed vector.</p>
 
 <p>The natural fix is simple: keep all the encoder hidden states available and let the decoder look at them directly.</p>
 
-<p>Let the encoder produce a sequence of hidden state column vectors</p>
+<p>Let the encoder produce a sequence of hidden state row vectors</p>
 <div class="math-display">
-  $$\mathbf{h}_1, \mathbf{h}_2, \dots, \mathbf{h}_{T_x}, \qquad \mathbf{h}_j \in \mathbb{R}^{d \times 1}$$
+  $$\mathbf{h}_1, \mathbf{h}_2, \dots, \mathbf{h}_{T_x}, \qquad \mathbf{h}_j \in \mathbb{R}^{1 \times d}$$
 </div>
 <p>where each $\mathbf{h}_j$ represents the $j$-th English word in the context of its neighbours. These vectors are not discarded after encoding. Instead, the decoder can access all of them at every step.</p>
 
@@ -110,7 +111,7 @@
   $$\mathbf{c}_i = \sum_{j=1}^{T_x} \alpha_{ij}\, \mathbf{h}_j.$$
 </div>
 
-<p>The weights $\alpha_{ij}$ determine how relevant each English word is to the current decoding step. They are computed by scoring the compatibility between the previous decoder state column vector $\mathbf{s}_{i-1} \in \mathbb{R}^{d \times 1}$ and each encoder state $\mathbf{h}_j$, then normalising via softmax:</p>
+<p>The weights $\alpha_{ij}$ determine how relevant each English word is to the current decoding step. They are computed by scoring the compatibility between the previous decoder state row vector $\mathbf{s}_{i-1} \in \mathbb{R}^{1 \times d}$ and each encoder state $\mathbf{h}_j$, then normalising via softmax:</p>
 <div class="math-display">
   $$\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_k \exp(e_{ik})}.$$
 </div>
@@ -136,9 +137,9 @@
 
 <h2>First Design: Score with a Network</h2>
 
-<p>The most expressive option is to learn a small neural network that takes the decoder state column vector $\mathbf{s}$ and encoder state column vector $\mathbf{h}$, pushes them through a shared hidden layer, and projects to a scalar compatibility score via a learned column vector $\mathbf{u}$:</p>
+<p>The most expressive option is to learn a small neural network that takes the decoder state row vector $\mathbf{s}$ and encoder state row vector $\mathbf{h}$, pushes them into a shared hidden layer, and right-multiplies by a final column projection vector $\mathbf{v}$ to output a scalar compatibility score:</p>
 <div class="math-display">
-  $$e = \mathbf{u}^\top \tanh(W_1 \mathbf{s} + W_2 \mathbf{h}).$$
+  $$e = \tanh(\mathbf{s} W_1 + \mathbf{h} W_2) \mathbf{v}.$$
 </div>
 
 <p>The network learns directly from translation data what compatibility means. It can capture complex nonlinear interactions between the decoder and encoder representations.</p>
@@ -149,10 +150,10 @@
 
 <p>A much simpler alternative is to replace the neural network with a standard vector inner product:</p>
 <div class="math-display">
-  $$e = \mathbf{s}^\top \mathbf{h}.$$
+  $$e = \mathbf{s} \mathbf{h}^\top.$$
 </div>
 
-<p>The inner product requires no additional parameters and is extremely cheap to compute. It performs competitively in practice.</p>
+<p>The inner product requires no additional parameters and is extremely cheap to compute. Surprisingly, it performs competitively in practice.</p>
 
 <p>But taking inner products between raw hidden states introduces two problems.</p>
 
@@ -165,12 +166,6 @@
 <p>When the hidden state dimension $d$ is large, dot products tend to grow in magnitude proportionally to $d$. This pushes the softmax into saturation, where gradients become very small and training slows down.</p>
 
 <p>Both issues arise because the vectors are being compared in the wrong space.</p>
-
-<h2>A Note on Notation: Switching to Row Vectors</h2>
-
-<p>The previous article treated hidden states, inputs, and context vectors as <strong>column vectors</strong> in $\mathbb{R}^{d \times 1}$, with weight matrices left-multiplying. This is the natural layout for describing a recurrent update step by step.</p>
-
-<p>From here onward, we switch to <strong>row vectors</strong> in $\mathbb{R}^{1 \times d}$, with weight matrices right-multiplying. The reason is practical: when processing an entire sequence at once, stacking token representations as rows of a matrix and right-multiplying a weight matrix is how attention is implemented in every major deep learning framework. The switch aligns the equations with the batch computation that follows. The underlying mathematics is identical — only the layout convention changes.</p>
 
 <h2>The Fix: Project Before You Compare</h2>
 
@@ -204,7 +199,7 @@
   $$e_j = \frac{\mathbf{q} \mathbf{k}_j^\top}{\sqrt{d_k}}.$$
 </div>
 
-<p>The scaling factor $\sqrt{d_k}$ prevents dot products from growing too large and stabilises training. Here $d_k$ is a free hyperparameter — a design choice for single-head attention. When attention is extended to multiple heads in the final section, $d_k$ will be constrained to $d_{\mathrm{model}} / H$ so that the total computation across all heads remains comparable to single-head attention over the full dimension.</p>
+<p>The scaling factor $\sqrt{d_k}$ prevents dot products from growing too large and stabilises training.</p>
 
 <p>Now the decoder query for the next German verb aligns strongly with the key of the English word <em>sleeps</em> and weakly with unrelated words.</p>
 
@@ -450,17 +445,9 @@
   </div>
 </div>
 
-<div class="math-box">
-  <div class="math-box-label">A Gap That Attention Introduces</div>
-  <div class="math-box-body">
-    <p>By removing the recurrent encoder, attention also removes the implicit encoding of token order. A recurrent network processes tokens one by one, so position is baked into the hidden state chain — the representation at step $t$ is built from the representation at $t{-}1$. Attention has no such chain: it treats the sequence as a set and is <em>permutation-invariant</em>. Feeding <em>``cat the sleeps black''</em> produces exactly the same attention weights as <em>``The black cat sleeps''</em>.</p>
-    <p>Order must therefore be re-introduced explicitly. This is done via <strong>positional encodings</strong> added to the token embeddings before attention is applied — whether through fixed sinusoidal functions or learned embeddings. How positional information is encoded is the subject of the next article.</p>
-  </div>
-</div>
-
 <h2>Self-Attention: Turning the Mechanism Inward</h2>
 
-<p>But now consider the English sentence itself, before translation begins. The meaning of each English word depends on the words around it. The word <em>bank</em> means something different beside <em>river</em> than beside <em>loan</em>. The recurrent encoder from the previous article handled this through gated state updates — the LSTM's forget and input gates control what the cell state carries forward. But this has a cost: to influence a word at position $t + k$, a word at position $t$ must propagate its signal through every hidden state in between, accumulating distortion at each gate. Long-range relationships are structurally harder to maintain than short-range ones.</p>
+<p>But now consider the English sentence itself, before translation begins. The meaning of each English word depends on the words around it. The word <em>bank</em> means something different beside <em>river</em> than beside <em>loan</em>. A recurrent encoder captures this by passing information forward step by step, but this forces early words to carry their influence through a long chain of hidden states to reach distant ones — a slow, sequential, and lossy process.</p>
 
 <p>The same attention mechanism can be applied within a single sequence. Each English word produces its own query, key, and value vectors, and attends over all other words in the same sentence. This is <em>self-attention</em>: the sequence attending to itself.</p>
 
@@ -521,15 +508,14 @@
     <div class="math-display">
       $$W_Q^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \quad W_K^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_k}, \quad W_V^{(h)} \in \mathbb{R}^{d_{\mathrm{model}} \times d_v},$$
     </div>
-    <p>to compute per-head attention:</p>
+    <p>to compute per-head query, key, and value manifolds mapping smoothly from left to right:</p>
     <div class="math-display">
       $$\mathrm{head}_h = \mathrm{Attention}\left(X_Q W_Q^{(h)},\; X_K W_K^{(h)},\; X_V W_V^{(h)}\right).$$
     </div>
-    <p>The $H$ head outputs are concatenated along the feature dimension and projected back to $d_{\mathrm{model}}$ by right-multiplying the output projection matrix $W^O \in \mathbb{R}^{H d_v \times d_{\mathrm{model}}}$. This projection mixes the signals discovered by each independent head into a single unified representation:</p>
+    <p>The outputs of all heads are concatenated along the feature column dimension and projected back to the model dimension by right-multiplying the matrix $W^O \in \mathbb{R}^{H d_v \times d_{\mathrm{model}}}$:</p>
     <div class="math-display">
       $$\mathrm{MHA}(X_Q, X_K, X_V) = \mathrm{Concat}(\mathrm{head}_1,\ldots,\mathrm{head}_H) W^O.$$
     </div>
-    <p>In practice $d_k = d_v = d_{\mathrm{model}} / H$, so each head operates in a reduced subspace and the concatenated output naturally restores the full $d_{\mathrm{model}}$ width. This is the relationship between the free hyperparameter $d_k$ introduced in single-head attention and the multi-head setting: here $d_k$ is determined by the ratio $d_{\mathrm{model}} / H$ so that total computation stays comparable to a single wide attention layer.</p>
   </div>
 </div>
 
@@ -608,7 +594,7 @@
 
 <p>Both cross-attention and self-attention rely on the same underlying mechanism: queries, keys, and values are computed, compatibility scores determine which positions are relevant, and the resulting information is aggregated.</p>
 
-<p>Three components remain before attention can fully replace recurrence at scale: positional encodings to restore the sense of order that the recurrent chain once provided implicitly, a feed-forward network to perform position-wise nonlinear transformation, and residual connections to allow these operations to stack across many layers without destroying earlier information. These are assembled in the next article, which presents the complete Transformer architecture.</p>
+<p>The pieces are now in place. The Transformer is the architecture that builds entirely around this idea, replacing recurrence with attention throughout and surrounding it with the components needed to make attention work at scale.</p>
 
                     </section>
                 </article>

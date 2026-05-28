@@ -15,13 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
     navOffset: 96,
     tocTargetTop: 120,
     scrollHighlightDelay: 1200,
-    progressKey: `article-progress:${window.location.pathname}`,
+    progressKey: `article-progress:${window.location.pathname.replace(/\/index\.html$/i, "/")}`,
     saveDebounceMs: 150, 
   };
 
   let state = {
     tocItems: [],
     isScrollingProgrammatically: false,
+    isRestoringProgress: true,
+    canSaveProgress: false,
     saveTimer: null,
   };
 
@@ -337,6 +339,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. PROGRESS SAVING (Instant + Debounced)
   // ============================================================
   const saveProgress = (immediate = false) => {
+    if (!state.canSaveProgress) return;
+
     if (immediate) {
       performSave();
     } else {
@@ -363,14 +367,22 @@ document.addEventListener("DOMContentLoaded", () => {
       headingId = state.tocItems[closestIdx]?.element.id || "";
     }
 
-    localStorage.setItem(CONFIG.progressKey, JSON.stringify({
-      scrollY,
-      headingId,
-      updatedAt: Date.now()
-    }));
+    try {
+      localStorage.setItem(CONFIG.progressKey, JSON.stringify({
+        scrollY,
+        headingId,
+        updatedAt: Date.now()
+      }));
+    } catch (err) {
+      // Storage can fail in strict/private contexts; reading should still work.
+    }
   };
 
   window.addEventListener("beforeunload", () => saveProgress(true));
+  window.addEventListener("pagehide", () => saveProgress(true));
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveProgress(true);
+  });
 
   // ============================================================
   // 3. TOC & NAVIGATION
@@ -446,22 +458,75 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================================
   // 4. RESTORATION & EXECUTION
   // ============================================================
+  const instantScrollTo = (top) => {
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlScrollBehavior = html.style.scrollBehavior;
+    const previousBodyScrollBehavior = body?.style.scrollBehavior || "";
+
+    html.style.setProperty("scroll-behavior", "auto", "important");
+    body?.style.setProperty("scroll-behavior", "auto", "important");
+    window.scrollTo(0, Math.max(0, top));
+
+    requestAnimationFrame(() => {
+      html.style.scrollBehavior = previousHtmlScrollBehavior;
+      if (body) body.style.scrollBehavior = previousBodyScrollBehavior;
+    });
+  };
+
   const restoreProgress = () => {
     if (window.location.hash) {
       const el = document.getElementById(window.location.hash.substring(1));
       if (el) {
-        window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset, behavior: "instant" });
-        return;
+        instantScrollTo(el.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset);
+        return true;
       }
     }
 
-    const saved = localStorage.getItem(CONFIG.progressKey);
-    if (saved) {
+    try {
+      const saved = localStorage.getItem(CONFIG.progressKey);
+      if (!saved) return false;
+
       const data = JSON.parse(saved);
-      if (data.scrollY) {
-        window.scrollTo({ top: data.scrollY, behavior: "instant" });
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const savedY = Number(data.scrollY);
+
+      if (Number.isFinite(savedY) && savedY > 0) {
+        instantScrollTo(Math.min(savedY, maxScroll));
+        return true;
       }
+
+      if (data.headingId) {
+        const heading = document.getElementById(data.headingId);
+        if (heading) {
+          instantScrollTo(heading.getBoundingClientRect().top + window.scrollY - CONFIG.navOffset);
+          return true;
+        }
+      }
+    } catch (err) {
+      return false;
     }
+
+    return false;
+  };
+
+  const finishProgressRestore = () => {
+    state.isRestoringProgress = false;
+    state.canSaveProgress = true;
+    saveProgress(true);
+  };
+
+  const restoreProgressAfterLayoutSettles = () => {
+    const runRestore = () => restoreProgress();
+
+    runRestore();
+    requestAnimationFrame(runRestore);
+
+    [80, 250, 700, 1400].forEach(delay => {
+      setTimeout(runRestore, delay);
+    });
+
+    setTimeout(finishProgressRestore, 1500);
   };
 
   // ============================================================
@@ -521,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", () => {
     if (!ticking) {
       window.requestAnimationFrame(() => {
-        if (!state.isScrollingProgrammatically) {
+        if (!state.isScrollingProgrammatically && !state.isRestoringProgress) {
           saveProgress();
           let closest = 0;
           state.tocItems.forEach((item, i) => {
@@ -535,10 +600,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, { passive: true });
 
-  // Restore immediately—don't wait for images
+  // Restore immediately, then retry briefly as generated headers/images settle.
   if (document.readyState === 'complete') {
-    restoreProgress();
+    restoreProgressAfterLayoutSettles();
   } else {
-    window.addEventListener('load', restoreProgress);
+    restoreProgressAfterLayoutSettles();
+    window.addEventListener('load', restoreProgressAfterLayoutSettles, { once: true });
   }
 });
