@@ -1,54 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="article_id" content="5f8e3408">
-    <meta name="book" content="AI">
-    <meta name="section" content="Generative Models">
-    <meta name="chapter" content="Autoregressive Models">
-    <meta name="title" content="The Transformer Architecture">
-    <meta name="description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
-    <meta name="keywords" content="transformer, positional encoding, masked self-attention, cross-attention, feed-forward network, residual connections, layer normalization, encoder-decoder, decoder-only, autoregressive, GPT, BERT">
-    <meta name="status" content="draft">
-    <meta name="date" content="2026-04-22">
-    <meta name="author" content="Yogesh">
-    <meta name="reading_time" content="16">
 
-    <meta property="og:title" content="The Transformer Architecture">
-    <meta property="og:description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
-    <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/">
-    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-the-transformer-architecture.png">
-    <meta name="twitter:card" content="summary_large_image">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="article_id" content="5f8e3408">
+<meta name="book" content="AI">
+<meta name="section" content="Generative Models">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="title" content="The Transformer Architecture">
+<meta name="description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
+<meta name="keywords" content="transformer, positional encoding, masked self-attention, cross-attention, feed-forward network, residual connections, layer normalization, encoder-decoder, decoder-only, autoregressive, GPT, BERT">
+<meta name="status" content="draft">
+<meta name="date" content="2026-04-22">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="16">
 
-    <style id="mobile-view-styles">
-        img, iframe, video { max-width: 100% !important; height: auto !important; }
-        
-        .interactive-wrapper {
-            width: 100%;
-            overflow-x: auto;
-            overflow-y: visible;
-            -webkit-overflow-scrolling: touch;
-            padding: 10px 0;
+<meta property="og:title" content="The Transformer Architecture">
+<meta property="og:description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
+<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-the-transformer-architecture.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<style id="mobile-view-styles">
+    img, iframe, video { max-width: 100% !important; height: auto !important; }
+    
+    .interactive-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 0;
+    }
+    .interactive-wrapper::-webkit-scrollbar { height: 6px; }
+    .interactive-wrapper::-webkit-scrollbar-thumb { background: var(--border, #E8DFD1); border-radius: 4px; }
+    
+    @media screen and (max-width: 768px) {
+        body, article, .content, main {
+            width: 100% !important; max-width: 100vw !important;
+            padding: 10px 15px !important; box-sizing: border-box !important;
+            overflow-x: hidden !important;
         }
-        .interactive-wrapper::-webkit-scrollbar { height: 6px; }
-        .interactive-wrapper::-webkit-scrollbar-thumb { background: var(--border, #E8DFD1); border-radius: 4px; }
-        
-        @media screen and (max-width: 768px) {
-            body, article, .content, main {
-                width: 100% !important; max-width: 100vw !important;
-                padding: 10px 15px !important; box-sizing: border-box !important;
-                overflow-x: hidden !important;
-            }
-            .rsa-wrap { min-width: 600px; }
-            .stack-wrap { min-width: 380px; }
-        }
-    </style>
+        .rsa-wrap { min-width: 100%; width: 100%; max-width: 100%; transform: scale(0.85); transform-origin: left top; margin-bottom: -10%; }
+        .dec-wrap, .enc-anim-wrap { min-width: 100%; max-width: 100%; transform: scale(0.95); transform-origin: top center; }
+    }
+    
+    @media screen and (max-width: 480px) {
+        .rsa-wrap { transform: scale(0.65); margin-bottom: -25%; }
+        .dec-wrap, .enc-anim-wrap { transform: scale(0.85); margin-bottom: -10%; }
+    }
+</style>
 
     <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
 
-    <title>The Transformer Architecture</title>
+<title>The Transformer Architecture</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,115 +92,94 @@
             }
         };
     </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
 
-    <style id="stack-shared-styles">
-        .stack-wrap {
-            position: relative; width: 100%; max-width: 380px; margin: 0 auto;
-            font-family: inherit; box-sizing: border-box;
-        }
-        .stack-scene {
-            position: relative; width: 100%; perspective: 900px; overflow: visible;
-        }
-        .stack-scene.decoder-scene { height: 560px; }
-        .stack-scene.encoder-scene { height: 480px; }
-        
-        .stack-rig {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            transform-style: preserve-3d; transition: transform 0.85s cubic-bezier(0.4,0,0.2,1);
-        }
-        .stack-card {
-            position: absolute; left: 0; right: 0;
-            background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1);
-            border-radius: 14px; padding: 2.2rem 1.1rem 1.1rem; box-sizing: border-box;
-            transition: transform 0.85s cubic-bezier(0.4,0,0.2,1), opacity 0.75s ease, box-shadow 0.75s ease;
-        }
-        .stack-card.l1 { bottom: 0; border-color: var(--accent, #D48C70); z-index: 40; }
-        .stack-card.l2 { bottom: 0; opacity: 0; z-index: 30; }
-        .stack-card.l3 { bottom: 0; opacity: 0; z-index: 20; }
-        .stack-card.ll { bottom: 0; opacity: 0; z-index: 10; }
-
-        .stack-badge {
-            position: absolute; top: -11px; left: 12px; font-size: 9px; font-weight: 700;
-            letter-spacing: .07em; text-transform: uppercase; padding: 2px 9px;
-            border-radius: 4px; color: #fff; background: var(--accent, #D48C70);
-            white-space: nowrap; font-family: inherit;
-        }
-        .stack-badge.alt { background: var(--muted, #847769); }
-
-        .stack-comps { display: flex; flex-direction: column; gap: 0; }
-        .stack-comp {
-            background: var(--box-bg, #FBF6F2); border: 1px solid var(--border, #E8DFD1);
-            border-radius: 7px; padding: .6rem .85rem; text-align: center; transition: padding 0.5s ease;
-        }
-        .stack-comp-title {
-            font-size: 10px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: .05em; color: var(--muted, #847769); margin: 0 0 3px; font-family: inherit;
-        }
-        .stack-comp-math { font-size: 0.82rem; color: var(--text, #4A3F35); margin: 0; }
-        .stack-int-arrow {
-            text-align: center; color: var(--accent, #D48C70); font-size: 14px;
-            line-height: 1; padding: 5px 0; overflow: hidden;
-            transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease; max-height: 30px;
-        }
-
-        .stack-bridge {
-            position: absolute; left: 50%; transform: translateX(-50%); width: 200px;
-            display: flex; flex-direction: column; align-items: center; opacity: 0;
-            pointer-events: none; transition: opacity 0.5s ease; z-index: 50;
-        }
-        .stack-bridge-line { width: 2px; background: var(--accent, #D48C70); flex-shrink: 0; }
-        .stack-bridge-label {
-            background: var(--box-bg, #FBF6F2); border: 1px solid var(--accent, #D48C70);
-            color: var(--accent, #D48C70); font-size: 11px; font-weight: 700;
-            padding: 3px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; font-family: inherit;
-        }
-        .stack-bridge-head {
-            width: 0; height: 0; border-left: 6px solid transparent;
-            border-right: 6px solid transparent; border-bottom: 8px solid var(--accent, #D48C70); flex-shrink: 0;
-        }
-
-        .stack-status {
-            text-align: center; font-size: 0.78rem; font-style: italic; color: var(--muted, #847769);
-            margin-top: 80px; min-height: 1.2em; transition: opacity 0.3s; font-family: inherit;
-        }
-        .stack-scene.encoder-scene + .stack-status { margin-top: 50px; }
-
-        .p-bridge .stack-int-arrow, .p-depth .stack-int-arrow { max-height: 0; opacity: 0; padding: 0; }
-        .p-bridge .stack-comp, .p-depth .stack-comp { padding: .3rem .85rem; }
-
-        /* Shared Residual Stream Styles (Unchanged) */
+    <style id="rsa-shared-styles">
         .rsa-wrap {
             position: relative; width: 100%; margin: 0 auto;
             background: var(--box-bg, #FBF6F2); overflow: hidden;
             border: 1px solid var(--border, #E8DFD1); border-radius: 14px;
             box-sizing: border-box; font-family: inherit;
         }
-        .rsa-spine { position: absolute; left: 200px; width: 3px; background: var(--border, #E8DFD1); border-radius: 2px; z-index: 1; }
-        .rsa-layer-lbl { position: absolute; text-align: right; width: 76px; left: 108px; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted, #847769); white-space: nowrap; z-index: 20; pointer-events: none; }
+        .rsa-spine {
+            position: absolute; left: 200px; width: 3px;
+            background: var(--border, #E8DFD1); border-radius: 2px; z-index: 1;
+        }
+        .rsa-layer-lbl {
+            position: absolute; text-align: right; width: 76px; left: 108px;
+            font-size: 0.85rem; font-weight: 700; letter-spacing: 0.13em;
+            text-transform: uppercase; color: var(--muted, #847769);
+            white-space: nowrap; z-index: 20; pointer-events: none;
+        }
         .rsa-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
-        .rsa-overlay path { fill: none; stroke: var(--accent, #D48C70); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 120; stroke-dashoffset: 120; opacity: 0; transition: stroke-dashoffset 0.5s linear, opacity 0.3s ease; }
+        .rsa-overlay path {
+            fill: none; stroke: var(--accent, #D48C70); stroke-width: 8;
+            stroke-linecap: round; stroke-linejoin: round;
+            stroke-dasharray: 120; stroke-dashoffset: 120;
+            opacity: 0; transition: stroke-dashoffset 0.5s linear, opacity 0.3s ease;
+        }
         .rsa-overlay path.live { opacity: 1; stroke-dashoffset: 0; }
-        .rsa-plus { position: absolute; left: 188px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border, #E8DFD1); background: var(--box-bg, #FBF6F2); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: var(--muted, #847769); z-index: 12; transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.22s; }
+        .rsa-plus {
+            position: absolute; left: 188px; width: 28px; height: 28px;
+            border-radius: 50%; border: 2px solid var(--border, #E8DFD1);
+            background: var(--box-bg, #FBF6F2); display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.2rem; color: var(--muted, #847769);
+            z-index: 12; transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.22s;
+        }
         .rsa-plus.on { border-color: var(--accent, #D48C70); color: var(--accent, #D48C70); box-shadow: 0 0 0 5px rgba(212,140,112,0.18); transform: scale(1.18); }
         .rsa-bar { position: absolute; left: 203px; width: 33px; height: 2px; background: var(--border, #E8DFD1); z-index: 1; }
         .rsa-bar::after { content: ''; position: absolute; right: 0; top: -3px; border-left: 6px solid var(--border, #E8DFD1); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
-        .rsa-box { position: absolute; left: 236px; right: 16px; height: 68px; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; transition: border-color 0.3s, box-shadow 0.3s; padding: 0 0.8rem; text-align: center; box-sizing: border-box; }
+        .rsa-box {
+            position: absolute; left: 236px; right: 16px; height: auto; min-height: 76px;
+            background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1);
+            border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; transition: border-color 0.3s, box-shadow 0.3s; padding: 0.8rem 0.8rem 1.2rem 0.8rem; text-align: center; box-sizing: border-box;
+        }
         .rsa-box.on { border-color: var(--accent, #D48C70); box-shadow: 0 0 12px rgba(212,140,112,0.15); }
         .rsa-box-title { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted, #847769); margin-bottom: 4px; }
         .rsa-box-title.hi { color: var(--accent, #D48C70); }
-        .rsa-box-math { font-size: 1rem; color: var(--text, #4A3F35); }
+        .rsa-box-math { font-size: 1rem; color: var(--text, #4A3F35); padding-bottom: 4px; }
         .rsa-hl { border-radius: 3px; padding: 1px 3px; transition: background 0.3s, color 0.3s; }
         .rsa-hl.on { background: rgba(212,140,112,0.15); color: var(--accent, #D48C70); font-weight: bold; }
-        .rsa-signal { position: absolute; left: 202px; transform: translateX(-50%); background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70); padding: 6px 14px; border-radius: 7px; font-size: 1rem; white-space: nowrap; box-shadow: 0 3px 8px rgba(0,0,0,0.08); z-index: 50; color: var(--text, #4A3F35); transition: top 0.6s linear, background 0.3s, color 0.3s, border-color 0.3s; }
+        .rsa-divider { position: absolute; left: 16px; right: 16px; height: 0; border-top: 1.5px dashed var(--border, #E8DFD1); opacity: 0.8; z-index: 8; }
+        .rsa-signal {
+            position: absolute; left: 202px; transform: translateX(-50%);
+            background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70);
+            padding: 6px 14px; border-radius: 7px; font-size: 1rem; white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08); z-index: 50; color: var(--text, #4A3F35);
+            transition: top 0.6s linear, background 0.3s, color 0.3s, border-color 0.3s;
+        }
         .rsa-signal.morph { background: var(--accent, #D48C70); color: #fff; border-color: var(--accent, #D48C70); }
         .rsa-ctrl { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; z-index: 200; }
-        .rsa-btn { padding: 8px 22px; background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70); color: var(--accent, #D48C70); border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1rem; transition: background 0.2s, color 0.2s; }
+        .rsa-btn {
+            padding: 8px 22px; background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70);
+            color: var(--accent, #D48C70); border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1rem;
+            transition: background 0.2s, color 0.2s;
+        }
         .rsa-btn:hover { background: var(--accent, #D48C70); color: #fff; }
         .rsa-btn:disabled { opacity: 0.38; cursor: not-allowed; background: var(--surface,#F4EFE6); color: var(--accent,#D48C70); }
-        .rsa-input-lbl { position:absolute; left:16px; font-size:1rem; color:var(--muted,#847769); font-style:italic; }
-        .rsa-badge { position: absolute; right: 26px; top: 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 8px; padding: 0.4rem 0.6rem; text-align: center; font-size: 0.8rem; color: var(--muted); line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.03); z-index: 15; }
+        .rsa-input-lbl { position:absolute; left:16px; font-size:1rem; color:var(--muted,#847769); font-style:italic; padding-bottom: 5px; }
+        .rsa-badge {
+            position: absolute; right: 26px; top: 12px;
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: 8px; padding: 0.6rem 0.8rem; text-align: center;
+            font-size: 0.8rem; color: var(--muted); line-height: 1.4;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); z-index: 15;
+        }
         .rsa-badge strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+        .svg-box { fill: var(--surface); stroke: var(--border); stroke-width: 1.5px; rx: 6px; }
+        .svg-box-hi { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5px; rx: 6px; }
+        .svg-text { fill: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; text-anchor: middle; dominant-baseline: middle; }
+        .svg-text-sm { fill: var(--muted); font-family: inherit; font-size: 11px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; letter-spacing: 0.05em; text-transform: uppercase; }
+        .svg-line { stroke: var(--border); stroke-width: 3px; fill: none; }
+        .svg-line-hi { stroke: var(--accent); stroke-width: 3px; fill: none; stroke-dasharray: 4; }
+        .svg-plus { fill: var(--box-bg); stroke: var(--border); stroke-width: 2px; }
+        .svg-plus-text { fill: var(--muted); font-family: inherit; font-size: 18px; font-weight: bold; text-anchor: middle; dominant-baseline: middle; }
     </style>
 
     <meta property="og:type" content="article">
@@ -276,15 +261,19 @@ $$Y' = \mathrm{FFN}(H_{\mathrm{ca}}).$$
       applied independently to each token representation. For an input token
       vector $\mathbf{x} \in \mathbb{R}^{1 \times d_{\mathrm{model}}}$:
     </p>
+
     <div class="math-display">
       $$\mathrm{FFN}(\mathbf{x}) = f(\mathbf{x}; \theta_{\mathrm{ffn}}),$$
     </div>
+
     <p>
       where $f(\cdot)$ denotes a learned nonlinear mapping with parameters
       $\theta_{\mathrm{ffn}}$. The same FFN is applied identically at every
       sequence position, with no communication between positions inside the
       FFN itself.
     </p>
+
+
   </div>
 </div>
 
@@ -300,14 +289,14 @@ $$Y' = \mathrm{FFN}(H_{\mathrm{ca}}).$$
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">3. Position-Wise Feed-Forward Network</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$Y' = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$Y' = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
     </div>
 
     <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; text-align: center; width: 100%;">2. Multi-Head Cross-Attention</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); text-align: center; width: 100%;">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}}, X_{\mathrm{enc}})$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); text-align: center; width: 100%; padding-bottom: 4px;">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}}, X_{\mathrm{enc}})$</div>
         
         <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--muted, #847769); font-style: italic; background: var(--box-bg, #FBF6F2); padding: 2px 5px; border: 1px dashed var(--border, #E8DFD1); border-radius: 4px; white-space: nowrap;">
             ← $X_{\mathrm{enc}}$
@@ -318,7 +307,7 @@ $$Y' = \mathrm{FFN}(H_{\mathrm{ca}}).$$
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">1. Masked Multi-Head Self-Attention</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y)$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y)$</div>
     </div>
 
     <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0 1rem 0;">↑</div>
@@ -345,101 +334,260 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
 
 <figure style="margin: 3.5rem auto;">
 <div class="interactive-wrapper">
+<style>
+.dec-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.dec-scene {
+  position: relative;
+  width: 100%;
+  height: 560px;
+  perspective: 900px;
+  overflow: visible;
+}
+.dec-rig {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.4,0,0.2,1);
+}
+.dec-card {
+  position: absolute;
+  left: 0; right: 0;
+  background: var(--surface, #F4EFE6);
+  border: 1.5px solid var(--border, #E8DFD1);
+  border-radius: 14px;
+  padding: 2.2rem 1.1rem 1.1rem;
+  box-sizing: border-box;
+  transition:
+    transform  0.85s cubic-bezier(0.4,0,0.2,1),
+    opacity    0.75s ease,
+    box-shadow 0.75s ease;
+}
+.dec-card.l1 {
+  bottom: 0;
+  border-color: var(--accent, #D48C70);
+  z-index: 40;
+}
+.dec-card.l2 { bottom: 0; opacity: 0; z-index: 30; }
+.dec-card.l3 { bottom: 0; opacity: 0; z-index: 20; }
+.dec-card.ll { bottom: 0; opacity: 0; z-index: 10; }
 
-<div class="stack-wrap" id="decWrap">
-  <div class="stack-scene decoder-scene">
-    <div class="stack-rig">
+.dec-badge {
+  position: absolute;
+  top: -11px; left: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--accent, #D48C70);
+  white-space: nowrap;
+  font-family: inherit;
+}
+.dec-badge.alt { background: var(--muted, #847769); }
 
-      <div class="stack-card ll l-dyn">
-        <div class="stack-badge alt">Decoder Block — Layer L</div>
-        <div class="stack-comps" style="opacity:.5">
-          <div class="stack-comp">
-            <div class="stack-comp-title">3. Feed-Forward Network</div>
-            <div class="stack-comp-math">$Y^{(L)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(L)})$</div>
+.dec-comps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.dec-comp {
+  background: var(--box-bg, #FBF6F2);
+  border: 1px solid var(--border, #E8DFD1);
+  border-radius: 7px;
+  padding: .8rem .85rem 1rem .85rem;
+  text-align: center;
+  transition: padding 0.5s ease;
+}
+.dec-comp-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted, #847769);
+  margin: 0 0 3px;
+  font-family: inherit;
+}
+.dec-comp-math {
+  font-size: 0.82rem;
+  color: var(--text, #4A3F35);
+  margin: 0;
+  padding-bottom: 4px;
+}
+.dec-int-arrow {
+  text-align: center;
+  color: var(--accent, #D48C70);
+  font-size: 14px;
+  line-height: 1;
+  padding: 8px 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+  max-height: 30px;
+}
+
+.dec-bridge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  z-index: 50;
+}
+.dec-bridge-line {
+  width: 2px;
+  background: var(--accent, #D48C70);
+  flex-shrink: 0;
+}
+.dec-bridge-label {
+  background: var(--box-bg, #FBF6F2);
+  border: 1px solid var(--accent, #D48C70);
+  color: var(--accent, #D48C70);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px 6px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.dec-bridge-head {
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid var(--accent, #D48C70);
+  flex-shrink: 0;
+}
+
+.dec-status {
+  text-align: center;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--muted, #847769);
+  margin-top: 80px;
+  min-height: 1.2em;
+  transition: opacity 0.3s;
+  font-family: inherit;
+}
+
+.p-bridge .dec-int-arrow,
+.p-depth  .dec-int-arrow {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+}
+.p-bridge .dec-comp,
+.p-depth  .dec-comp {
+  padding: .5rem .85rem .7rem .85rem;
+}
+</style>
+
+<div class="dec-wrap" id="decWrap">
+  <div class="dec-scene" id="decScene">
+    <div class="dec-rig" id="decRig">
+
+            <div class="dec-card ll" id="cL">
+        <div class="dec-badge alt">Decoder Block — Layer L</div>
+        <div class="dec-comps" style="opacity:.5">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(L)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(L)})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Multi-Head Cross-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{ca}}^{(L)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(L)}, X_{\mathrm{enc}})$</div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}}^{(L)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(L)}, X_{\mathrm{enc}})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Masked Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{sa}}^{(L)} = \mathrm{MMHSA}(Y^{(L-1)})$</div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}}^{(L)} = \mathrm{MMHSA}(Y^{(L-1)})$</div>
           </div>
         </div>
       </div>
 
-      <div class="stack-card l3 l-dyn">
-        <div class="stack-badge alt">Decoder Block — Layer 3</div>
-        <div class="stack-comps">
-          <div class="stack-comp">
-            <div class="stack-comp-title">3. Feed-Forward Network</div>
-            <div class="stack-comp-math">$Y^{(3)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(3)})$</div>
+            <div class="dec-card l3" id="c3">
+        <div class="dec-badge alt">Decoder Block — Layer 3</div>
+        <div class="dec-comps">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(3)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(3)})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Multi-Head Cross-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{ca}}^{(3)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(3)}, X_{\mathrm{enc}})$</div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}}^{(3)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(3)}, X_{\mathrm{enc}})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Masked Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{sa}}^{(3)} = \mathrm{MMHSA}(Y^{(2)})$</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="stack-card l2 l-dyn">
-        <div class="stack-badge alt">Decoder Block — Layer 2</div>
-        <div class="stack-comps">
-          <div class="stack-comp">
-            <div class="stack-comp-title">3. Feed-Forward Network</div>
-            <div class="stack-comp-math">$Y^{(2)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(2)})$</div>
-          </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Multi-Head Cross-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{ca}}^{(2)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(2)}, X_{\mathrm{enc}})$</div>
-          </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Masked Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{sa}}^{(2)} = \mathrm{MMHSA}(Y^{(1)})$</div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}}^{(3)} = \mathrm{MMHSA}(Y^{(2)})$</div>
           </div>
         </div>
       </div>
 
-      <div class="stack-bridge">
-        <div class="stack-bridge-head"></div>
-        <div class="stack-bridge-line" style="height:16px"></div>
-        <div class="stack-bridge-label">$Y^{(1)}$ → input to Layer 2</div>
-        <div class="stack-bridge-line" style="height:16px"></div>
+            <div class="dec-card l2" id="c2">
+        <div class="dec-badge alt">Decoder Block — Layer 2</div>
+        <div class="dec-comps">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(2)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(2)})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}}^{(2)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(2)}, X_{\mathrm{enc}})$</div>
+          </div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}}^{(2)} = \mathrm{MMHSA}(Y^{(1)})$</div>
+          </div>
+        </div>
       </div>
 
-      <div class="stack-card l1">
-        <div class="stack-badge">Decoder Block — Layer 1</div>
-        <div class="stack-comps">
-          <div class="stack-comp">
-            <div class="stack-comp-title">3. Feed-Forward Network</div>
-            <div class="stack-comp-math">$Y^{(1)} = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
+            <div class="dec-bridge" id="decBridge">
+        <div class="dec-bridge-head"></div>
+        <div class="dec-bridge-line" style="height:16px"></div>
+        <div class="dec-bridge-label">$Y^{(1)}$ → input to Layer 2</div>
+        <div class="dec-bridge-line" style="height:16px"></div>
+      </div>
+
+            <div class="dec-card l1" id="c1">
+        <div class="dec-badge">Decoder Block — Layer 1</div>
+        <div class="dec-comps">
+          <div class="dec-comp">
+            <div class="dec-comp-title">3. Feed-Forward Network</div>
+            <div class="dec-comp-math">$Y^{(1)} = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Multi-Head Cross-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}},\, X_{\mathrm{enc}})$</div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">2. Multi-Head Cross-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}},\, X_{\mathrm{enc}})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Masked Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y^{(0)})$</div>
+          <div class="dec-int-arrow">↑</div>
+          <div class="dec-comp">
+            <div class="dec-comp-title">1. Masked Multi-Head Self-Attention</div>
+            <div class="dec-comp-math">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y^{(0)})$</div>
           </div>
         </div>
       </div>
 
     </div>
   </div>
-  <div class="stack-status">Exploded view — each sub-layer visible inside every decoder block.</div>
+  <div class="dec-status" id="decStatus">Exploded view — each sub-layer visible inside every decoder block.</div>
 </div>
 </div>
 
@@ -447,6 +595,149 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
   The decoder stack: one shared three-part structure repeated $L$ times, each layer refining representations passed up from the layer below.
 </figcaption>
 </figure>
+
+<script>
+(function () {
+  const wrap   = document.getElementById('decWrap');
+  const rig    = document.getElementById('decRig');
+  const bridge = document.getElementById('decBridge');
+  const status = document.getElementById('decStatus');
+  const c1 = document.getElementById('c1');
+  const c2 = document.getElementById('c2');
+  const c3 = document.getElementById('c3');
+  const cL = document.getElementById('cL');
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  function cardH(card) { return card.getBoundingClientRect().height; }
+
+  function clearPhases() {
+    ['p-bridge','p-depth'].forEach(c => wrap.classList.remove(c));
+  }
+  function setStatus(txt) { status.textContent = txt; }
+
+  function reset() {
+    clearPhases();
+    rig.style.cssText = 'position:absolute;bottom:0;left:0;right:0;transform-style:preserve-3d;transition:none;';
+    [c1, c2, c3, cL].forEach(c => {
+      c.style.transform       = '';
+      c.style.transformOrigin = '';
+      c.style.boxShadow       = '';
+      c.style.bottom          = '0';
+      c.style.top             = '';
+      c.style.zIndex          = '';
+      c.style.transition      = '';
+    });
+    [c2, c3, cL].forEach(c => { c.style.opacity = '0'; });
+    c1.style.opacity   = '1';
+    bridge.style.opacity = '0';
+    bridge.style.bottom  = '';
+  }
+
+  async function phase1() {
+    reset();
+    setStatus('Exploded view — each sub-layer visible inside every decoder block.');
+    await sleep(3500);
+  }
+
+  async function phase2() {
+    clearPhases();
+    wrap.classList.add('p-bridge');
+    setStatus('Sub-layers compile into one block — Y⁽¹⁾ flows up into Layer 2.');
+    await sleep(620);
+
+    const h1  = cardH(c1);
+    const gap = 88;
+
+    c2.style.transition = 'bottom 0.75s cubic-bezier(0.4,0,0.2,1), opacity 0.6s ease, box-shadow 0.6s ease';
+    c2.style.bottom     = (h1 + gap) + 'px';
+    c2.style.opacity    = '1';
+    c2.style.boxShadow  = '0 6px 20px rgba(0,0,0,0.07)';
+
+    bridge.style.bottom  = (h1 + 4) + 'px';
+    bridge.style.opacity = '1';
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      MathJax.typesetPromise([bridge]).catch(() => {});
+    }
+
+    await sleep(3800);
+  }
+
+  async function phase3() {
+    clearPhases();
+    wrap.classList.add('p-depth');
+    setStatus('Stacking into depth…');
+
+    await sleep(320);
+    bridge.style.opacity = '0';
+
+    const liftY = -195;
+
+    c2.style.transition = '';
+    c2.style.bottom     = '0';
+
+    const cardTx = 'transform 0.78s cubic-bezier(0.4,0,0.2,1), opacity 0.7s ease, box-shadow 0.65s ease';
+    [c1, c2, c3, cL].forEach(c => {
+      c.style.bottom          = '0';
+      c.style.top             = '';
+      c.style.transformOrigin = 'center center';
+      c.style.transition      = cardTx;
+    });
+
+    rig.style.transition      = 'transform 0.82s cubic-bezier(0.4,0,0.2,1)';
+    rig.style.transformOrigin = 'center center';
+
+    rig.style.transform = `translateY(${liftY}px) rotateY(0deg)`;
+    c1.style.transform  = 'translateZ(54px)';
+    c1.style.zIndex     = '40';
+    c1.style.boxShadow  = '0 10px 36px rgba(0,0,0,0.13)';
+
+    await sleep(860);
+
+    rig.style.transform = `translateY(${liftY}px) rotateY(28deg)`;
+
+    await sleep(380);
+
+    c2.style.transform  = 'translateZ(18px)';
+    c2.style.zIndex     = '30';
+    c2.style.opacity    = '1';
+    c2.style.boxShadow  = '0 5px 18px rgba(0,0,0,0.09)';
+
+    await sleep(230);
+
+    c3.style.transform  = 'translateZ(-18px)';
+    c3.style.zIndex     = '20';
+    c3.style.opacity    = '0.88';
+    c3.style.boxShadow  = '0 3px 10px rgba(0,0,0,0.05)';
+
+    await sleep(230);
+
+    cL.style.transform  = 'translateZ(-54px)';
+    cL.style.zIndex     = '10';
+    cL.style.opacity    = '0.6';
+
+    setStatus('Layer 1 is the front card — the same structure repeats L times behind it.');
+    await sleep(4200);
+  }
+
+  async function loop() {
+    while (true) {
+      await phase1();
+      await phase2();
+      await phase3();
+      reset();
+      setStatus('Resetting…');
+      await sleep(700);
+    }
+  }
+
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { obs.disconnect(); loop(); }
+  }, { threshold: 0.2 });
+  obs.observe(wrap);
+})();
+</script>
 
 <h2>The Encoder: Bidirectional Contextualization</h2>
  
@@ -479,14 +770,14 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">2. Position-Wise Feed-Forward Network</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$X' = \mathrm{FFN}(H_{\mathrm{attn}})$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$X' = \mathrm{FFN}(H_{\mathrm{attn}})$</div>
     </div>
 
     <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">1. Multi-Head Self-Attention (unmasked)</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$H_{\mathrm{attn}} = \mathrm{MHSA}(X)$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$H_{\mathrm{attn}} = \mathrm{MHSA}(X)$</div>
     </div>
 
     <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0 1rem 0;">↑</div>
@@ -499,6 +790,7 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
         The functional pipeline of the encoder block: source vectors pass through bidirectional self-attention (every token queries every other), then through position-wise transformation. No causal mask; no cross-attention. Layer index omitted for clarity.
     </figcaption>
 </figure>
+
 <p>Just as in the decoder, a single pass is not enough to build deep representations. The encoder repeats this two-part block $L$ times:</p>
  
 <div class="math-display">
@@ -509,81 +801,181 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
  
 <figure style="margin: 3.5rem auto;">
 <div class="interactive-wrapper">
-
-<div class="stack-wrap" id="encWrap">
-  <div class="stack-scene encoder-scene">
-    <div class="stack-rig">
+<style>
+.enc-anim-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.enc-anim-scene {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  perspective: 900px;
+  overflow: visible;
+}
+.enc-anim-rig {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.4,0,0.2,1);
+}
+.enc-anim-card {
+  position: absolute;
+  left: 0; right: 0;
+  background: var(--surface, #F4EFE6);
+  border: 1.5px solid var(--border, #E8DFD1);
+  border-radius: 14px;
+  padding: 2.2rem 1.1rem 1.1rem;
+  box-sizing: border-box;
+  transition:
+    transform  0.85s cubic-bezier(0.4,0,0.2,1),
+    opacity    0.75s ease,
+    box-shadow 0.75s ease;
+}
+.enc-anim-card.l1 { bottom: 0; border-color: var(--accent, #D48C70); z-index: 40; }
+.enc-anim-card.l2 { bottom: 0; opacity: 0; z-index: 30; }
+.enc-anim-card.l3 { bottom: 0; opacity: 0; z-index: 20; }
+.enc-anim-card.ll { bottom: 0; opacity: 0; z-index: 10; }
  
-      <div class="stack-card ll l-dyn">
-        <div class="stack-badge alt">Encoder Block — Layer L</div>
-        <div class="stack-comps" style="opacity:.5">
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Feed-Forward Network</div>
-            <div class="stack-comp-math">$X^{(L)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(L)})$</div>
+.enc-anim-badge {
+  position: absolute;
+  top: -11px; left: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 4px;
+  color: #fff;
+  background: var(--accent, #D48C70);
+  white-space: nowrap;
+  font-family: inherit;
+}
+.enc-anim-badge.alt { background: var(--muted, #847769); }
+ 
+.enc-anim-comps { display: flex; flex-direction: column; gap: 0; }
+.enc-anim-comp {
+  background: var(--box-bg, #FBF6F2);
+  border: 1px solid var(--border, #E8DFD1);
+  border-radius: 7px;
+  padding: .8rem .85rem 1rem .85rem;
+  text-align: center;
+  transition: padding 0.5s ease;
+}
+.enc-anim-comp-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--muted, #847769); margin: 0 0 3px; font-family: inherit;
+}
+.enc-anim-comp-math { font-size: 0.82rem; color: var(--text, #4A3F35); margin: 0; padding-bottom: 4px; }
+.enc-anim-int-arrow {
+  text-align: center; color: var(--accent, #D48C70); font-size: 14px;
+  line-height: 1; padding: 8px 0; overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease; max-height: 30px;
+}
+ 
+.enc-anim-bridge {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: 200px; display: flex; flex-direction: column; align-items: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 50;
+}
+.enc-anim-bridge-line { width: 2px; background: var(--accent, #D48C70); flex-shrink: 0; }
+.enc-anim-bridge-label {
+  background: var(--box-bg, #FBF6F2); border: 1px solid var(--accent, #D48C70);
+  color: var(--accent, #D48C70); font-size: 11px; font-weight: 700;
+  padding: 5px 12px 6px 12px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; font-family: inherit;
+}
+.enc-anim-bridge-head {
+  width: 0; height: 0; border-left: 6px solid transparent;
+  border-right: 6px solid transparent; border-bottom: 8px solid var(--accent, #D48C70); flex-shrink: 0;
+}
+ 
+.enc-anim-status {
+  text-align: center; font-size: 0.78rem; font-style: italic; color: var(--muted, #847769);
+  margin-top: 50px; min-height: 1.2em; transition: opacity 0.3s; font-family: inherit;
+}
+ 
+.enc-p-bridge .enc-anim-int-arrow, .enc-p-depth .enc-anim-int-arrow { max-height: 0; opacity: 0; padding: 0; }
+.enc-p-bridge .enc-anim-comp, .enc-p-depth .enc-anim-comp { padding: .5rem .85rem .7rem .85rem; }
+</style>
+ 
+<div class="enc-anim-wrap" id="encAnimWrap">
+  <div class="enc-anim-scene" id="encAnimScene">
+    <div class="enc-anim-rig" id="encAnimRig">
+ 
+      <div class="enc-anim-card ll" id="eL">
+        <div class="enc-anim-badge alt">Encoder Block — Layer L</div>
+        <div class="enc-anim-comps" style="opacity:.5">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(L)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(L)})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{attn}}^{(L)} = \mathrm{MHSA}(X^{(L-1)})$</div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(L)} = \mathrm{MHSA}(X^{(L-1)})$</div>
           </div>
         </div>
       </div>
  
-      <div class="stack-card l3 l-dyn">
-        <div class="stack-badge alt">Encoder Block — Layer 3</div>
-        <div class="stack-comps">
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Feed-Forward Network</div>
-            <div class="stack-comp-math">$X^{(3)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(3)})$</div>
+      <div class="enc-anim-card l3" id="e3">
+        <div class="enc-anim-badge alt">Encoder Block — Layer 3</div>
+        <div class="enc-anim-comps">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(3)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(3)})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{attn}}^{(3)} = \mathrm{MHSA}(X^{(2)})$</div>
-          </div>
-        </div>
-      </div>
- 
-      <div class="stack-card l2 l-dyn">
-        <div class="stack-badge alt">Encoder Block — Layer 2</div>
-        <div class="stack-comps">
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Feed-Forward Network</div>
-            <div class="stack-comp-math">$X^{(2)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(2)})$</div>
-          </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{attn}}^{(2)} = \mathrm{MHSA}(X^{(1)})$</div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(3)} = \mathrm{MHSA}(X^{(2)})$</div>
           </div>
         </div>
       </div>
  
-      <div class="stack-bridge">
-        <div class="stack-bridge-head"></div>
-        <div class="stack-bridge-line" style="height:16px"></div>
-        <div class="stack-bridge-label">$X^{(1)}$ → input to Layer 2</div>
-        <div class="stack-bridge-line" style="height:16px"></div>
+      <div class="enc-anim-card l2" id="e2">
+        <div class="enc-anim-badge alt">Encoder Block — Layer 2</div>
+        <div class="enc-anim-comps">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(2)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(2)})$</div>
+          </div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(2)} = \mathrm{MHSA}(X^{(1)})$</div>
+          </div>
+        </div>
       </div>
  
-      <div class="stack-card l1">
-        <div class="stack-badge">Encoder Block — Layer 1</div>
-        <div class="stack-comps">
-          <div class="stack-comp">
-            <div class="stack-comp-title">2. Feed-Forward Network</div>
-            <div class="stack-comp-math">$X^{(1)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(1)})$</div>
+      <div class="enc-anim-bridge" id="encAnimBridge">
+        <div class="enc-anim-bridge-head"></div>
+        <div class="enc-anim-bridge-line" style="height:16px"></div>
+        <div class="enc-anim-bridge-label">$X^{(1)}$ → input to Layer 2</div>
+        <div class="enc-anim-bridge-line" style="height:16px"></div>
+      </div>
+ 
+      <div class="enc-anim-card l1" id="e1">
+        <div class="enc-anim-badge">Encoder Block — Layer 1</div>
+        <div class="enc-anim-comps">
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">2. Feed-Forward Network</div>
+            <div class="enc-anim-comp-math">$X^{(1)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(1)})$</div>
           </div>
-          <div class="stack-int-arrow">↑</div>
-          <div class="stack-comp">
-            <div class="stack-comp-title">1. Multi-Head Self-Attention</div>
-            <div class="stack-comp-math">$H_{\mathrm{attn}}^{(1)} = \mathrm{MHSA}(X^{(0)})$</div>
+          <div class="enc-anim-int-arrow">↑</div>
+          <div class="enc-anim-comp">
+            <div class="enc-anim-comp-title">1. Multi-Head Self-Attention</div>
+            <div class="enc-anim-comp-math">$H_{\mathrm{attn}}^{(1)} = \mathrm{MHSA}(X^{(0)})$</div>
           </div>
         </div>
       </div>
  
     </div>
   </div>
-  <div class="stack-status">Exploded view — unmasked self-attention and FFN.</div>
+  <div class="enc-anim-status" id="encAnimStatus">Exploded view — unmasked self-attention and FFN.</div>
 </div>
 </div>
  
@@ -591,6 +983,94 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
   The encoder stack: a simpler two-part structure (no cross-attention) repeated $L$ times to build fully bidirectional source representations.
 </figcaption>
 </figure>
+ 
+<script>
+(function () {
+  const wrap   = document.getElementById('encAnimWrap');
+  const rig    = document.getElementById('encAnimRig');
+  const bridge = document.getElementById('encAnimBridge');
+  const status = document.getElementById('encAnimStatus');
+  const e1 = document.getElementById('e1');
+  const e2 = document.getElementById('e2');
+  const e3 = document.getElementById('e3');
+  const eL = document.getElementById('eL');
+ 
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  function cardH(card) { return card.getBoundingClientRect().height; }
+  function clearPhases() { ['enc-p-bridge','enc-p-depth'].forEach(c => wrap.classList.remove(c)); }
+  function setStatus(txt) { status.textContent = txt; }
+ 
+  function reset() {
+    clearPhases();
+    rig.style.cssText = 'position:absolute;bottom:0;left:0;right:0;transform-style:preserve-3d;transition:none;';
+    [e1, e2, e3, eL].forEach(c => {
+      c.style.transform = ''; c.style.transformOrigin = '';
+      c.style.boxShadow = ''; c.style.bottom = '0';
+      c.style.top = ''; c.style.zIndex = ''; c.style.transition = '';
+    });
+    [e2, e3, eL].forEach(c => { c.style.opacity = '0'; });
+    e1.style.opacity = '1';
+    bridge.style.opacity = '0'; bridge.style.bottom = '';
+  }
+ 
+  async function phase1() {
+    reset();
+    setStatus('Exploded view — unmasked self-attention and FFN.');
+    await sleep(3500);
+  }
+ 
+  async function phase2() {
+    clearPhases(); wrap.classList.add('enc-p-bridge');
+    setStatus('Sub-layers compile into one block — X⁽¹⁾ flows up into Layer 2.');
+    await sleep(620);
+    const h1 = cardH(e1); const gap = 88;
+    e2.style.transition = 'bottom 0.75s cubic-bezier(0.4,0,0.2,1), opacity 0.6s ease, box-shadow 0.6s ease';
+    e2.style.bottom = (h1 + gap) + 'px'; e2.style.opacity = '1';
+    e2.style.boxShadow = '0 6px 20px rgba(0,0,0,0.07)';
+    bridge.style.bottom = (h1 + 4) + 'px'; bridge.style.opacity = '1';
+    if (window.MathJax && window.MathJax.typesetPromise) { MathJax.typesetPromise([bridge]).catch(() => {}); }
+    await sleep(3800);
+  }
+ 
+  async function phase3() {
+    clearPhases(); wrap.classList.add('enc-p-depth');
+    setStatus('Stacking into depth…');
+    await sleep(320); bridge.style.opacity = '0';
+    const liftY = -145;
+    e2.style.transition = ''; e2.style.bottom = '0';
+    const cardTx = 'transform 0.78s cubic-bezier(0.4,0,0.2,1), opacity 0.7s ease, box-shadow 0.65s ease';
+    [e1, e2, e3, eL].forEach(c => {
+      c.style.bottom = '0'; c.style.top = ''; c.style.transformOrigin = 'center center'; c.style.transition = cardTx;
+    });
+    rig.style.transition = 'transform 0.82s cubic-bezier(0.4,0,0.2,1)';
+    rig.style.transformOrigin = 'center center';
+    rig.style.transform = `translateY(${liftY}px) rotateY(0deg)`;
+    e1.style.transform = 'translateZ(54px)'; e1.style.zIndex = '40'; e1.style.boxShadow = '0 10px 36px rgba(0,0,0,0.13)';
+    await sleep(860);
+    rig.style.transform = `translateY(${liftY}px) rotateY(28deg)`;
+    await sleep(380);
+    e2.style.transform = 'translateZ(18px)'; e2.style.zIndex = '30'; e2.style.opacity = '1'; e2.style.boxShadow = '0 5px 18px rgba(0,0,0,0.09)';
+    await sleep(230);
+    e3.style.transform = 'translateZ(-18px)'; e3.style.zIndex = '20'; e3.style.opacity = '0.88'; e3.style.boxShadow = '0 3px 10px rgba(0,0,0,0.05)';
+    await sleep(230);
+    eL.style.transform = 'translateZ(-54px)'; eL.style.zIndex = '10'; eL.style.opacity = '0.6';
+    setStatus('Layer 1 is the front card — the two-part structure repeats L times.');
+    await sleep(4200);
+  }
+ 
+  async function loop() {
+    while (true) {
+      await phase1(); await phase2(); await phase3();
+      reset(); setStatus('Resetting…'); await sleep(700);
+    }
+  }
+ 
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { obs.disconnect(); loop(); }
+  }, { threshold: 0.2 });
+  obs.observe(wrap);
+})();
+</script>
 
 <h2>Residual Refinement</h2>
 
@@ -654,7 +1134,7 @@ $$Y^{(L)} = Y^{(0)} + \sum_{l=1}^{L} \bigl(\Delta_{\mathrm{sa}}^{(l)} + \Delta_{
         <div class="rsa-plus" id="encdec-p-mca" style="top: 162px;">+</div>
         <div class="rsa-bar" style="top: 246px;"></div>
         <div class="rsa-box" id="encdec-b-mca" style="top: 198px;">
-            <div class="rsa-badge" style="top: 5px; right: 5px; padding: 0.3rem 0.5rem; text-align: left;">
+            <div class="rsa-badge" style="top: 5px; right: 5px; text-align: left;">
                 <span style="font-weight:700;color:var(--accent);">K, V</span> $\leftarrow X_{\mathrm{enc}}$
             </div>
             <div class="rsa-box-title hi" style="color:var(--box-border);">Multi-Head Cross-Attention</div>
@@ -775,25 +1255,33 @@ $$\begin{aligned} X' &= X + \mathrm{MHSA}(\mathrm{LN}(X)), \\ X'' &= X' + \mathr
 
 <details class="toggle">
   <summary>Encoder-Only Models and BERT</summary>
+
   <p>
     A third Transformer variant — the <strong>encoder-only</strong> architecture — removes the decoder entirely.
     <strong>BERT</strong> (Bidirectional Encoder Representations from Transformers) is the most influential example.
   </p>
+
   <p>
     Unlike autoregressive models, encoder-only models do not predict tokens strictly from left to right.
     Since there is no causal mask restricting attention, every token can attend to every other token in both directions during training.
     This allows the model to build deeply contextual, bidirectional representations of language.
   </p>
+
   <p>
     Because of this design, BERT excels at understanding-oriented tasks such as text classification,
     named entity recognition, semantic similarity, sentiment analysis, and question answering.
   </p>
+
   <p>
     Instead of next-token prediction, BERT is trained primarily using a
     <strong>masked language modeling</strong> objective: random tokens in a sentence are hidden,
     and the model learns to predict them using surrounding context from both directions.
   </p>
 </details>
+
+<h3>Putting It All Together: Autoregressive Inference</h3>
+<p>The interactive visualization below brings together every component we have discussed to demonstrate the complete, end-to-end process of a Transformer during sequence-to-sequence translation.</p>
+<p>Notice how the encoder processes the entire source sequence at once to build a stable $X_{\mathrm{enc}}$ memory matrix. The decoder, constrained by the causal mask, must operate step-by-step. At each step, it filters its own generated history through self-attention, queries the encoder's memory via cross-attention, and predicts the next token. Once a layer finishes processing, it fades out to reveal the layers beneath, illustrating how the representation flows through the deep residual stack.</p>
 
 <figure style="margin: 3.5rem auto; max-width: 800px;">
     <div class="interactive-wrapper">
@@ -1466,6 +1954,9 @@ $$\begin{aligned} X' &= X + \mathrm{MHSA}(\mathrm{LN}(X)), \\ X'' &= X' + \mathr
     </div>
 </figure>
 
+
+<h2>The Full Picture</h2>
+
 <p>Every component in the Transformer was forced by a concrete problem. Token embeddings convert discrete symbols into vectors. Positional encodings restore the notion of order that recurrence previously provided. Masked self-attention replaces the recurrent target history without requiring sequential processing. Cross-attention retrieves information from the source sequence. The FFN replaces the nonlinear integration once performed by the recurrent update $f$. Residual connections allow these transformations to accumulate across depth without destroying earlier computations. Layer normalization stabilizes training at each stage.</p>
 
 <p>The architecture therefore accumulates corrections across depth rather than overwriting state across time. Initial token embeddings enter the first layer and emerge from layer $L$ as rich contextual representations after $L$ rounds of communication through attention and local transformation through the FFN.</p>
@@ -1526,118 +2017,6 @@ $$p(y_1, \dots, y_{n}) = \prod_{i=1}^{n} p(y_i \mid y_{&lt;i}).$$
 
     <script>
     (function(){
-        // 1. Unified Stacking Animation Engine
-        function createStackAnimation(wrapperId, config) {
-            const wrap = document.getElementById(wrapperId);
-            if (!wrap) return;
-            const rig = wrap.querySelector('.stack-rig');
-            const bridge = wrap.querySelector('.stack-bridge');
-            const status = wrap.querySelector('.stack-status');
-            const c1 = wrap.querySelector('.l1');
-            const cardsDyn = wrap.querySelectorAll('.l-dyn'); // dynamic cards l2, l3, ll
-            
-            const liftY = config.liftY || -195;
-            const msg1 = config.msg1;
-            const msg2 = config.msg2;
-            const msg3 = config.msg3;
-
-            const sleep = ms => new Promise(r => setTimeout(r, ms));
-            function cardH(card) { return card.getBoundingClientRect().height; }
-            function clearPhases() { ['p-bridge','p-depth'].forEach(c => wrap.classList.remove(c)); }
-            function setStatus(txt) { if(status) status.textContent = txt; }
-
-            function reset() {
-                clearPhases();
-                rig.style.cssText = 'position:absolute;bottom:0;left:0;right:0;transform-style:preserve-3d;transition:none;';
-                c1.style.cssText = 'bottom:0; opacity:1;';
-                cardsDyn.forEach(c => c.style.cssText = 'bottom:0; opacity:0;');
-                bridge.style.opacity = '0'; bridge.style.bottom = '';
-            }
-
-            async function phase1() {
-                reset(); setStatus(msg1); await sleep(3500);
-            }
-
-            async function phase2() {
-                clearPhases(); wrap.classList.add('p-bridge');
-                setStatus(msg2); await sleep(620);
-                
-                const h1 = cardH(c1); const gap = 88;
-                const c2 = wrap.querySelector('.l2'); // Specifically target layer 2
-                
-                c2.style.transition = 'bottom 0.75s cubic-bezier(0.4,0,0.2,1), opacity 0.6s ease, box-shadow 0.6s ease';
-                c2.style.bottom = (h1 + gap) + 'px'; c2.style.opacity = '1';
-                c2.style.boxShadow = '0 6px 20px rgba(0,0,0,0.07)';
-                
-                bridge.style.bottom = (h1 + 4) + 'px'; bridge.style.opacity = '1';
-                if (window.MathJax && window.MathJax.typesetPromise) { MathJax.typesetPromise([bridge]).catch(() => {}); }
-                await sleep(3800);
-            }
-
-            async function phase3() {
-                clearPhases(); wrap.classList.add('p-depth');
-                setStatus('Stacking into depth…'); await sleep(320); bridge.style.opacity = '0';
-                
-                const c2 = wrap.querySelector('.l2');
-                const c3 = wrap.querySelector('.l3');
-                const cL = wrap.querySelector('.ll');
-                
-                c2.style.transition = ''; c2.style.bottom = '0';
-                const cardTx = 'transform 0.78s cubic-bezier(0.4,0,0.2,1), opacity 0.7s ease, box-shadow 0.65s ease';
-                [c1, c2, c3, cL].forEach(c => {
-                    c.style.bottom = '0'; c.style.top = ''; c.style.transformOrigin = 'center center'; c.style.transition = cardTx;
-                });
-                
-                rig.style.transition = 'transform 0.82s cubic-bezier(0.4,0,0.2,1)';
-                rig.style.transformOrigin = 'center center';
-                
-                rig.style.transform = `translateY(${liftY}px) rotateY(0deg)`;
-                c1.style.transform = 'translateZ(54px)'; c1.style.zIndex = '40'; c1.style.boxShadow = '0 10px 36px rgba(0,0,0,0.13)';
-                await sleep(860);
-                
-                rig.style.transform = `translateY(${liftY}px) rotateY(28deg)`;
-                await sleep(380);
-                
-                c2.style.transform = 'translateZ(18px)'; c2.style.zIndex = '30'; c2.style.opacity = '1'; c2.style.boxShadow = '0 5px 18px rgba(0,0,0,0.09)';
-                await sleep(230);
-                
-                c3.style.transform = 'translateZ(-18px)'; c3.style.zIndex = '20'; c3.style.opacity = '0.88'; c3.style.boxShadow = '0 3px 10px rgba(0,0,0,0.05)';
-                await sleep(230);
-                
-                cL.style.transform = 'translateZ(-54px)'; cL.style.zIndex = '10'; cL.style.opacity = '0.6';
-                setStatus(msg3); await sleep(4200);
-            }
-
-            async function loop() {
-                while (true) {
-                    await phase1(); await phase2(); await phase3();
-                    reset(); setStatus('Resetting…'); await sleep(700);
-                }
-            }
-
-            const obs = new IntersectionObserver(entries => {
-                if (entries[0].isIntersecting) { obs.disconnect(); loop(); }
-            }, { threshold: 0.2 });
-            obs.observe(wrap);
-        }
-
-        // Initialize both Stack Animations
-        document.addEventListener("DOMContentLoaded", () => {
-            createStackAnimation('decWrap', {
-                liftY: -195,
-                msg1: 'Exploded view — each sub-layer visible inside every decoder block.',
-                msg2: 'Sub-layers compile into one block — Y⁽¹⁾ flows up into Layer 2.',
-                msg3: 'Layer 1 is the front card — the same structure repeats L times behind it.'
-            });
-            createStackAnimation('encWrap', {
-                liftY: -145,
-                msg1: 'Exploded view — unmasked self-attention and FFN.',
-                msg2: 'Sub-layers compile into one block — X⁽¹⁾ flows up into Layer 2.',
-                msg3: 'Layer 1 is the front card — the two-part structure repeats L times.'
-            });
-        });
-
-        // 2. Residual Stream Animations (Unchanged, consolidated here)
         function initRSA(config) {
             const sig = document.getElementById(config.sigId);
             const btn = document.getElementById(config.btnId);
@@ -1673,12 +2052,19 @@ $$p(y_1, \dots, y_{n}) = \prod_{i=1}^{n} p(y_i \mid y_{&lt;i}).$$
 
             function dimArc(id) {
                 const p = document.getElementById(id);
-                if(p) { p.style.transition = 'opacity .5s'; p.style.opacity = '.18'; }
+                if(p) {
+                    p.style.transition = 'opacity .5s';
+                    p.style.opacity = '.18';
+                }
             }
 
             function resetArc(id) {
                 const p = document.getElementById(id);
-                if(p) { p.style.transition = p.style.strokeDasharray = p.style.strokeDashoffset = ''; p.classList.remove('live'); p.style.opacity = ''; }
+                if(p) {
+                    p.style.transition = p.style.strokeDasharray = p.style.strokeDashoffset = '';
+                    p.classList.remove('live');
+                    p.style.opacity = '';
+                }
             }
 
             function hi(id)  { document.getElementById(id).classList.add('on'); }
@@ -1689,57 +2075,102 @@ $$p(y_1, \dots, y_{n}) = \prod_{i=1}^{n} p(y_i \mid y_{&lt;i}).$$
                 btn.disabled = true;
                 const originalText = btn.innerHTML;
                 btn.textContent = 'Animating...';
+
                 await config.sequence({ sig, tex, move, drawArc, dimArc, resetArc, hi, lo, sleep });
+
                 btn.disabled = false;
                 btn.textContent = '↺ Replay';
             });
         }
 
-        // Initialize Residual Stream Animations
+        // 1. Encoder-Decoder Layer
         initRSA({
             sigId: 'encdec-sig', btnId: 'encdec-btn',
             sequence: async (api) => {
                 ['encdec-arc-msa', 'encdec-arc-mca', 'encdec-arc-ffn'].forEach(api.resetArc);
-                api.sig.style.transition = 'none'; api.sig.style.top = '390px'; api.sig.style.opacity = '1'; api.sig.classList.remove('morph');
-                await api.tex(api.sig, 'Y^{(l)}'); await api.sleep(180);
+                api.sig.style.transition = 'none';
+                api.sig.style.top = '390px';
+                api.sig.style.opacity = '1';
+                api.sig.classList.remove('morph');
+                await api.tex(api.sig, 'Y^{(l)}');
+                await api.sleep(180);
 
-                await api.move(340, 400); api.hi('encdec-b-msa'); api.hi('encdec-h-msa'); await api.sleep(660);
-                api.lo('encdec-h-msa'); api.lo('encdec-b-msa'); await api.drawArc('encdec-arc-msa', 440); api.hi('encdec-p-msa'); await api.sleep(130);
-                await api.move(270, 140); await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)}'); await api.sleep(340);
+                await api.move(340, 400);
+                api.hi('encdec-b-msa'); api.hi('encdec-h-msa');
+                await api.sleep(660);
+                api.lo('encdec-h-msa'); api.lo('encdec-b-msa');
+                await api.drawArc('encdec-arc-msa', 440);
+                api.hi('encdec-p-msa'); await api.sleep(130);
+                await api.move(270, 140);
+                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)}');
+                await api.sleep(340);
                 api.lo('encdec-p-msa'); api.dimArc('encdec-arc-msa');
 
-                await api.move(232, 420); api.hi('encdec-b-mca'); api.hi('encdec-h-mca'); await api.sleep(660);
-                api.lo('encdec-h-mca'); api.lo('encdec-b-mca'); await api.drawArc('encdec-arc-mca', 440); api.hi('encdec-p-mca'); await api.sleep(130);
-                await api.move(162, 140); await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)} + \\Delta_\\mathrm{ca}^{(l)}'); await api.sleep(360);
+                await api.move(232, 420);
+                api.hi('encdec-b-mca'); api.hi('encdec-h-mca');
+                await api.sleep(660);
+                api.lo('encdec-h-mca'); api.lo('encdec-b-mca');
+                await api.drawArc('encdec-arc-mca', 440);
+                api.hi('encdec-p-mca'); await api.sleep(130);
+                await api.move(162, 140);
+                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)} + \\Delta_\\mathrm{ca}^{(l)}');
+                await api.sleep(360);
                 api.lo('encdec-p-mca'); api.dimArc('encdec-arc-mca');
 
-                await api.move(124, 420); api.hi('encdec-b-ffn'); api.hi('encdec-h-ffn'); await api.sleep(660);
-                api.lo('encdec-h-ffn'); api.lo('encdec-b-ffn'); await api.drawArc('encdec-arc-ffn', 440); api.hi('encdec-p-ffn'); await api.sleep(130);
-                await api.move(54, 140); await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)} + \\Delta_\\mathrm{ca}^{(l)} + \\Delta_\\mathrm{ffn}^{(l)}'); await api.sleep(360);
+                await api.move(124, 420);
+                api.hi('encdec-b-ffn'); api.hi('encdec-h-ffn');
+                await api.sleep(660);
+                api.lo('encdec-h-ffn'); api.lo('encdec-b-ffn');
+                await api.drawArc('encdec-arc-ffn', 440);
+                api.hi('encdec-p-ffn'); await api.sleep(130);
+                await api.move(54, 140);
+                await api.tex(api.sig, 'Y^{(l)} + \\Delta_\\mathrm{sa}^{(l)} + \\Delta_\\mathrm{ca}^{(l)} + \\Delta_\\mathrm{ffn}^{(l)}');
+                await api.sleep(360);
                 api.lo('encdec-p-ffn'); api.dimArc('encdec-arc-ffn');
 
-                await api.move(15, 280); await api.tex(api.sig, '\\text{Layer } l \\text{ Output: } Y^{(l)} + \\Delta^{(l)}', true); await api.sleep(400);
+                await api.move(15, 280);
+               await api.tex(api.sig, '\\text{Layer } l \\text{ Output: } Y^{(l)} + \\Delta^{(l)}', true);
+                await api.sleep(400);
             }
         });
 
+        // 2. Encoder Layer
         initRSA({
             sigId: 'enc-sig', btnId: 'enc-btn',
             sequence: async (api) => {
                 ['enc-arc-msa', 'enc-arc-ffn'].forEach(api.resetArc);
-                api.sig.style.transition = 'none'; api.sig.style.top = '280px'; api.sig.style.opacity = '1'; api.sig.classList.remove('morph');
-                await api.tex(api.sig, 'X^{(l)}'); await api.sleep(180);
+                api.sig.style.transition = 'none';
+                api.sig.style.top = '280px';
+                api.sig.style.opacity = '1';
+                api.sig.classList.remove('morph');
+                await api.tex(api.sig, 'X^{(l)}');
+                await api.sleep(180);
 
-                await api.move(232, 400); api.hi('enc-b-msa'); api.hi('enc-h-msa'); await api.sleep(660);
-                api.lo('enc-h-msa'); api.lo('enc-b-msa'); await api.drawArc('enc-arc-msa', 440); api.hi('enc-p-msa'); await api.sleep(130);
-                await api.move(162, 140); await api.tex(api.sig, 'X^{(l)} + \\Delta_\\mathrm{attn}^{(l)}'); await api.sleep(340);
+                await api.move(232, 400);
+                api.hi('enc-b-msa'); api.hi('enc-h-msa');
+                await api.sleep(660);
+                api.lo('enc-h-msa'); api.lo('enc-b-msa');
+                await api.drawArc('enc-arc-msa', 440);
+                api.hi('enc-p-msa'); await api.sleep(130);
+                await api.move(162, 140);
+                await api.tex(api.sig, 'X^{(l)} + \\Delta_\\mathrm{attn}^{(l)}');
+                await api.sleep(340);
                 api.lo('enc-p-msa'); api.dimArc('enc-arc-msa');
 
-                await api.move(124, 420); api.hi('enc-b-ffn'); api.hi('enc-h-ffn'); await api.sleep(660);
-                api.lo('enc-h-ffn'); api.lo('enc-b-ffn'); await api.drawArc('enc-arc-ffn', 440); api.hi('enc-p-ffn'); await api.sleep(130);
-                await api.move(54, 140); await api.tex(api.sig, 'X^{(l)} + \\Delta_\\mathrm{attn}^{(l)} + \\Delta_\\mathrm{ffn}^{(l)}'); await api.sleep(360);
+                await api.move(124, 420);
+                api.hi('enc-b-ffn'); api.hi('enc-h-ffn');
+                await api.sleep(660);
+                api.lo('enc-h-ffn'); api.lo('enc-b-ffn');
+                await api.drawArc('enc-arc-ffn', 440);
+                api.hi('enc-p-ffn'); await api.sleep(130);
+                await api.move(54, 140);
+                await api.tex(api.sig, 'X^{(l)} + \\Delta_\\mathrm{attn}^{(l)} + \\Delta_\\mathrm{ffn}^{(l)}');
+                await api.sleep(360);
                 api.lo('enc-p-ffn'); api.dimArc('enc-arc-ffn');
 
-                await api.move(15, 280); await api.tex(api.sig, '\\text{Layer } l \\text{ Output: } X^{(l+1)}', true); await api.sleep(400);
+                await api.move(15, 280);
+                await api.tex(api.sig, '\\text{Layer } l \\text{ Output: } X^{(l+1)}', true);
+                await api.sleep(400);
             }
         });
 

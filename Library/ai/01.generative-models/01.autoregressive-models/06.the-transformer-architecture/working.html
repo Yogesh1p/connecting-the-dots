@@ -33,15 +33,64 @@
         }
         .interactive-wrapper::-webkit-scrollbar { height: 6px; }
         .interactive-wrapper::-webkit-scrollbar-thumb { background: var(--border, #E8DFD1); border-radius: 4px; }
-        
+
+        /* ── MOBILE: scale every animation widget as a whole unit ── */
+        /* Nothing inside is touched — transform: scale shrinks the entire
+           rendered box. We use a .anim-scale-wrap div (added inline below)
+           as the scaling target so the parent can collapse to the real height. */
+
         @media screen and (max-width: 768px) {
             body, article, .content, main {
                 width: 100% !important; max-width: 100vw !important;
                 padding: 10px 15px !important; box-sizing: border-box !important;
                 overflow-x: hidden !important;
             }
-            .rsa-wrap { min-width: 600px; }
-            .stack-wrap { min-width: 380px; }
+
+            /* Generic scaling container — wraps each animation widget */
+            .anim-scale-wrap {
+                transform-origin: top left;
+                display: block;
+            }
+
+            /* Stack animations: original width 380px, target ~310px → scale 0.82 */
+            .stack-scale-wrap {
+                transform: scale(0.82);
+                width: calc(100% / 0.82);
+                margin-bottom: calc((0.82 - 1) * 100%); /* collapse dead vertical space */
+            }
+
+            /* RSA decoder: original 720px wide, 460px tall → scale 0.44 */
+            .rsa-encdec-scale-wrap {
+                transform: scale(0.44);
+                width: calc(720px);        /* keep internal px layout intact */
+                height: 460px;
+                margin-bottom: calc(460px * 0.44 - 460px);
+            }
+
+            /* RSA encoder: original 720px wide, 360px tall → scale 0.44 */
+            .rsa-enc-scale-wrap {
+                transform: scale(0.44);
+                width: 720px;
+                height: 360px;
+                margin-bottom: calc(360px * 0.44 - 360px);
+            }
+
+            /* T-Widget: original unconstrained width, scale 0.52 */
+            .twidget-scale-wrap {
+                transform: scale(0.52);
+                width: calc(100% / 0.52);
+                margin-bottom: calc((0.52 - 1) * 800px); /* rough height of widget */
+            }
+
+            /* Clip overflow from scaled children */
+            .interactive-wrapper { overflow: hidden; }
+        }
+
+        @media screen and (max-width: 400px) {
+            .stack-scale-wrap       { transform: scale(0.70); width: calc(100% / 0.70); }
+            .rsa-encdec-scale-wrap  { transform: scale(0.36); margin-bottom: calc(460px * 0.36 - 460px); }
+            .rsa-enc-scale-wrap     { transform: scale(0.36); margin-bottom: calc(360px * 0.36 - 360px); }
+            .twidget-scale-wrap     { transform: scale(0.43); width: calc(100% / 0.43); margin-bottom: calc((0.43 - 1) * 800px); }
         }
     </style>
 
@@ -345,7 +394,7 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
 
 <figure style="margin: 3.5rem auto;">
 <div class="interactive-wrapper">
-
+<div class="anim-scale-wrap stack-scale-wrap">
 <div class="stack-wrap" id="decWrap">
   <div class="stack-scene decoder-scene">
     <div class="stack-rig">
@@ -442,6 +491,7 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
   <div class="stack-status">Exploded view — each sub-layer visible inside every decoder block.</div>
 </div>
 </div>
+</div>
 
 <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;line-height:1.6;padding:0 0.2rem;text-align:center;max-width:380px;margin-left:auto;margin-right:auto;">
   The decoder stack: one shared three-part structure repeated $L$ times, each layer refining representations passed up from the layer below.
@@ -509,7 +559,7 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
  
 <figure style="margin: 3.5rem auto;">
 <div class="interactive-wrapper">
-
+<div class="anim-scale-wrap stack-scale-wrap">
 <div class="stack-wrap" id="encWrap">
   <div class="stack-scene encoder-scene">
     <div class="stack-rig">
@@ -586,6 +636,7 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
   <div class="stack-status">Exploded view — unmasked self-attention and FFN.</div>
 </div>
 </div>
+</div>
  
 <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem;line-height:1.6;padding:0 0.2rem;text-align:center;max-width:380px;margin-left:auto;margin-right:auto;">
   The encoder stack: a simpler two-part structure (no cross-attention) repeated $L$ times to build fully bidirectional source representations.
@@ -627,6 +678,7 @@ $$Y^{(L)} = Y^{(0)} + \sum_{l=1}^{L} \bigl(\Delta_{\mathrm{sa}}^{(l)} + \Delta_{
 
 <figure style="margin: 2.5rem 0; text-align: left;">
     <div class="interactive-wrapper">
+    <div class="anim-scale-wrap rsa-encdec-scale-wrap">
     <div class="rsa-wrap" id="rsa-encdec" style="max-width: 720px; height: 460px;">
         <div class="rsa-spine" style="top: 40px; bottom: 50px;"></div>
         <div class="rsa-layer-lbl" style="top: 210px;">Layer $l$</div>
@@ -676,12 +728,14 @@ $$Y^{(L)} = Y^{(0)} + \sum_{l=1}^{L} \bigl(\Delta_{\mathrm{sa}}^{(l)} + \Delta_{
         </div>
     </div>
     </div>
+    </div>
     <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
         One Transformer decoder layer. Masked self-attention builds target context; cross-attention retrieves from $X_\mathrm{enc}$; the FFN refines locally. Residual connections accumulate all three deltas into $Y^{(l)} + \Delta^{(l)}$.
     </figcaption>
 </figure>
 <figure style="margin: 2rem 0; text-align: center;">
     <div class="interactive-wrapper">
+    <div class="anim-scale-wrap rsa-enc-scale-wrap">
     <div class="rsa-wrap" id="rsa-enc" style="max-width: 720px; height: 360px;">
         <div class="rsa-spine" style="top: 10px; bottom: 50px;"></div>
         <div class="rsa-layer-lbl" style="top: 154px;">Layer $l$</div>
@@ -711,6 +765,7 @@ $$Y^{(L)} = Y^{(0)} + \sum_{l=1}^{L} \bigl(\Delta_{\mathrm{sa}}^{(l)} + \Delta_{
         <div class="rsa-ctrl">
             <button class="rsa-btn" id="enc-btn">▶&nbsp;Trace Encoder Stream</button>
         </div>
+    </div>
     </div>
     </div>
     <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
