@@ -14,7 +14,7 @@
 <meta name="status" content="draft">
 <meta name="date" content="2026-04-22">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="15">
+<meta name="reading_time" content="16">
 
 <meta property="og:title" content="The Transformer Architecture">
 <meta property="og:description" content="From positional encodings and masked self-attention to residual refinement, layer stacking, and autoregressive inference — the complete Transformer architecture built from first principles.">
@@ -41,8 +41,13 @@
             padding: 10px 15px !important; box-sizing: border-box !important;
             overflow-x: hidden !important;
         }
-        .rsa-wrap { min-width: 600px; }
-        .dec-wrap, .enc-anim-wrap { min-width: 380px; }
+        .rsa-wrap { min-width: 100%; width: 100%; max-width: 100%; transform: scale(0.85); transform-origin: left top; margin-bottom: -10%; }
+        .dec-wrap, .enc-anim-wrap { min-width: 100%; max-width: 100%; transform: scale(0.95); transform-origin: top center; }
+    }
+    
+    @media screen and (max-width: 480px) {
+        .rsa-wrap { transform: scale(0.65); margin-bottom: -25%; }
+        .dec-wrap, .enc-anim-wrap { transform: scale(0.85); margin-bottom: -10%; }
     }
 </style>
 
@@ -129,15 +134,15 @@
         .rsa-bar { position: absolute; left: 203px; width: 33px; height: 2px; background: var(--border, #E8DFD1); z-index: 1; }
         .rsa-bar::after { content: ''; position: absolute; right: 0; top: -3px; border-left: 6px solid var(--border, #E8DFD1); border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
         .rsa-box {
-            position: absolute; left: 236px; right: 16px; height: 68px;
+            position: absolute; left: 236px; right: 16px; height: auto; min-height: 76px;
             background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1);
             border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10; transition: border-color 0.3s, box-shadow 0.3s; padding: 0 0.8rem; text-align: center; box-sizing: border-box;
+            z-index: 10; transition: border-color 0.3s, box-shadow 0.3s; padding: 0.8rem 0.8rem 1.2rem 0.8rem; text-align: center; box-sizing: border-box;
         }
         .rsa-box.on { border-color: var(--accent, #D48C70); box-shadow: 0 0 12px rgba(212,140,112,0.15); }
         .rsa-box-title { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted, #847769); margin-bottom: 4px; }
         .rsa-box-title.hi { color: var(--accent, #D48C70); }
-        .rsa-box-math { font-size: 1rem; color: var(--text, #4A3F35); }
+        .rsa-box-math { font-size: 1rem; color: var(--text, #4A3F35); padding-bottom: 4px; }
         .rsa-hl { border-radius: 3px; padding: 1px 3px; transition: background 0.3s, color 0.3s; }
         .rsa-hl.on { background: rgba(212,140,112,0.15); color: var(--accent, #D48C70); font-weight: bold; }
         .rsa-divider { position: absolute; left: 16px; right: 16px; height: 0; border-top: 1.5px dashed var(--border, #E8DFD1); opacity: 0.8; z-index: 8; }
@@ -157,11 +162,11 @@
         }
         .rsa-btn:hover { background: var(--accent, #D48C70); color: #fff; }
         .rsa-btn:disabled { opacity: 0.38; cursor: not-allowed; background: var(--surface,#F4EFE6); color: var(--accent,#D48C70); }
-        .rsa-input-lbl { position:absolute; left:16px; font-size:1rem; color:var(--muted,#847769); font-style:italic; }
+        .rsa-input-lbl { position:absolute; left:16px; font-size:1rem; color:var(--muted,#847769); font-style:italic; padding-bottom: 5px; }
         .rsa-badge {
             position: absolute; right: 26px; top: 12px;
             background: var(--surface); border: 1.5px solid var(--border);
-            border-radius: 8px; padding: 0.4rem 0.6rem; text-align: center;
+            border-radius: 8px; padding: 0.6rem 0.8rem; text-align: center;
             font-size: 0.8rem; color: var(--muted); line-height: 1.4;
             box-shadow: 0 2px 5px rgba(0,0,0,0.03); z-index: 15;
         }
@@ -284,14 +289,14 @@ $$Y' = \mathrm{FFN}(H_{\mathrm{ca}}).$$
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">3. Position-Wise Feed-Forward Network</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$Y' = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$Y' = \mathrm{FFN}(H_{\mathrm{ca}})$</div>
     </div>
 
     <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; text-align: center; width: 100%;">2. Multi-Head Cross-Attention</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); text-align: center; width: 100%;">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}}, X_{\mathrm{enc}})$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); text-align: center; width: 100%; padding-bottom: 4px;">$H_{\mathrm{ca}} = \mathrm{MHCA}(H_{\mathrm{sa}}, X_{\mathrm{enc}})$</div>
         
         <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; color: var(--muted, #847769); font-style: italic; background: var(--box-bg, #FBF6F2); padding: 2px 5px; border: 1px dashed var(--border, #E8DFD1); border-radius: 4px; white-space: nowrap;">
             ← $X_{\mathrm{enc}}$
@@ -302,7 +307,7 @@ $$Y' = \mathrm{FFN}(H_{\mathrm{ca}}).$$
 
     <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
         <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">1. Masked Multi-Head Self-Attention</div>
-        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35);">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y)$</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$H_{\mathrm{sa}} = \mathrm{MMHSA}(Y)$</div>
     </div>
 
     <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0 1rem 0;">↑</div>
@@ -398,7 +403,7 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
   background: var(--box-bg, #FBF6F2);
   border: 1px solid var(--border, #E8DFD1);
   border-radius: 7px;
-  padding: .6rem .85rem;
+  padding: .8rem .85rem 1rem .85rem;
   text-align: center;
   transition: padding 0.5s ease;
 }
@@ -415,13 +420,14 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
   font-size: 0.82rem;
   color: var(--text, #4A3F35);
   margin: 0;
+  padding-bottom: 4px;
 }
 .dec-int-arrow {
   text-align: center;
   color: var(--accent, #D48C70);
   font-size: 14px;
   line-height: 1;
-  padding: 5px 0;
+  padding: 8px 0;
   overflow: hidden;
   transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
   max-height: 30px;
@@ -451,7 +457,7 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
   color: var(--accent, #D48C70);
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 5px 12px 6px 12px;
   border-radius: 4px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -484,7 +490,7 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
 }
 .p-bridge .dec-comp,
 .p-depth  .dec-comp {
-  padding: .3rem .85rem;
+  padding: .5rem .85rem .7rem .85rem;
 }
 </style>
 
@@ -753,6 +759,37 @@ $$Y^{(0)} \rightarrow Y^{(1)} \rightarrow Y^{(2)} \rightarrow \cdots \rightarrow
     </li>
 </ol>
  
+<figure style="margin: 3.5rem auto; max-width: 380px; text-align: left;">
+    
+    <div style="text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--text, #4A3F35); margin-bottom: 0.75rem;">
+        Updated Source Representations ($X'$)
+    </div>
+
+    <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
+
+    <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
+        <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">2. Position-Wise Feed-Forward Network</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$X' = \mathrm{FFN}(H_{\mathrm{attn}})$</div>
+    </div>
+
+    <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0;">↑</div>
+
+    <div style="padding: 1.2rem 1rem; background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1); border-radius: 8px; text-align: center;">
+        <div style="font-size: 0.7rem; font-weight: 700; color: var(--muted, #847769); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px;">1. Multi-Head Self-Attention (unmasked)</div>
+        <div style="font-size: 0.85rem; font-family: monospace; color: var(--text, #4A3F35); padding-bottom: 4px;">$H_{\mathrm{attn}} = \mathrm{MHSA}(X)$</div>
+    </div>
+
+    <div style="text-align: center; color: var(--accent, #D48C70); font-size: 1.4rem; font-weight: bold; line-height: 1; margin: 0.75rem 0 1rem 0;">↑</div>
+
+    <div style="font-size: 0.85rem; text-align: center; color: var(--text, #4A3F35); line-height: 1.3;">
+        Input Source Embeddings<br><span style="font-size: 0.9em; font-family: monospace; font-weight: bold; color: var(--muted, #847769);">$X = \textit{Embed}(x) + \textit{Pos}$</span>
+    </div>
+
+    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top: 1.75rem;line-height:1.6;padding:0 0.5rem;text-align:center;">
+        The functional pipeline of the encoder block: source vectors pass through bidirectional self-attention (every token queries every other), then through position-wise transformation. No causal mask; no cross-attention. Layer index omitted for clarity.
+    </figcaption>
+</figure>
+
 <p>Just as in the decoder, a single pass is not enough to build deep representations. The encoder repeats this two-part block $L$ times:</p>
  
 <div class="math-display">
@@ -824,7 +861,7 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
   background: var(--box-bg, #FBF6F2);
   border: 1px solid var(--border, #E8DFD1);
   border-radius: 7px;
-  padding: .6rem .85rem;
+  padding: .8rem .85rem 1rem .85rem;
   text-align: center;
   transition: padding 0.5s ease;
 }
@@ -832,10 +869,10 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
   font-size: 10px; font-weight: 700; text-transform: uppercase;
   letter-spacing: .05em; color: var(--muted, #847769); margin: 0 0 3px; font-family: inherit;
 }
-.enc-anim-comp-math { font-size: 0.82rem; color: var(--text, #4A3F35); margin: 0; }
+.enc-anim-comp-math { font-size: 0.82rem; color: var(--text, #4A3F35); margin: 0; padding-bottom: 4px; }
 .enc-anim-int-arrow {
   text-align: center; color: var(--accent, #D48C70); font-size: 14px;
-  line-height: 1; padding: 5px 0; overflow: hidden;
+  line-height: 1; padding: 8px 0; overflow: hidden;
   transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease; max-height: 30px;
 }
  
@@ -848,7 +885,7 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
 .enc-anim-bridge-label {
   background: var(--box-bg, #FBF6F2); border: 1px solid var(--accent, #D48C70);
   color: var(--accent, #D48C70); font-size: 11px; font-weight: 700;
-  padding: 3px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; font-family: inherit;
+  padding: 5px 12px 6px 12px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; font-family: inherit;
 }
 .enc-anim-bridge-head {
   width: 0; height: 0; border-left: 6px solid transparent;
@@ -861,7 +898,7 @@ $$X^{(0)} \rightarrow X^{(1)} \rightarrow X^{(2)} \rightarrow \cdots \rightarrow
 }
  
 .enc-p-bridge .enc-anim-int-arrow, .enc-p-depth .enc-anim-int-arrow { max-height: 0; opacity: 0; padding: 0; }
-.enc-p-bridge .enc-anim-comp, .enc-p-depth .enc-anim-comp { padding: .3rem .85rem; }
+.enc-p-bridge .enc-anim-comp, .enc-p-depth .enc-anim-comp { padding: .5rem .85rem .7rem .85rem; }
 </style>
  
 <div class="enc-anim-wrap" id="encAnimWrap">
@@ -1096,7 +1133,7 @@ $$Y^{(L)} = Y^{(0)} + \sum_{l=1}^{L} \bigl(\Delta_{\mathrm{sa}}^{(l)} + \Delta_{
         <div class="rsa-plus" id="encdec-p-mca" style="top: 162px;">+</div>
         <div class="rsa-bar" style="top: 246px;"></div>
         <div class="rsa-box" id="encdec-b-mca" style="top: 198px;">
-            <div class="rsa-badge" style="top: 5px; right: 5px; padding: 0.3rem 0.5rem; text-align: left;">
+            <div class="rsa-badge" style="top: 5px; right: 5px; text-align: left;">
                 <span style="font-weight:700;color:var(--accent);">K, V</span> $\leftarrow X_{\mathrm{enc}}$
             </div>
             <div class="rsa-box-title hi" style="color:var(--box-border);">Multi-Head Cross-Attention</div>
@@ -1240,6 +1277,681 @@ $$\begin{aligned} X' &= X + \mathrm{MHSA}(\mathrm{LN}(X)), \\ X'' &= X' + \mathr
     and the model learns to predict them using surrounding context from both directions.
   </p>
 </details>
+
+<h3>Putting It All Together: Autoregressive Inference</h3>
+<p>The interactive visualization below brings together every component we have discussed to demonstrate the complete, end-to-end process of a Transformer during sequence-to-sequence translation.</p>
+<p>Notice how the encoder processes the entire source sequence at once to build a stable $X_{\mathrm{enc}}$ memory matrix. The decoder, constrained by the causal mask, must operate step-by-step. At each step, it filters its own generated history through self-attention, queries the encoder's memory via cross-attention, and predicts the next token. Once a layer finishes processing, it fades out to reveal the layers beneath, illustrating how the representation flows through the deep residual stack.</p>
+
+<figure style="margin: 3.5rem auto; max-width: 800px;">
+    <div class="interactive-wrapper">
+        <style>
+            /* ── THEME-AWARE WIDGET VARIABLES ── */
+            #T-Widget {
+                --w-accent: var(--accent);
+                --w-accent-light: rgba(212, 140, 112, 0.15);
+                --w-accent-strong: rgba(212, 140, 112, 0.6);
+                
+                /* Updated to an earthy sage green to match the palette */
+                --w-success: #708269; 
+                --w-success-light: rgba(112, 130, 105, 0.15);
+                
+                --w-text: var(--text);
+                --w-muted: var(--muted);
+                --w-faint: #a59a8f;
+                --w-border: var(--border);
+                --w-border-light: rgba(232, 223, 209, 0.4);
+                --w-bg: var(--box-bg);
+                --w-surface: var(--surface);
+                
+                width: 100%;
+                font-family: inherit;
+                background: var(--w-bg);
+                border: 1.5px solid var(--w-border);
+                border-radius: 12px;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                user-select: none;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                margin: 0;
+            }
+
+            #T-Widget * { box-sizing: border-box; }
+
+            /* ── SOFTMAX PANEL ── */
+            #smx-panel { padding: 12px 16px; border-bottom: 1px solid var(--w-border); background: var(--w-surface); }
+            #smx-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--w-muted); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-family: system-ui, sans-serif; }
+            #smx-winner { font-size: 12px; color: var(--w-success); font-weight: 700; }
+            #smx-rows { display: flex; flex-direction: column; gap: 6px; height: 116px; justify-content: center; }
+            #smx-placeholder { font-size: 12px; color: var(--w-faint); font-style: italic; text-align: center; }
+            #T-Widget .vrow { display: flex; align-items: center; gap: 8px; font-family: system-ui, sans-serif; }
+            #T-Widget .vword { font-size: 12px; font-weight: 600; color: var(--w-text); width: 85px; text-align: right; flex-shrink: 0; }
+            #T-Widget .vwrap { flex: 1; background: var(--w-bg); border-radius: 4px; height: 16px; overflow: hidden; border: 1px solid var(--w-border); }
+            #T-Widget .vbar { height: 100%; border-radius: 3px; background: var(--w-accent); width: 0; transition: width .9s cubic-bezier(.4,0,.2,1); }
+            #T-Widget .vbar.win { background: var(--w-success); }
+            #T-Widget .vpct { font-size: 11px; font-weight: 600; color: var(--w-muted); width: 36px; flex-shrink: 0; text-align: right; }
+
+            /* ── OUTPUT SEQUENCE PANEL ── */
+            #output-sequence-panel {
+                padding: 14px 16px 18px;
+                border-bottom: 1.5px solid var(--w-border);
+                background: var(--w-bg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+            #output-sequence-panel span { font-size: 10px; font-weight: 700; color: var(--w-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 8px; }
+
+            #T-Widget .pred-tok { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; border: 1px solid var(--w-border); background: var(--w-bg); color: var(--w-faint); opacity: .4; transition: all .3s; }
+            #T-Widget .pred-tok.lit { background: var(--w-success-light); border-color: var(--w-success); color: #4e5e48; opacity: 1; }
+            #T-Widget .future-tok { background: transparent !important; border: 1px dashed rgba(132, 119, 105, 0.4) !important; color: transparent !important; box-shadow: none !important; pointer-events: none; }
+
+            /* ── ARCHITECTURE AREA ── */
+            #arch { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 20px 24px 16px; position: relative; background: var(--w-bg); font-family: system-ui, sans-serif; }
+            #T-Widget .col { display: flex; flex-direction: column; z-index: 2; }
+            #T-Widget .col-hd { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--w-muted); text-align: center; margin-bottom: 20px; }
+
+            /* ── DYNAMIC OUTPUT LABELS ── */
+            .dynamic-output-label {
+                text-align: center; 
+                margin-top: 4px;
+                margin-bottom: 24px; 
+                height: auto; 
+                min-height: 30px;
+                opacity: 0; 
+                transition: opacity 0.4s;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .enc-badge { font-size: 11px; font-weight: 600; color: var(--w-success); background: var(--w-success-light); padding: 6px 14px; border-radius: 12px; border: 1px solid rgba(112, 130, 105, 0.3); }
+            .dec-badge { font-size: 11px; font-weight: 600; color: var(--w-muted); background: var(--w-surface); padding: 6px 14px; border-radius: 12px; border: 1px solid var(--w-border); display: inline-block; line-height: 1.5; max-width: 100%; }
+            .dec-badge strong { color: var(--w-accent); }
+
+            /* ── SHARED 3D PEEK-STACK CSS ── */
+            #T-Widget .stack { 
+                position: relative; 
+                margin-bottom: 5px; 
+                perspective: 1100px; 
+                min-height: 290px; 
+            }
+            #T-Widget .rig {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                transform-style: preserve-3d;
+                transform: translateY(15px) rotateY(28deg); 
+                transition: transform 0.85s cubic-bezier(0.4,0,0.2,1);
+            }
+            #T-Widget .lcard {
+                position: absolute;
+                left: 0; right: 0; margin: 0 auto;
+                width: 100%; max-width: 260px;
+                border: 1.5px solid var(--w-border);
+                border-radius: 12px; 
+                background: var(--w-surface); 
+                padding: 1.5rem 0.8rem 0.8rem; 
+                transform-origin: center center;
+                transition: transform 0.6s cubic-bezier(0.34,1.2,0.64,1),
+                            opacity 0.5s ease, border-color 0.4s ease, box-shadow 0.5s ease;
+            }
+
+            /* Layer Depth States */
+            #tw-eL, #tw-dL { transform: translateZ(-65px); opacity: 0.4; z-index: 1; } 
+            #tw-e2, #tw-d2 { transform: translateZ(-15px); opacity: 0.8; z-index: 2; } 
+            #tw-e1, #tw-d1 { transform: translateZ(35px); opacity: 1; z-index: 3; box-shadow: 0 6px 16px rgba(0,0,0,0.06); } 
+
+            #T-Widget .lcard.active {
+                transform: translateZ(85px) scale(1.05) !important; 
+                z-index: 10 !important;
+                opacity: 1 !important;
+                border-color: var(--w-accent) !important;
+                box-shadow: 0 12px 28px rgba(212, 140, 112, 0.22) !important;
+            }
+            
+            #T-Widget .lcard.processed {
+                opacity: 0 !important;
+                transform: translateY(40px) translateZ(-40px) scale(0.85) !important;
+                pointer-events: none;
+            }
+            #T-Widget .lcard.done { 
+                border-color: rgba(112, 130, 105, 0.5) !important; 
+                box-shadow: 0 4px 12px rgba(112, 130, 105, 0.1) !important;
+            }
+
+            #T-Widget .lcard-badge {
+                position: absolute;
+                top: -11px; left: 12px; font-size: 9px; font-weight: 700; letter-spacing: .07em;
+                text-transform: uppercase; padding: 2px 9px; border-radius: 4px;
+                color: #fff; background: var(--w-accent); white-space: nowrap; font-family: inherit;
+            }
+            #T-Widget .lcard-badge.alt { background: var(--w-muted); }
+
+            #T-Widget .subs { display: flex; flex-direction: column; gap: 0; }
+            
+            #T-Widget .sub { 
+                background: var(--w-bg); border: 1px solid var(--w-border); 
+                border-radius: 6px; padding: .4rem .6rem; text-align: center; transition: all .25s ease; 
+            }
+            #T-Widget .sub-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--w-muted); margin: 0 0 2px; font-family: inherit; }
+            #T-Widget .sub-math { font-size: 0.75rem; color: var(--w-text); margin: 0; }
+            
+            #T-Widget .sub.hi { background: var(--w-accent-light); border-color: var(--w-accent); }
+            #T-Widget .sub.hi .sub-title { color: var(--w-accent); }
+
+            #T-Widget .int-arrow { text-align: center; color: var(--w-accent); font-size: 12px; line-height: 1; padding: 3px 0; }
+
+            /* ── TOKEN ROW ── */
+            #T-Widget .tok-area { padding-top: 12px; border-top: 1px dashed var(--w-border); padding-bottom: 4px; }
+            #T-Widget .tok-label { font-size: 9px; font-weight: 600; color: var(--w-faint); text-align: center; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+            #T-Widget .tok-row { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+            #T-Widget .tok { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; border: 1px solid var(--w-border); background: var(--w-surface); color: var(--w-muted); transition: all .3s; opacity: .5; }
+            #T-Widget .tok.active { background: var(--w-accent-light); border-color: var(--w-accent); color: var(--w-accent); opacity: 1; transform: translateY(-1px); }
+            #T-Widget .tok.done { background: var(--w-success-light); border-color: var(--w-success); color: #4e5e48; opacity: 1; }
+
+            /* ── BRIDGE SVG ── */
+            #bridge { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+            #bsvg path { transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+            /* ── STEP DESCRIPTION ── */
+            #desc-bar { padding: 16px 20px 20px; border-top: 1.5px solid var(--w-border); background: var(--w-bg); border-bottom: 1.5px solid var(--w-border); height: auto; min-height: 100px; box-sizing: border-box;}
+            #desc-phase { font-size: 12px; font-weight: 700; color: var(--w-accent); margin-bottom: 8px; font-family: system-ui, sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+            #desc-text { font-size: 0.95rem; color: var(--w-text); line-height: 1.6; margin: 0; }
+
+            /* ── CONTROLS ── */
+            #ctrl { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--w-surface); font-family: system-ui, sans-serif; }
+            #T-Widget .nav-btn { padding: 6px 18px; background: var(--w-bg); color: var(--w-text); border: 1px solid var(--w-border); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .2s; }
+            #T-Widget .nav-btn:disabled { opacity: .4; cursor: not-allowed; }
+            #T-Widget .nav-btn:not(:disabled):hover { background: var(--w-border-light); }
+            #T-Widget .nav-btn.primary { background: var(--w-accent); color: #fff; border-color: var(--w-accent); }
+            #T-Widget .nav-btn.primary:not(:disabled):hover { background: var(--w-accent); filter: brightness(0.9); }
+            #T-Widget #dots { display: flex; gap: 5px; align-items: center; justify-content: center; }
+            #T-Widget .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--w-border); transition: all .3s; }
+            #T-Widget .dot.on { background: var(--w-accent); transform: scale(1.4); }
+            #T-Widget #step-ctr { font-size: 11px; font-weight: 600; color: var(--w-muted); margin-top: 5px; text-align: center; }
+        </style>
+
+        <div id="T-Widget">
+            <div id="smx-panel">
+                <div id="smx-label">
+                    <span>$p_\theta(y_i \mid y_{&lt;i}) \rightarrow \text{Softmax over Vocabulary}$</span>
+                    <span id="smx-winner"></span>
+                </div>
+                <div id="smx-rows"><div id="smx-placeholder">Probabilities appear during decoding...</div></div>
+            </div>
+
+            <div id="output-sequence-panel">
+                <span>Generated sequence:</span>
+                <div class="pred-tok future-tok" id="ot-die">Die</div>
+                <div class="pred-tok future-tok" id="ot-schwarze">schwarze</div>
+                <div class="pred-tok future-tok" id="ot-katze">Katze</div>
+                <div class="pred-tok future-tok" id="ot-eos">&lt;EOS&gt;</div>
+            </div>
+
+            <div id="arch">
+                <div class="col" id="enc-col">
+                    <div class="col-hd">Encoder Stack</div>
+                    
+                    <div id="enc-output-panel" class="dynamic-output-label">
+                        <span class="enc-badge">$X_{\text{enc}}$ Matrix Ready</span>
+                    </div>
+
+                    <div class="stack">
+                        <div class="rig">
+                            <div class="lcard" id="tw-eL">
+                                <div class="lcard-badge alt">Layer L</div>
+                                <div class="subs">
+                                    <div class="sub" id="tw-eL-ffn">
+                                        <div class="sub-title">2. Feed-Forward Network</div>
+                                        <div class="sub-math">$X^{(L)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(L)})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-eL-sa">
+                                        <div class="sub-title">1. Multi-Head Self-Attention</div>
+                                        <div class="sub-math">$H_{\{attn\}}^{(L)} = \mathrm{MHSA}(X^{(L-1)})$</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="lcard" id="tw-e2">
+                                <div class="lcard-badge alt">Layer 2</div>
+                                <div class="subs">
+                                    <div class="sub" id="tw-e2-ffn">
+                                        <div class="sub-title">2. Feed-Forward Network</div>
+                                        <div class="sub-math">$X^{(2)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(2)})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-e2-sa">
+                                        <div class="sub-title">1. Multi-Head Self-Attention</div>
+                                        <div class="sub-math">$H_{\mathrm{attn}}^{(2)} = \mathrm{MHSA}(X^{(1)})$</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="lcard" id="tw-e1">
+                                <div class="lcard-badge">Layer 1</div>
+                                <div class="subs">
+                                    <div class="sub" id="tw-e1-ffn">
+                                        <div class="sub-title">2. Feed-Forward Network</div>
+                                        <div class="sub-math">$X^{(1)} = \mathrm{FFN}(H_{\mathrm{attn}}^{(1)})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-e1-sa">
+                                        <div class="sub-title">1. Multi-Head Self-Attention</div>
+                                        <div class="sub-math">$H_{\mathrm{attn}}^{(1)} = \mathrm{MHSA}(X^{(0)})$</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tok-area">
+                        <div class="tok-label">Input Source Embeddings</div>
+                        <div class="tok-row">
+                            <div class="tok" id="et-the">the</div>
+                            <div class="tok" id="et-black">black</div>
+                            <div class="tok" id="et-cat">cat</div>
+                            <div class="tok" id="et-eos">&lt;EOS&gt;</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bridge">
+                    <svg id="bsvg" width="100%" height="100%">
+                        <defs>
+                            <marker id="ma" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                <path d="M2 1L8 5L2 9" fill="none" stroke="var(--w-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </marker>
+                        </defs>
+                        <path id="arc-d1" d="" fill="none" stroke="var(--w-accent)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ma)" opacity="0" />
+                        <path id="arc-d2" d="" fill="none" stroke="var(--w-accent)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ma)" opacity="0" />
+                        <path id="arc-dL" d="" fill="none" stroke="var(--w-accent)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ma)" opacity="0" />
+                    </svg>
+                </div>
+
+                <div class="col" id="dec-col">
+                    <div class="col-hd">Decoder Stack</div>
+                    
+                    <div id="dec-focus-panel" class="dynamic-output-label">
+                        <span class="dec-badge">Extracting vector for <strong id="focus-tok">...</strong> $\rightarrow$ Vocab Dot Product</span>
+                    </div>
+
+                    <div class="stack">
+                        <div class="rig">
+                            <div class="lcard" id="tw-dL">
+                                <div class="lcard-badge alt">Layer L</div>
+                                <div class="subs">
+                                    <div class="sub" id="tw-dL-ffn">
+                                        <div class="sub-title">3. Feed-Forward Network</div>
+                                        <div class="sub-math">$Y^{(L)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(L)})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-dL-ca">
+                                        <div class="sub-title">2. Cross-Attention $\leftarrow X_{\mathrm{enc}}$</div>
+                                        <div class="sub-math">$H_{\mathrm{ca}}^{(L)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(L)}, X_{\mathrm{enc}})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-dL-sa">
+                                        <div class="sub-title">1. Masked Self-Attention</div>
+                                        <div class="sub-math">$H_{\mathrm{sa}}^{(L)} = \mathrm{MMHSA}(Y^{(L-1)})$</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="lcard" id="tw-d2">
+                                <div class="lcard-badge alt">Layer 2</div>
+                                <div class="subs">
+                                    <div class="sub" id="tw-d2-ffn">
+                                        <div class="sub-title">3. Feed-Forward Network</div>
+                                        <div class="sub-math">$Y^{(2)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(2)})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-d2-ca">
+                                        <div class="sub-title">2. Cross-Attention $\leftarrow X_{\mathrm{enc}}$</div>
+                                        <div class="sub-math">$H_{\mathrm{ca}}^{(2)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(2)}, X_{\mathrm{enc}})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-d2-sa">
+                                        <div class="sub-title">1. Masked Self-Attention</div>
+                                        <div class="sub-math">$H_{\mathrm{sa}}^{(2)} = \mathrm{MMHSA}(Y^{(1)})$</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="lcard" id="tw-d1">
+                                <div class="lcard-badge">Layer 1</div>
+                                <div class="subs">
+                                    <div class="sub" id="tw-d1-ffn">
+                                        <div class="sub-title">3. Feed-Forward Network</div>
+                                        <div class="sub-math">$Y^{(1)} = \mathrm{FFN}(H_{\mathrm{ca}}^{(1)})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-d1-ca">
+                                        <div class="sub-title">2. Cross-Attention $\leftarrow X_{\mathrm{enc}}$</div>
+                                        <div class="sub-math">$H_{\mathrm{ca}}^{(1)} = \mathrm{MHCA}(H_{\mathrm{sa}}^{(1)}, X_{\mathrm{enc}})$</div>
+                                    </div>
+                                    <div class="int-arrow">↑</div>
+                                    <div class="sub" id="tw-d1-sa">
+                                        <div class="sub-title">1. Masked Self-Attention</div>
+                                        <div class="sub-math">$H_{\mathrm{sa}}^{(1)} = \mathrm{MMHSA}(Y^{(0)})$</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tok-area">
+                        <div class="tok-label">Input Target Embeddings</div>
+                        <div class="tok-row" id="dec-tok-row">
+                            <div class="tok" id="dt-bos">&lt;BOS&gt;</div>
+                            <div class="tok future-tok" id="dt-die">Die</div>
+                            <div class="tok future-tok" id="dt-schwarze">schwarze</div>
+                            <div class="tok future-tok" id="dt-katze">Katze</div>
+                            <div class="tok future-tok" id="dt-eos">&lt;EOS&gt;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="desc-bar">
+                <div id="desc-phase">Initializing...</div>
+                <p id="desc-text">Ready to visualize the compact Transformer architecture.</p>
+            </div>
+
+            <div id="ctrl">
+                <button class="nav-btn" id="prev-btn" disabled>← Prev</button>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+                    <div id="dots"></div>
+                    <div id="step-ctr">0 / 0</div>
+                </div>
+                <button class="nav-btn primary" id="next-btn">Next →</button>
+            </div>
+        </div>
+
+        <script>
+        (function(){
+            const $ = id => document.getElementById(id);
+
+            const VOCABS=[
+                [{de:'Die',pct:62},{de:'Der',pct:18},{de:'Das',pct:10},{de:'Eine',pct:6},{de:'Keine',pct:3},{de:'Katze',pct:1}],
+                [{de:'schwarze',pct:55},{de:'kleine',pct:16},{de:'große',pct:12},{de:'alte',pct:9},{de:'Katze',pct:5},{de:'schöne',pct:3}],
+                [{de:'Katze',pct:70},{de:'Kater',pct:11},{de:'Katz',pct:8},{de:'Katzen',pct:7},{de:'Nacht',pct:3},{de:'Ende',pct:1}],
+                [{de:'<EOS>',pct:96},{de:'.',pct:2},{de:'!',pct:1},{de:'ist',pct:0.5},{de:'und',pct:0.3},{de:'?',pct:0.2}],
+            ];
+
+            let cur = -1;
+            let running = false;
+            let isFast = false;
+            let timeouts = new Set();
+
+            function asyncRun(fn, ms) {
+                if (isFast) { fn(); }
+                else { const id = setTimeout(() => { timeouts.delete(id); fn(); }, ms); timeouts.add(id); }
+            }
+
+            const sleep = ms => new Promise(r => {
+                if (isFast) { r(); }
+                else { const id = setTimeout(() => { timeouts.delete(id); r(); }, ms); timeouts.add(id); }
+            });
+
+            function clearAllTimeouts() { timeouts.forEach(clearTimeout); timeouts.clear(); }
+
+            const STEPS = buildSteps();
+            STEPS.forEach((_,i)=>{
+                const d=document.createElement('div');d.className='dot';d.id='dot'+i;
+                $('dots').appendChild(d);
+            });
+
+            function buildSteps(){
+                return [
+                    { phase:'Step 1 — Tokenize & Embed',
+                      text:'Source tokens "the", "black", "cat", $\\langle \\text{EOS} \\rangle$ are embedded into dense vectors.',
+                      exec: async()=>{
+                          ['et-the','et-black','et-cat','et-eos'].forEach((id,i)=>asyncRun(()=>setTok(id,'active'),i*120));
+                          await sleep(300); 
+                      }
+                    },
+                    { phase:'Step 2 — Run Encoder Stack',
+                      text:'Bidirectional self-attention mixes context across all layers in the 3D stack. The matrix achieves full contextualization.',
+                      exec: async()=>{ 
+                          await runCard('tw-e1',['tw-e1-sa','tw-e1-ffn'], 250); 
+                          await runCard('tw-e2',['tw-e2-sa','tw-e2-ffn'], 250); 
+                          await runCard('tw-eL',['tw-eL-sa','tw-eL-ffn'], 250); 
+                          await sleep(200);
+                          $('enc-output-panel').style.opacity = '1';
+                          drawArcs();
+                          ['arc-d1','arc-d2','arc-dL'].forEach((id,i)=>asyncRun(()=>showArc(id),i*150));
+                      }
+                    },
+                    { phase:'Step 3 — Decode Step 1: Predict "Die"',
+                      text:'$\\langle \\text{BOS} \\rangle$ enters the decoder stack. The final layer extracts its representation vector to compute logits $\\rightarrow$ Softmax predicts "Die".',
+                      exec: async()=>{
+                          setTok('dt-bos','active');
+                          resetStack('tw-d'); drawArcs();
+                          await runCard('tw-d1',['tw-d1-sa','tw-d1-ca','tw-d1-ffn'], 250);
+                          await runCard('tw-d2',['tw-d2-sa','tw-d2-ca','tw-d2-ffn'], 250);
+                          await runCard('tw-dL',['tw-dL-sa','tw-dL-ca','tw-dL-ffn'], 250);
+                          $('dec-focus-panel').style.opacity = '1'; 
+                          $('focus-tok').innerHTML = '&lt;BOS&gt;';
+                          await sleep(300);
+                          showSoftmax(0,0); await sleep(600);
+                          showPredTok('ot-die','lit'); setTok('dt-bos','done'); setTok('dt-die','active');
+                      }
+                    },
+                    { phase:'Step 4 — Decode Step 2: Predict "schwarze"',
+                      text:'Prefix $\\langle \\text{BOS} \\rangle$ Die filters through via causal masking. The decoder extracts the representation for "Die" $\\rightarrow$ Softmax predicts "schwarze".',
+                      exec: async()=>{
+                          resetStack('tw-d'); drawArcs();
+                          $('dec-focus-panel').style.opacity = '0'; 
+                          await runCard('tw-d1',['tw-d1-sa','tw-d1-ca','tw-d1-ffn'], 250);
+                          await runCard('tw-d2',['tw-d2-sa','tw-d2-ca','tw-d2-ffn'], 250);
+                          await runCard('tw-dL',['tw-dL-sa','tw-dL-ca','tw-dL-ffn'], 250);
+                          $('dec-focus-panel').style.opacity = '1'; 
+                          $('focus-tok').innerHTML = 'Die';
+                          await sleep(300);
+                          showSoftmax(1,0); await sleep(600);
+                          showPredTok('ot-schwarze','lit'); setTok('dt-die','done'); setTok('dt-schwarze','active');
+                      }
+                    },
+                    { phase:'Step 5 — Decode Step 3: Predict "Katze"',
+                      text:'Cross-attention dynamically pulls focus to "cat" in $X_{\\mathrm{enc}}$. Using the vector for "schwarze" $\\rightarrow$ Softmax predicts "Katze".',
+                      exec: async()=>{
+                          resetStack('tw-d'); drawArcs();
+                          $('dec-focus-panel').style.opacity = '0'; 
+                          await runCard('tw-d1',['tw-d1-sa','tw-d1-ca','tw-d1-ffn'], 250);
+                          await runCard('tw-d2',['tw-d2-sa','tw-d2-ca','tw-d2-ffn'], 250);
+                          await runCard('tw-dL',['tw-dL-sa','tw-dL-ca','tw-dL-ffn'], 250);
+                          $('dec-focus-panel').style.opacity = '1'; 
+                          $('focus-tok').innerHTML = 'schwarze';
+                          await sleep(300);
+                          showSoftmax(2,0); await sleep(600);
+                          showPredTok('ot-katze','lit'); setTok('dt-schwarze','done'); setTok('dt-katze','active');
+                      }
+                    },
+                    { phase:'Step 6 — Decode Step 4: Complete $\\langle \\text{EOS} \\rangle$',
+                      text:'Cross-attention confirms semantic translation is complete. Outputting the vector for "Katze" $\\rightarrow$ Softmax predicts $\\langle \\text{EOS} \\rangle$, halting generation.',
+                      exec: async()=>{
+                          resetStack('tw-d'); drawArcs();
+                          $('dec-focus-panel').style.opacity = '0'; 
+                          await runCard('tw-d1',['tw-d1-sa','tw-d1-ca','tw-d1-ffn'], 250);
+                          await runCard('tw-d2',['tw-d2-sa','tw-d2-ca','tw-d2-ffn'], 250);
+                          await runCard('tw-dL',['tw-dL-sa','tw-dL-ca','tw-dL-ffn'], 250);
+                          $('dec-focus-panel').style.opacity = '1'; 
+                          $('focus-tok').innerHTML = 'Katze';
+                          await sleep(300);
+                          showSoftmax(3,0); await sleep(600);
+                          showPredTok('ot-eos','lit'); setTok('dt-katze','done'); setTok('dt-eos','active');
+                          setPhase('Sequence Complete ✓','The $\\langle \\text{EOS} \\rangle$ token halts generation entirely.');
+                      }
+                    }
+                ];
+            }
+
+            async function setPhase(p, t) {
+                $('desc-phase').innerHTML = p; $('desc-text').innerHTML = t;
+                if(window.MathJax && MathJax.typesetPromise) { try { await MathJax.typesetPromise([$('desc-phase'), $('desc-text')]); } catch(e){} }
+            }
+
+            function setTok(id,cls){ 
+                const t=$(id);if(!t)return; 
+                t.classList.remove('active','done','future-tok'); 
+                if(cls)t.classList.add(cls); 
+            }
+
+            function showArc(id){const el=$(id);if(el)el.style.opacity='1';}
+            function hideArc(id){const el=$(id);if(el)el.style.opacity='0';}
+
+            function drawArcs(){
+                const arch = $('arch'); 
+                const rA = arch.getBoundingClientRect();
+                const encOutput = $('enc-output-panel'); 
+                if(!encOutput) return;
+                const rE = encOutput.getBoundingClientRect();
+                
+                function route(decSubId, arcId){
+                    const sub = $(decSubId); 
+                    const path = $(arcId); 
+                    if(!sub || !path) return;
+                    const rS = sub.getBoundingClientRect();
+                    
+                    // Coordinates relative to the parent #arch container
+                    const x1 = rE.right - rA.left - 5;
+                    const y1 = rE.top - rA.top + (rE.height / 2);
+                    const x2 = rS.left - rA.left - 2;
+                    const y2 = rS.top - rA.top + (rS.height / 2);
+                    
+                    const cpX = x1 + (x2 - x1) * 0.45;
+                    path.setAttribute('d', `M ${x1},${y1} C ${cpX},${y1} ${cpX},${y2} ${x2},${y2}`);
+                }
+                
+                if (!$('tw-d1').classList.contains('processed')) route('tw-d1-ca','arc-d1'); else hideArc('arc-d1');
+                if (!$('tw-d2').classList.contains('processed')) route('tw-d2-ca','arc-d2'); else hideArc('arc-d2');
+                if (!$('tw-dL').classList.contains('processed')) route('tw-dL-ca','arc-dL'); else hideArc('arc-dL');
+            }
+
+            window.addEventListener('resize', () => { if(cur >= 1) drawArcs(); });
+
+            function resetStack(prefix) {
+                ['1', '2', 'L'].forEach(lvl => {
+                    const c = $(prefix + lvl);
+                    if (c) c.classList.remove('active', 'done', 'processed');
+                });
+            }
+
+            async function runCard(cardId, subs, ms){
+                const c=$(cardId);if(!c)return;
+                c.classList.remove('done', 'processed');
+                c.classList.add('active');
+                
+                let tracking = true;
+                const track = () => { if(tracking) { drawArcs(); requestAnimationFrame(track); } };
+                track();
+
+                for(const s of subs){
+                    const el=$(s);if(el)el.classList.add('hi');
+                    await sleep(ms);
+                    if(el)el.classList.remove('hi');
+                }
+                c.classList.remove('active');
+                
+                if(cardId.endsWith('L')) {
+                    c.classList.add('done');
+                } else {
+                    c.classList.add('processed');
+                }
+                
+                await sleep(400);
+                tracking = false; 
+                drawArcs(); 
+            }
+
+            function showPredTok(id, cls){ 
+                const t=$(id);if(!t)return; 
+                t.classList.remove('lit','cur','future-tok');
+                t.classList.add(cls); 
+            }
+
+            function showSoftmax(vocabIdx, winnerIdx){
+                const vocab=VOCABS[vocabIdx]; const rows=$('smx-rows');rows.innerHTML='';$('smx-winner').textContent='';
+                vocab.forEach((item,i)=>{
+                    const isWin=i===winnerIdx; const row=document.createElement('div');row.className='vrow';
+                    row.innerHTML=`<div class="vword">${item.de}</div><div class="vwrap"><div class="vbar${isWin?' win':''}" id="vb_${vocabIdx}_${i}"></div></div><div class="vpct" id="vp_${vocabIdx}_${i}">0%</div>`;
+                    rows.appendChild(row);
+                });
+                asyncRun(()=>{
+                    vocab.forEach((item,i)=>{
+                        const b=$(`vb_${vocabIdx}_${i}`);const p=$(`vp_${vocabIdx}_${i}`);
+                        if(b)b.style.width=item.pct+'%'; if(p)asyncRun(()=>{p.textContent=item.pct+'%';},350);
+                    });
+                    asyncRun(()=>{$('smx-winner').textContent='Argmax → "'+vocab[winnerIdx].de+'"';},550);
+                },50);
+            }
+
+            function fullReset(){
+                clearAllTimeouts();
+                resetStack('tw-e');
+                resetStack('tw-d');
+                
+                $('enc-output-panel').style.opacity = '0';
+                $('dec-focus-panel').style.opacity = '0';
+                $('focus-tok').innerHTML = '...';
+
+                ['tw-eL-ffn','tw-eL-sa','tw-e2-ffn','tw-e2-sa','tw-e1-ffn','tw-e1-sa',
+                 'tw-dL-ffn','tw-dL-ca','tw-dL-sa','tw-d2-ffn','tw-d2-ca','tw-d2-sa',
+                 'tw-d1-ffn','tw-d1-ca','tw-d1-sa'].forEach(id=>{
+                    const el=$(id);if(el)el.classList.remove('hi');
+                });
+                ['et-the','et-black','et-cat','et-eos'].forEach(id=>setTok(id,null));
+                
+                setTok('dt-bos', null); 
+                ['dt-die','dt-schwarze','dt-katze','dt-eos'].forEach(id=>{
+                    const t=$(id); if(!t)return; t.classList.remove('active','done'); t.classList.add('future-tok'); 
+                });
+
+                ['ot-die','ot-schwarze','ot-katze','ot-eos'].forEach(id=>{
+                    const t=$(id); if(!t)return; t.classList.remove('lit'); t.classList.add('future-tok');
+                });
+
+                ['arc-d1','arc-d2','arc-dL'].forEach(hideArc);
+
+                $('smx-rows').innerHTML='<div id="smx-placeholder">Probabilities appear during decoding...</div>'; $('smx-winner').textContent='';
+                document.querySelectorAll('.dot').forEach(d=>d.classList.remove('on'));
+                setPhase('Ready', 'Press <b>Next</b> to step through the compact encoding and decoding flow.');
+            }
+
+            async function goTo(idx){
+                if(running)return; if(idx<0||idx>=STEPS.length)return;
+                running=true; $('next-btn').disabled=true; $('prev-btn').disabled=true;
+
+                if(idx<cur){
+                    fullReset(); cur=-1; isFast = true;
+                    for(let i=0;i<=idx;i++){ setPhase(STEPS[i].phase, STEPS[i].text); $('dot'+i).classList.add('on'); await STEPS[i].exec(); cur=i; }
+                    isFast = false;
+                } else {
+                    for(let i=cur+1;i<=idx;i++){
+                        setPhase(STEPS[i].phase, STEPS[i].text); $('dot'+i).classList.add('on'); await STEPS[i].exec(); cur=i; await sleep(100);
+                    }
+                }
+                $('step-ctr').textContent=`${cur+1} / ${STEPS.length}`;
+                $('prev-btn').disabled=cur<=0; $('next-btn').disabled=false;
+                if(cur>=STEPS.length-1) $('next-btn').textContent='↺ Restart'; else $('next-btn').textContent='Next →';
+                running=false;
+            }
+
+            $('next-btn').addEventListener('click',()=>{
+                if(cur>=STEPS.length-1){ fullReset(); cur=-1; $('step-ctr').textContent=`0 / ${STEPS.length}`; $('next-btn').textContent='Next →'; $('prev-btn').disabled=true; return; }
+                goTo(cur+1);
+            });
+            $('prev-btn').addEventListener('click',()=>{ if(cur>0) goTo(cur-1); });
+
+            window.addEventListener('load', () => {
+                fullReset();
+                setTimeout(drawArcs, 200);
+            });
+        })();
+        </script>
+    </div>
+</figure>
 <h2>The Full Picture</h2>
 
 <p>Every component in the Transformer was forced by a concrete problem. Token embeddings convert discrete symbols into vectors. Positional encodings restore the notion of order that recurrence previously provided. Masked self-attention replaces the recurrent target history without requiring sequential processing. Cross-attention retrieves information from the source sequence. The FFN replaces the nonlinear integration once performed by the recurrent update $f$. Residual connections allow these transformations to accumulate across depth without destroying earlier computations. Layer normalization stabilizes training at each stage.</p>

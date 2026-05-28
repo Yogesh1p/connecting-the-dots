@@ -154,7 +154,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "transformer, positional encoding, masked self-attention, cross-attention, feed-forward network, residual connections, layer normalization, encoder-decoder, decoder-only, autoregressive, GPT, BERT",
     "status": "draft",
-    "readingTime": 15
+    "readingTime": 16
   },
   {
     "article_id": "a0960ea9",
