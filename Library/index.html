@@ -670,6 +670,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof window.rawPages === 'undefined') return; 
         
         let filteredPages = window.rawPages.filter(page => {
+            if ((page.status || 'draft').toLowerCase() === 'hide') return false;
+
             if (book === "mathematics") {
                 return page.bookSlug === "linear-algebra" || page.book === "Linear Algebra" ||
                              page.bookSlug === "Stats" || page.book === "Stats" ||
@@ -1061,6 +1063,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+
+
+
+
 <div id="static-index" aria-hidden="true" style="display:none">
   <section data-book="AI">
     <h2>AI</h2>
@@ -1073,8 +1079,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory/">Recurrent Neural Networks</a></li>
         <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/05.attention-mechanism/">Attention Mechanism</a></li>
         <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/">The Transformer Architecture</a></li>
-        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/indexold.html">The Transformer Architecture</a></li>
-        <li><a href="../Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/working.html">The Transformer Architecture</a></li>
       </ul>
     </section>
     <section data-chapter="Autoregressive LLM">
@@ -1166,7 +1170,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces/">The Four Fundamental Subspaces</a></li>
         <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/02.null-space-from-block-rref/">Null Space from Block RREF</a></li>
         <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/03.independence-basis-and-dimension/">Independence, Basis, and Dimension</a></li>
-        <li><a href="../Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/04.vector-spaces-and-subspaces/">Vector Spaces and the Four Fundamental Subspaces</a></li>
       </ul>
     </section>
     <section data-chapter="Hypothesis Test">

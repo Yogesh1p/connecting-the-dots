@@ -466,6 +466,10 @@ function buildLibData(libPages, crossLinks = []) {
     return `// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\nwindow.rawLinks = ${JSON.stringify(crossLinks, null, 2)};\n`;
 }
 
+function isPublicPage(page) {
+    return (page.status || "draft").toLowerCase() !== "hide";
+}
+
 function removeStaticIndexBlock(html) {
     const start = html.search(new RegExp('<div\\s[^>]*id=["\']static-index["\']', 'i'));
     if (start === -1) return html;
@@ -615,10 +619,10 @@ async function build() {
     fs.writeFileSync(metaCachePath, JSON.stringify(newHashMap, null, 2), "utf8");
     // Pass 2: Extract explicit cross reference mapping lists
     const crossLinks = [];
-    const activePagesList = tempPageCache.map(p => p.pageObj);
+    const activePagesList = tempPageCache.map(p => p.pageObj).filter(isPublicPage);
 
     for (const source of tempPageCache) {
-        if (source.pageObj.status === "hide") continue;
+        if (!isPublicPage(source.pageObj)) continue;
 
         const sourceObj = source.pageObj;
         const sourceNodeId = `title_${sourceObj.book}_${sourceObj.section}_${sourceObj.chapter}_${sourceObj.title}`;

@@ -5,6 +5,9 @@
   "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/04.recurrent-neural-networks-and-sequence-memory/index.html": "27dd3b9016eeb5e1ccd674bbc757d35c",
   "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/05.attention-mechanism/index.html": "46238203a9356184bccd8d5dca076b6b",
   "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/index.html": "b2c82528bbdc816a4700dff9b6912b22",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/indexold.html": "442cd89d957be8e0e8129367b381ec36",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/waste.html": "cf2eca9bd5ea865ad557e91547c10e5c",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/working.html": "801aee5f1df476ae9c603fbc6e3caa91",
   "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/02.autoregressive-LLM/07.position-representation/index.html": "2bbfa60ac3db5f60eeaacab6da93e0a3",
   "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/02.autoregressive-LLM/09.attention-approximation/index.html": "6d87626ab84ab8741742d44bcec19daf",
   "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/02.autoregressive-LLM/10.shared-attention/index.html": "8052debc984cdcd2d2990c83ceaa0eaa",
@@ -38,12 +41,5 @@
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/01.Hypothesis_test/01. Hypothesis_test/index.html": "6df355801aa25243c181e6f0fb032554",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/01.common-probability-distributions/index.html": "b7b0b328524fab1e76ee13a1bfd3556f",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/02.the-central-limit-theorem-and-maximum-entropy/index.html": "eae9df8cb4b128a4827c7987b1193291",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/03.foundations-of-probability/01.probability-and-counting/index.html": "a5b9fe506a7a586e50390c809b6d4673",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/waste.html": "cf2eca9bd5ea865ad557e91547c10e5c",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/transformer_improved.html": "1e6004281217c02ae86e3fb441015656",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/geminiversion.html": "b2c82528bbdc816a4700dff9b6912b22",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/gv2.html": "e7709e26e33e6280e2e172c12373fe96",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/working.html": "c8f56cefaf80b67a16d50e8d33fbf1c8",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/index1.html": "b2c82528bbdc816a4700dff9b6912b22",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.the-transformer-architecture/indexold.html": "d56148b2e1a67fd7559ae785aeccac66"
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/03.foundations-of-probability/01.probability-and-counting/index.html": "a5b9fe506a7a586e50390c809b6d4673"
 }
