@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="article_id" content="moe-modular-compute">
+<meta name="book" content="AI">
+<meta name="section" content="Generative Models">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="title" content="Mixture of Experts">
+<meta name="description" content="From monolithic dense scaling to sparse conditional computation—how Mixture of Experts decouples capacity from compute cost via dynamic parameter routing.">
+<meta name="keywords" content="mixture of experts, sparse moe, routing, conditional computation, load balancing, expert capacity, transformer scaling, residual stream">
+<meta name="status" content="hide">
+<meta name="date" content="2026-05-23">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="11">
+
+<meta property="og:title" content="Mixture of Experts">
+<meta property="og:description" content="From monolithic dense scaling to sparse conditional computation—how Mixture of Experts decouples capacity from compute cost via dynamic parameter routing.">
+<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/06.mixture-of-experts/">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-mixture-of-experts.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<style id="mobile-view-styles">
+    img, iframe, video { max-width: 100% !important; height: auto !important; }
+    @media screen and (max-width: 768px) {
+        body, article, .content, main {
+            width: 100% !important; max-width: 100vw !important;
+            padding: 10px 15px !important; box-sizing: border-box !important;
+            overflow-x: hidden !important;
+        }
+    }
+</style>
+
+    <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<title>Mixture of Experts</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../../../css/base.css">
+    <link rel="stylesheet" href="../../../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
+        })();
+    </script>
+
+    <script src="../../../../../js/base.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <style id="moe-routing-shared-styles">
+        .moe-wrap {
+            position: relative; width: 100%; margin: 2.5rem auto;
+            background: var(--box-bg, #FBF6F2); overflow: hidden;
+            border: 1px solid var(--border, #E8DFD1); border-radius: 14px;
+            box-sizing: border-box; font-family: inherit;
+        }
+        .moe-spine {
+            position: absolute; left: 220px; width: 3px;
+            background: var(--border, #E8DFD1); border-radius: 2px; z-index: 1;
+        }
+        .moe-layer-lbl {
+            position: absolute; text-align: right; width: 90px; left: 110px;
+            font-size: 0.85rem; font-weight: 700; letter-spacing: 0.13em;
+            text-transform: uppercase; color: var(--muted, #847769);
+            white-space: nowrap; z-index: 20; pointer-events: none;
+        }
+        .moe-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
+        .moe-overlay path {
+            fill: none; stroke: var(--accent, #D48C70); stroke-width: 3;
+            stroke-linecap: round; stroke-linejoin: round;
+            stroke-dasharray: 8; stroke-dashoffset: 0;
+            opacity: 0; animation: moe-dash 1s linear infinite;
+            transition: opacity 0.3s ease;
+        }
+        @keyframes moe-dash { to { stroke-dashoffset: -16; } }
+        .moe-overlay path.live { opacity: 0.65; }
+        
+        .moe-plus {
+            position: absolute; left: 208px; width: 28px; height: 28px;
+            border-radius: 50%; border: 2px solid var(--border, #E8DFD1);
+            background: var(--box-bg, #FBF6F2); display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.2rem; color: var(--muted, #847769);
+            z-index: 12; transition: border-color 0.3s, color 0.3s, box-shadow 0.3s, transform 0.22s;
+        }
+        .moe-plus.on { border-color: var(--accent, #D48C70); color: var(--accent, #D48C70); box-shadow: 0 0 0 5px rgba(212,140,112,0.18); transform: scale(1.18); }
+        
+        .moe-box {
+            position: absolute; left: 260px; right: 20px; height: 75px;
+            background: var(--surface, #F4EFE6); border: 1.5px solid var(--border, #E8DFD1);
+            border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s; padding: 0 1rem; text-align: center; box-sizing: border-box;
+        }
+        .moe-box.on { border-color: var(--accent, #D48C70); box-shadow: 0 0 12px rgba(212,140,112,0.15); }
+        .moe-box.active-expert { background-color: rgba(212,140,112,0.08); border-color: var(--accent); }
+        .moe-box.dead-expert { opacity: 0.4; filter: grayscale(80%); }
+        
+        .moe-box-title { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted, #847769); margin-bottom: 4px; }
+        .moe-box-title.hi { color: var(--accent, #D48C70); }
+        .moe-box-math { font-size: 0.95rem; color: var(--text, #4A3F35); }
+        
+        .moe-hl { border-radius: 3px; padding: 1px 4px; transition: background 0.3s, color 0.3s; }
+        .moe-hl.on { background: rgba(212,140,112,0.18); color: var(--accent, #D48C70); font-weight: bold; }
+        
+        .moe-signal {
+            position: absolute; left: 221px; transform: translateX(-50%);
+            background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70);
+            padding: 6px 14px; border-radius: 7px; font-size: 0.95rem; white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08); z-index: 50; color: var(--text, #4A3F35);
+            transition: top 0.5s cubic-bezier(0.25, 1, 0.5, 1), background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .moe-signal.morph { background: var(--accent, #D48C70); color: #fff; border-color: var(--accent, #D48C70); }
+        
+        .moe-ctrl { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; z-index: 200; }
+        .moe-btn {
+            padding: 8px 22px; background: var(--surface, #F4EFE6); border: 2px solid var(--accent, #D48C70);
+            color: var(--accent, #D48C70); border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 1rem;
+            transition: background 0.2s, color 0.2s;
+        }
+        .moe-btn:hover { background: var(--accent, #D48C70); color: #fff; }
+        .moe-btn:disabled { opacity: 0.38; cursor: not-allowed; background: var(--surface,#F4EFE6); color: var(--accent,#D48C70); }
+        
+        .moe-input-lbl { position: absolute; left: 20px; font-size: 1rem; color: var(--muted,#847769); font-style: italic; }
+        
+        .moe-badge {
+            position: absolute; left: 20px; top: 15px;
+            background: var(--surface); border: 1.5px solid var(--border);
+            border-radius: 8px; padding: 0.5rem 0.8rem; text-align: left;
+            font-size: 0.8rem; color: var(--muted); line-height: 1.5;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); z-index: 15; max-width: 175px;
+        }
+        .moe-badge strong { color: var(--text); display: block; margin-bottom: 3px; }
+    </style>
+
+    <meta property="og:type" content="article">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+
+<h2>Architectural Asymmetry: The Monolithic Bottleneck</h2>
+
+<p>When tracking the evolution of the Transformer architecture, a stark structural asymmetry emerges between how tokens <em>communicate</em> and how they <em>compute</em>.</p>
+
+<p>Through Multi-Head Attention, the communication stage is highly modular. Instead of forcing every token interaction into a single relational pathway, the architecture splits the sequence into $H$ independent attention heads. Some heads specialize in tracking grammar, others map long-range pronoun references, and others retrieve semantic facts. It is an expressive, parallel allocation of specialized roles.</p>
+
+<p>Yet, after these features are aggregated from parallel subspaces, the modularity abruptly vanishes. The output of the attention block is flattened and passed into a standard <strong>Feed-Forward Network (FFN)</strong>:</p>
+<div class="math-display">
+  $$\mathrm{FFN}(\mathbf{x}) = \sigma(\mathbf{x} W_1) W_2.$$
+</div>
+
+<p>Here, every single token is pushed through the exact same parameters. The network forces a brutal multi-tasking problem onto these static layers. The same hidden matrices must simultaneously know how to process source code syntax, evaluate mathematical reasoning, handle conversational nuance, and unpack multilingual morphology. All domains compete over the exact same shared parameter weights.</p>
+
+<p>This dynamic becomes particularly problematic when viewed through the lens of the <strong>residual stream</strong>. In a standard dense Transformer layer, the FFN yields a uniform residual update vector:</p>
+<div class="math-display">
+  $$\mathbf{x}_{\mathrm{out}} = \mathbf{x} + \Delta_{\mathrm{FFN}}(\mathbf{x})$$
+</div>
+<p>where:</p>
+<div class="math-display">
+  $$\Delta_{\mathrm{FFN}}(\mathbf{x}) = \mathrm{FFN}(\mathbf{x}).$$
+</div>
+
+<p>Whether a token is a punctuation mark, a complex mathematical variable, or a word in a non-English script, it is modified by the exact same transformation geometry. The network lacks any structural mechanism to isolate or separate fundamentally different computational behaviors.</p>
+
+<div class="math-box">
+  <div class="math-box-label">A Core Disconnect</div>
+  <div class="math-box-body">
+    <p>If multiple specialized attention heads are required to process flexible token communications, why must every token share a single, universal computation module immediately afterward?</p>
+  </div>
+</div>
+
+<h2>The Problem with Dense Scaling</h2>
+
+<p>If a monolithic FFN suffers from parameter congestion, the straightforward engineering response is to make it larger. By expanding the hidden intermediate dimension of $W_1$ and $W_2$, we increase the model’s total capacity. A wider network can store more factual data, separate conflicting behaviors, and master distinct semantic domains.</p>
+
+<p>However, this dense scaling approach hits a hard wall of computational waste. In a dense architecture, <strong>capacity and compute cost are strictly coupled</strong>. If you double the size of the parameter matrices, you double the floating-point operations (FLOPs) required per token. Every token must pay the full execution price of the expanded network, even if 95% of its newly added capacity is completely irrelevant to that specific token.</p>
+
+<p>A programming keyword does not need to activate poetry-generating parameters; a mathematical symbol derives no benefit from executing weights tuned for conversational dialogue. Yet, dense scaling forces every token to fire the entire network. This realization motivates a radically different scaling strategy: decouple the model's total capacity from the compute cost expended per token.</p>
+
+<h2>First Design: Parallel Specialization (The Expert Layer)</h2>
+
+<p>Instead of building a single, gargantuan FFN matrix, suppose we slice that capacity into $E$ separate, independent feed-forward networks running in parallel. We call these distinct sub-networks <strong>experts</strong>.</p>
+
+<p>Each expert possesses its own independent parameter weights:</p>
+<div class="math-display">
+  $$f_i(\mathbf{x}) = \sigma(\mathbf{x} W_{1,i}) W_{2,i}, \qquad i \in \{1, 2, \dots, E\}.$$
+</div>
+
+<p>By untangling the parameter space, the network no longer forces different domains to collide. One expert can adapt its geometric transformation to interpret mathematical equations, while another fine-tunes its weights to model source code logic.</p>
+
+<p>But executing this raw layout directly introduces a fatal flaw. If every token continues to stream through every individual expert to compile an integrated output:</p>
+<div class="math-display">
+  $$\mathbf{x}_{\mathrm{out}} = \mathbf{x} + \sum_{i=1}^{E} f_i(\mathbf{x}),$$
+</div>
+<p>the computational cost scales linearly with the number of experts ($O(E)$). We have successfully isolated specialized behaviors, but we have destroyed hardware efficiency. The network is completely intractable at scale.</p>
+
+<h2>The Fix: Sparse Conditional Computation</h2>
+
+<p>To rescue efficiency, we must introduce an intentional routing mechanism. Instead of broadcasting a token to all experts, we calculate an input-dependent decision: evaluate the incoming vector, select only a tiny fraction of highly relevant experts, and skip the remaining modules completely.</p>
+
+<p>This is achieved by inserting a lightweight, parameterized <strong>router network</strong> ahead of the expert pool. The router inspects an incoming token representation $\mathbf{x} \in \mathbb{R}^{1 \times d_{\mathrm{model}}}$ and scores its compatibility against each expert using a learned routing weight matrix $W_R \in \mathbb{R}^{d_{\mathrm{model}} \times E}$:</p>
+<div class="math-display">
+  $$\mathbf{h}_R = \mathbf{x} W_R.$$
+</div>
+
+<p>The vector $\mathbf{h}_R$ yields a raw, continuous compatibility score for each available expert slot. To convert these unnormalized scores into a crisp probability distribution over the expert pool, we pass them through a standard softmax operation:</p>
+<div class="math-display">
+  $$G(\mathbf{x}) = \mathrm{softmax}(\mathbf{x} W_R).$$
+</div>
+
+<p>The output of $G(\mathbf{x})$ is a gating vector of row probabilities where the $i$-th entry, $G(\mathbf{x})_i$, represents how strongly expert $i$ should contribute to the residual transformation of this specific token.</p>
+
+<p>To implement true sparsity, we enforce a strict <strong>Top-$k$ filtering step</strong>. We retain only the $k$ largest probabilities in $G(\mathbf{x})$ and set all other values to $-\infty$ prior to the final normalization:</p>
+<div class="math-display">
+  $$\mathrm{TopK}(\mathbf{h}_R, k)_i = \begin{cases} (\mathbf{h}_R)_i & \text{if } (\mathbf{h}_R)_i \text{ is in the top } k \text{ scores} \\ -\infty & \text{otherwise.} \end{cases}$$
+</div>
+
+<p>When the softmax evaluates this filtered vector, the probabilities for all non-selected experts drop cleanly to absolute zero. This defines <strong>Sparse Mixture of Experts (MoE)</strong>.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Definition: Sparse Mixture of Experts Layer</div>
+  <div class="math-box-body">
+    <p>Given a pool of $E$ independent expert networks and a routing matrix $W_R$, the sparse conditional output for an incoming token row vector $\mathbf{x}$ is defined as:</p>
+    <div class="math-display">
+      $$\mathrm{MoE}(\mathbf{x}) = \sum_{i \in \mathcal{P}} G(\mathbf{x})_i \, f_i(\mathbf{x}),$$
+    </div>
+    <p>where $\mathcal{P}$ is the active subset of indices corresponding to the top-$k$ highest elements of the gated routing distribution:</p>
+    <div class="math-display">
+      $$G(\mathbf{x}) = \mathrm{softmax}\big(\mathrm{TopK}(\mathbf{x} W_R, k)\big).$$
+    </div>
+    <p>Unselected experts receive a gating weight of zero and are completely bypassed during the forward execution pass, maintaining a constant active compute footprint.</p>
+  </div>
+</div>
+
+<p>In standard architectures, $k$ is kept extremely small relative to $E$. For instance, the system might employ **Top-1 routing** (activating exactly one expert per token) or **Top-2 routing** (blending the contributions of two distinct specialists). Through this sparse filter, the model can scale its total parameters to hundreds of billions across an expansive pool of experts, while the active compute cost per token remains bounded to the execution of just $k$ standard FFN blocks.</p>
+
+<h2>From Static Computation to Dynamic Computation</h2>
+
+<p>The transition to a Sparse Mixture of Experts fundamentally reframes the geometry of the residual stream. In a standard dense Transformer block, there is only a single global update vector $\Delta_{\mathrm{FFN}}(\mathbf{x})$ generated for all tokens at a given layer. The representation evolves uniformly under one fixed mathematical framework.</p>
+
+<p>In an MoE layer, multiple experts run in parallel, meaning the layer generates multiple distinct candidate updates simultaneously:</p>
+<div class="math-display">
+  $$\Delta_i(\mathbf{x}) = f_i(\mathbf{x}).$$
+</div>
+
+<p>Instead of relying on a single static module, the router dynamically generates conditional routing weights $r_i(\mathbf{x}) = G(\mathbf{x})_i$. The final residual addition to the stream becomes a sparse, weighted combination of expert-specific transformations:</p>
+<div class="math-display">
+  $$\mathbf{x}_{\mathrm{out}} = \mathbf{x} + \sum_{i \in \mathrm{TopK}} r_i(\mathbf{x})\Delta_i(\mathbf{x}).$$
+</div>
+
+<p>This means that rather than overwriting state or applying a blank identity transformation to every sequence element, the model constructs unique, custom updates based on token characteristics. For example, if **Expert 3** specializes in parsing programming source code and **Expert 8** specializes in complex mathematical reasoning, a highly contextualized token representing a technical formula will receive a hybrid residual correction:</p>
+<div class="math-display">
+  $$\mathbf{x}_{\mathrm{out}} = \mathbf{x} + 0.7\Delta_3(\mathbf{x}) + 0.3\Delta_8(\mathbf{x}).$$
+</div>
+
+<p>This structural change unlocks dynamic configuration. The representation vector accumulates exact geometric edits from specialized mathematical and coding vectors while leaving unrelated pathways (such as multilingual grammar fields) completely undisturbed.</p>
+
+<div class="math-box">
+  <div class="math-box-label">Intuition: Residual Routing</div>
+  <div class="math-box-body">
+    <p>A dense layer models the residual update as a single, static trajectory in representation space. An MoE layer models the residual update as a dynamic vector sum, steering the token's trajectory using combinations of specialized force vectors.</p>
+  </div>
+</div>
+
+<figure style="margin: 3rem 0; text-align: left;">
+    <div class="moe-wrap" id="moe-routing-engine" style="max-width: 740px; height: 560px;">
+        <div class="moe-spine" style="top: 40px; bottom: 60px;"></div>
+        <div class="moe-layer-lbl" style="top: 250px;">MoE Block</div>
+        
+        <div class="moe-badge" id="moe-status-panel">
+            <strong>Router Metrics</strong>
+            <span id="metric-topk">Top-k Context: Active</span><br>
+            <span id="metric-scores" style="font-family: monospace; font-size: 0.75rem; color: var(--text);">Scores: Waiting...</span>
+        </div>
+
+        <svg class="moe-overlay">
+            <path id="moe-path-router" d="M 290,432 C 290,410 250,410 221,410" />
+            <path id="moe-path-exp1"   d="M 290,322 C 290,300 250,300 221,300" />
+            <path id="moe-path-exp2"   d="M 290,212 C 290,190 250,190 221,190" />
+            <path id="moe-path-exp3"   d="M 290,102 C 290,80  250,80  221,80" />
+        </svg>
+
+        <div class="moe-plus" id="moe-p-accumulate" style="top: 54px;">+</div>
+        
+        <div class="moe-box" id="moe-b-exp3" style="top: 90px;">
+            <div class="moe-box-title" id="moe-lbl-exp3">Expert 3 (Multilingual Syntax)</div>
+            <div class="moe-box-math" id="moe-math-exp3">$\Delta_3(\mathbf{x}) = \sigma(\mathbf{x} W_{1,3}) W_{2,3}$</div>
+        </div>
+
+        <div class="moe-box" id="moe-b-exp2" style="top: 200px;">
+            <div class="moe-box-title hi" id="moe-lbl-exp2">Expert 8 (Mathematical Reasoning)</div>
+            <div class="moe-box-math" id="moe-math-exp2">$\Delta_8(\mathbf{x}) = \sigma(\mathbf{x} W_{1,8}) W_{2,8}$</div>
+        </div>
+
+        <div class="moe-box" id="moe-b-exp1" style="top: 310px;">
+            <div class="moe-box-title hi" id="moe-lbl-exp1">Expert 1 (Source Code Logic)</div>
+            <div class="moe-box-math" id="moe-math-exp1">$\Delta_1(\mathbf{x}) = \sigma(\mathbf{x} W_{1,1}) W_{2,1}$</div>
+        </div>
+
+        <div class="moe-box" id="moe-b-router" style="top: 420px; height: 85px;">
+            <div class="moe-box-title" style="color: var(--accent);">Gating Router ($\mathrm{TopK}$)</div>
+            <div class="moe-box-math">$G(\mathbf{x}) = \mathrm{softmax}(\mathrm{TopK}(\mathbf{x} W_R, 2))$</div>
+            <div id="moe-router-live-softmax" style="font-size: 0.8rem; margin-top: 4px; color: var(--muted); font-weight: 600;"></div>
+        </div>
+
+        <div class="moe-input-lbl" style="top: 505px;">Residual Input: $\mathbf{x}$</div>
+        <div class="moe-signal" id="moe-sig" style="top: 495px; opacity: 0;"></div>
+
+        <div class="moe-ctrl">
+            <button class="moe-btn" id="moe-btn">▶&nbsp;Trace Parameter Routing</button>
+        </div>
+    </div>
+    <figcaption style="font-size:0.78rem;color:var(--muted);margin-top:0.7rem;line-height:1.6;padding:0 0.2rem;">
+        An interactive trace of sparse conditional computation. The incoming representation $\mathbf{x}$ projects against the router to extract sparse weights ($r_1=0.7, r_2=0.3$), completely disabling Expert 3. The final update accumulates cleanly back into the residual stream via a normalized weighted combination.
+    </figcaption>
+</figure>
+
+<h2>From Vectors to Matrices: The Parallel Batch Layout</h2>
+
+<p>Moving from a single token row vector to processing a full sequence matrix reveals a unique operational challenge for sparse layers. In a standard dense layer, stacking $n$ tokens into a sequence matrix $X \in \mathbb{R}^{n \times d_{\mathrm{model}}}$ is trivial because every row follows the exact same linear transformation through $W_1$ and $W_2$.</p>
+<p>In a sparse MoE layer, tokens are routed dynamically to different expert matrices. If row 1 goes to Expert 1, and row 2 goes to Expert 8, they can no longer be processed as a single monolithic matrix multiplication.</p>
+
+<p>To execute this efficiently, the layer maps token matrices into organized expert batches. Consider an input sequence matrix $X \in \mathbb{R}^{n \times d_{\mathrm{model}}}$:</p>
+<div class="math-display">
+  $$X = \begin{bmatrix} — \mathbf{x}_1 — \\ — \mathbf{x}_2 — \\ \vdots \\ — \mathbf{x}_n — \end{bmatrix} \in \mathbb{R}^{n \times d_{\mathrm{model}}}.$$
+</div>
+
+<p>First, the entire batch computes its gating assignments simultaneously by right-multiplying the routing matrix:</p>
+<div class="math-display">
+  $$H_R = X W_R \quad \in \mathbb{R}^{n \times E}.$$
+</div>
+
+<p>Row $i$ of $H_R$ yields the compatibility scores for token $\mathbf{x}_i$ across all $E$ experts. The top-$k$ masking is applied row-wise to create the sparse gating matrix $G \in \mathbb{R}^{n \times E}$.</p>
+
+<p>To perform the actual expert execution, tokens must be physically regrouped based on their routing destinations. This operation relies on an <strong>unpooling and routing loop</strong>:</p>
+
+<ol>
+  <li>The layer constructs $E$ dynamic sub-matrices, where $X^{(i)}$ stacks only the token rows from $X$ that selected Expert $i$.</li>
+  <li>Each expert processes its uniquely customized batch in parallel using its dedicated projection weights:
+    <div class="math-display">
+      $$H^{(i)} = \sigma(X^{(i)} W_{1,i}) W_{2,i}.$$
+    </div>
+  </li>
+  <li>Finally, an itemized scatter-add operation maps the rows of each $H^{(i)}$ back into their original sequence slots, scaling them by their corresponding gating weights $G_{ij}$ to reconstruct the final output matrix $Y \in \mathbb{R}^{n \times d_{\mathrm{model}}}$.</li>
+</ol>
+
+<p>The residual stream matrix update for the entire sequence now becomes localized and state-dependent:</p>
+<div class="math-display">
+  $$Y = X + \mathrm{MoE}(X).$$
+</div>
+
+<p>Geometrically, different tokens traverse entirely different computational pathways through the same physical layer, receiving custom steering vectors tailored to their distinct semantic types.</p>
+
+<h2>The Balancing Act: Expert Collapse and Capacity Limits</h2>
+
+<p>While the mathematical formulation of sparse routing is elegant, scaling it in practice introduces a severe systemic failure mode known as <strong>expert collapse</strong>.</p>
+
+<p>During the early phases of training, the router network is highly sensitive. If a specific expert ($f_1$) happens to be initialized slightly better than its neighbors, it will score marginally higher on a wide variety of tokens. The router naturally learns to favor $f_1$, sending it a disproportionately large volume of tokens.</p>
+
+<p>This triggers a compounding positive feedback loop:</p>
+<ul>
+  <li>Expert $f_1$ processes a vast majority of the data tokens.</li>
+  <li>It receives frequent gradient updates, optimizing its parameters rapidly and making it even more accurate.</li>
+  <li>The router notes this heightened efficiency and funnels even more tokens to $f_1$.</li>
+</ul>
+
+<p>Meanwhile, the remaining experts in the pool receive virtually zero token traffic, starved of gradient signals and trapped in an unoptimized state. The architecture undergoes a catastrophic breakdown in entropy: the sparse pool collapses into a dense system where a few over-allocated experts perform all the work, while massive blocks of parallel parameters sit entirely idle.</p>
+
+<h3>The Solution: Load-Balancing Losses</h3>
+
+<p>To stabilize the system and break this feedback loop, MoE training objectives introduce an auxiliary <strong>load-balancing loss</strong> ($\mathcal{L}_{\mathrm{balance}}$) added directly to the main training loss. This penalty encourages an even distribution of token traffic across the entire expert pool.</p>
+
+<p>For a batch of $n$ tokens, let $f_i$ denote the fraction of total routing assignments sent to expert $i$:</p>
+<div class="math-display">
+  $$f_i = \frac{1}{n} \sum_{j=1}^{n} \mathbb{I}(\text{Expert } i \text{ is selected by token } j),$$
+</div>
+<p>where $\mathbb{I}$ is an indicator function. Concurrently, let $P_i$ denote the average routing probability allocated to expert $i$ across that same batch:</p>
+<div class="math-display">
+  $$P_i = \frac{1}{n} \sum_{j=1}^{n} G(\mathbf{x}_j)_i Osm.$$
+</div>
+
+<p>If tokens are distributed perfectly and uniformly across the layer, both vectors $\mathbf{f}$ and $\mathbf{P}$ will land on a flat, uniform distribution where every index holds a value of exactly $1/E$. The load-balancing loss computes the dot product of these two vectors, scaled by the total number of experts:</p>
+<div class="math-display">
+  $$\mathcal{L}_{\mathrm{balance}} = E \cdot \sum_{i=1}^{E} f_i \, P_i.$$
+</div>
+
+<p>When routing splits evenly, the loss hits its absolute minimum value of 1.0. If the router tilts toward expert collapse, the dot product spikes dramatically, penalizing the optimization path and forcing the router to distribute tokens more equitably.</p>
+
+<h3>Hardware Safeguards: Expert Capacity</h3>
+
+<p>In addition to software loss functions, physical hardware implementations impose a hard constraint called <strong>Expert Capacity</strong>. Because deep learning frameworks require fixed matrix dimensions to optimize memory allocations and parallel execution schedules, an expert cannot be allowed to accept an infinite number of tokens.</p>
+
+<p>The architecture defines a strict threshold for the maximum number of tokens a single expert can process during a single forward pass:</p>
+<div class="math-display">
+  $$\text{Expert Capacity} = \left( \frac{n}{E} \right) \times C,$$
+</div>
+<p>where $n/E$ represents the baseline tokens-per-expert average if the batch were perfectly uniform, and $C$ is a capacity factor (typically ranging from 1.0 to 2.0).</p>
+
+<p>If a surge of tokens selects a single expert and exceeds this hard capacity ceiling, the excess tokens are truncated. They drop out of the expert's computation pathway and bypass the FFN completely—passing through the layer purely as an un-modified identity mapping via the residual connection. This mechanical constraint creates a strict operational boundary that forces real-world routers to distribute tasks cleanly.</p>
+
+<h2>Two Forms of Routing: Communication vs. Computation</h2>
+
+<p>With the integration of Mixture of Experts into the Transformer block, the complete architecture operates as a dual-routing pipeline. It is useful to compare these mechanisms side by side:</p>
+
+<table class="styled-table">
+  <thead>
+    <tr>
+      <th>Routing Type</th>
+      <th>Core Mechanism</th>
+      <th>Fundamental Question Asked</th>
+      <th>Operational Domain</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Attention Routing</strong></td>
+      <td>Multi-Head Cross/Self-Attention</td>
+      <td><em>"Which other tokens in the sequence are relevant to me?"</em></td>
+      <td><strong>Communication</strong> across token representations</td>
+    </tr>
+    <tr>
+      <td><strong>Expert Routing</strong></td>
+      <td>Sparse Mixture of Experts</td>
+      <td><em>"Which parameter weights are best suited to transform my state?"</em></td>
+      <td><strong>Computation</strong> across parameter space</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The two blocks act as complementary gears within the network layer. Multi-head attention manages relational context, enabling tokens to exchange signals across spatial distances. Once that data is woven together, the Mixture of Experts layer handles computation, matching each newly formed token state to its optimal parametric specialist.</p>
+
+<p>The architecture has officially evolved away from a rigid, static execution graph. It functions instead as a modular, dynamically reconfigurable computing system—altering its active internal layout for every sequence token it encounters.</p>
+
+</section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+    <script>
+    (function(){
+        const sig = document.getElementById('moe-sig');
+        const btn = document.getElementById('moe-btn');
+        const smLabel = document.getElementById('moe-router-live-softmax');
+        const mScores = document.getElementById('metric-scores');
+        
+        if (!sig || !btn) return;
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        async function updateTex(el, src, morphClass) {
+            el.innerHTML = `$${src}$`;
+            if (morphClass !== undefined) el.classList.toggle('morph', morphClass);
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                await MathJax.typesetPromise([el]);
+            }
+        }
+
+        function animateMove(targetY, duration = 500) {
+            sig.style.transition = `top ${duration}ms cubic-bezier(0.25, 1, 0.5, 1), background .3s, color .3s, border-color .3s`;
+            sig.style.top = `${targetY}px`;
+            return sleep(duration);
+        }
+
+        function triggerPath(id, activate = true) {
+            const path = document.getElementById(id);
+            if (path) path.classList.toggle('live', activate);
+        }
+
+        function resetLayoutElements() {
+            ['moe-path-router', 'moe-path-exp1', 'moe-path-exp2', 'moe-path-exp3'].forEach(id => triggerPath(id, false));
+            ['moe-b-router', 'moe-b-exp1', 'moe-b-exp2', 'moe-b-exp3', 'moe-p-accumulate'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.className = el.className.replace(/\b(on|active-expert|dead-expert)\b/g, '').trim();
+            });
+            smLabel.innerHTML = '';
+            mScores.innerHTML = 'Scores: Waiting...';
+            sig.style.transition = 'none';
+            sig.style.top = '495px';
+            sig.style.opacity = '1';
+            sig.classList.remove('morph');
+        }
+
+        btn.addEventListener('click', async () => {
+            if (btn.disabled) return;
+            btn.disabled = true;
+            btn.textContent = 'Routing...';
+
+            resetLayoutElements();
+            await updateTex(sig, '\\mathbf{x}');
+            await sleep(200);
+
+            // Step 1: Input streams directly into Gating Router
+            await animateMove(445, 450);
+            document.getElementById('moe-b-router').classList.add('on');
+            mScores.innerHTML = 'Scores: $h_R = [2.4, 1.2, -3.1]$';
+            if (window.MathJax) MathJax.typesetPromise([mScores]);
+            await sleep(500);
+
+            // Step 2: Softmax converts to sparse top-k layout weights
+            smLabel.innerHTML = 'Top-2 Selected: $r_1=0.70,\\; r_8=0.30,\\; r_3=0.00$';
+            if (window.MathJax) await MathJax.typesetPromise([smLabel]);
+            document.getElementById('moe-b-exp3').classList.add('dead-expert'); 
+            await sleep(800);
+
+            document.getElementById('moe-b-router').classList.remove('on');
+            triggerPath('moe-path-router', true);
+            
+            // Step 3: Diverge token state vectors to chosen specialists concurrently
+            await animateMove(350, 400); 
+            document.getElementById('moe-b-exp1').classList.add('active-expert');
+            await updateTex(sig, 'r_1\\Delta_1(\\mathbf{x}) = 0.7\\Delta_1(\\mathbf{x})');
+            triggerPath('moe-path-exp1', true);
+            await sleep(600);
+
+            await animateMove(240, 400);
+            document.getElementById('moe-b-exp2').classList.add('active-expert');
+            await updateTex(sig, '0.7\\Delta_1(\\mathbf{x}) + 0.3\\Delta_8(\\mathbf{x})');
+            triggerPath('moe-path-exp2', true);
+            await sleep(700);
+
+            // Step 4: Stream parameterized increments upwards to the accumulation node
+            triggerPath('moe-path-router', false);
+            triggerPath('moe-path-exp1', false);
+            triggerPath('moe-path-exp2', false);
+            
+            await animateMove(110, 500);
+            document.getElementById('moe-p-accumulate').classList.add('on');
+            await updateTex(sig, '\\sum_{i \\in \\mathrm{TopK}} r_i(\\mathbf{x})\\Delta_i(\\mathbf{x})');
+            await sleep(500);
+
+            // Step 5: Clean additive aggregation back into Residual Stream
+            await animateMove(54, 400);
+            await updateTex(sig, '\\mathbf{x}_{\\mathrm{out}} = \\mathbf{x} + 0.7\\Delta_1(\\mathbf{x}) + 0.3\\Delta_8(\\mathbf{x})', true);
+            await sleep(400);
+            
+            document.getElementById('moe-p-accumulate').classList.remove('on');
+            btn.disabled = false;
+            btn.textContent = '↺ Replay Routing';
+        });
+    })();
+    </script>
+
+</body>
+</html>

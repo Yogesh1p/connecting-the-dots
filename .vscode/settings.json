@@ -1,4 +1,10 @@
 {
+  "python.defaultInterpreterPath": "/Users/yogesh/venvs/ai/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "terminal.integrated.env.osx": {
+    "VIRTUAL_ENV": "/Users/yogesh/venvs/ai",
+    "PATH": "/Users/yogesh/venvs/ai/bin:${env:PATH}"
+  },
   "liveServer.settings.wait": 0,
   "editor.formatOnSave": false,
   "editor.codeActionsOnSave": {},

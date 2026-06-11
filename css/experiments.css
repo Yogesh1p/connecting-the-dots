@@ -15,7 +15,7 @@
 /* ── Layout ── */
 .page-wrap { 
   width: 100%;             /* Occupy full width on small screens */
-  max-width: 1100px; 
+  max-width: 720px; 
   margin: 0 auto;          /* Centers it on desktop */
   padding: 0 1.5rem;       /* Essential gutter for mobile */
   box-sizing: border-box;  /* Ensures padding doesn't add to width */
@@ -329,7 +329,7 @@ h1.hub-title {
     }
 
     .experiment-entry { margin-bottom: 8rem; }
-    .exp-header       { max-width: 760px; margin-bottom: 3rem; }
+    .exp-header       { max-width: 720px; margin-bottom: 3rem; }
     .exp-title        { font-size: 2.2rem; line-height: 1.2; margin-bottom: 1rem; font-weight: 500; letter-spacing: -0.01em; }
     .exp-desc         { font-size: 1.1rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.6; }
 
@@ -384,5 +384,5 @@ h1.hub-title {
     }
     .btn-colab:hover { background: var(--accent); color: var(--bg); text-decoration: none; }
 
-    .discussion-wrap { max-width: 760px; margin: 0 auto 10rem; }
+    .discussion-wrap { max-width: 720px; margin: 0 auto 10rem; }
     .giscus-box { margin-top: 3rem; background: var(--surface); padding: 2rem; border-radius: 8px; border: 1px solid var(--border); }

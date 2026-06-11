@@ -832,10 +832,10 @@ $$\begin{aligned} X' &= X + \mathrm{MHSA}(\mathrm{LN}(X)), \\ X'' &= X' + \mathr
             #T-Widget * { box-sizing: border-box; }
 
             /* ── SOFTMAX PANEL ── */
-            #smx-panel { padding: 12px 16px; border-bottom: 1px solid var(--w-border); background: var(--w-surface); }
-            #smx-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--w-muted); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-family: system-ui, sans-serif; }
-            #smx-winner { font-size: 12px; color: var(--w-success); font-weight: 700; }
-            #smx-rows { display: flex; flex-direction: column; gap: 6px; height: 116px; justify-content: center; }
+            #smx-panel { padding: 14px 16px 12px; border-bottom: 1px solid var(--w-border); background: var(--w-surface); }
+            #smx-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--w-muted); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; font-family: system-ui, sans-serif; line-height: 1.5; }
+            #smx-winner { font-size: 12px; color: var(--w-success); font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+            #smx-rows { display: flex; flex-direction: column; gap: 5px; min-height: 148px; justify-content: center; }
             #smx-placeholder { font-size: 12px; color: var(--w-faint); font-style: italic; text-align: center; }
             #T-Widget .vrow { display: flex; align-items: center; gap: 8px; font-family: system-ui, sans-serif; }
             #T-Widget .vword { font-size: 12px; font-weight: 600; color: var(--w-text); width: 85px; text-align: right; flex-shrink: 0; }
@@ -987,7 +987,7 @@ $$\begin{aligned} X' &= X + \mathrm{MHSA}(\mathrm{LN}(X)), \\ X'' &= X' + \mathr
         <div id="T-Widget">
             <div id="smx-panel">
                 <div id="smx-label">
-                    <span>$p_\theta(y_i \mid y_{&lt;i}) \rightarrow \text{Softmax over Vocabulary}$</span>
+                    <span style="line-height:1.5;">$p_\theta(y_i \mid y_{&lt;i}) \rightarrow \text{Softmax over Vocabulary}$</span>
                     <span id="smx-winner"></span>
                 </div>
                 <div id="smx-rows"><div id="smx-placeholder">Probabilities appear during decoding...</div></div>
@@ -1510,10 +1510,13 @@ $$p(y_1, \dots, y_{n}) = \prod_{i=1}^{n} p(y_i \mid y_{&lt;i}).$$
 
 <p>The conceptual shift is from <em>compression</em> to <em>retrieval</em>. An RNN must commit to a summary of the past before seeing the future. Attention postpones that commitment indefinitely — each new position queries the full available history and pulls out exactly what it needs.</p>
 
+<p><em>Curious about the mechanistic details? Check out the <a href="/article/exp00001">Experiments Page</a> for probing results on GloVe, Residual Streams, and Logic Chaining.</em></p>
+
                     </section>
                 </article>
             </div>
         </div>
+
 
         <div id="article-comments"></div>
         <script>

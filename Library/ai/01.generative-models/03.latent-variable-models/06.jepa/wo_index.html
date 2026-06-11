@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="article_id" content="d6bce4ef">
+<meta name="book" content="AI">
+<meta name="section" content="Latent Variable Models">
+<meta name="chapter" content="World Models">
+<meta name="title" content="The Predictive Path: JEPA and World Models">
+<meta name="description" content="Why predicting pixels leads to blur, and how Joint Embedding Predictive Architectures (JEPA) pave the way for true world models.">
+<meta name="keywords" content="JEPA, world models, latent representations, representation collapse, Barlow Twins, Yann LeCun">
+<meta name="status" content="hide">
+<meta name="date" content="2026-04-10">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="14">
+
+<meta property="og:title" content="The Predictive Path: JEPA and World Models">
+<meta property="og:description" content="Why predicting pixels leads to blur, and how Joint Embedding Predictive Architectures (JEPA) pave the way for true world models.">
+<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/02.World_models/01.Jepa/">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-the-predictive-path-jepa-and-world-models.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<style id="mobile-view-styles">
+    img, iframe, video { max-width: 100% !important; height: auto !important; }
+    @media screen and (max-width: 768px) {
+        body, article, .content, main {
+            width: 100% !important; max-width: 100vw !important;
+            padding: 10px 15px !important; box-sizing: border-box !important;
+            overflow-x: hidden !important;
+        }
+    }
+</style>
+
+
+
+
+    
+    <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+    <title>The Predictive Path: JEPA and World Models</title>
+
+    <meta name="order" content="1">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../../../css/base.css">
+    <link rel="stylesheet" href="../../../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
+        })();
+    </script>
+
+    <script src="../../../../../js/base.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <meta property="og:type" content="article">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+                    <section class="article-body">
+                      <section>
+
+<h2>Language Is Not Thought</h2>
+
+<p>
+Large Language Models transformed artificial intelligence through a remarkably simple objective: predict the next token. Given enough data and scale, this produced systems capable of translation, coding, reasoning, and conversation. To many observers, this success suggested that intelligence itself might simply be sophisticated language prediction.
+</p>
+
+<p>
+But there is a problem with that idea. Human cognition does not appear to operate primarily through language.
+</p>
+
+<p>
+Consider cutting vegetables. Before reaching for a knife, most people do not construct a verbal plan. They imagine the situation — the cutting board, the knife, the motion. They mentally simulate the sequence of actions. Language arrives only if they need to explain the process to someone else.
+</p>
+
+<p>
+Writing follows a similar pattern. An article often begins as a collection of vague intuitions, half-formed relationships, and images. Converting those into sentences is a separate step that happens afterward. The thought precedes the sentence.
+</p>
+
+<blockquote>
+Language may not be thought itself. It may simply be the interface through which thought is communicated.
+</blockquote>
+
+<p>
+If this is true, modeling intelligence as next-token prediction is a category error. Intelligence may require constructing, simulating, and reasoning over internal representations of the world — not merely predicting the surface of language.
+</p>
+
+<h3>The Odd Middle Ground of Language Models</h3>
+
+<p>
+Here is where things get interesting. Modern language models are not as far from this picture as they first appear.
+</p>
+
+<p>
+Internally, transformers do not reason directly over words. Every token is first mapped into a high-dimensional vector. The network performs its computation in that vector space before projecting the result back into a probability distribution over vocabulary. The words are only the input and output; the actual processing happens in a continuous latent space.
+</p>
+
+<p>
+The clearest evidence comes from multilingual models. Ask a model "What is gravity?", "¿Qué es la gravedad?", and "重力是什么?" and it produces nearly identical explanations. The model is not storing separate reasoning procedures for every language. Different languages appear to map into a shared conceptual space before being decoded back into text. Translation capabilities emerge without ever building a translation system.
+</p>
+
+<p>
+In other words, modern language models already contain something that resembles a language-independent semantic space. They do not literally think in English. They map language into latent representations, perform computation in that space, and decode the result back into text. Researchers sometimes say that LLMs know more than their architecture lets them express.
+</p>
+
+<blockquote>
+Perhaps intelligence primarily operates in a continuous latent space, while language is merely a lossy projection of that space used for communication.
+</blockquote>
+
+<p>
+This raises a genuinely puzzling question. If language models already develop something like a thought space, what exactly is missing?
+</p>
+
+<h3>The Missing Workspace</h3>
+
+<p>
+Return to the vegetable example. The mental simulation you ran before reaching for the knife was not merely verbal. You modelled objects, locations, actions, and their consequences — something closer to:
+</p>
+
+<div style="text-align: center; font-family: monospace; line-height: 2; margin: 2rem 0; color: var(--muted);">
+Current state → Reach for knife → Knife acquired → Move to board → Vegetables cut
+</div>
+
+<p>
+This is planning inside a latent state space, not language generation. And crucially, it is revisable. If you imagine picking up the knife and realize the vegetables are not yet washed, you update the plan. You do not start over.
+</p>
+
+<p>
+Autoregressive language models work differently. Their training objective is fundamentally sequential: generate one token, then the next, always moving forward. While external scaffolding — memory systems, tool calls, iterative prompting — can layer revision on top, the core model is not trained to maintain an editable internal workspace. It is trained to continue a sequence.
+</p>
+
+<p>
+There is no latent canvas where intermediate states can be held, evaluated, and modified. To revise an image it generated, an LLM must generate it, reload it as input, and perform a separate editing pass. A human sketching a car, on the other hand, simply picks up the pencil and adds the missing logos.
+</p>
+
+<p>
+This is the key gap. Not intelligence, and not the latent space — which LLMs already possess — but the ability to reason, simulate, and plan inside that space before committing to an output.
+</p>
+
+<p>
+This gap points toward an old idea with renewed relevance: the world model.
+</p>
+
+</section>
+<section style="max-width: 900px; margin: 2rem auto; line-height: 1.8;">
+  
+  <div style="margin-bottom: 3rem;">
+    <div class="sample-label label-caps" style="color: var(--muted); font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 1rem;">Architecture — Predictive Representations</div>
+    <h2 style="font-size: 2rem; margin-bottom: 1.5rem; line-height: 1.2;">The Critical Distinction: What Is Being Predicted?</h2>
+
+    <p style="margin-bottom: 1.25rem;">
+      Accepting that LLMs have a latent space is not enough. The crucial question is what the training objective <em>does</em> with that space. And here, the difference between current LLMs and world model architectures becomes precise.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      In a language model, the latent space is a <strong>means to an end</strong>. It is learned because it helps predict the next token. The loss function is applied over vocabulary probabilities, not over representations themselves. The internal space is free to organize however it likes, as long as the token predictions come out right.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      In a world model, the latent representation is <strong>the end itself</strong>. The system is explicitly trained to predict future states in latent space — to model what the world will look like after an action, not what word comes next in a sentence. This difference in training objective is what separates the two approaches.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      An analogy: imagine teaching a child physics. One method is to have them read physics textbooks and predict the next word on each page. Eventually, through sheer exposure, they might infer the underlying laws. Another method is to have them watch objects move and predict what those objects will do next — training physical intuition directly. LeCun's argument is that the second method is more fundamental, and that current AI has been doing the first.
+    </p>
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">Making It Concrete: How an LLM Actually Computes</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      The distinction is easy to state abstractly. It becomes much clearer when you trace what actually happens inside a language model step by step.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Suppose the input is:
+    </p>
+
+    <pre style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; font-family: monospace; font-size: 0.95rem; margin: 1.5rem 0; overflow-x: auto; color: var(--text);">The cat sat on the ...</pre>
+
+    <p style="margin-bottom: 1.25rem;">
+      The transformer processes this sequence and produces a hidden vector <code style="background: var(--surface); padding: 2px 6px; border-radius: 4px;">h</code>. This is the latent representation — a point in a high-dimensional space that encodes everything the model has inferred about the context. So far, so good.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Then the model applies a projection:
+    </p>
+
+    <div style="text-align: center; color: var(--accent); font-size: 1.1rem; margin: 1.5rem 0; font-family: monospace;">
+      logits = h · W
+    </div>
+
+    <p style="margin-bottom: 1.25rem;">
+      Where <code style="background: var(--surface); padding: 2px 6px; border-radius: 4px;">W</code> is a matrix of vocabulary embeddings. The result is a score for every word in the vocabulary. A softmax converts those scores into probabilities. The model is trained so that the highest-probability token here is <em>"mat."</em>
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Notice what the loss function sees: it checks only whether the right token won. It does not care what <code style="background: var(--surface); padding: 2px 6px; border-radius: 4px;">h</code> looks like internally. The latent space is free to organize itself in any way that helps produce correct token predictions. It is an instrument, not a target.
+    </p>
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">"Aren't These Basically the Same Thing?"</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      Here is the confusion that trips almost everyone up the first time they hear about JEPA:
+    </p>
+
+    <blockquote style="border-left: 4px solid var(--accent); padding-left: 1rem; margin: 2rem 0; color: var(--muted);">
+      "An LLM predicts a hidden representation and then converts it to a token. JEPA predicts a hidden representation. Aren't these basically the same thing?"
+    </blockquote>
+
+    <p style="margin-bottom: 1.25rem;">
+      Architecturally: somewhat. Training-wise: no. The difference is where the loss is applied.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      In a language model, the loss lands on the token. The representation is upstream of the loss — it is a stepping stone toward the thing being measured. In JEPA, the loss lands directly on the representation. The gap being minimized is:
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem; margin: 2rem 0; font-family: monospace; font-size: 0.95rem;">
+      <div style="background: var(--box-bg); border: 1px solid var(--box-border); border-left: 4px solid var(--muted); border-radius: 8px; padding: 1rem 1.5rem; color: var(--text);">
+        <div style="display: inline-block; font-family: sans-serif; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; background: var(--surface); color: var(--muted); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">LLM loss</div><br>
+        predicted_token &nbsp;vs&nbsp; actual_token
+      </div>
+      <div style="background: var(--box-bg); border: 1px solid var(--box-border); border-left: 4px solid var(--accent); border-radius: 8px; padding: 1rem 1.5rem; color: var(--text);">
+        <div style="display: inline-block; font-family: sans-serif; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; background: var(--box-label-bg); color: var(--box-label-text); padding: 2px 8px; border-radius: 4px;">JEPA loss</div><br>
+        predicted_representation &nbsp;vs&nbsp; actual_representation
+      </div>
+    </div>
+
+    <p style="margin-bottom: 1.25rem;">
+      In the JEPA case, the model is not asked "did you predict 'mat'?" — it is asked "did you predict the right state of the world?" No words are involved. The target is: <em>what is the underlying latent state that the next observation would encode?</em>
+    </p>
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">A Strange Implication for AI Safety</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      This architecture reveals something counterintuitive about how LLMs handle meaning — and it has an unexpected connection to AI safety research.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Models are often trained not to produce certain categories of content. Yet users sometimes bypass these restrictions by rephrasing requests using synonyms or indirect language. At first glance, this seems to suggest the model is responding to surface linguistic patterns — specific words — rather than the underlying concepts those words name.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      But that conclusion conflicts with what we know about the internal geometry. Words like <em>sex</em>, <em>intercourse</em>, and <em>fornication</em> are represented by vectors that sit close together in the model's latent space. The model clearly knows these concepts are related. So why does a surface-level synonym sometimes change its behavior?
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      The answer connects directly to the token-prediction objective. Because safety training is applied to outputs — to the tokens the model generates — the boundaries it learns are not clean conceptual walls. They are imperfect carved regions inside a messy, continuous semantic space, shaped by which linguistic framings happened to appear in training. The model knows the concept but has learned to respond differently depending on how the concept is approached through language.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      A system trained to predict representations rather than tokens might behave differently here — its safety mechanisms could operate directly on the concept rather than on the linguistic surface. Whether that would make alignment easier or harder is an open research question.
+    </p>
+
+    <h2 style="font-size: 2rem; margin-bottom: 1.5rem; line-height: 1.2; margin-top: 3rem;">The Pixel Trap and the Blur of Uncertainty</h2>
+    
+    <p style="margin-bottom: 1.25rem;">
+      To understand why predicting representations rather than tokens matters so much, consider what happened when researchers tried to extend the LLM paradigm to video.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Language has a fixed, discrete vocabulary. If a model is unsure whether a sentence ends with "cat" or "dog," it assigns probabilities to each and the training objective handles the ambiguity cleanly. But pixel prediction has no such vocabulary. When researchers trained models to predict the exact pixel values of the next video frame, the results were disastrous.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Imagine training a neural network on a video of a bouncing ball. At the top of its arc, the ball could fall slightly to the left, or slightly to the right. The generative video model is forced to output a single frame of pixels. Confronted with this physical ambiguity, the math of the neural network does the only thing it can: it hedges its bets. It averages the pixels of the "left bounce" and the "right bounce" together. The result is a blurry, washed-out smear. As you try to predict further into the future, the blur compounds into nothingness.
+    </p>
+
+    <blockquote style="border-left: 4px solid var(--accent); padding-left: 1rem; margin: 2rem 0; color: var(--muted);">
+      "If you train a generative model to predict what happens in a dashcam video, it will spend most of its resources predicting the random motion of the leaves on the trees... things that are essentially unpredictable, but have a lot of pixels." <br><strong>— Yann LeCun</strong>
+    </blockquote>
+
+    <p style="margin-bottom: 1.25rem;">
+      This is the <strong>Pixel Trap</strong>. Reconstructive AI forces models to care about the unpredictable, irrelevant noise of reality (the leaves) instead of the underlying physics (the road).
+    </p>
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">Escaping the Canvas: Joint Embeddings</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      If generating raw pixels is a fool's errand, we must throw away the canvas. We do not need a model to paint reality; we need a model to <em>understand</em> it.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      This insight led to the resurgence of <strong>Joint Embedding Architectures</strong> (tracing back to Siamese networks in the 1990s). The idea is elegant: instead of taking an image $X$ and trying to generate a corrupted version of it $Y$, we pass <em>both</em> $X$ and $Y$ through identical encoder networks. We then instruct the network: <em>Make the output mathematical vectors (embeddings) of these two images identical.</em>
+    </p>
+
+    <div style="text-align: center; color: var(--accent); font-size: 1.25rem; margin: 2rem 0;">
+      $$E(X) \approx E(Y)$$
+    </div>
+
+    <p style="margin-bottom: 1.25rem;">
+      By forcing the embeddings to match, the encoder is forced to ignore the surface-level noise (the blur, the color shift) and extract the semantic "essence" of the image. 
+    </p>
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">The Villain: Representation Collapse</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      Joint embeddings sound perfect, but they harbor a fatal flaw. If the only objective is to make $E(X)$ and $E(Y)$ similar, the neural network will quickly discover a trivial cheat code. It will learn to output a vector of all ones—e.g., $[1, 1, 1, 1]$—for every single image it ever sees. 
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      If the embedding for a dog is $[1, 1]$ and the embedding for a corrupted dog is $[1, 1]$, the loss is zero. The network has solved the math problem, but it has learned absolutely nothing about the world. This catastrophic failure mode is known as <strong>Representation Collapse</strong>.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      For years, the only solution was <em>Contrastive Learning</em>: feeding the network negative examples (e.g., a picture of a cat) and explicitly forcing the embeddings apart. But contrastive learning is computationally brutal, requiring massive batch sizes to find meaningful "negatives." 
+    </p>
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">The Barlow Twins Epiphany</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      In 2021, LeCun's team found a mathematical bypass to collapse based on a 1961 theory by neuroscientist Horace Barlow: <em>sensory pathways operate by reducing redundancy between neurons.</em>
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Instead of comparing different images, the <strong>Barlow Twins</strong> architecture computes a <em>cross-correlation matrix</em> $\mathcal{C}$ between the outputs of the individual neurons across the two encoders. The loss function then forces this matrix to look exactly like an Identity Matrix:
+    </p>
+
+    <div style="text-align: center; font-size: 1.1rem; margin: 2rem 0; overflow-x: auto;">
+      $$ 
+      \mathcal{L} = \underbrace{\sum_i (1 - \mathcal{C}_{ii})^2}_{\text{Invariance Term}} + \lambda \underbrace{\sum_i \sum_{j \neq i} \mathcal{C}_{ij}^2}_{\text{Redundancy Reduction Term}} 
+      $$
+    </div>
+
+    <ul style="margin-bottom: 2rem; padding-left: 1.5rem;">
+      <li style="margin-bottom: 0.5rem;"><strong>The Diagonal ($\mathcal{C}_{ii} \rightarrow 1$):</strong> Forces the <em>same</em> neuron in both networks to fire identically for the same concept, ensuring the model is invariant to noise.</li>
+      <li style="margin-bottom: 0.5rem;"><strong>The Off-Diagonal ($\mathcal{C}_{ij} \rightarrow 0$):</strong> Forces <em>different</em> neurons to decorrelate. If Neuron 1 learns "fur," Neuron 2 cannot also learn "fur." This prevents all neurons from collapsing into a single, lazy pattern.</li>
+    </ul>
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">JEPA: The Architecture of World Models</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      With representation collapse solved without the need for negative examples (via Barlow Twins, VICReg, and later DINO), the stage was set for the architecture LeCun had been working toward: <strong>JEPA (Joint Embedding Predictive Architecture)</strong>.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      JEPA asks: <em>If we have a robust latent space, can we do physics in it?</em> Instead of predicting the embedding of the same image, JEPA attempts to predict the embedding of the <em>future</em> state of the world, conditioned on an action.
+    </p>
+
+    <figure style="margin: 3rem 0; padding: 2.5rem 2rem; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center;">
+
+      <!--
+        Layout (viewBox 0 0 720 400):
+        LEFT COLUMN  x=110  — Xₜ (y=310) → Encoder (y=210) → Sₜ (y=120)
+        CENTRE       x=360  — Predictor Network (y=95), Action Aₜ (y=195)
+        RIGHT COLUMN x=610  — Ŝₜ₊₁ predicted (y=120) → loss gap → Sₜ₊₁ actual (y=230) → Encoder (y=310) → Xₜ₊₁ (y=375)
+        Horizontal arrow: Sₜ (110,120) → Predictor left edge (240,120)
+        Horizontal arrow: Predictor right edge (480,120) → Ŝₜ₊₁ (610,120)
+      -->
+      <svg viewBox="0 0 720 400" width="100%" style="max-width: 680px; overflow: visible;" role="img" aria-label="JEPA Architecture Diagram">
+        <defs>
+          <marker id="arr-muted" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="var(--muted)"/>
+          </marker>
+          <marker id="arr-accent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="var(--accent)"/>
+          </marker>
+          <marker id="arr-pred" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="var(--box-label-bg)"/>
+          </marker>
+        </defs>
+
+        <!-- ── LEFT COLUMN ─────────────────────────────── -->
+
+        <!-- Xₜ observation box -->
+        <rect x="62" y="290" width="96" height="52" rx="10" fill="var(--bg)" stroke="var(--border)" stroke-width="1.8"/>
+        <text x="110" y="320" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="var(--text)">Xₜ</text>
+        <text x="110" y="358" font-family="sans-serif" font-size="12" font-style="italic" text-anchor="middle" fill="var(--muted)">Observation</text>
+
+        <!-- Arrow Xₜ → Encoder -->
+        <line x1="110" y1="290" x2="110" y2="248" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-muted)"/>
+
+        <!-- Encoder (active, accent-bordered pill) -->
+        <rect x="52" y="195" width="116" height="48" rx="24" fill="var(--highlight)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="110" y="224" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="var(--accent)">Encoder</text>
+
+        <!-- Arrow Encoder → Sₜ -->
+        <line x1="110" y1="195" x2="110" y2="158" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-muted)"/>
+
+        <!-- Sₜ circle (filled accent) -->
+        <circle cx="110" cy="120" r="30" fill="var(--accent)"/>
+        <text x="110" y="114" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="var(--box-label-text)">Sₜ</text>
+        <text x="110" y="131" font-family="sans-serif" font-size="11" text-anchor="middle" fill="var(--box-label-text)" opacity="0.85">current</text>
+
+        <!-- ── CENTRE ───────────────────────────────────── -->
+
+        <!-- Arrow Sₜ → Predictor -->
+        <line x1="140" y1="120" x2="238" y2="120" stroke="var(--accent)" stroke-width="2" marker-end="url(#arr-accent)"/>
+
+        <!-- Predictor Network box -->
+        <rect x="240" y="88" width="240" height="64" rx="10" fill="var(--box-bg)" stroke="var(--box-border)" stroke-width="2"/>
+        <text x="360" y="118" font-family="sans-serif" font-size="16" font-weight="700" text-anchor="middle" fill="var(--dark)">Predictor Network</text>
+        <text x="360" y="138" font-family="sans-serif" font-size="12" text-anchor="middle" fill="var(--muted)">maps state + action → future state</text>
+
+        <!-- Action Aₜ dashed box -->
+        <rect x="298" y="182" width="124" height="36" rx="6" fill="var(--bg)" stroke="var(--muted)" stroke-dasharray="5 3" stroke-width="1.8"/>
+        <text x="360" y="205" font-family="sans-serif" font-size="13" text-anchor="middle" fill="var(--muted)">Action Aₜ</text>
+
+        <!-- Arrow Action → Predictor -->
+        <line x1="360" y1="182" x2="360" y2="156" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#arr-muted)"/>
+
+        <!-- ── RIGHT COLUMN ────────────────────────────── -->
+
+        <!-- Arrow Predictor → Ŝₜ₊₁ -->
+        <line x1="480" y1="120" x2="572" y2="120" stroke="var(--box-label-bg)" stroke-width="2" marker-end="url(#arr-pred)"/>
+
+        <!-- Ŝₜ₊₁ predicted circle (warm filled) -->
+        <circle cx="610" cy="120" r="30" fill="var(--box-label-bg)" stroke="var(--box-border)" stroke-width="2"/>
+        <text x="610" y="114" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="var(--box-label-text)">Ŝₜ₊₁</text>
+        <text x="610" y="131" font-family="sans-serif" font-size="11" text-anchor="middle" fill="var(--box-label-text)" opacity="0.85">predicted</text>
+
+        <!-- Loss gap arrow + label -->
+        <line x1="610" y1="152" x2="610" y2="188" stroke="var(--box-label-bg)" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arr-pred)"/>
+        <text x="643" y="174" font-family="sans-serif" font-size="12" font-weight="600" fill="var(--box-label-bg)">Loss</text>
+
+        <!-- Sₜ₊₁ actual circle (outlined) -->
+        <circle cx="610" cy="218" r="30" fill="var(--bg)" stroke="var(--muted)" stroke-width="2"/>
+        <text x="610" y="213" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="var(--text)">Sₜ₊₁</text>
+        <text x="610" y="230" font-family="sans-serif" font-size="11" text-anchor="middle" fill="var(--muted)">actual</text>
+
+        <!-- Arrow Sₜ₊₁ → Encoder -->
+        <line x1="610" y1="248" x2="610" y2="275" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-muted)"/>
+
+        <!-- Encoder (target, dashed pill) -->
+        <rect x="552" y="277" width="116" height="48" rx="24" fill="var(--surface)" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="5 3"/>
+        <text x="610" y="306" font-family="sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="var(--muted)">Encoder</text>
+
+        <!-- Arrow Encoder → Xₜ₊₁ -->
+        <line x1="610" y1="325" x2="610" y2="350" stroke="var(--muted)" stroke-width="2" marker-end="url(#arr-muted)"/>
+
+        <!-- Xₜ₊₁ box -->
+        <rect x="562" y="352" width="96" height="38" rx="10" fill="var(--bg)" stroke="var(--border)" stroke-width="1.8"/>
+        <text x="610" y="376" font-family="sans-serif" font-size="17" font-weight="700" text-anchor="middle" fill="var(--text)">Xₜ₊₁</text>
+
+      </svg>
+
+      <figcaption style="margin-top: 1.75rem; font-size: 0.9rem; color: var(--muted); text-align: center; max-width: 560px;">
+        <strong style="color: var(--text);">The JEPA Pipeline:</strong> The predictor learns to map the current latent state (Sₜ) and an action (Aₜ) to a predicted future state (Ŝₜ₊₁). The loss is the distance between that prediction and the actual encoded future state (Sₜ₊₁). No pixels are generated — only representations.
+      </figcaption>
+    </figure>
+
+    <p style="margin-bottom: 1.25rem;">
+      Given the current state of a robot arm (Sₜ) and the action "move left" (Aₜ), the predictor outputs the embedding of the arm after moving — not a rendered image of it. The model learns to reason about the consequences of actions inside latent space, which is exactly the editable mental workspace that standard LLMs lack.
+    </p>
+
+    <!-- ── START OF INTERACTIVE JEPA SANDBOX WIDGET ── -->
+    <style>
+        .jepa-interactive-container {
+            max-width: 820px;
+            margin: 3.5rem auto;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 2.25rem;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #1a202c;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] .jepa-interactive-container {
+            background: #140f0c;
+            border-color: #2e2620;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            color: #e2e8f0;
+        }
+
+        .jepa-header {
+            margin-bottom: 1.75rem;
+        }
+
+        .jepa-header h3 {
+            font-family: 'Lora', Georgia, serif;
+            font-size: 1.75rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: var(--accent, #9e3d24);
+        }
+
+        .jepa-header p {
+            font-size: 0.95rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        [data-theme="dark"] .jepa-header p {
+            color: #a0aec0;
+        }
+
+        .jepa-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.3s;
+        }
+
+        [data-theme="dark"] .canvas-wrapper {
+            background: #0b0806;
+            border-color: #2e2620;
+        }
+
+        #jepaCanvas {
+            display: block;
+            cursor: grab;
+            width: 100%;
+            height: 100%;
+        }
+
+        #jepaCanvas:active {
+            cursor: grabbing;
+        }
+
+        .jepa-controls {
+            flex: 1;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: #64748b;
+        }
+
+        [data-theme="dark"] .control-label {
+            color: #a0aec0;
+        }
+
+        .btn-toggle-group {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            gap: 4px;
+        }
+
+        [data-theme="dark"] .btn-toggle-group {
+            background: #1c1511;
+            border-color: #2e2620;
+        }
+
+        .btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] .btn {
+            color: #a0aec0;
+        }
+
+        .btn.active {
+            background: #ffffff;
+            color: var(--accent, #9e3d24);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        [data-theme="dark"] .btn.active {
+            background: #2e2620;
+            color: #f7fafc;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .btn-secondary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        [data-theme="dark"] .btn-secondary {
+            background: #1c1511;
+            border-color: #2e2620;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        [data-theme="dark"] .btn-secondary:hover {
+            background: #2e2620;
+            border-color: #3e3228;
+        }
+
+        .stats-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        [data-theme="dark"] .stats-panel {
+            background: #1a1410;
+            border-color: #251e18;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .stat-name {
+            color: #64748b;
+        }
+
+        [data-theme="dark"] .stat-name {
+            color: #a0aec0;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-family: monospace;
+            color: var(--accent, #9e3d24);
+        }
+
+        .stat-value.success {
+            color: #10b981;
+        }
+
+        .instructions-card {
+            background: var(--box-bg, #f5f2eb);
+            border: 1px solid var(--box-border, #e5dfd0);
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        [data-theme="dark"] .instructions-card {
+            background: #201a15;
+            border-color: #352a20;
+        }
+
+        .instructions-card h4 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text, #111111);
+        }
+
+        .instructions-card ul {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: #4a5568;
+        }
+
+        [data-theme="dark"] .instructions-card ul {
+            color: #a0aec0;
+        }
+
+        .instructions-card li {
+            margin-bottom: 0.4rem;
+        }
+
+        .success-overlay {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(16, 185, 129, 0.95);
+            color: white;
+            padding: 0.6rem 1.4rem;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+
+        .success-overlay.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+
+    <div class="jepa-interactive-container">
+        <div class="jepa-header">
+            <h3>🎮 Live World Model Sandbox: Align the Keypoints</h3>
+            <p>Predicting pixels leads to blur, but predicting representations is the path to world models. Below is an interactive sandbox where you can drag the <strong>T-alphabet</strong> or its <strong>keypoint dots</strong>, and watch Yann LeCun's JEPA style predictive planning agent push the T block to minimize alignment error in real-time!</p>
+        </div>
+
+        <div class="jepa-content">
+            <div class="canvas-wrapper">
+                <canvas id="jepaCanvas" width="420" height="420"></canvas>
+                <div id="successOverlay" class="success-overlay">Aligned! 🎉</div>
+            </div>
+
+            <div class="jepa-controls">
+                <div class="control-group">
+                    <span class="control-label">Control Mode</span>
+                    <div class="btn-toggle-group">
+                        <button id="btnManual" class="btn active">Manual Play</button>
+                        <button id="btnAuto" class="btn">Auto Model (JEPA)</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">Actions</span>
+                    <div class="btn-grid">
+                        <button id="btnRandomize" class="btn-secondary">🎲 Random Goal</button>
+                        <button id="btnReset" class="btn-secondary">🔄 Reset State</button>
+                    </div>
+                </div>
+
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <span class="stat-name">Alignment Error (MSE)</span>
+                        <span id="statError" class="stat-value">---</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">Pusher Mode</span>
+                        <span id="statStatus" class="stat-value">Idle</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">World Model rollouts</span>
+                        <span class="stat-value">30 paths / step</span>
+                    </div>
+                </div>
+
+                <div class="instructions-card">
+                    <h4>How to interact:</h4>
+                    <ul>
+                        <li><strong>Drag T-Body</strong>: Translate the solid Blue T-block.</li>
+                        <li><strong>Drag Red/Blue dots</strong>: Rotate and pivot the T-block around the opposite dot!</li>
+                        <li><strong>Toggle Auto Model</strong>: A virtual orange pusher end-effector will plan trajectories in its internal "world model" (thin green lines) and take actions to physically push the T-block onto the Grey target outline.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function drawT(ctx, x, y, angle, fillStyle, strokeStyle, isOutline) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+
+            ctx.fillStyle = fillStyle;
+            ctx.strokeStyle = strokeStyle;
+            ctx.lineWidth = isOutline ? 2.5 : 1.5;
+
+            if (isOutline) {
+                ctx.setLineDash([6, 4]);
+            } else {
+                ctx.setLineDash([]);
+            }
+
+            // Draw Crossbar: width 120, height 30
+            ctx.beginPath();
+            ctx.rect(-60, -60, 120, 30);
+            if (isOutline) {
+                ctx.stroke();
+            } else {
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            // Draw Stem: width 30, height 90
+            ctx.beginPath();
+            ctx.rect(-15, -30, 30, 90);
+            if (isOutline) {
+                ctx.stroke();
+            } else {
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const canvas = document.getElementById("jepaCanvas");
+            const ctx = canvas.getContext("2d");
+            const statError = document.getElementById("statError");
+            const statStatus = document.getElementById("statStatus");
+            const successOverlay = document.getElementById("successOverlay");
+            
+            const btnManual = document.getElementById("btnManual");
+            const btnAuto = document.getElementById("btnAuto");
+            const btnRandomize = document.getElementById("btnRandomize");
+            const btnReset = document.getElementById("btnReset");
+
+            // States
+            let mode = 'manual'; // 'manual' or 'auto'
+            let block = { x: 180, y: 260, angle: 0.1 };
+            let target = { x: 210, y: 210, angle: Math.PI / 4 };
+            let pusher = { x: 100, y: 150 };
+            
+            let dragging = null; // 'A', 'B', 'body', 'pusher'
+            let dragOffset = { x: 0, y: 0 };
+            
+            // Planning trails for visual CEM rollout
+            let planningTrails = [];
+            let bestTrail = [];
+
+            // Target Keypoint offsets relative to Center of Mass
+            // Keypoint A: top-left (-45, -45)
+            // Keypoint B: bottom stem (0, 75)
+            const kpA_off = { x: -45, y: -45 };
+            const kpB_off = { x: 0, y: 75 };
+
+            function getKeypoints(x, y, angle) {
+                let cos = Math.cos(angle);
+                let sin = Math.sin(angle);
+                return [
+                    {
+                        x: x + kpA_off.x * cos - kpA_off.y * sin,
+                        y: y + kpA_off.x * sin + kpA_off.y * cos
+                    },
+                    {
+                        x: x + kpB_off.x * cos - kpB_off.y * sin,
+                        y: y + kpB_off.x * sin + kpB_off.y * cos
+                    }
+                ];
+            }
+
+            function getMousePos(e) {
+                let rect = canvas.getBoundingClientRect();
+                // Handle high-DPI scaling if clientWidth/rect.width varies
+                let scaleX = canvas.width / rect.width;
+                let scaleY = canvas.height / rect.height;
+                return {
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
+                };
+            }
+
+            // T-Block geometric shape helper: consists of Crossbar and Stem
+            function isPointInsideT(px, py, b) {
+                let dx = px - b.x;
+                let dy = py - b.y;
+                let lx = dx * Math.cos(-b.angle) - dy * Math.sin(-b.angle);
+                let ly = dx * Math.sin(-b.angle) + dy * Math.cos(-b.angle);
+
+                // Crossbar local bounding box: [-60, 60] x [-60, -30]
+                let insideCrossbar = (lx >= -60 && lx <= 60 && ly >= -60 && ly <= -30);
+                // Stem local bounding box: [-15, 15] x [-30, 60]
+                let insideStem = (lx >= -15 && lx <= 15 && ly >= -30 && ly <= 60);
+
+                return insideCrossbar || insideStem;
+            }
+
+            // Collision Resolution: Pusher circle (radius 18) colliding with T-block
+            function resolveCollision(b, p) {
+                let dx = p.x - b.x;
+                let dy = p.y - b.y;
+                let lx = dx * Math.cos(-b.angle) - dy * Math.sin(-b.angle);
+                let ly = dx * Math.sin(-b.angle) + dy * Math.cos(-b.angle);
+
+                // Project onto Crossbar
+                let cx1 = Math.max(-60, Math.min(60, lx));
+                let cy1 = Math.max(-60, Math.min(-30, ly));
+                let dist1 = Math.hypot(lx - cx1, ly - cy1);
+
+                // Project onto Stem
+                let cx2 = Math.max(-15, Math.min(15, lx));
+                let cy2 = Math.max(-30, Math.min(60, ly));
+                let dist2 = Math.hypot(lx - cx2, ly - cy2);
+
+                let cx, cy, minDist;
+                if (dist1 < dist2) {
+                    cx = cx1; cy = cy1; minDist = dist1;
+                } else {
+                    cx = cx2; cy = cy2; minDist = dist2;
+                }
+
+                const radius = 18;
+                if (minDist < radius) {
+                    let overlap = radius - minDist;
+                    
+                    let nlx = lx - cx;
+                    let nly = ly - cy;
+                    let len = Math.hypot(nlx, nly);
+                    if (len === 0) { nlx = 0; nly = -1; len = 1; }
+                    nlx /= len; nly /= len;
+
+                    // Convert local normal to global normal
+                    let gnx = nlx * Math.cos(b.angle) - nly * Math.sin(b.angle);
+                    let gny = nlx * Math.sin(b.angle) + nly * Math.cos(b.angle);
+
+                    // Push block away from kinematic pusher
+                    b.x -= gnx * overlap * 0.85;
+                    b.y -= gny * overlap * 0.85;
+
+                    // Push torque based on cross product
+                    let gcx = cx * Math.cos(b.angle) - cy * Math.sin(b.angle);
+                    let gcy = cx * Math.sin(b.angle) + cy * Math.cos(b.angle);
+                    
+                    let forceX = -gnx * overlap;
+                    let forceY = -gny * overlap;
+                    let torque = gcx * forceY - gcy * forceX;
+
+                    b.angle += torque * 0.00035;
+                    return true;
+                }
+                return false;
+            }
+
+            // Drag event listeners
+            canvas.addEventListener("mousedown", (e) => {
+                let mouse = getMousePos(e);
+                let kps = getKeypoints(block.x, block.y, block.angle);
+                
+                let distA = Math.hypot(mouse.x - kps[0].x, mouse.y - kps[0].y);
+                let distB = Math.hypot(mouse.x - kps[1].x, mouse.y - kps[1].y);
+                let distP = Math.hypot(mouse.x - pusher.x, mouse.y - pusher.y);
+
+                if (distA < 15) {
+                    dragging = 'A';
+                } else if (distB < 15) {
+                    dragging = 'B';
+                } else if (distP < 20) {
+                    dragging = 'pusher';
+                } else if (isPointInsideT(mouse.x, mouse.y, block)) {
+                    dragging = 'body';
+                    dragOffset = { x: mouse.x - block.x, y: mouse.y - block.y };
+                }
+            });
+
+            canvas.addEventListener("mousemove", (e) => {
+                if (!dragging) return;
+                let mouse = getMousePos(e);
+                let kps = getKeypoints(block.x, block.y, block.angle);
+
+                if (dragging === 'body') {
+                    block.x = Math.max(60, Math.min(canvas.width - 60, mouse.x - dragOffset.x));
+                    block.y = Math.max(60, Math.min(canvas.height - 60, mouse.y - dragOffset.y));
+                } else if (dragging === 'pusher') {
+                    pusher.x = Math.max(15, Math.min(canvas.width - 15, mouse.x));
+                    pusher.y = Math.max(15, Math.min(canvas.height - 15, mouse.y));
+                    resolveCollision(block, pusher);
+                } else if (dragging === 'A') {
+                    // Pivot block around keypoint B (kps[1] remains fixed)
+                    let B = kps[1];
+                    let relAngle0 = Math.atan2(kpA_off.y - kpB_off.y, kpA_off.x - kpB_off.x);
+                    let newRelAngle = Math.atan2(mouse.y - B.y, mouse.x - B.x);
+                    block.angle = newRelAngle - relAngle0;
+                    
+                    // Reposition block center so B stays fixed
+                    let cos = Math.cos(block.angle);
+                    let sin = Math.sin(block.angle);
+                    block.x = B.x - (kpB_off.x * cos - kpB_off.y * sin);
+                    block.y = B.y - (kpB_off.x * sin + kpB_off.y * cos);
+                } else if (dragging === 'B') {
+                    // Pivot block around keypoint A (kps[0] remains fixed)
+                    let A = kps[0];
+                    let relAngle0 = Math.atan2(kpB_off.y - kpA_off.y, kpB_off.x - kpA_off.x);
+                    let newRelAngle = Math.atan2(mouse.y - A.y, mouse.x - A.x);
+                    block.angle = newRelAngle - relAngle0;
+
+                    // Reposition block center so A stays fixed
+                    let cos = Math.cos(block.angle);
+                    let sin = Math.sin(block.angle);
+                    block.x = A.x - (kpA_off.x * cos - kpA_off.y * sin);
+                    block.y = A.y - (kpA_off.x * sin + kpA_off.y * cos);
+                }
+            });
+
+            window.addEventListener("mouseup", () => {
+                dragging = null;
+            });
+
+            function planModelActions() {
+                // Determine the next step action for the real pusher
+                let action = getVectorFieldAction(block, pusher, target);
+
+                // Run world model rollouts for visual predictive planning trails
+                bestTrail = [];
+                planningTrails = [];
+
+                // 1. Rollout the best (deterministic) path
+                let simBlock = { x: block.x, y: block.y, angle: block.angle };
+                let simPusher = { x: pusher.x, y: pusher.y };
+                bestTrail.push({ x: simPusher.x, y: simPusher.y });
+
+                const horizon = 30;
+                for (let h = 0; h < horizon; h++) {
+                    let stepAct = getVectorFieldAction(simBlock, simPusher, target);
+                    simPusher.x += stepAct.vx;
+                    simPusher.y += stepAct.vy;
+                    resolveCollision(simBlock, simPusher);
+                    bestTrail.push({ x: simPusher.x, y: simPusher.y });
+                }
+
+                // 2. Rollout 15 perturbed (noisy) paths for the orange visualization
+                const numNoisy = 15;
+                for (let n = 0; n < numNoisy; n++) {
+                    let noisySimBlock = { x: block.x, y: block.y, angle: block.angle };
+                    let noisySimPusher = { x: pusher.x, y: pusher.y };
+                    let points = [{ x: noisySimPusher.x, y: noisySimPusher.y }];
+
+                    for (let h = 0; h < horizon; h++) {
+                        let stepAct = getVectorFieldAction(noisySimBlock, noisySimPusher, target);
+                        // Add some random search perturbation
+                        let noiseX = (Math.random() - 0.5) * 2.5;
+                        let noiseY = (Math.random() - 0.5) * 2.5;
+                        noisySimPusher.x += stepAct.vx + noiseX;
+                        noisySimPusher.y += stepAct.vy + noiseY;
+                        resolveCollision(noisySimBlock, noisySimPusher);
+                        points.push({ x: noisySimPusher.x, y: noisySimPusher.y });
+                    }
+                    planningTrails.push({ points: points });
+                }
+
+                return action;
+            }
+
+            function getVectorFieldAction(b, p, tgt) {
+                let dx = tgt.x - b.x;
+                let dy = tgt.y - b.y;
+                let dist = Math.hypot(dx, dy);
+
+                // Target push direction
+                let ux = dx / (dist + 1e-5);
+                let uy = dy / (dist + 1e-5);
+                if (dist < 5) {
+                    ux = Math.cos(tgt.angle);
+                    uy = Math.sin(tgt.angle);
+                }
+
+                // Rotation error
+                let dAngle = tgt.angle - b.angle;
+                dAngle = Math.atan2(Math.sin(dAngle), Math.cos(dAngle));
+
+                // Perpendicular vector
+                let upx = -uy;
+                let upy = ux;
+
+                // Contact offset to apply corrective torque
+                let K_rot = 45;
+                let offset = -Math.max(-35, Math.min(35, dAngle * K_rot));
+
+                // Contact point on block boundary
+                let cx = b.x - ux * 55 + upx * offset;
+                let cy = b.y - uy * 55 + upy * offset;
+
+                // Pusher to contact point
+                let gX = cx - p.x;
+                let gY = cy - p.y;
+                let distToContact = Math.hypot(gX, gY);
+
+                // Pusher to block center
+                let uX = b.x - p.x;
+                let uY = b.y - p.y;
+                let distToBlock = Math.hypot(uX, uY);
+
+                let vx = 0;
+                let vy = 0;
+
+                if (distToContact > 20) {
+                    // Navigation Mode (Steer around the block)
+                    let gux = gX / (distToContact + 1e-5);
+                    let guy = gY / (distToContact + 1e-5);
+
+                    if (distToBlock < 65) {
+                        // Collision avoidance / tangential steering
+                        let n1x = -uY / distToBlock, n1y = uX / distToBlock;
+                        let n2x = uY / distToBlock, n2y = -uX / distToBlock;
+                        let dot1 = n1x * gux + n1y * guy;
+                        
+                        let nx = dot1 >= 0 ? n1x : n2x;
+                        let ny = dot1 >= 0 ? n1y : n2y;
+
+                        let w = (65 - distToBlock) / 65;
+                        vx = (1 - w) * gux + w * nx;
+                        vy = (1 - w) * guy + w * ny;
+                    } else {
+                        vx = gux;
+                        vy = guy;
+                    }
+
+                    // Navigation speed
+                    let speed = 5.0;
+                    let len = Math.hypot(vx, vy);
+                    vx = (vx / (len + 1e-5)) * speed;
+                    vy = (vy / (len + 1e-5)) * speed;
+                } else {
+                    // Pushing Mode
+                    // Direct push force plus small lateral alignment correction
+                    vx = ux * 3.5 + gX * 0.15;
+                    vy = uy * 3.5 + gY * 0.15;
+
+                    let speed = Math.hypot(vx, vy);
+                    if (speed > 4.5) {
+                        vx = (vx / speed) * 4.5;
+                        vy = (vy / speed) * 4.5;
+                    }
+                }
+
+                return { vx: vx, vy: vy };
+            }
+
+            // Main Loop
+            function tick() {
+                const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+                
+                // Clear Canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Auto model planning and step execution
+                if (mode === 'auto' && !dragging) {
+                    let err = Math.hypot(block.x - target.x, block.y - target.y);
+                    let kps = getKeypoints(block.x, block.y, block.angle);
+                    let targets = getKeypoints(target.x, target.y, target.angle);
+                    let alignErr = Math.hypot(kps[0].x - targets[0].x, kps[0].y - targets[0].y) +
+                                   Math.hypot(kps[1].x - targets[1].x, kps[1].y - targets[1].y);
+
+                    if (alignErr > 8) {
+                        statStatus.textContent = "Planning...";
+                        let stepAction = planModelActions();
+                        pusher.x += stepAction.vx;
+                        pusher.y += stepAction.vy;
+                        resolveCollision(block, pusher);
+                    } else {
+                        statStatus.textContent = "Goal Aligned!";
+                    }
+                } else {
+                    statStatus.textContent = dragging ? "Dragging..." : "Idle";
+                    planningTrails = [];
+                    bestTrail = [];
+                }
+
+                // DRAWING
+                
+                // 1. Draw Target Grey Outline T
+                drawT(ctx, target.x, target.y, target.angle, 
+                      "transparent", isDark ? "rgba(180, 160, 150, 0.25)" : "rgba(128, 128, 128, 0.25)", true);
+
+                // 2. Draw planned CEM rollouts
+                if (planningTrails.length > 0) {
+                    ctx.save();
+                    ctx.lineWidth = 1;
+                    planningTrails.forEach(trail => {
+                        ctx.strokeStyle = "rgba(220, 100, 30, 0.08)";
+                        ctx.beginPath();
+                        ctx.moveTo(trail.points[0].x, trail.points[0].y);
+                        for (let p = 1; p < trail.points.length; p++) {
+                            ctx.lineTo(trail.points[p].x, trail.points[p].y);
+                        }
+                        ctx.stroke();
+                    });
+                    
+                    // Draw best path in bright green
+                    if (bestTrail.length > 0) {
+                        ctx.strokeStyle = "#10b981";
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(bestTrail[0].x, bestTrail[0].y);
+                        for (let p = 1; p < bestTrail.length; p++) {
+                            ctx.lineTo(bestTrail[p].x, bestTrail[p].y);
+                        }
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+
+                // 3. Draw Movable Blue/Purple T-Block
+                drawT(ctx, block.x, block.y, block.angle, 
+                      isDark ? "rgba(30, 144, 255, 0.4)" : "rgba(30, 144, 255, 0.6)", 
+                      isDark ? "rgba(30, 144, 255, 0.95)" : "rgba(30, 144, 255, 0.95)", false);
+
+                // 4. Draw Keypoints Connection Lines (MSE visualizer)
+                let kps = getKeypoints(block.x, block.y, block.angle);
+                let targets = getKeypoints(target.x, target.y, target.angle);
+                
+                ctx.save();
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = "rgba(230, 90, 40, 0.4)";
+                
+                ctx.beginPath();
+                ctx.moveTo(kps[0].x, kps[0].y);
+                ctx.lineTo(targets[0].x, targets[0].y);
+                ctx.moveTo(kps[1].x, kps[1].y);
+                ctx.lineTo(targets[1].x, targets[1].y);
+                ctx.stroke();
+                ctx.restore();
+
+                // 5. Draw Keypoint Dots
+                // Target Grey dots
+                ctx.fillStyle = isDark ? "#888" : "#aaa";
+                ctx.beginPath(); ctx.arc(targets[0].x, targets[0].y, 6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(targets[1].x, targets[1].y, 6, 0, Math.PI*2); ctx.fill();
+
+                // Block glowing Red / Blue dots
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = "#ef4444";
+                ctx.fillStyle = "#ef4444";
+                ctx.beginPath(); ctx.arc(kps[0].x, kps[0].y, 8, 0, Math.PI*2); ctx.fill();
+                
+                ctx.shadowColor = "#3b82f6";
+                ctx.fillStyle = "#3b82f6";
+                ctx.beginPath(); ctx.arc(kps[1].x, kps[1].y, 8, 0, Math.PI*2); ctx.fill();
+                
+                // 6. Draw Pusher agent
+                ctx.shadowColor = "#f59e0b";
+                ctx.fillStyle = "#f59e0b";
+                ctx.strokeStyle = "#d97706";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(pusher.x, pusher.y, 15, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.shadowBlur = 0; // reset shadow
+
+                // Update real-time stats
+                let errA = Math.hypot(kps[0].x - targets[0].x, kps[0].y - targets[0].y);
+                let errB = Math.hypot(kps[1].x - targets[1].x, kps[1].y - targets[1].y);
+                let mse = ((errA*errA + errB*errB) / 2).toFixed(1);
+                
+                statError.textContent = mse;
+                if (parseFloat(mse) < 35) {
+                    statError.className = "stat-value success";
+                    successOverlay.classList.add("show");
+                } else {
+                    statError.className = "stat-value";
+                    successOverlay.classList.remove("show");
+                }
+
+                requestAnimationFrame(tick);
+            }
+
+            // Controls listeners
+            btnManual.addEventListener("click", () => {
+                mode = 'manual';
+                btnManual.classList.add("active");
+                btnAuto.classList.remove("active");
+            });
+
+            btnAuto.addEventListener("click", () => {
+                mode = 'auto';
+                btnAuto.classList.add("active");
+                btnManual.classList.remove("active");
+            });
+
+            btnRandomize.addEventListener("click", () => {
+                target.x = 120 + Math.random() * (canvas.width - 240);
+                target.y = 120 + Math.random() * (canvas.height - 240);
+                target.angle = Math.random() * Math.PI * 2;
+            });
+
+            btnReset.addEventListener("click", () => {
+                block = { x: 180, y: 260, angle: 0.1 };
+                pusher = { x: 100, y: 150 };
+            });
+
+            // Start loop
+            tick();
+        });
+    </script>
+    <!-- ── END OF INTERACTIVE JEPA SANDBOX WIDGET ── -->
+
+    <h3 style="font-size: 1.5rem; margin-bottom: 1rem; margin-top: 3rem;">Where the Debate Stands</h3>
+
+    <p style="margin-bottom: 1.25rem;">
+      This is where a genuine scientific disagreement lives.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      LeCun's position is roughly: next-token prediction is the wrong objective. It forces models to expend capacity on irrelevant surface details — the leaves on the trees, the exact wording of a sentence — rather than building models of the underlying world. JEPA-style training makes the right thing the thing being optimized.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      The opposing view is equally coherent: the latent space already emerges inside large language models. The multilingual evidence, the analogical reasoning, the emergent planning — all suggest that next-token prediction, applied at scale, forces the network to develop increasingly sophisticated internal representations of reality anyway. Maybe the objective does not matter as much as the scale.
+    </p>
+
+    <blockquote style="border-left: 4px solid var(--accent); padding-left: 1rem; margin: 2rem 0; color: var(--muted);">
+      LLM: the latent space is learned because it helps predict tokens. JEPA: the latent space is the thing being predicted directly. In one, the representation is a means to an end. In the other, it is the end itself.
+    </blockquote>
+
+    <p style="margin-bottom: 1.25rem;">
+      Recent research directions suggest the field is hedging toward the JEPA view without abandoning language. World models, latent reasoning, diffusion language models, planning agents, and multimodal architectures all share a common thread: build a richer internal representation of reality, and use language as one output interface among many — not as the medium of thought itself.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      Perhaps the most honest summary is this. Today's LLMs are in an odd middle ground: internally, they appear to develop genuine semantic concepts; externally, they are trained as token predictors. JEPA is a proposal to make the internal reality the explicit object of training. Whether that requires a fundamentally new architecture or simply different objectives applied to existing ones is the question modern AI research is in the process of answering.
+    </p>
+
+    <p style="margin-bottom: 1.25rem;">
+      What seems clear is the destination. Intelligence — whether in humans or machines — appears to operate primarily inside a continuous latent space, constructing models of the world, simulating possible futures, and editing plans before committing to action. Language, in this picture, is not the medium of thought. It is the interface through which a deeper process communicates with the world.
+    </p>
+
+  </div>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>
