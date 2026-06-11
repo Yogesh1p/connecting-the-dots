@@ -63,43 +63,70 @@
 
 /* Custom Overrides for Premium Blend */
 
+.gsc-main {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.gsc-header {
+  border-bottom: none !important;
+  padding: 0 0 1rem 0 !important;
+}
+
+.gsc-left-header {
+  display: none !important;
+}
+
+.gsc-footer {
+  display: none !important;
+}
+
+.gsc-timeline {
+  border-top: none !important;
+}
+
+/* Minimal Input/Comment Box */
 .gsc-comment-box {
-  border: 1px solid #E8DFD1 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  background-color: #FDFBF7 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  overflow: visible !important;
+  margin-bottom: 2rem !important;
 }
 
 .gsc-comment-box-textarea {
   font-family: inherit;
-  border: none !important;
-  border-bottom: 1px dashed #E8DFD1 !important;
-  border-radius: 0 !important;
-  padding: 1.2rem !important;
+  border: 1px solid #E8DFD1 !important;
+  border-radius: 12px !important;
+  padding: 1rem 1.2rem !important;
   background-color: #FDFBF7 !important;
-  min-height: 120px !important;
+  min-height: 100px !important;
+  transition: all 0.2s ease !important;
 }
 
 .gsc-comment-box-textarea:focus {
   background-color: #FDFBF7 !important;
-  box-shadow: none !important;
+  border-color: #D48C70 !important;
+  box-shadow: 0 0 0 1px #D48C70 !important;
 }
 
 .gsc-comment-box-tabs {
-  background-color: #FDFBF7 !important;
-  border-bottom: 1px solid #E8DFD1 !important;
-  padding: 0 0.5rem !important;
+  background-color: transparent !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .gsc-comment-box-tab {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
   font-size: 0.82rem !important;
   font-weight: 500 !important;
-  color: rgba(74, 63, 53, 0.6) !important;
+  color: rgba(74, 63, 53, 0.5) !important;
   border: none !important;
   border-bottom: 2px solid transparent !important;
-  padding: 0.75rem 1rem !important;
-  margin-bottom: -1px !important;
+  padding: 0.25rem 0 !important;
+  margin-right: 1.25rem !important;
+  margin-bottom: 0 !important;
   transition: all 0.2s ease !important;
 }
 
@@ -110,8 +137,8 @@
 }
 
 .gsc-comment-box-buttons {
-  background-color: #FDFBF7 !important;
-  padding: 0.75rem 1.2rem !important;
+  background-color: transparent !important;
+  padding: 0.75rem 0 0 0 !important;
   border-top: none !important;
 }
 
@@ -140,17 +167,103 @@
   transform: translateY(1px) !important;
 }
 
+/* Minimal Comment List */
 .gsc-comment {
-  border: 1px solid #E8DFD1 !important;
-  border-radius: 12px !important;
-  background-color: #FDFBF7 !important;
-  margin-bottom: 1.5rem !important;
+  border: none !important;
+  border-bottom: 1px solid #E8DFD1 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  margin-bottom: 1.75rem !important;
+  padding-bottom: 1.75rem !important;
 }
 
 .gsc-comment-header {
+  background-color: transparent !important;
+  border-bottom: none !important;
+  padding: 0 0 0.5rem 0 !important;
+}
+
+.gsc-comment-author-name {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-weight: 600 !important;
+}
+
+/* Indented & Vertical Line for Replies (No boxes) */
+.gsc-replies {
+  margin-top: 1rem !important;
+}
+
+.gsc-reply {
+  border: none !important;
+  border-left: 2px solid #E8DFD1 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  padding: 0.25rem 0 0.25rem 1.25rem !important;
+  margin-left: 0.5rem !important;
+  margin-top: 1rem !important;
+}
+
+/* Minimal Reactions Bar styling */
+.gsc-reactions {
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 1.5rem 0 !important;
+}
+
+.gsc-social-reaction-summary-item {
+  border: 1px solid #E8DFD1 !important;
+  border-radius: 30px !important;
   background-color: #FDFBF7 !important;
-  border-bottom: 1px solid #E8DFD1 !important;
-  padding: 0.75rem 1.2rem !important;
+  padding: 0.4rem 0.9rem !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  color: rgba(74, 63, 53, 0.65) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+}
+
+.gsc-social-reaction-summary-item:hover {
+  color: #D48C70 !important;
+  background-color: rgba(212, 140, 112, 0.08) !important;
+  border-color: #D48C70 !important;
+}
+
+.gsc-social-reaction-summary-item[data-reacted="true"] {
+  color: #D48C70 !important;
+  border-color: #D48C70 !important;
+  background-color: rgba(212, 140, 112, 0.15) !important;
+}
+
+/* Hide all reaction summary items that are not Heart */
+.gsc-social-reaction-summary-item:not([aria-label*="heart"]):not([aria-label*="HEART"]):not([aria-label*="Heart"]) {
+  display: none !important;
+}
+
+.gsc-reactions-button {
+  border: 1px solid #E8DFD1 !important;
+  border-radius: 50% !important;
+  background-color: #FDFBF7 !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: rgba(74, 63, 53, 0.45) !important;
+  transition: all 0.2s ease !important;
+}
+
+.gsc-reactions-button:hover {
+  color: #D48C70 !important;
+  border-color: #D48C70 !important;
+  background-color: rgba(212, 140, 112, 0.08) !important;
 }
 
 a {

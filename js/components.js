@@ -226,10 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sync Giscus if it exists
     const iframe = document.querySelector('iframe.giscus-frame');
     if (iframe) {
-      const origin = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('0.0.0.0')
-        ? window.location.origin
-        : 'https://yogesh1p.github.io/connecting-the-dots';
-      const giscusThemeUrl = `${origin}/css/giscus-theme-${theme}.css?v=${Date.now()}`;
+      const giscusThemeUrl = `https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-${theme}.css?v=${Date.now()}`;
       iframe.contentWindow.postMessage({ giscus: { setConfig: { theme: giscusThemeUrl } } }, 'https://giscus.app');
     }
   };
@@ -300,7 +297,6 @@ window.injectGiscusComments = function(containerId) {
     style.id = 'giscus-inject-styles';
     style.textContent = `
       .article-discussion-wrap { max-width: 720px; margin: 5rem auto 2rem; padding-top: 0; }
-      .article-discussion-wrap > p { text-align: left; color: var(--muted); font-family: var(--font-sans, system-ui, sans-serif); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.08em; line-height: 1.2; text-transform: uppercase; margin-bottom: 1.35rem; }
       .giscus-box { width: 100%; min-height: 300px; }
       .article-discussion-wrap iframe.giscus-frame {
         width: 100% !important;
@@ -312,13 +308,12 @@ window.injectGiscusComments = function(containerId) {
   }
 
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const origin = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('0.0.0.0')
-    ? window.location.origin
-    : 'https://yogesh1p.github.io/connecting-the-dots';
-  const giscusThemeUrl = `${origin}/css/giscus-theme-${isDark ? 'dark' : 'light'}.css?v=${Date.now()}`;
+  const giscusThemeUrl = `https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-${isDark ? 'dark' : 'light'}.css?v=${Date.now()}`;
 
   el.className = 'article-discussion-wrap';
-  el.innerHTML = `<p>Discussion & Questions</p><div class="giscus-box"></div>`;
+  el.innerHTML = `
+    <div class="giscus-box"></div>
+  `;
 
   const script = document.createElement('script');
   Object.entries({
@@ -333,8 +328,8 @@ window.injectGiscusComments = function(containerId) {
     'data-term': document.querySelector('meta[name="title"]')?.content || document.title,
     'data-strict': '0',
     'data-reactions-enabled': '1',
-    'data-emit-metadata': '0',
-    'data-input-position': 'bottom',
+    'data-emit-metadata': '1',
+    'data-input-position': 'top',
     'data-theme': giscusThemeUrl,
     'data-lang': 'en'
   }).forEach(([key, value]) => script.setAttribute(key, value));
