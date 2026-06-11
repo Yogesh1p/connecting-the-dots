@@ -155,7 +155,8 @@ h1.hub-title {
   background: var(--code-bg); color: var(--code-text);
   padding: 1.2rem 1.5rem; border-radius: 10px;
   margin: 1.2rem 0; border: 1px solid var(--border);
-  line-height: 1.7; overflow-x: auto; white-space: pre;
+  line-height: 1.7; overflow-x: visible; white-space: pre-wrap;
+  overflow-wrap: anywhere;
   transition: background-color 0.35s, color 0.35s, border-color 0.35s;
 }
 .exp-code-comment { color: var(--accent); font-style: italic; font-family: 'Lora', serif; }
@@ -192,7 +193,7 @@ h1.hub-title {
 .exp-layer-table td.peak { color: var(--accent); font-weight: 700; }
 
 /* ── Dot/bar charts ── */
-.exp-img { width: 100%; border-radius: 8px; border: 1px solid var(--border); display: block; }
+.exp-img { width: 100%; border-radius: 8px; display: block; }
 
 .exp-dot-rows { display: flex; flex-direction: column; gap: 0.35rem; }
 .exp-dot-row  { display: grid; grid-template-columns: 55px 1fr 45px; align-items: center; gap: 0.5rem; }
@@ -257,6 +258,7 @@ h1.hub-title {
 
 
 
+@media (max-width: 768px) {
   /* 2. Grid Collapsing (Catches both 2 and 3 columns) */
   .data-grid,
   .grid-2,
@@ -297,6 +299,7 @@ h1.hub-title {
     padding: 1.5rem 1.2rem;      /* Adds a little extra vertical breathing room */
     line-height: 1.8;            /* Slightly taller line height for mobile reading */
   }
+}
 
     /* ── Chapter 1 only — everything else lives in base.css / experiments.css ── */
 
@@ -332,10 +335,10 @@ h1.hub-title {
     .exp-header       { max-width: 720px; margin-bottom: 3rem; }
     .exp-title        { font-size: 2.2rem; line-height: 1.2; margin-bottom: 1rem; font-weight: 500; letter-spacing: -0.01em; }
     .exp-desc         { font-size: 1.1rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.6; }
-
-    .data-grid        { display: grid; gap: 3rem; margin: 3.5rem 0; }
-    .grid-2           { grid-template-columns: 1fr 1fr; }
-    .grid-3           { grid-template-columns: repeat(3, 1fr); }
+.data-grid        { display: grid; gap: clamp(1.5rem, 3vw, 3rem); margin: 3.5rem 0; }
+.data-grid > *    { min-width: 0; }
+.grid-2,
+.grid-3           { grid-template-columns: 1fr; }
     @media (max-width: 768px) { .data-grid { grid-template-columns: 1fr !important; gap: 2rem; } }
 
     .data-label {
@@ -344,7 +347,8 @@ h1.hub-title {
       text-transform: uppercase; color: var(--text);
       border-bottom: 1px solid var(--border); padding-bottom: 0.6rem;
       margin-bottom: 1.5rem;
-      display: flex; justify-content: space-between;
+      display: flex; justify-content: space-between; gap: 0.75rem;
+      flex-wrap: wrap;
     }
     .data-sublabel { color: var(--muted); font-weight: 400; }
 
@@ -357,24 +361,53 @@ h1.hub-title {
     .bar-bg    { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
     .bar-fill  { height: 100%; background: var(--muted); opacity: 0.4; transition: width 0.6s ease; }
     .bar-fill.active { background: var(--accent); opacity: 1; }
-    .bar-fill.neg    { background: var(--neg); opacity: 0.8; }
+    .bar-fill.neg    { background: #B76D55; opacity: 0.8; }
     .dot-val   { text-align: right; color: var(--muted); }
     .dot-row.highlight .dot-word { color: var(--accent); font-weight: 700; }
     .dot-row.highlight .dot-val  { color: var(--text); font-weight: 600; }
 
-    .layer-table { width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; border-collapse: collapse; }
-    .layer-table th { text-align: right; padding: 0.6rem; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 600; }
+    .layer-table {
+      width: 100%;
+      max-width: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .layer-table th { text-align: right; padding: 0.6rem; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 600; overflow-wrap: anywhere; }
     .layer-table th:first-child { text-align: left; }
-    .layer-table td { padding: 0.5rem 0.6rem; text-align: right; border-bottom: 1px solid var(--border); color: var(--text); }
+    .layer-table td { padding: 0.5rem 0.6rem; text-align: right; border-bottom: 1px solid var(--border); color: var(--text); overflow-wrap: anywhere; }
     .layer-table td:first-child { text-align: left; color: var(--muted); }
     .peak-val { color: var(--accent) !important; font-weight: 700; background: var(--highlight); border-radius: 4px; }
     .neg-val  { color: var(--muted) !important; }
+
+    .exp-figure {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .full-width-figure {
+      grid-column: 1 / -1;
+    }
+
+    .exp-img {
+      width: 100%;
+      display: block;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      mix-blend-mode: multiply;
+    }
+
+    [data-theme="dark"] .exp-img {
+      filter: invert(1) hue-rotate(180deg);
+      mix-blend-mode: screen;
+    }
 
     .exp-footer {
       display: flex; justify-content: space-between; align-items: center;
       border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 2rem;
     }
-
     .btn-colab {
       font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
       text-decoration: none; color: var(--accent); font-weight: 700;
@@ -385,4 +418,32 @@ h1.hub-title {
     .btn-colab:hover { background: var(--accent); color: var(--bg); text-decoration: none; }
 
     .discussion-wrap { max-width: 720px; margin: 0 auto 10rem; }
-    .giscus-box { margin-top: 3rem; background: var(--surface); padding: 2rem; border-radius: 8px; border: 1px solid var(--border); }
+    .giscus-box { margin-top: 3rem; }
+
+    @media (max-width: 768px) {
+      .experiment-entry {
+        margin-bottom: 5rem;
+      }
+
+      .exp-title {
+        font-size: clamp(1.7rem, 8vw, 2.15rem);
+      }
+
+      .layer-table {
+        font-size: clamp(0.62rem, 2.55vw, 0.76rem);
+      }
+
+      .layer-table th,
+      .layer-table td {
+        padding: 0.45rem 0.35rem;
+      }
+
+      .layer-table th:first-child,
+      .layer-table td:first-child {
+        width: 40%;
+      }
+
+      .exp-img {
+        border-radius: 6px;
+      }
+    }

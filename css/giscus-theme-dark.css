@@ -1,89 +1,163 @@
-/* Giscus custom theme — Connecting the Dots · Dark */
+/* Connecting the Dots — Minimal & Premium · Dark */
 
 :root {
   --color-canvas-default: #16100C;
-  --color-canvas-subtle: #1F1510;
-  --color-canvas-inset: #1C1208;
+  --color-canvas-subtle: #16100C;
+  --color-canvas-inset: #16100C;
 
   --color-border-default: #2E2018;
-  --color-border-muted: #261A10;
+  --color-border-muted: #2E2018;
+  --color-border-subtle: #2E2018;
 
   --color-fg-default: #C5B49A;
-  --color-fg-muted: #736050;
-  --color-fg-subtle: #5C4E40;
+  --color-fg-muted: rgba(197, 180, 154, 0.65);
+  --color-fg-subtle: rgba(197, 180, 154, 0.45);
   --color-fg-on-emphasis: #16100C;
 
   --color-accent-fg: #D48C70;
   --color-accent-emphasis: #D48C70;
-  --color-accent-muted: rgba(212, 140, 112, 0.2);
-  --color-accent-subtle: rgba(212, 140, 112, 0.1);
+  --color-accent-muted: rgba(212, 140, 112, 0.15);
+  --color-accent-subtle: rgba(212, 140, 112, 0.08);
 
-  --color-btn-bg: #1F1510;
+  --color-btn-bg: #16100C;
   --color-btn-border: #2E2018;
-  --color-btn-hover-bg: #261A10;
-  --color-btn-hover-border: #D48C70;
-  --color-btn-active-bg: #2E2018;
   --color-btn-text: #C5B49A;
+  
   --color-btn-primary-bg: #D48C70;
-  --color-btn-primary-border: #C07A5E;
-  --color-btn-primary-hover-bg: #BE765A;
+  --color-btn-primary-border: #D48C70;
   --color-btn-primary-text: #16100C;
+  --color-btn-primary-hover-bg: #BE765A;
+  --color-btn-primary-hover-border: #BE765A;
 
   --color-input-bg: #16100C;
   --color-input-border: #2E2018;
-  --color-input-contrast-bg: #1F1510;
+  --color-input-contrast-bg: #16100C;
 
-  --color-header-bg: #1F1510;
+  --color-header-bg: #16100C;
   --color-header-border: #2E2018;
-
   --color-avatar-border: #2E2018;
 
-  --color-neutral-muted: rgba(115, 96, 80, 0.15);
-  --color-neutral-subtle: rgba(115, 96, 80, 0.08);
+  --color-neutral-muted: rgba(197, 180, 154, 0.08);
+  --color-neutral-subtle: rgba(197, 180, 154, 0.04);
 
-  --color-timeline-badge-bg: #1F1510;
+  --color-timeline-badge-bg: #16100C;
 
-  --color-social-reaction-bg-hover: rgba(212, 140, 112, 0.1);
-  --color-social-reaction-bg-reacted-hover: rgba(212, 140, 112, 0.15);
+  --color-social-reaction-bg-hover: rgba(212, 140, 112, 0.08);
+  --color-social-reaction-bg-reacted-hover: rgba(212, 140, 112, 0.12);
 
-  --color-scale-gray-1: #1F1510;
-  --color-scale-gray-2: #261A10;
+  --color-scale-gray-1: #16100C;
+  --color-scale-gray-2: #16100C;
   --color-scale-gray-3: #2E2018;
-  --color-scale-gray-4: #3D2E22;
-  --color-scale-gray-5: #5C4E40;
-  --color-scale-gray-6: #736050;
-  --color-scale-gray-7: #9A8472;
+  --color-scale-gray-4: #2E2018;
+  --color-scale-gray-5: rgba(197, 180, 154, 0.6);
+  --color-scale-gray-6: rgba(197, 180, 154, 0.75);
+  --color-scale-gray-7: #C5B49A;
   --color-scale-gray-8: #C5B49A;
-  --color-scale-gray-9: #EAD9C2;
+  --color-scale-gray-9: #C5B49A;
 
   --font-family: 'Lora', Georgia, serif;
   --font-size-small: 0.82rem;
   --font-size-base: 0.92rem;
-  --border-radius: 10px;
+  --border-radius: 12px;
+}
+
+/* Custom Overrides for Premium Blend */
+
+.gsc-comment-box {
+  border: 1px solid #2E2018 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background-color: #16100C !important;
 }
 
 .gsc-comment-box-textarea {
-  font-family: 'Lora', Georgia, serif;
-  font-size: 0.92rem;
-  background: var(--color-canvas-default);
-  color: var(--color-fg-default);
-  border-color: var(--color-border-default);
-  border-radius: 10px;
+  font-family: inherit;
+  border: none !important;
+  border-bottom: 1px dashed #2E2018 !important;
+  border-radius: 0 !important;
+  padding: 1.2rem !important;
+  background-color: #16100C !important;
+  min-height: 120px !important;
 }
 
 .gsc-comment-box-textarea:focus {
-  border-color: var(--color-accent-fg);
-  box-shadow: 0 0 0 3px rgba(212, 140, 112, 0.15);
+  background-color: #16100C !important;
+  box-shadow: none !important;
+}
+
+.gsc-comment-box-tabs {
+  background-color: #16100C !important;
+  border-bottom: 1px solid #2E2018 !important;
+  padding: 0 0.5rem !important;
+}
+
+.gsc-comment-box-tab {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: rgba(197, 180, 154, 0.6) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 0.75rem 1rem !important;
+  margin-bottom: -1px !important;
+  transition: all 0.2s ease !important;
+}
+
+.gsc-comment-box-tab--active {
+  color: #D48C70 !important;
+  border-bottom: 2px solid #D48C70 !important;
+  font-weight: 600 !important;
+}
+
+.gsc-comment-box-buttons {
+  background-color: #16100C !important;
+  padding: 0.75rem 1.2rem !important;
+  border-top: none !important;
+}
+
+.gsc-btn-primary {
+  background-color: #D48C70 !important;
+  border: 1px solid #BE765A !important;
+  border-radius: 30px !important;
+  padding: 0.45rem 1.4rem !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #16100C !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(212, 140, 112, 0.15) !important;
+}
+
+.gsc-btn-primary:hover {
+  background-color: #BE765A !important;
+  border-color: #BE765A !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(212, 140, 112, 0.25) !important;
+}
+
+.gsc-btn-primary:active {
+  transform: translateY(1px) !important;
 }
 
 .gsc-comment {
-  border-color: var(--color-border-default);
-  border-radius: 12px;
+  border: 1px solid #2E2018 !important;
+  border-radius: 12px !important;
+  background-color: #16100C !important;
+  margin-bottom: 1.5rem !important;
 }
 
-.gsc-header {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+.gsc-comment-header {
+  background-color: #16100C !important;
+  border-bottom: 1px solid #2E2018 !important;
+  padding: 0.75rem 1.2rem !important;
 }
 
-a { color: var(--color-accent-fg); }
-a:hover { color: #BE765A; }
+a {
+  color: #D48C70 !important;
+  text-decoration: none !important;
+}
+
+a:hover {
+  text-decoration: underline !important;
+}

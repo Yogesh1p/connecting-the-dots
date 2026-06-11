@@ -1,91 +1,163 @@
-/* Giscus custom theme — Connecting the Dots · Light */
+/* Connecting the Dots — Minimal & Premium · Light */
 
 :root {
   --color-canvas-default: #FDFBF7;
-  --color-canvas-subtle: #F4EFE6;
-  --color-canvas-inset: #EDE8DF;
+  --color-canvas-subtle: #FDFBF7;
+  --color-canvas-inset: #FDFBF7;
 
   --color-border-default: #E8DFD1;
-  --color-border-muted: #EDE8DF;
+  --color-border-muted: #E8DFD1;
+  --color-border-subtle: #E8DFD1;
 
   --color-fg-default: #4A3F35;
-  --color-fg-muted: #847769;
-  --color-fg-subtle: #A09080;
+  --color-fg-muted: rgba(74, 63, 53, 0.65);
+  --color-fg-subtle: rgba(74, 63, 53, 0.45);
   --color-fg-on-emphasis: #FDFBF7;
 
   --color-accent-fg: #D48C70;
   --color-accent-emphasis: #D48C70;
-  --color-accent-muted: rgba(212, 140, 112, 0.2);
-  --color-accent-subtle: rgba(212, 140, 112, 0.1);
+  --color-accent-muted: rgba(212, 140, 112, 0.15);
+  --color-accent-subtle: rgba(212, 140, 112, 0.08);
 
-  --color-btn-bg: #F4EFE6;
+  --color-btn-bg: #FDFBF7;
   --color-btn-border: #E8DFD1;
-  --color-btn-hover-bg: #EDE8DF;
-  --color-btn-hover-border: #D48C70;
-  --color-btn-active-bg: #E8DFD1;
   --color-btn-text: #4A3F35;
+  
   --color-btn-primary-bg: #D48C70;
-  --color-btn-primary-border: #C07A5E;
-  --color-btn-primary-hover-bg: #BE765A;
+  --color-btn-primary-border: #D48C70;
   --color-btn-primary-text: #FDFBF7;
+  --color-btn-primary-hover-bg: #BE765A;
+  --color-btn-primary-hover-border: #BE765A;
 
   --color-input-bg: #FDFBF7;
   --color-input-border: #E8DFD1;
-  --color-input-contrast-bg: #F4EFE6;
+  --color-input-contrast-bg: #FDFBF7;
 
-  --color-header-bg: #F4EFE6;
+  --color-header-bg: #FDFBF7;
   --color-header-border: #E8DFD1;
-
   --color-avatar-border: #E8DFD1;
 
-  --color-neutral-muted: rgba(132, 119, 105, 0.1);
-  --color-neutral-subtle: rgba(132, 119, 105, 0.06);
+  --color-neutral-muted: rgba(74, 63, 53, 0.08);
+  --color-neutral-subtle: rgba(74, 63, 53, 0.04);
 
-  --color-timeline-badge-bg: #F4EFE6;
+  --color-timeline-badge-bg: #FDFBF7;
 
-  --color-social-reaction-bg-hover: rgba(212, 140, 112, 0.1);
-  --color-social-reaction-bg-reacted-hover: rgba(212, 140, 112, 0.15);
+  --color-social-reaction-bg-hover: rgba(212, 140, 112, 0.08);
+  --color-social-reaction-bg-reacted-hover: rgba(212, 140, 112, 0.12);
 
-  --color-scale-gray-1: #F4EFE6;
-  --color-scale-gray-2: #EDE8DF;
+  --color-scale-gray-1: #FDFBF7;
+  --color-scale-gray-2: #FDFBF7;
   --color-scale-gray-3: #E8DFD1;
-  --color-scale-gray-4: #D1C4B4;
-  --color-scale-gray-5: #B0A090;
-  --color-scale-gray-6: #847769;
-  --color-scale-gray-7: #5C5048;
+  --color-scale-gray-4: #E8DFD1;
+  --color-scale-gray-5: rgba(74, 63, 53, 0.6);
+  --color-scale-gray-6: rgba(74, 63, 53, 0.75);
+  --color-scale-gray-7: #4A3F35;
   --color-scale-gray-8: #4A3F35;
-  --color-scale-gray-9: #2D241E;
+  --color-scale-gray-9: #4A3F35;
 
   --font-family: 'Lora', Georgia, serif;
   --font-size-small: 0.82rem;
   --font-size-base: 0.92rem;
-  --border-radius: 10px;
+  --border-radius: 12px;
+}
+
+/* Custom Overrides for Premium Blend */
+
+.gsc-comment-box {
+  border: 1px solid #E8DFD1 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background-color: #FDFBF7 !important;
 }
 
 .gsc-comment-box-textarea {
-  font-family: 'Lora', Georgia, serif;
-  font-size: 0.92rem;
-  background: var(--color-canvas-default);
-  color: var(--color-fg-default);
-  border-color: var(--color-border-default);
-  border-radius: 10px;
+  font-family: inherit;
+  border: none !important;
+  border-bottom: 1px dashed #E8DFD1 !important;
+  border-radius: 0 !important;
+  padding: 1.2rem !important;
+  background-color: #FDFBF7 !important;
+  min-height: 120px !important;
 }
 
 .gsc-comment-box-textarea:focus {
-  border-color: var(--color-accent-fg);
-  box-shadow: 0 0 0 3px rgba(212, 140, 112, 0.15);
+  background-color: #FDFBF7 !important;
+  box-shadow: none !important;
+}
+
+.gsc-comment-box-tabs {
+  background-color: #FDFBF7 !important;
+  border-bottom: 1px solid #E8DFD1 !important;
+  padding: 0 0.5rem !important;
+}
+
+.gsc-comment-box-tab {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: rgba(74, 63, 53, 0.6) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 0.75rem 1rem !important;
+  margin-bottom: -1px !important;
+  transition: all 0.2s ease !important;
+}
+
+.gsc-comment-box-tab--active {
+  color: #D48C70 !important;
+  border-bottom: 2px solid #D48C70 !important;
+  font-weight: 600 !important;
+}
+
+.gsc-comment-box-buttons {
+  background-color: #FDFBF7 !important;
+  padding: 0.75rem 1.2rem !important;
+  border-top: none !important;
+}
+
+.gsc-btn-primary {
+  background-color: #D48C70 !important;
+  border: 1px solid #BE765A !important;
+  border-radius: 30px !important;
+  padding: 0.45rem 1.4rem !important;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #FDFBF7 !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(212, 140, 112, 0.15) !important;
+}
+
+.gsc-btn-primary:hover {
+  background-color: #BE765A !important;
+  border-color: #BE765A !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(212, 140, 112, 0.25) !important;
+}
+
+.gsc-btn-primary:active {
+  transform: translateY(1px) !important;
 }
 
 .gsc-comment {
-  border-color: var(--color-border-default);
-  border-radius: 12px;
+  border: 1px solid #E8DFD1 !important;
+  border-radius: 12px !important;
+  background-color: #FDFBF7 !important;
+  margin-bottom: 1.5rem !important;
 }
 
-.gsc-header {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+.gsc-comment-header {
+  background-color: #FDFBF7 !important;
+  border-bottom: 1px solid #E8DFD1 !important;
+  padding: 0.75rem 1.2rem !important;
 }
 
-a { color: var(--color-accent-fg); }
-a:hover { color: #BE765A; }
+a {
+  color: #D48C70 !important;
+  text-decoration: none !important;
+}
 
-/*heyy
+a:hover {
+  text-decoration: underline !important;
+}

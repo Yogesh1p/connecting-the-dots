@@ -226,7 +226,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sync Giscus if it exists
     const iframe = document.querySelector('iframe.giscus-frame');
     if (iframe) {
-      const giscusThemeUrl = `https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-${theme}.css`;
+      const origin = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('0.0.0.0')
+        ? window.location.origin
+        : 'https://yogesh1p.github.io/connecting-the-dots';
+      const giscusThemeUrl = `${origin}/css/giscus-theme-${theme}.css?v=${Date.now()}`;
       iframe.contentWindow.postMessage({ giscus: { setConfig: { theme: giscusThemeUrl } } }, 'https://giscus.app');
     }
   };
@@ -309,7 +312,10 @@ window.injectGiscusComments = function(containerId) {
   }
 
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const giscusThemeUrl = `https://yogesh1p.github.io/connecting-the-dots/css/giscus-theme-${isDark ? 'dark' : 'light'}.css`;
+  const origin = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('0.0.0.0')
+    ? window.location.origin
+    : 'https://yogesh1p.github.io/connecting-the-dots';
+  const giscusThemeUrl = `${origin}/css/giscus-theme-${isDark ? 'dark' : 'light'}.css?v=${Date.now()}`;
 
   el.className = 'article-discussion-wrap';
   el.innerHTML = `<p>Discussion & Questions</p><div class="giscus-box"></div>`;
