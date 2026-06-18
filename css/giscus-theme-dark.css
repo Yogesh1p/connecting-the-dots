@@ -203,7 +203,6 @@
   margin-top: 1rem !important;
 }
 
-/* Minimal Reactions Bar styling */
 .gsc-reactions {
   display: flex !important;
   justify-content: flex-start !important;
@@ -212,39 +211,6 @@
   border: none !important;
   padding: 0 !important;
   margin: 1.5rem 0 !important;
-}
-
-.gsc-social-reaction-summary-item {
-  border: 1px solid #2E2018 !important;
-  border-radius: 30px !important;
-  background-color: #16100C !important;
-  padding: 0.4rem 0.9rem !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  font-size: 0.85rem !important;
-  font-weight: 500 !important;
-  color: rgba(197, 180, 154, 0.65) !important;
-  transition: all 0.2s ease !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 0.4rem !important;
-}
-
-.gsc-social-reaction-summary-item:hover {
-  color: #D48C70 !important;
-  background-color: rgba(212, 140, 112, 0.08) !important;
-  border-color: #D48C70 !important;
-}
-
-.gsc-social-reaction-summary-item[data-reacted="true"] {
-  color: #D48C70 !important;
-  border-color: #D48C70 !important;
-  background-color: rgba(212, 140, 112, 0.15) !important;
-}
-
-/* Hide all reaction summary items that are not Heart */
-.gsc-social-reaction-summary-item:not([aria-label*="heart"]):not([aria-label*="HEART"]):not([aria-label*="Heart"]) {
-  display: none !important;
 }
 
 .gsc-reactions-button {
