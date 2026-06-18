@@ -50,7 +50,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "autoregressive models, FVSBN, NADE, RNADE, MADE, masked autoencoder, density estimation, fixed-length models, binary vectors, MNIST, variable-length sequences, language modeling",
     "status": "draft",
-    "readingTime": 17
+    "readingTime": 18
   },
   {
     "article_id": "88ef0b6e",
