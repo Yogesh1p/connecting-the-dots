@@ -1,0 +1,940 @@
+/* ============================================================
+   custom.css — Hidden Portfolio & Advisor Proposal
+   Tailored for Mitesh Khapra's review
+   ============================================================ */
+
+.proposal-header {
+  margin-top: 5rem;
+  margin-bottom: 4rem;
+  text-align: center;
+}
+
+.proposal-header h1 {
+  font-family: 'Lora', serif;
+  font-size: 3.2rem;
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.2;
+  margin-bottom: 0.6rem;
+}
+
+.proposal-header .section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  display: block;
+}
+
+/* Portfolio Layout & Content Width Restoration */
+.portfolio-layout {
+  position: relative;
+  max-width: 100%;
+  margin: 0;
+}
+
+.portfolio-main {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Floating Sticky TOC in Gutter */
+.sticky-toc {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc(50% - 380px - 220px); /* Centers relative to the 760px main content, with a 20px gap */
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (max-width: 1220px) {
+  /* Collapse to top before overlapping content */
+  .sticky-toc {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto 3rem auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    gap: 1rem;
+  }
+}
+
+.sticky-toc h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 1220px) {
+  .sticky-toc h3 {
+    width: 100%;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.toc-link {
+  font-family: 'Lora', serif;
+  font-size: 1rem;
+  color: var(--text);
+  text-decoration: none;
+  padding: 0.2rem 0;
+  border-left: 2px solid transparent;
+  padding-left: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.toc-link:hover {
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+@media (max-width: 1220px) {
+  .toc-link {
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    padding-left: 0;
+    padding-bottom: 0.25rem;
+  }
+  .toc-link:hover {
+    border-bottom-color: var(--accent);
+  }
+}
+
+
+.portfolio-section {
+  margin-bottom: 4rem;
+  scroll-margin-top: 120px; /* Smooth scrolling target alignment */
+}
+
+.portfolio-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-family: 'Lora', serif;
+  font-size: 1.85rem;
+  font-weight: 500;
+  color: var(--dark);
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Personal Welcome Note */
+.personal-note {
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: var(--text);
+}
+
+.personal-note p {
+  margin-bottom: 1.5rem;
+}
+
+.personal-note p:last-child {
+  margin-bottom: 0;
+}
+
+/* Approach Callout Box */
+.approach-callout {
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+  border-left: 3px solid var(--accent);
+  padding: 1.75rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  line-height: 1.75;
+}
+
+.highlight-link {
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.highlight-link:hover {
+  opacity: 0.8;
+}
+
+/* Embedded Resume Styling */
+.resume-embed {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.resume-part-title {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+
+.resume-item {
+  margin-bottom: 1.5rem;
+}
+
+.resume-item:last-child {
+  margin-bottom: 0;
+}
+
+.resume-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.resume-item-title {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.resume-item-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.resume-item-sub {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+  margin-bottom: 0.4rem;
+}
+
+.resume-text {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--text);
+  margin: 0;
+}
+
+.coursework-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+}
+
+@media (max-width: 680px) {
+  .coursework-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.course-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.course-group-title {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+}
+
+.course-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.course-list li {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.course-grade {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-left: 0.35rem;
+  font-weight: 600;
+}
+
+.course-source {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-left: 0.35rem;
+}
+
+.highlight-accent {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Visualizer Panels */
+.viz-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2.5rem;
+  margin-bottom: 4rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.02);
+  transition: background-color 0.35s, border-color 0.35s, box-shadow 0.35s;
+}
+
+.viz-header {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.25rem;
+}
+
+.viz-title {
+  font-family: 'Lora', serif;
+  font-size: 1.65rem;
+  font-weight: 500;
+  color: var(--dark);
+  margin-bottom: 0.5rem;
+}
+
+.viz-subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.viz-desc {
+  margin-bottom: 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+/* Interactive Slider & Controls */
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  transition: background-color 0.35s, border-color 0.35s;
+}
+
+.slider-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.layer-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.35s;
+}
+
+.layer-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform 0.1s ease, background-color 0.35s;
+}
+
+.layer-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+.layer-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.35s;
+}
+
+.layer-slider::-moz-range-thumb:hover {
+  transform: scale(1.25);
+}
+
+/* Probing Visualizer Grid */
+.probing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 2.5rem;
+}
+
+@media (max-width: 768px) {
+  .probing-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.probing-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.probing-commentary {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 1.25rem;
+  font-size: 0.95rem;
+  border-left: 3px solid var(--accent);
+  line-height: 1.6;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.35s, border-color 0.35s;
+}
+
+/* Dynamic Bars */
+.probing-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  justify-content: center;
+}
+
+.bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bar-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.bar-word {
+  color: var(--text);
+  transition: color 0.35s;
+}
+
+.bar-val {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.bar-outer {
+  width: 100%;
+  height: 12px;
+  background: var(--surface);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+  transition: background-color 0.35s, border-color 0.35s;
+}
+
+.bar-inner {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 6px;
+  width: 0%;
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.bar-inner.neg {
+  background: var(--muted);
+  opacity: 0.4;
+}
+
+/* Experiment Toggle Switch */
+.exp-toggle-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  background: var(--surface);
+  padding: 0.3rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  align-self: flex-start;
+  transition: background-color 0.35s, border-color 0.35s;
+}
+
+.exp-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exp-toggle-btn.active {
+  background: var(--card-bg);
+  color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* MoE Visualizer styles */
+.moe-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.moe-token-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease, background-color 0.35s, border-color 0.35s, color 0.35s;
+}
+
+.moe-token-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.moe-token-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px var(--highlight);
+}
+
+.moe-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: background-color 0.35s, border-color 0.35s;
+}
+
+.moe-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* MoE Explainer Text Grid */
+.moe-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .moe-info-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.moe-formula-card {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 1.5rem;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid var(--border);
+  transition: background-color 0.35s, border-color 0.35s;
+}
+
+.moe-formula-card h4 {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+
+/* Credentials / SOP / CV Section */
+.credentials-section {
+  border-top: 1px solid var(--border);
+  margin-top: 5rem;
+  padding-top: 4rem;
+  transition: border-color 0.35s;
+}
+
+.credentials-section h2.sec-title {
+  text-align: center;
+  font-family: 'Lora', serif;
+  font-weight: 500;
+  font-size: 2rem;
+  color: var(--dark);
+  margin-bottom: 2rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1.5rem;
+  margin: 3rem 0;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.primary-btn {
+  background: var(--accent);
+  color: #fff !important;
+  border: 1px solid var(--accent);
+  padding: 0.8rem 2.2rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease, background-color 0.35s;
+  box-shadow: 0 4px 14px var(--highlight);
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--highlight);
+  background: color-mix(in srgb, var(--accent) 90%, #000);
+}
+
+.secondary-btn {
+  background: transparent;
+  color: var(--text) !important;
+  border: 1.5px solid var(--border);
+  padding: 0.8rem 2.2rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease, border-color 0.35s, color 0.35s;
+}
+
+.secondary-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent) !important;
+  transform: translateY(-2px);
+}
+
+.secondary-btn svg {
+  stroke: currentColor;
+}
+
+.gate-badge {
+  background: var(--highlight);
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  padding: 0.15em 0.5em;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+  font-weight: 600;
+}
+
+/* ────────────────────────────────────────────────────────────
+   RESUME NATIVE STYLES
+   ──────────────────────────────────────────────────────────── */
+.resume-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.resume-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 1.5rem;
+}
+
+.resume-name {
+  font-family: 'Lora', serif;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 0.5rem;
+}
+
+.resume-contact {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.contact-link {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.contact-link:hover {
+  color: var(--accent);
+}
+
+.contact-dot {
+  color: var(--accent);
+}
+
+.resume-section {
+  margin-bottom: 3rem;
+}
+
+.resume-section-title {
+  font-family: 'Lora', serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--dark);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.02em;
+}
+
+.resume-text {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.resume-item {
+  margin-bottom: 1.8rem;
+}
+
+.resume-item:last-child {
+  margin-bottom: 0;
+}
+
+.resume-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.resume-item-title {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.resume-item-link-title {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.resume-item-link-title:hover {
+  color: var(--accent);
+  border-bottom-style: solid;
+}
+
+.resume-item-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.resume-item-sub {
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+/* Coursework Grid */
+.coursework-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+}
+
+@media (max-width: 680px) {
+  .coursework-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.course-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.course-group-title {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.8rem;
+  font-weight: 700;
+}
+
+.course-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.course-list li {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.course-grade {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-left: 0.35rem;
+  font-weight: 600;
+}
+
+.course-source {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-left: 0.35rem;
+}
+
+.skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+}
+
+/* PCA Trajectory Visualizer Grid */
+.pca-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .pca-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.pca-image-wrapper {
+  background: var(--surface); /* Matches active theme background */
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.pca-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.pca-intuition h4 {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.pca-points {
+  padding-left: 1.25rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pca-points li {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+

@@ -73,6 +73,7 @@
     <script src="../../../../../js/base.js" defer></script>
     <script src="../../../../../js/components.js" defer></script>
     <script src="../../../../../js/article_components.js" defer></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 
     <script>
         window.MathJax = {
@@ -205,6 +206,11 @@ candidates = ["money", "water"]</pre>
         <div class="data-label">Trajectory Visualization</div>
         <img src="fig1_cosine_similarity-3.png" alt="Layer Logits" class="exp-img">
       </figure>
+    </div>
+
+    <div class="data-label" style="margin-top: 1.5rem;">Interactive 3D PCA Space Trajectory</div>
+    <div class="pca-image-wrapper" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0; min-height: 400px; position: relative; margin-top: 0.5rem; margin-bottom: 1.5rem; display: block; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+      <div id="pcaPlot" style="width: 100%; height: 400px; border-radius: 8px;"></div>
     </div>
 
     <div class="exp-observation">
@@ -344,6 +350,201 @@ candidates = ["John", "Michael", "Sarah"]</pre>
   });
 </script>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const pcaPlotEl = document.getElementById('pcaPlot');
+  if (pcaPlotEl) {
+    const D = {
+      "traj": [[0.5199119911956966, -6.605928310130174, 1.2189734484778496], [2.2166038979583327, 7.530444808375625, -2.087883117019387], [2.5806009588379295, 6.499813124567159, -1.9297978726559797], [2.972134628439972, 7.542852193147566, -2.2512500854738757], [2.3573667529782827, 6.734668652364174, -1.9646030840895303], [2.884108674451636, 6.8033208401808665, -2.084548018056746], [1.8919793026688598, 5.923168958847495, -1.6690873355711617], [1.9315455417444243, 4.761522118556699, -1.3972047659015225], [1.0613579180845765, 2.476346206490714, -0.7242816863578856], [0.7616903532970845, 1.6880495924694474, -0.4556327849171108], [1.1597000950539949, 2.2285761402528754, -0.6875674749869201], [1.231783080330763, 1.3234010270620957, -0.4894807405554567], [0.7751111318467643, 0.8769088504371338, -0.29500556047330817], [0.20494806594836235, -0.37529893001674397, -0.05807456184399784], [0.40484966167217307, -0.3993523151917462, -0.048562360942788374], [0.5200968199939193, 0.44883841698066085, -0.24903010848391774], [-0.38059453757971917, -0.8794033586725301, 0.23441396397102146], [0.5007249466375042, -1.0567801477951504, 0.17425799779715745], [1.3902675992297218, 0.8609194625598002, -0.4455325327459229], [1.4931528783852697, 1.5644112813985283, -0.577025593389429], [1.4259847427918546, 1.6397599518316301, -0.5343743526227407], [1.6501888610290911, 1.2531777585266495, -0.4437031880624073], [1.8397584342981617, 0.23135448057032226, -0.22945141799490187], [1.9942079839350781, 1.088208288480788, -0.41476775198991755], [2.262733106293881, 1.7130254259058857, -0.6221952467276548], [1.8746846844448761, 0.2662807307170365, -0.27818797535912276], [0.34330722685885523, -2.4357704906582343, 0.573204423572369], [0.45267647790609955, -0.0970312024818969, 0.07265666522383007], [0.05064071157436345, -3.7056951044102746, 0.9736578459739039], [1.2718890512777292, -1.293413457199585, 0.2788199917045875], [0.6221780812452813, -3.1850565940345428, 0.9073883122721204], [0.23149373806762152, -3.3314264125953152, 0.9907432048795395], [-2.040255519917449, -4.086389663583878, 1.555185688138606], [-2.042333820000268, -4.862130624953506, 1.7756141460289476], [-5.150650792490692, -8.906986608475332, 3.6149998107547696], [-3.6574326263100168, -7.780240229219988, 3.0808206018018724], [-3.182191777423402, -4.230708278904212, 2.338974104118074]],
+      "cands": {
+        "John": [1.975907318240096, 1.3472095351637017, 7.634187365927643],
+        "Michael": [0.8626621856275073, 1.7253243712550146, 7.763959670647566],
+        "Sarah": [1.3472095351637017, 1.975907318240096, 7.634187365927643]
+      },
+      "cos_dists": {"John": 0.8732, "Michael": 0.8247, "Sarah": 0.8875},
+      "correct": "Michael",
+      "n_layers": 36,
+      "candidates": ["John", "Michael", "Sarah"],
+      "palette": {"John": "#457b9d", "Michael": "#e63946", "Sarah": "#2a9d8f"}
+    };
+
+    const PAL = D.palette;
+    const L = D.n_layers;
+    const traj = D.traj;
+    const tx = traj.map(p => p[0]), ty = traj.map(p => p[1]), tz = traj.map(p => p[2]);
+
+    function getThemeColors() {
+      const styles = getComputedStyle(document.documentElement);
+      const getVal = (prop, fallback) => {
+        const val = styles.getPropertyValue(prop).trim();
+        return val ? val : fallback;
+      };
+      return {
+        text: getVal('--text', '#4A3F35'),
+        border: getVal('--border', '#E8DFD1'),
+        muted: getVal('--muted', '#847769'),
+        surface: getVal('--surface', '#F4EFE6'),
+        cardBg: getVal('--card-bg', '#FFFFFF')
+      };
+    }
+
+    function plasma(t) {
+      const s = [[13,8,135],[84,2,163],[139,10,165],[185,50,137],[219,92,104],[244,136,73],[254,188,43],[240,249,33]];
+      t = Math.max(0, Math.min(1, t));
+      const idx = t * (s.length - 1);
+      const i = Math.floor(idx), f = idx - i;
+      const a = s[Math.min(i, s.length-1)], b = s[Math.min(i+1, s.length-1)];
+      return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;
+    }
+
+    function redrawPlot() {
+      const colors = getThemeColors();
+      const traces = [];
+      
+      for (let i = 0; i < L; i++) {
+        traces.push({
+          type: 'scatter3d',
+          mode: 'lines',
+          x: [tx[i], tx[i+1]],
+          y: [ty[i], ty[i+1]],
+          z: [tz[i], tz[i+1]],
+          line: { color: plasma(i/L), width: 5.5 },
+          showlegend: false,
+          hoverinfo: 'none'
+        });
+      }
+
+      traces.push({
+        type: 'scatter3d',
+        mode: 'markers+text',
+        x: tx,
+        y: ty,
+        z: tz,
+        name: 'Activations x⁽ˡ⁾',
+        marker: {
+          size: 5,
+          color: Array.from({length: L+1}, (_,i) => i),
+          colorscale: 'Plasma',
+          showscale: false,
+          line: { color: colors.cardBg, width: 0.5 }
+        },
+        text: Array.from({length: L+1}, (_,i) => i === 0 ? 'x⁽⁰⁾' : i === L ? `x⁽${L}⁾` : ''),
+        textposition: 'top center',
+        textfont: { color: colors.text, size: 9 },
+        customdata: Array.from({length: L+1}, (_,i) => i),
+        hovertemplate: '<b>Layer %{customdata}</b><br>PC1: %{x:.4f}<br>PC2: %{y:.4f}<br>PC3: %{z:.4f}<extra></extra>'
+      });
+
+      D.candidates.forEach(name => {
+        const p = D.cands[name];
+        const ic = name === D.correct;
+        traces.push({
+          type: 'scatter3d',
+          mode: 'markers+text',
+          x: [p[0]],
+          y: [p[1]],
+          z: [p[2]],
+          name: `e_${name}${ic ? ' ✓' : ''}`,
+          marker: {
+            color: PAL[name],
+            size: ic ? 12 : 8,
+            symbol: ic ? 'diamond' : 'square',
+            line: { color: colors.cardBg, width: 1 }
+          },
+          text: [`e_${name}`],
+          textposition: 'top center',
+          textfont: { color: PAL[name], size: 10, weight: 'bold' },
+          hovertemplate: `<b>e_${name}</b><br>cos_dist: ${D.cos_dists[name]}<extra></extra>`
+        });
+      });
+
+      const fp = traj[L];
+      D.candidates.forEach(name => {
+        const p = D.cands[name];
+        traces.push({
+          type: 'scatter3d',
+          mode: 'lines',
+          x: [fp[0], p[0]],
+          y: [fp[1], p[1]],
+          z: [fp[2], p[2]],
+          name: `d(${name}) = ${D.cos_dists[name]}`,
+          line: {
+            color: PAL[name],
+            width: name === D.correct ? 3 : 1.5,
+            dash: name === D.correct ? 'solid' : 'dash'
+          },
+          showlegend: false,
+          hoverinfo: 'none'
+        });
+      });
+
+      const layout = {
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        scene: {
+          bgcolor: colors.surface,
+          xaxis: {
+            title: 'PC 1',
+            color: colors.muted,
+            gridcolor: colors.border,
+            zerolinecolor: colors.border,
+            showspines: false
+          },
+          yaxis: {
+            title: 'PC 2',
+            color: colors.muted,
+            gridcolor: colors.border,
+            zerolinecolor: colors.border,
+            showspines: false
+          },
+          zaxis: {
+            title: 'PC 3',
+            color: colors.muted,
+            gridcolor: colors.border,
+            zerolinecolor: colors.border,
+            showspines: false
+          },
+          camera: {
+            eye: { x: 1.5, y: 1.5, z: 0.9 }
+          },
+          aspectmode: 'cube'
+        },
+        legend: {
+          orientation: 'h',
+          xanchor: 'center',
+          x: 0.5,
+          y: 1.08,
+          yanchor: 'bottom',
+          bgcolor: 'rgba(0,0,0,0)',
+          font: { color: colors.text, size: 10 }
+        },
+        margin: { l: 0, r: 0, t: 35, b: 0 },
+        font: { color: colors.text, family: 'monospace' }
+      };
+
+      const config = {
+        responsive: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['sendDataToCloud', 'hoverCompareCartesian']
+      };
+
+      Plotly.newPlot('pcaPlot', traces, layout, config);
+    }
+
+    redrawPlot();
+
+    const themeObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'data-theme') {
+          redrawPlot();
+        }
+      });
+    });
+    themeObserver.observe(document.documentElement, { attributes: true });
+  }
+});
+</script>
 
 <script src="../../../../../js/components.js"></script>
 </body>
