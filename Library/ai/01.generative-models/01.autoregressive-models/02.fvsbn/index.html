@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="f9e0a1b2">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="book" content="AI">
+<meta name="section" content="Generative Models">
+<meta name="chapter" content="Autoregressive Models">
+<meta name="title" content="Fully Visible Sigmoid Belief Network (FVSBN)">
+<meta name="description" content="Fully Visible Sigmoid Belief Networks (FVSBN): modeling joint distributions using logistic regression per position, its parameter complexity, and sequential generation.">
+<meta name="keywords" content="FVSBN, Fully Visible Sigmoid Belief Network, autoregressive models, density estimation, raster scan, MNIST">
+<meta name="status" content="draft">
+<meta name="date" content="2026-04-09">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="5">
+
+<meta property="og:title" content="Fully Visible Sigmoid Belief Network (FVSBN)">
+<meta property="og:description" content="Fully Visible Sigmoid Belief Networks (FVSBN): modeling joint distributions using logistic regression per position, its parameter complexity, and sequential generation.">
+<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/02.fvsbn/">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-fully-visible-sigmoid-belief-network-fvsbn.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<style id="mobile-view-styles">
+    img, iframe, video { max-width: 100% !important; height: auto !important; }
+    @media screen and (max-width: 768px) {
+        body, article, .content, main {
+            width: 100% !important; max-width: 100vw !important;
+            padding: 10px 15px !important; box-sizing: border-box !important;
+            overflow-x: hidden !important;
+        }
+    }
+</style>
+
+    <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<title>Fully Visible Sigmoid Belief Network (FVSBN)</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../../../../../css/base.css">
+    <link rel="stylesheet" href="../../../../../css/articles.css">
+
+    <script>
+        (() => {
+            const theme = localStorage.getItem("theme") || "light";
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+            const meta = document.getElementById("meta-theme-color");
+            if (meta) {
+                meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+            }
+        })();
+    </script>
+
+    <script src="../../../../../js/base.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/article_components.js" defer></script>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: "global"
+            }
+        };
+    </script>
+    <script
+        id="MathJax-script"
+        async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <!-- PATCH: Blend interactive figures into the page -->
+    <style id="blend-figures-patch">
+        .raster-figure, .fvsbn-figure, .nade-matrix-figure, .nade-figure {
+            padding: 2rem 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .raster-array, .fvsbn-formula-box, .nade-formula-box {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+    </style>
+    <meta property="og:type" content="article">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <!-- injected hero/title -->
+                    <div id="article-header"></div>
+                    <!-- actual article content starts here -->
+                     <section class="article-body">
+
+<p>In our introduction to autoregressive models, we established that instead of storing $p(x_i \mid x_1, \dots, x_{i-1})$ as an impossibly large lookup table, we could <em>compute</em> it using a learned function $f_\theta$. But we never specified what $f_{\theta_i}$ actually looks like.</p>
+
+  <p>This article builds up the answer, starting from the simplest possible parameterization and progressively replacing its weaknesses with better ideas. We begin by exploring <strong>Fully Visible Sigmoid Belief Networks (FVSBN)</strong>. Throughout this section, we use MNIST as our running example: $28 \times 28 = 784$ binary pixels in raster scan order, $x_1, \dots, x_{784} \in \{0,1\}$.</p>
+
+<style>
+  .raster-figure {
+    margin: 3rem 0;
+    padding: 2rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: inherit;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  }
+  
+  .raster-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 45px);
+    gap: 4px;
+    margin-bottom: 2rem;
+  }
+  
+  .raster-cell {
+    width: 45px;
+    height: 45px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: var(--muted);
+    transition: all 0.2s ease;
+  }
+  
+  .raster-cell.filled { 
+    background: var(--accent); 
+    color: var(--bg); 
+    border-color: var(--accent); 
+  }
+  
+  .raster-cell.active { 
+    border: 2px solid var(--text); 
+    transform: scale(1.15); 
+    z-index: 2; 
+    box-shadow: 0 4px 12px var(--highlight); 
+    color: var(--text); 
+  }
+
+  .raster-cell mjx-container, .raster-array-cell mjx-container {
+    color: inherit;
+  }
+  
+  .raster-array {
+    position: relative; /* FIX: Ensures JS offset math is local to this box */
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    width: 100%;
+    max-width: 550px;
+    overflow-x: auto;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    scroll-behavior: smooth;
+  }
+  
+  .raster-array::-webkit-scrollbar {
+    height: 6px;
+  }
+  .raster-array::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  
+  .raster-array-cell {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border: 1px dashed var(--muted);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+  }
+  
+  .raster-array-cell.filled { 
+    background: var(--accent); 
+    border-style: solid; 
+    border-color: var(--accent); 
+    color: var(--bg); 
+  }
+  
+  .raster-array-cell.active { 
+    border: 2px solid var(--text); 
+    transform: scale(1.15); 
+    box-shadow: 0 2px 8px var(--highlight);
+  }
+  
+  .raster-controls {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .raster-btn {
+    background: var(--box-label-bg);
+    color: var(--box-label-text);
+    border: 1px solid var(--box-border);
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  
+  .raster-btn:hover { 
+    opacity: 0.85; 
+    transform: translateY(-1px);
+  }
+
+  .raster-caption {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-align: center;
+    max-width: 550px;
+    line-height: 1.5;
+  }
+  .raster-caption strong {
+    color: var(--text);
+  }
+</style>
+
+<figure class="raster-figure">
+  <div style="font-size: 0.95rem; color: var(--text); font-weight: 500; margin-bottom: 1rem;">2D Spatial Input (\(5 \times 5\) grid)</div>
+  <div class="raster-grid" id="r-grid"></div>
+  
+  <div style="font-size: 0.95rem; color: var(--text); font-weight: 500; margin-bottom: 0.5rem; margin-top: 1rem;">Flattened 1D Autoregressive Sequence</div>
+  <div class="raster-array" id="r-array"></div>
+  
+  <div class="raster-controls">
+    <button class="raster-btn" id="r-play">Play Sequence</button>
+    <button class="raster-btn" id="r-reset" style="background: var(--surface); color: var(--text);">Reset</button>
+  </div>
+
+  <figcaption class="raster-caption">
+    <strong>Figure: Raster scan order.</strong> The 2D spatial image is unrolled left-to-right, row-by-row into a continuous, single-dimensional vector. Autoregressive models generate this flattened sequence one variable at a time.
+  </figcaption>
+</figure>
+
+<script>
+  (() => {
+    const pattern = [
+      1,1,1,1,1,
+      0,0,0,1,0,
+      0,0,1,0,0,
+      0,1,0,0,0,
+      1,0,0,0,0
+    ];
+    
+    const grid = document.getElementById('r-grid');
+    const array = document.getElementById('r-array');
+    const btnPlay = document.getElementById('r-play');
+    
+    let index = 0;
+    let playing = false;
+    let timer = null;
+
+    const renderMath = (elements) => {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise(elements).catch(err => console.warn('MathJax error:', err));
+      }
+    };
+
+    pattern.forEach((val, i) => {
+      const gc = document.createElement('div');
+      gc.className = 'raster-cell ' + (val ? 'filled' : '');
+      gc.id = 'gc-' + i;
+      gc.innerHTML = `\\( x_{${i + 1}} \\)`;
+      grid.appendChild(gc);
+
+      const ac = document.createElement('div');
+      ac.className = 'raster-array-cell';
+      ac.id = 'ac-' + i;
+      array.appendChild(ac);
+    });
+
+    renderMath([grid]);
+
+    const step = () => {
+      if (index >= 25) { 
+        playing = false; 
+        btnPlay.innerText = "Play Sequence";
+        return; 
+      }
+      
+      document.querySelectorAll('.raster-cell.active, .raster-array-cell.active').forEach(el => el.classList.remove('active'));
+      
+      const gc = document.getElementById('gc-' + index);
+      const ac = document.getElementById('ac-' + index);
+      
+      gc.classList.add('active');
+      ac.classList.add('active');
+      
+      if (pattern[index]) ac.classList.add('filled');
+      
+      ac.innerHTML = `\\( x_{${index + 1}} \\)`;
+      renderMath([ac]);
+      
+      // FIX: Chunk Scroll Logic
+      const cellRightEdge = ac.offsetLeft + ac.offsetWidth;
+      const viewRightEdge = array.scrollLeft + array.clientWidth;
+      
+      // If the cell is about to hit the right edge of the visible view
+      if (cellRightEdge > viewRightEdge - ac.offsetWidth) {
+        // Slide the view so the current cell is near the left, waiting for the next batch
+        array.scrollTo({
+          left: ac.offsetLeft - (ac.offsetWidth * 2), 
+          behavior: 'smooth'
+        });
+      }
+
+      index++;
+      
+      if (playing) {
+        timer = setTimeout(step, 350); 
+      }
+    };
+
+    document.getElementById('r-play').addEventListener('click', () => {
+      playing = !playing;
+      if (playing) {
+        btnPlay.innerText = "Pause";
+        if (index >= 25) {
+          index = 0;
+          array.scrollLeft = 0; 
+          document.querySelectorAll('.raster-array-cell').forEach(el => { 
+            el.className = 'raster-array-cell'; 
+            el.innerHTML = ''; 
+          });
+        }
+        step();
+      } else {
+        btnPlay.innerText = "Resume";
+        clearTimeout(timer);
+      }
+    });
+
+    document.getElementById('r-reset').addEventListener('click', () => {
+      playing = false;
+      clearTimeout(timer);
+      index = 0;
+      btnPlay.innerText = "Play Sequence";
+      array.scrollLeft = 0; 
+      
+      document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.raster-array-cell').forEach(el => { 
+        el.className = 'raster-array-cell'; 
+        el.innerHTML = ''; 
+      });
+    });
+  })();
+</script>
+
+<h2>FVSBN</h2>
+
+<p>A common and conceptually simple choice is to model each conditional distribution using logistic regression. In this setting, the conditional probability is parameterized as</p>
+
+<div class="math-display">
+  $$p_\theta(x_i = 1 \mid x_{\lt i}) = \sigma\!\left( W_i^\top x_{\lt i} + b_i \right),$$
+</div>
+<p>where $W_i$ and $x_{\lt i}$ are vectors, allowing the summation to be expressed cleanly as a dot product.</p>
+
+<p>where $\sigma(\cdot)$ denotes the logistic sigmoid function. So each variable is predicted using a sigmoid applied to a linear function of the previous variables. The name <strong>Fully Visible Sigmoid Belief Network (FVSBN)</strong> reflects three properties: the model defines probability directly over the observed variables (fully visible), each conditional distribution is parameterized with a sigmoid (logistic regression), and the joint distribution is factorized as a directed probabilistic model --- historically called a belief network.</p>
+
+<p>To see why this parametric shift is essential, count the numbers. Suppose a conditional distribution depends on $m$ previous binary variables: $p(x_i \mid x_1, \dots, x_m)$.</p>
+
+<p>If we use a <strong>lookup table</strong>, we must assign a probability to every possible combination. With 2 states per variable, that is $2^m$ unique configurations. The table requires $2^m - 1$ independent parameters. If $m=20$, that is over a million numbers to learn for a single conditional distribution.</p>
+
+<p>Now look at the <strong>logistic regression</strong> alternative used in FVSBN. Instead of memorizing every state, we compute a raw score $z$ using a linear combination of the inputs:</p>
+
+<p>This is the same idea as the earlier $W_i^\top x_{\lt i} + b_i$ notation. For this one conditional, the weight vector $W_i$ can be written by listing its individual entries:</p>
+
+<div class="math-display">
+  $$ W_i =
+  \begin{bmatrix}
+  \alpha^i_1 \\
+  \alpha^i_2 \\
+  \vdots \\
+  \alpha^i_m
+  \end{bmatrix},
+  \qquad
+  x_{\lt i} =
+  \begin{bmatrix}
+  x_1 \\
+  x_2 \\
+  \vdots \\
+  x_m
+  \end{bmatrix},
+  \qquad
+  b_i = \alpha^i_0.
+  $$
+</div>
+
+<p>So the symbol changes from $W$ to $\alpha$ only because we are opening up the vector and naming each per-input weight explicitly while we count parameters.</p>
+
+<div class="math-display">
+  $$ z = \alpha^i_0 + \alpha^i_1 x_1 + \alpha^i_2 x_2 + \dots + \alpha^i_m x_m $$
+</div>
+
+<p>Count the parameters in that line. There is one weight $\alpha^i_j$ for each of the $m$ inputs. There is one bias term $\alpha^i_0$. That is exactly <strong>$m + 1$ parameters</strong>.</p>
+
+<p>That linear combination gives a raw score $z$, which could be any real number. But a valid probability must live between 0 and 1. To map $z$ into that range, we pass it through the logistic sigmoid function:</p>
+
+<div class="math-display">
+  $$ \sigma(z) = \frac{1}{1 + e^{-z}} $$
+</div>
+
+<p>Look at the right side of that equation. It contains the score $z$ and constants. It introduces no new weights or parameters to learn. The mapping is purely mechanical, meaning the total parameter count for the conditional distribution remains strictly $m+1$.</p>
+
+<p>By making the structural assumption that past variables influence the current one additively, the complexity drops from exponential ($O(2^m)$) to linear ($O(m)$).</p>
+
+<style>
+  .fvsbn-figure {
+    margin: 3rem 0;
+    padding: 2rem 1.5rem;
+    background: var(--box-bg);
+    border: 1px solid var(--box-border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: inherit;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    overflow: hidden;
+  }
+  
+  .fvsbn-container {
+    position: relative;
+    width: 100%;
+    max-width: 550px;
+    height: 180px;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 20px 20px 20px;
+  }
+
+  .fvsbn-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .fvsbn-edge {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawEdge 0.6s ease-out forwards;
+  }
+  
+  @keyframes drawEdge {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .fvsbn-node {
+    width: 45px;
+    height: 45px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--muted);
+    z-index: 2;
+    transition: all 0.3s ease;
+  }
+
+  /* Target MathJax SVG inside nodes to ensure proper color inheritance */
+  .fvsbn-node mjx-container {
+    color: inherit;
+  }
+
+  .fvsbn-node.past {
+    background: var(--highlight);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .fvsbn-node.active {
+    background: var(--accent);
+    border-color: var(--dark);
+    color: var(--bg);
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px var(--highlight);
+  }
+
+  .fvsbn-formula-box {
+    margin-top: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    min-width: 300px;
+    text-align: center;
+    color: var(--text);
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .fvsbn-formula-box span {
+    font-size: 1.15rem;
+  }
+
+  .fvsbn-controls {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .fvsbn-btn {
+    background: var(--box-label-bg);
+    color: var(--box-label-text);
+    border: 1px solid var(--box-border);
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  
+  .fvsbn-btn:hover { 
+    opacity: 0.85; 
+    transform: translateY(-1px);
+  }
+
+  .fvsbn-caption {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-align: center;
+    max-width: 550px;
+    line-height: 1.5;
+  }
+  
+  .fvsbn-caption strong {
+    color: var(--text);
+  }
+</style>
+
+<figure class="fvsbn-figure">
+  <div style="font-size: 0.95rem; color: var(--text); font-weight: 500;">FVSBN: Logistic Regression per Position</div>
+  
+  <div class="fvsbn-container" id="fvsbn-container">
+    <svg class="fvsbn-svg" id="fvsbn-svg">
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--accent)" />
+        </marker>
+      </defs>
+      <g id="fvsbn-edge-group"></g>
+    </svg>
+  </div>
+
+  <div class="fvsbn-formula-box" id="fvsbn-formula">
+    <span style="color: var(--muted)">Click Play to step through the sequence</span>
+  </div>
+  
+  <div class="fvsbn-controls">
+    <button class="fvsbn-btn" id="fvsbn-play">Play Sequence</button>
+    <button class="fvsbn-btn" id="fvsbn-reset" style="background: var(--surface); color: var(--text);">Reset</button>
+  </div>
+
+  <figcaption class="fvsbn-caption">
+    <strong>Figure: Fully Visible Sigmoid Belief Network.</strong> Each variable acts as a target for a logistic regression model. Because each variable must connect to <em>all</em> previous variables, the number of incoming weights grows at each step.
+  </figcaption>
+</figure>
+
+<script>
+  (() => {
+    const numNodes = 5;
+    const container = document.getElementById('fvsbn-container');
+    const svgGroup = document.getElementById('fvsbn-edge-group');
+    const formulaBox = document.getElementById('fvsbn-formula');
+    const btnPlay = document.getElementById('fvsbn-play');
+    
+    let nodes = [];
+    let currentIndex = 0;
+    let playing = false;
+    let timer = null;
+
+    // Helper to safely trigger MathJax rendering
+    const renderMath = (element) => {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([element]).catch(err => console.warn('MathJax error:', err));
+      }
+    };
+
+    // Build the nodes with LaTeX syntax
+    for (let i = 0; i < numNodes; i++) {
+      const node = document.createElement('div');
+      node.className = 'fvsbn-node';
+      node.id = `fvsbn-node-${i}`;
+      node.innerHTML = `\\( x_{${i + 1}} \\)`;
+      container.appendChild(node);
+      nodes.push(node);
+    }
+    
+    // Typeset the initial nodes
+    renderMath(container);
+
+    const drawCurve = (sourceEl, targetEl) => {
+      const svgRect = document.getElementById('fvsbn-svg').getBoundingClientRect();
+      const sRect = sourceEl.getBoundingClientRect();
+      const tRect = targetEl.getBoundingClientRect();
+
+      const startX = (sRect.left - svgRect.left) + (sRect.width / 2);
+      const startY = sRect.top - svgRect.top; 
+      const endX = (tRect.left - svgRect.left) + (tRect.width / 2);
+      const endY = tRect.top - svgRect.top;
+
+      const midX = (startX + endX) / 2;
+      const distance = Math.abs(endX - startX);
+      const curveY = startY - (distance * 0.4) - 10;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${startX} ${startY} Q ${midX} ${curveY} ${endX} ${endY - 5}`);
+      path.setAttribute('class', 'fvsbn-edge');
+      path.setAttribute('marker-end', 'url(#arrowhead)');
+      svgGroup.appendChild(path);
+    };
+
+    // Generates the raw LaTeX string for MathJax
+    const generateFormula = (index) => {
+      let inner = `\\alpha^{${index+1}}_{0}`;
+      for (let j = 0; j < index; j++) {
+        inner += ` + \\alpha^{${index+1}}_{${j+1}} x_{${j+1}}`;
+      }
+      return `\\( \\hat{x}_{${index+1}} = \\sigma(${inner}) \\)`;
+    };
+
+    const step = () => {
+      if (currentIndex >= numNodes) { 
+        playing = false; 
+        btnPlay.innerText = "Play Sequence";
+        return; 
+      }
+      
+      svgGroup.innerHTML = '';
+      nodes.forEach(n => { n.classList.remove('active'); n.classList.remove('past'); });
+      
+      for (let i = 0; i < currentIndex; i++) {
+        nodes[i].classList.add('past');
+        drawCurve(nodes[i], nodes[currentIndex]);
+      }
+      
+      nodes[currentIndex].classList.add('active');
+      
+      // Update formula and typeset via MathJax
+      formulaBox.innerHTML = `<span>${generateFormula(currentIndex)}</span>`;
+      renderMath(formulaBox);
+      
+      currentIndex++;
+      
+      if (playing) {
+        timer = setTimeout(step, 1200); 
+      }
+    };
+
+    document.getElementById('fvsbn-play').addEventListener('click', () => {
+      playing = !playing;
+      if (playing) {
+        btnPlay.innerText = "Pause";
+        if (currentIndex >= numNodes) {
+          currentIndex = 0;
+        }
+        step();
+      } else {
+        btnPlay.innerText = "Resume";
+        clearTimeout(timer);
+      }
+    });
+
+    document.getElementById('fvsbn-reset').addEventListener('click', () => {
+      playing = false;
+      clearTimeout(timer);
+      currentIndex = 0;
+      btnPlay.innerText = "Play Sequence";
+      
+      svgGroup.innerHTML = '';
+      nodes.forEach(n => { n.classList.remove('active'); n.classList.remove('past'); });
+      formulaBox.innerHTML = `<span style="color: var(--muted)">Click Play to step through the sequence</span>`;
+    });
+  })();
+</script>
+<div class="math-box">
+  <div class="math-box-label">Definition: Fully Visible Sigmoid Belief Network (FVSBN)</div>
+  <div class="math-box-body">
+    <p>A <strong>Fully Visible Sigmoid Belief Network</strong> parameterizes each conditional as:</p>
+    <div class="math-display">
+      $$\hat{x}_i = p(x_i = 1 \mid x_{\lt i};\, \alpha^i) = \sigma\!\left(\alpha^i_0 + \sum_{j=1}^{i-1} \alpha^i_j\, x_j\right)$$
+    </div>
+    <p>where $\sigma(z) = 1/(1+e^{-z})$ and $\alpha^i$ are learned parameters for position $i$. The joint:</p>
+    <div class="math-display">
+      $$p(x_1, \dots, x_n) = \prod_{i=1}^{n} p(x_i \mid x_{\lt i})$$
+    </div>
+    <p><strong>Parameters:</strong> $1 + 2 + \cdots + n = O(n^2/2)$.</p>
+  </div>
+</div>
+
+<div class="math-box">
+  <div class="math-box-label">Example: Evaluating and Sampling from FVSBN</div>
+  <div class="math-box-body">
+    <p>Define the conditional probabilities using the parameter matrix</p>
+    <div class="math-display">
+      $$\hat{x}_i = p(x_i = 1 \mid x_{\lt i};\, \alpha^i) = \sigma\!\left(\alpha^i_0 + \sum_{j=1}^{i-1} \alpha^i_j\, x_j\right).$$
+    </div>
+    <p>Collect the parameters into a lower--triangular matrix</p>
+    <div class="math-display">
+      $$A = \begin{bmatrix} \alpha^1_0 & 0 & 0 & 0 \\ \alpha^2_0 & \alpha^2_1 & 0 & 0 \\ \alpha^3_0 & \alpha^3_1 & \alpha^3_2 & 0 \\ \alpha^4_0 & \alpha^4_1 & \alpha^4_2 & \alpha^4_3 \end{bmatrix}, \qquad \tilde{x} = \begin{bmatrix} 1 \\ x_1 \\ x_2 \\ x_3 \end{bmatrix}.$$
+    </div>
+    <p>Then the vector of conditional probabilities can be written compactly as</p>
+    <div class="math-display">
+      $$\hat{\mathbf{x}} = \sigma(A \tilde{x}),$$
+    </div>
+    <p>where the sigmoid function is applied element-wise.</p>
+    <p>To evaluate $p(X_1=0,\, X_2=1,\, X_3=1,\, X_4=0)$:</p>
+    <ol>
+      <li>Compute all $\hat{x}_i$ using the matrix form above.</li>
+      <li>Multiply: $(1-\hat{x}_1) \times \hat{x}_2 \times \hat{x}_3 \times (1-\hat{x}_4)$</li>
+    </ol>
+    <p>To sample:</p>
+    <ol>
+      <li>Sample $x_1 \sim \text{Bernoulli}(\hat{x}_1)$</li>
+      <li>Sample $x_2 \sim \text{Bernoulli}(\hat{x}_2(x_1))$, and so on</li>
+    </ol>
+  </div>
+</div>
+
+<h2>The Asymmetry of autoregressive models:</h2>
+<p>Autoregressive models separate evaluation and generation in an important way. Given a known datapoint, the likelihood $p(x)$ can often be computed efficiently, since the conditional terms $p(x_i \mid x_{\lt i})$ are evaluated with inputs that are already known. In contrast, sampling is inherently sequential: each variable must be generated before later conditionals can be evaluated. This difference between efficient likelihood evaluation and sequential generation is a defining property of autoregressive modeling.</p>
+
+<p>Let the conditional distribution be parameterized by a function</p>
+<div class="math-display">
+  $$f_{\theta_i}(x_{\lt i}) = \sigma\!\left(\alpha^i_0 + \sum_{j=1}^{i-1} \alpha^i_j\, x_j\right),$$
+</div>
+<p>which is simply a logistic regression model for variable $x_i$.</p>
+
+<p>Then each conditional can be written compactly as</p>
+<div class="math-display">
+  $$p(x_i = 1 \mid x_{\lt i}) = f_{\theta_i}(x_{\lt i}).$$
+</div>
+
+<p>Using the autoregressive factorization, the joint distribution becomes</p>
+<div class="math-display">
+  $$p(x_1,\dots,x_n) = \prod_{i=1}^{n} p(x_i \mid x_{\lt i}) = \prod_{i=1}^{n} f_{\theta_i}(x_{\lt i}).$$
+</div>
+
+<p>FVSBN is valid but limited, since the function $f_\theta$ is a logistic regression and therefore models only linear dependencies. To obtain richer, more expressive conditionals, we next replace $f_\theta$ with neural networks.</p>
+
+                     </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    injectGiscusComments('article-comments');
+  });
+</script>
+
+    </main>
+
+</body>
+</html>

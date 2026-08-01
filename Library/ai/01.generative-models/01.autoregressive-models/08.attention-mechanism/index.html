@@ -18,7 +18,7 @@
 
 <meta property="og:title" content="Attention Mechanism">
 <meta property="og:description" content="From the seq2seq bottleneck to scaled dot-product attention, self-attention, masking, and multi-head attention—the core ideas that replace recurrence in Transformers.">
-<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/05.attention-mechanism/">
+<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/08.attention-mechanism/">
 <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-attention-mechanism.png">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -111,9 +111,9 @@
   $$\mathbf{c}_i = \sum_{j=1}^{T_x} \alpha_{ij}\, \mathbf{h}_j.$$
 </div>
 
-<p>The weights $\alpha_{ij}$ determine how relevant each English word is to the current decoding step. They are computed by scoring the compatibility between the previous decoder state row vector $\mathbf{s}_{i-1} \in \mathbb{R}^{1 \times d}$ and each encoder state $\mathbf{h}_j$, then normalising via softmax:</p>
+<p>The weights $\alpha_{ij}$ determine how relevant each English word is to the current decoding step. They are computed by first calculating a compatibility score $e_{ij}$ between the previous decoder state row vector $\mathbf{s}_{i-1} \in \mathbb{R}^{1 \times d}$ and each encoder state $\mathbf{h}_j$, then normalising these scores via softmax:</p>
 <div class="math-display">
-  $$\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_k \exp(e_{ik})}.$$
+  $$\alpha_{ij} = \frac{\exp(e_{ij})}{\sum_{k=1}^{T_x} \exp(e_{ik})}.$$
 </div>
 
 <p>The weights form a probability distribution over the source positions. When the decoder generates the German verb <em>schläft</em>, it places high weight on the English word <em>sleeps</em> and low weight on unrelated words such as <em>the</em> or <em>rug</em>. When generating a noun, the focus shifts accordingly.</p>

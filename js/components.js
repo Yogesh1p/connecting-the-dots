@@ -4,6 +4,9 @@
    Adds reusable route intelligence helpers
    ============================================================ */
 
+// Toggle to show/hide the Support button (heart icon) on navigation bar
+const SHOW_SUPPORT_BUTTON = false;
+
 // 1. AUTO-CLEAN URLs (Safely)
 if (window.location.pathname.endsWith('index.html')) {
   const cleanUrl = window.location.href.replace(/\/index\.html/i, '/');
@@ -68,7 +71,7 @@ function initGlobalNavigation(options = {}) {
   const NAV_LINKS = [
     { href: homePath, label: 'Home', section: 'home' },
     { href: root + 'Library/', label: 'Library', section: 'library' },
-    { href: root + 'support.html', label: 'Support', section: 'support' },
+    ...(SHOW_SUPPORT_BUTTON ? [{ href: root + 'support.html', label: 'Support', section: 'support' }] : []),
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', label: 'GitHub', target: '_blank' },
   ];
 
@@ -130,7 +133,8 @@ function initGlobalNavigation(options = {}) {
       <div class="nav-right nav-desktop-only">
         ${themeToggleHTML}
         
-       <a href="${root}support.html" class="support-link" aria-label="Support Page" style="display:flex;align-items:center;margin:0 8px;">
+        ${SHOW_SUPPORT_BUTTON ? `
+        <a href="${root}support.html" class="support-link" aria-label="Support Page" style="display:flex;align-items:center;margin:0 8px;">
           <svg viewBox="0 0 24 24" width="22" height="22" 
                fill="${currentSection === 'support' ? 'var(--accent, #e74c3c)' : 'none'}" 
                stroke="${currentSection === 'support' ? 'var(--accent, #e74c3c)' : 'currentColor'}" 
@@ -140,7 +144,7 @@ function initGlobalNavigation(options = {}) {
                style="transition: all 0.2s ease;">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
           </svg>
-        </a>
+        </a>` : ''}
 
         <a href="https://github.com/Yogesh1p/connecting-the-dots" target="_blank" class="github-link">
           <img src="${root}assets/github.svg" class="github-icon" alt="GitHub">
