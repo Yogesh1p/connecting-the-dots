@@ -235,32 +235,6 @@ window.rawPages = [
     "readingTime": 16
   },
   {
-    "article_id": "a0960ea9",
-    "url": "../Library/ai/01.generative-models/01.autoregressive-models/09.the-transformer-architecture/waste.html",
-    "cleanUrl": "../Library/ai/generative-models/autoregressive-models/the-transformer-architecture/waste.html",
-    "sourcePath": "Library/ai/01.generative-models/01.autoregressive-models/09.the-transformer-architecture/waste.html",
-    "publicPath": "Library/ai/01.generative-models/01.autoregressive-models/09.the-transformer-architecture/waste.html",
-    "cleanPath": "Library/ai/generative-models/autoregressive-models/the-transformer-architecture/waste.html",
-    "book": "Library",
-    "bookTitle": "Library",
-    "bookSlug": "library",
-    "bookOrder": 999,
-    "title": "Untitled",
-    "description": "",
-    "date": "",
-    "section": "Generative Models",
-    "chapter": "Autoregressive Models",
-    "chapterOrder": 9,
-    "chapterNumber": "9",
-    "lessonorder": 9,
-    "lessonNumber": "9",
-    "part": "Main",
-    "tier": "core",
-    "keywords": "",
-    "status": "draft",
-    "readingTime": 4
-  },
-  {
     "article_id": "exp00001",
     "url": "../Library/ai/01.generative-models/01.autoregressive-models/10.experiments/",
     "cleanUrl": "../Library/ai/generative-models/autoregressive-models/experiments/",
@@ -1094,6 +1068,16 @@ window.rawPages = [
   }
 ];
 window.rawLinks = [
+  {
+    "source": "title_AI_Generative Models_Autoregressive Models_Autoencoders: Foundations & The Information Leakage Problem",
+    "target": "title_Mathematics_Linear Algebra_Singular Value Decomposition_The Singular Value Decomposition (SVD)",
+    "type": "cross_reference"
+  },
+  {
+    "source": "title_AI_Generative Models_Autoregressive Models_Autoencoders: Foundations & The Information Leakage Problem",
+    "target": "title_Mathematics_Linear Algebra_Singular Value Decomposition_Applications of SVD",
+    "type": "cross_reference"
+  },
   {
     "source": "title_AI_Generative Models_Autoregressive Models_Attention Mechanism",
     "target": "title_AI_Generative Models_Autoregressive Models_Experiments: Autoregressive Models",
