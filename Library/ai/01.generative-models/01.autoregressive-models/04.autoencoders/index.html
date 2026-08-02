@@ -9,18 +9,18 @@
 <meta name="book" content="AI">
 <meta name="section" content="Generative Models">
 <meta name="chapter" content="Autoregressive Models">
-<meta name="title" content="Autoencoders: A Necessary Digression">
-<meta name="description" content="Autoencoders: learning compressed bottleneck representations, and the copying/cheating problem that prevents vanilla autoencoders from being used as generative models.">
-<meta name="keywords" content="autoencoder, reconstruction loss, bottleneck, generative models, representation learning">
+<meta name="title" content="Autoencoders: Foundations & The Information Leakage Problem">
+<meta name="description" content="Autoencoders: learning representations via bottlenecks, undercomplete and overcomplete regularization, and the Information Leakage problem that prevents them from being used as generative models.">
+<meta name="keywords" content="autoencoder, reconstruction loss, bottleneck, generative models, representation learning, undercomplete, overcomplete, denoising autoencoder">
 <meta name="status" content="draft">
 <meta name="date" content="2026-04-09">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="1">
+<meta name="reading_time" content="5">
 
-<meta property="og:title" content="Autoencoders: A Necessary Digression">
-<meta property="og:description" content="Autoencoders: learning compressed bottleneck representations, and the copying/cheating problem that prevents vanilla autoencoders from being used as generative models.">
+<meta property="og:title" content="Autoencoders: Foundations & The Information Leakage Problem">
+<meta property="og:description" content="Autoencoders: learning representations via bottlenecks, undercomplete and overcomplete regularization, and the Information Leakage problem that prevents them from being used as generative models.">
 <meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/ai/01.generative-models/01.autoregressive-models/04.autoencoders/">
-<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-autoencoders-a-necessary-digression.png">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/ai-autoencoders-foundations-and-the-information-leakage-problem.png">
 <meta name="twitter:card" content="summary_large_image">
 
 <style id="mobile-view-styles">
@@ -37,7 +37,7 @@
     <meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
 
-<title>Autoencoders: A Necessary Digression</title>
+<title>Autoencoders: Foundations & The Information Leakage Problem</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -95,35 +95,376 @@
                     <!-- injected hero/title -->
                     <div id="article-header"></div>
                     <!-- actual article content starts here -->
-                     <section class="article-body">
+<section class="article-body">
 
-<h2>Autoencoders: A Necessary Digression</h2>
+<h2>Autoencoders: Foundations &amp; The Information Leakage Problem</h2>
 
-<p>Before MADE, we need to understand autoencoders --- and why they cannot be used as generative models without modification.</p>
+<p>
+Before the rise of deep learning, one of the central problems in machine learning was
+<strong>representation learning</strong>: how can we describe high-dimensional data using a much
+smaller set of informative features?
+</p>
+
+<p>
+Consider an image. Although it may contain hundreds of thousands of pixels, much of that
+information is redundant. Neighboring pixels often have similar values, edges occupy
+contiguous regions, and textures repeat. This means an image can often be represented
+using far fewer numbers than its raw pixel values suggest.
+</p>
+
+<p>
+Long before neural networks, statisticians developed methods such as
+<strong>Singular Value Decomposition (SVD)</strong> and
+<strong>Principal Component Analysis (PCA)</strong> to exploit this redundancy.
+These methods compress data by projecting it onto a lower-dimensional space while
+preserving as much information as possible.
+</p>
+
+<p>
+However, these techniques have an important limitation: they are fundamentally
+<strong>linear</strong>. They can only discover linear correlations in the data.
+If the underlying structure of the data is nonlinear—as is often the case for images,
+speech, and natural language—linear methods cannot represent it efficiently.
+</p>
+
+<p>
+This naturally raises an important question:
+</p>
 
 <div class="math-box">
-  <div class="math-box-label">Definition: Autoencoder</div>
-  <div class="math-box-body">
-    <p>An <strong>autoencoder</strong> maps input $x$ through an encoder $f_\text{enc}$ to a representation $z$, then through a decoder $f_\text{dec}$ to a reconstruction $\hat{x}$:</p>
-    <div class="math-display">
-      $$z = f_\text{enc}(x), \qquad \hat{x} = f_\text{dec}(z)$$
+    <div class="math-box-label">Motivating Question</div>
+    <div class="math-box-body">
+        <p>
+            Can a neural network learn a <strong>nonlinear compressed representation</strong>
+            of data, just as PCA learns a linear one?
+        </p>
     </div>
-    <div class="math-display">
-      $$ \qquad \mathcal{L} = \sum_{x \in \mathcal{D}} \sum_i \!\left[-x_i \log \hat{x}_i - (1-x_i)\log(1-\hat{x}_i)\right]$$
-    </div>
-    <p>The bottleneck at $z$ forces the network to learn a compressed representation. But a vanilla autoencoder is <strong>not</strong> a generative model: it does not define a distribution over $x$ we can sample from.</p>
-  </div>
 </div>
 
-<p>On the surface, FVSBN and NADE already look like autoencoders: they take $x$ as input and produce $\hat{x}$ with the same <a href="/article/04c305f2">cross-entropy loss</a>. The problem is that a standard autoencoder lets output $\hat{x}_i$ see input $x_i$ directly &mdash; it can simply copy it, achieving zero reconstruction error while learning nothing useful.</p>
+<p>
+Neural networks are universal function approximators capable of learning highly nonlinear
+transformations. More importantly, every hidden layer inside a neural network learns an
+internal representation of the input.
+</p>
+
+<p>
+In supervised learning, these hidden representations are optimized to predict labels:
+</p>
+
+<div class="math-display">
+$$
+\text{Image}
+\rightarrow
+\text{Representation}
+\rightarrow
+\text{Class Label}
+$$
+</div>
+
+<p>
+The network learns whatever representation is most useful for classification.
+</p>
+
+<p>
+But what if labels are unavailable?
+</p>
+
+<p>
+Instead of learning representations that help predict a label, can we learn
+representations that preserve enough information to reconstruct the original input?
+</p>
+
+<p>
+This simple idea led to one of the most influential architectures in representation
+learning: the <strong>Autoencoder</strong>.
+</p>
+
+<h3>Definition: Autoencoder</h3>
+
 <div class="math-box">
-  <div class="math-box-label">Warning</div>
-  <div class="math-box-body">
-    <p><strong>The cheating problem:</strong> Output $\hat{x}_i$ must depend <em>only</em> on $x_1, \dots, x_{i-1}$ to be useful as a generative model. At generation time we do not have $x_i$ to copy --- that is what we are trying to produce. A standard autoencoder does not enforce this constraint.</p>
-  </div>
+    <div class="math-box-label">Definition</div>
+    <div class="math-box-body">
+
+        <p>
+            An <strong>autoencoder</strong> is a feedforward neural network trained to reconstruct
+            its own input.
+        </p>
+
+        <p>
+            Internally, the network learns a <strong>code</strong> that represents the input.
+            It consists of two components:
+        </p>
+
+        <ol>
+
+            <li>
+                An <strong>encoder</strong> that maps the input
+                $x \in \mathbb{R}^n$
+                to a code
+                $h \in \mathbb{R}^d$:
+                <div class="math-display">
+                $$
+                h=f_{\mathrm{enc}}(x)
+                $$
+                </div>
+            </li>
+
+            <li>
+                A <strong>decoder</strong> that reconstructs the input from the code:
+                <div class="math-display">
+                $$
+                \hat{x}=f_{\mathrm{dec}}(h)
+                $$
+                </div>
+            </li>
+
+        </ol>
+
+        <div class="math-display">
+        $$
+        x
+        \rightarrow
+        h
+        \rightarrow
+        \hat{x}
+        $$
+        </div>
+
+    </div>
 </div>
 
-                     </section>
+<h3>Undercomplete Autoencoders</h3>
+
+<p>
+At first glance, the learning objective appears trivial.
+If the input and output are identical, why doesn't the network simply learn the identity
+function?
+</p>
+
+<p>
+Indeed, if the encoder and decoder have enough capacity, that is exactly what happens.
+The network simply learns to copy the input to the output without discovering any useful
+structure in the data.
+</p>
+
+<p>
+One of the simplest ways to prevent this trivial solution is to constrain the
+<strong>code dimension</strong>.
+If the code has fewer dimensions than the input,
+</p>
+
+<div class="math-display">
+$$
+d &lt; n,
+$$
+</div>
+
+<p>
+the network can no longer copy every input independently.
+Instead, it must compress the data, preserving only the information necessary to
+reconstruct the original input.
+</p>
+
+<p>
+The learned code therefore captures the most salient properties of the training data.
+</p>
+
+<p>
+Training simply consists of minimizing a reconstruction loss between the input
+$x$ and its reconstruction $\hat{x}$.
+</p>
+
+<p>
+For continuous data, Mean Squared Error (MSE) is commonly used:
+</p>
+
+<div class="math-display">
+$$
+\mathcal{L}_{\mathrm{MSE}}
+=
+\frac12
+\sum_{i=1}^{n}
+(x_i-\hat{x}_i)^2.
+$$
+</div>
+
+<p>
+For binary data, Binary Cross Entropy (BCE) is typically used:
+</p>
+
+<div class="math-display">
+$$
+\mathcal{L}_{\mathrm{BCE}}
+=
+-
+\sum_{i=1}^{n}
+\left[
+x_i\log\hat{x}_i
++
+(1-x_i)\log(1-\hat{x}_i)
+\right].
+$$
+</div>
+
+<p>
+When both the encoder and decoder are linear transformations,
+an undercomplete autoencoder learns the same subspace as
+<strong>Principal Component Analysis (PCA)</strong>.
+With nonlinear activation functions, however, the encoder and decoder can learn
+nonlinear manifolds that PCA cannot represent.
+An undercomplete autoencoder may therefore be viewed as a nonlinear generalization
+of PCA.
+</p>
+
+<h3>Overcomplete Autoencoders</h3>
+
+<p>
+When the code dimension is equal to or larger than the input dimension,
+</p>
+
+<div class="math-display">
+$$
+d &ge; n,
+$$
+</div>
+
+<p>
+the network has enough capacity to simply memorize the identity function.
+Even a completely linear encoder and decoder can perfectly copy the input to the
+output without learning anything meaningful about the underlying data distribution.
+</p>
+
+<h3>Regularized Autoencoders</h3>
+
+<p>
+Rather than restricting the size of the code, another approach is to regularize the
+learning process itself.
+Regularized autoencoders allow large, expressive encoder and decoder networks while
+encouraging the learned code to possess desirable properties beyond simply copying
+the input.
+</p>
+
+<ul>
+
+<li>
+<strong>Sparse Autoencoders</strong> encourage only a small subset of code units to
+activate for any input.
+</li>
+
+<li>
+<strong>Denoising Autoencoders</strong> corrupt the input with noise and train the
+network to reconstruct the original clean input, forcing the model to learn the
+underlying structure of the data rather than memorizing individual inputs.
+</li>
+
+<li>
+<strong>Contractive Autoencoders</strong> penalize the sensitivity of the learned code
+to small perturbations in the input, encouraging locally stable representations.
+</li>
+
+</ul>
+
+<h3>The Information Leakage Problem</h3>
+
+<p>
+Although autoencoders learn useful representations, they cannot be directly used as
+autoregressive generative models.
+</p>
+
+<p>
+To see why, notice that every reconstructed output
+$\hat{x}_i$
+is computed from the code
+$h$,
+and the code itself is computed from the
+<strong>entire</strong> input vector:
+</p>
+
+<div class="math-display">
+$$
+\hat{x}_i
+=
+f_{\mathrm{dec}}
+\left(
+f_{\mathrm{enc}}
+(x_1,\ldots,x_i,\ldots,x_n)
+\right)_i.
+$$
+</div>
+
+<p>
+Consequently, the prediction of
+$\hat{x}_i$
+already has access to the true value
+$x_i$.
+Rather than learning the conditional distribution
+</p>
+
+<div class="math-display">
+$$
+p(x_i \mid x_{&lt;i}),
+$$
+</div>
+
+<p>
+the network simply learns to copy
+$x_i$
+through the code.
+This phenomenon is known as
+<strong>information leakage</strong>.
+</p>
+
+<p>
+The reconstruction error may become extremely small, but the network has not learned
+how the data is generated. Instead, it has learned to exploit information that would
+not be available during generation.
+</p>
+
+<p>
+When generating a new sample, the value of
+$x_i$
+is unknown and must instead be sampled from
+</p>
+
+<div class="math-display">
+$$
+x_i
+\sim
+p(x_i \mid x_{&lt;i}).
+$$
+</div>
+
+<p>
+Since a vanilla autoencoder was trained assuming that
+$x_i$
+was already present in the input, it fails completely as an autoregressive generative
+model.
+</p>
+
+<h3>Bridging to MADE</h3>
+
+<p>
+The challenge is therefore to retain the efficiency of a feedforward neural network
+while eliminating information leakage.
+</p>
+
+<p>
+Rather than allowing every output to depend on every input, we must enforce a causal
+structure so that the prediction of
+$\hat{x}_i$
+depends only on the previous variables
+$x_{&lt;i}$.
+</p>
+
+<p>
+Remarkably, this can be achieved simply by masking selected connections in a standard
+feedforward network.
+The resulting architecture is called the
+<strong>Masked Autoencoder for Distribution Estimation (MADE)</strong>, which combines
+parallel computation with the causal structure required for autoregressive modeling.
+</p>
+
+</section>
                 </article>
             </div>
         </div>

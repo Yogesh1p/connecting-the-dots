@@ -89,8 +89,8 @@ window.rawPages = [
     "bookTitle": "AI",
     "bookSlug": "ai",
     "bookOrder": 999,
-    "title": "Autoencoders: A Necessary Digression",
-    "description": "Autoencoders: learning compressed bottleneck representations, and the copying/cheating problem that prevents vanilla autoencoders from being used as generative models.",
+    "title": "Autoencoders: Foundations & The Information Leakage Problem",
+    "description": "Autoencoders: learning representations via bottlenecks, undercomplete and overcomplete regularization, and the Information Leakage problem that prevents them from being used as generative models.",
     "date": "2026-04-09",
     "section": "Generative Models",
     "chapter": "Autoregressive Models",
@@ -100,9 +100,9 @@ window.rawPages = [
     "lessonNumber": "4",
     "part": "Main",
     "tier": "core",
-    "keywords": "autoencoder, reconstruction loss, bottleneck, generative models, representation learning",
+    "keywords": "autoencoder, reconstruction loss, bottleneck, generative models, representation learning, undercomplete, overcomplete, denoising autoencoder",
     "status": "draft",
-    "readingTime": 1
+    "readingTime": 5
   },
   {
     "article_id": "b4a3c2d1",
@@ -1094,11 +1094,6 @@ window.rawPages = [
   }
 ];
 window.rawLinks = [
-  {
-    "source": "title_AI_Generative Models_Autoregressive Models_Autoencoders: A Necessary Digression",
-    "target": "title_Mathematics_Information Theory_Information Theory_Entropy, Cross-Entropy, and KL Divergence",
-    "type": "cross_reference"
-  },
   {
     "source": "title_AI_Generative Models_Autoregressive Models_Attention Mechanism",
     "target": "title_AI_Generative Models_Autoregressive Models_Experiments: Autoregressive Models",
