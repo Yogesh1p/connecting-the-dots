@@ -130,6 +130,8 @@
 
   <p>A direct approach is to represent the joint distribution explicitly as a <strong>lookup table</strong>: for every possible configuration of $x$, we store its probability.</p>
 
+  <p>In this simplest setting, the table itself is the model. The true data-generating distribution exists in the real world, but we do not know it directly. We collect data, estimate the probability of each configuration, and store those estimates in the table. If the estimates are good, the table closely approximates the true distribution.</p>
+
   <p>If the variables are binary, there are $2^n$ possible configurations. Since probabilities must sum to one, the number of independent parameters is</p>
 
   <div class="math-display">
@@ -142,7 +144,10 @@
   
   <p>Since each of our 3 variables can take exactly 2 possible states (0 or 1), applying the multiplication rule means our lookup table must have $2 \times 2 \times 2 = 8$ distinct rows to cover every possible configuration:</p>
 
-    <p>So why minus one? Because this is a valid probability distribution, the probabilities of all 8 configurations must sum to exactly 1. Once the model learns the first 7 probabilities ($p_1$ through $p_7$), the very last row is locked in—it is simply 1 minus the sum of the rest.</p> 
+    <details class="toggle">
+      <summary>Why is there a minus one?</summary>
+      <p>Because this is a valid probability distribution, the probabilities of all 8 configurations must sum to exactly 1. Once the model learns the first 7 probabilities ($p_1$ through $p_7$), the very last row is locked in: it is simply 1 minus the sum of the rest.</p>
+    </details>
           <table class="styled-table">
       <thead>
         <tr>

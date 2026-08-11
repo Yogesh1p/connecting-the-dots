@@ -849,45 +849,51 @@
 <p><strong>Extensions.</strong></p>
 <p>The NADE framework extends naturally beyond binary variables by modifying the output distribution while retaining the same autoregressive hidden representation.</p>
 
-<p><strong>Discrete variables.</strong></p>
-<p>For non-binary discrete random variables $x_i \in \{1,\dots,K\}$ (e.g., pixel intensities ranging from $0$ to $255$), the output $\hat{x}_i$ parameterizes a categorical distribution rather than a Bernoulli. The hidden representation is computed as</p>
-<div class="math-display">
-  $$h_i = \sigma(W_{\cdot,\lt i}x_{\lt i} + c),$$
-</div>
-<p>and the conditional distribution is modeled as</p>
-<div class="math-display">
-  $$p(x_i \mid x_{\lt i}) = \mathrm{Cat}(p_i^1,\dots,p_i^K),$$
-</div>
-<p>where</p>
-<div class="math-display">
-  $$\hat{x}_i = (p_i^1,\dots,p_i^K) = \mathrm{softmax}(A_i h_i + b_i).$$
-</div>
-<p>The softmax function generalizes the sigmoid by transforming a vector of real-valued scores into a valid probability distribution over $K$ outcomes, ensuring non-negativity and unit normalization.</p>
-<div class="math-box">
-  <div class="math-box-label">Intuition: Constructing the Softmax Function</div>
-  <div class="math-box-body">
-    <p>Suppose our network outputs a vector of $K$ raw scores (logits), $z = A_i h_i + b_i$. These numbers can be anything—positive, negative, large, or small. We need to mechanically convert them into a valid probability distribution $p$. What mathematical rules must this conversion obey?</p>
-    <ol>
-      <li><strong>Positivity:</strong> Probabilities cannot be negative. We solve this by taking the exponential of the scores: $e^{z_k}$. This forces every number to be strictly positive. Crucially, it also preserves the order: a higher raw score $z_k$ always produces a larger positive value $e^{z_k}$.</li>
-      <li><strong>Normalization:</strong> A valid probability distribution must sum to exactly $1$. We achieve this by dividing each positive value by the total sum of all $K$ positive values.</li>
-    </ol>
-    <p>Combining these two simple requirements gives the <strong>softmax function</strong> for the $k$-th outcome:</p>
-    <div class="math-display">
-      $$ p_i^k = \frac{e^{z_k}}{\sum_{j=1}^K e^{z_j}} \quad \text{for } k=1,\dots,K $$
-    </div>
-    <p>The softmax is simply the most direct mathematical tool to take arbitrary real numbers, make them positive, and scale them to sum to one. It naturally generalizes the sigmoid function from 2 choices to $K$ choices.</p>
+<details class="toggle">
+  <summary>Discrete variables</summary>
+  <p>For non-binary discrete random variables $x_i \in \{1,\dots,K\}$ (e.g., pixel intensities ranging from $0$ to $255$), the output $\hat{x}_i$ parameterizes a categorical distribution rather than a Bernoulli. The hidden representation is computed as</p>
+  <div class="math-display">
+    $$h_i = \sigma(W_{\cdot,\lt i}x_{\lt i} + c),$$
   </div>
-</div>
-<p><strong>Continuous variables (RNADE).</strong></p>
-<p>For real-valued variables $x_i \in \mathbb{R}$ (e.g., speech signals), each conditional can be modeled using a continuous distribution. A common choice is a mixture of Gaussians, giving rise to the Real-valued NADE (RNADE). In this case, the conditional distribution takes the form</p>
-<div class="math-display">
-  $$p(x_i \mid x_{\lt i}) = \sum_{j=1}^{K} \pi_i^j \, \mathcal{N}\!\left(x_i;\mu_i^j,\sigma_i^j\right),$$
-</div>
-<p>where $\pi_i^j$ are mixture weights and $(\mu_i^j,\sigma_i^j)$ are the mean and standard deviation of the $j$-th Gaussian component. These parameters are predicted from the hidden state:</p>
-<div class="math-display">
-  $$h_i = \sigma(W_{\cdot,\lt i}x_{\lt i} + c), \qquad \hat{x}_i = (\pi_i^1,\dots,\pi_i^K, \mu_i^1,\dots,\mu_i^K, \sigma_i^1,\dots,\sigma_i^K) = f(h_i).$$
-</div>
-<p>In practice, the standard deviations are typically parameterized using an exponential transform to ensure $\sigma_i^j \gt 0$. This extension allows NADE to model complex continuous densities while preserving the autoregressive factorization and efficient shared-parameter structure.</p>
+  <p>and the conditional distribution is modeled as</p>
+  <div class="math-display">
+    $$p(x_i \mid x_{\lt i}) = \mathrm{Cat}(p_i^1,\dots,p_i^K),$$
+  </div>
+  <p>where</p>
+  <div class="math-display">
+    $$\hat{x}_i = (p_i^1,\dots,p_i^K) = \mathrm{softmax}(A_i h_i + b_i).$$
+  </div>
+  <p>The softmax function generalizes the sigmoid by transforming a vector of real-valued scores into a valid probability distribution over $K$ outcomes, ensuring non-negativity and unit normalization.</p>
+
+  <div class="math-box">
+    <div class="math-box-label">Intuition: Constructing the Softmax Function</div>
+    <div class="math-box-body">
+      <p>Suppose our network outputs a vector of $K$ raw scores (logits), $z = A_i h_i + b_i$. These numbers can be anything—positive, negative, large, or small. We need to mechanically convert them into a valid probability distribution $p$. What mathematical rules must this conversion obey?</p>
+      <ol>
+        <li><strong>Positivity:</strong> Probabilities cannot be negative. We solve this by taking the exponential of the scores: $e^{z_k}$. This forces every number to be strictly positive. Crucially, it also preserves the order: a higher raw score $z_k$ always produces a larger positive value $e^{z_k}$.</li>
+        <li><strong>Normalization:</strong> A valid probability distribution must sum to exactly $1$. We achieve this by dividing each positive value by the total sum of all $K$ positive values.</li>
+      </ol>
+      <p>Combining these two simple requirements gives the <strong>softmax function</strong> for the $k$-th outcome:</p>
+      <div class="math-display">
+        $$ p_i^k = \frac{e^{z_k}}{\sum_{j=1}^K e^{z_j}} \quad \text{for } k=1,\dots,K $$
+      </div>
+      <p>The softmax is simply the most direct mathematical tool to take arbitrary real numbers, make them positive, and scale them to sum to one. It naturally generalizes the sigmoid function from 2 choices to $K$ choices.</p>
+    </div>
+  </div>
+</details>
+
+<details class="toggle">
+  <summary>Continuous variables (RNADE)</summary>
+  <p>For real-valued variables $x_i \in \mathbb{R}$ (e.g., speech signals), each conditional can be modeled using a continuous distribution. A common choice is a mixture of Gaussians, giving rise to the Real-valued NADE (RNADE). In this case, the conditional distribution takes the form</p>
+  <div class="math-display">
+    $$p(x_i \mid x_{\lt i}) = \sum_{j=1}^{K} \pi_i^j \, \mathcal{N}\!\left(x_i;\mu_i^j,\sigma_i^j\right),$$
+  </div>
+  <p>where $\pi_i^j$ are mixture weights and $(\mu_i^j,\sigma_i^j)$ are the mean and standard deviation of the $j$-th Gaussian component. These parameters are predicted from the hidden state:</p>
+  <div class="math-display">
+    $$h_i = \sigma(W_{\cdot,\lt i}x_{\lt i} + c), \qquad \hat{x}_i = (\pi_i^1,\dots,\pi_i^K, \mu_i^1,\dots,\mu_i^K, \sigma_i^1,\dots,\sigma_i^K) = f(h_i).$$
+  </div>
+  <p>In practice, the standard deviations are typically parameterized using an exponential transform to ensure $\sigma_i^j \gt 0$. This extension allows NADE to model complex continuous densities while preserving the autoregressive factorization and efficient shared-parameter structure.</p>
+</details>
 
 <div class="math-box">
   <div class="math-box-label">Remark: Hidden Units as Deterministic Features</div>
