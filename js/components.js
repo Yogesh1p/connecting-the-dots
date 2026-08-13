@@ -70,7 +70,7 @@ function initGlobalNavigation(options = {}) {
   // Added Support link to the mobile drawer menu
   const NAV_LINKS = [
     { href: homePath, label: 'Home', section: 'home' },
-    { href: root + 'Library/', label: 'Library', section: 'library' },
+    { href: root + 'Library/', label: 'Contents', section: 'library' },
     ...(SHOW_SUPPORT_BUTTON ? [{ href: root + 'support.html', label: 'Support', section: 'support' }] : []),
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', label: 'GitHub', target: '_blank' },
   ];
@@ -127,7 +127,7 @@ function initGlobalNavigation(options = {}) {
       </a>
 
       <div class="nav-center nav-desktop-only">
-        <a href="${root}Library/" ${currentSection === 'library' ? 'style="color: var(--accent);"' : ''}>Library</a>
+        <a href="${root}Library/" ${currentSection === 'library' ? 'style="color: var(--accent);"' : ''}>Contents</a>
       </div>
 
       <div class="nav-right nav-desktop-only">
@@ -284,6 +284,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (targetEl) {
       e.preventDefault();
       targetEl.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  // 5. CONTENTS / LIBRARY VISIT MEMORY
+  // Mark contents page as visited if we are currently in the library/contents section
+  if (getCurrentSection() === 'library') {
+    try {
+      localStorage.setItem('contentsVisited', 'true');
+    } catch (e) {}
+  }
+
+  // Also catch clicks to the Contents link dynamically
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (link) {
+      const href = link.getAttribute('href');
+      if (href && (href.includes('Library/') || href.includes('library/'))) {
+        try {
+          localStorage.setItem('contentsVisited', 'true');
+        } catch (e) {}
+      }
     }
   });
 });

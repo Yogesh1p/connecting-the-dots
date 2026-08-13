@@ -128,7 +128,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "MADE, masked autoencoder, density estimation, autoencoder, distribution estimation, order-agnostic training",
     "status": "draft",
-    "readingTime": 7
+    "readingTime": 8
   },
   {
     "article_id": "88ef0b6e",
