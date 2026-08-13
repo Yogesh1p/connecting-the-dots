@@ -469,6 +469,12 @@
       animation: mobileGlow 4s ease-in-out infinite;
     }
 
+    .mobile-contents-label.glow-sync {
+      position: relative;
+      display: inline-block;
+      animation: desktopGlow 4s ease-in-out infinite;
+    }
+
     /* Notification dot badge style */
     .glow-sync::before {
       content: "";
@@ -488,6 +494,14 @@
     .top-ham.glow-sync::before {
       top: 10px;
       right: 8px;
+    }
+
+    .top-ham.glow-sync.is-open::before {
+      display: none !important;
+    }
+
+    .top-ham.glow-sync.is-open {
+      animation: none !important;
     }
 
     @keyframes desktopGlow {
@@ -1207,8 +1221,10 @@ window.addEventListener('load', () => {
   enterBtn.addEventListener('click', () => {
     const contentsLink = document.querySelector('.nav-center a');
     const topHam = document.getElementById('topHamBtn');
+    const mobileContentsLink = document.querySelector('.mobile-contents-label');
     if (contentsLink) contentsLink.classList.remove('glow-sync');
     if (topHam) topHam.classList.remove('glow-sync');
+    if (mobileContentsLink) mobileContentsLink.classList.remove('glow-sync');
 
     if (isMobile()) {
       // On mobile, just scroll to the content and exit. Do NOT start the graph transition.
@@ -1306,8 +1322,10 @@ window.addEventListener('load', () => {
   if (!hasExplored && !hasVisitedContents) {
     const contentsLink = document.querySelector('.nav-center a');
     const topHam = document.getElementById('topHamBtn');
+    const mobileContentsLink = document.querySelector('.mobile-contents-label');
     if (contentsLink) contentsLink.classList.add('glow-sync');
     if (topHam) topHam.classList.add('glow-sync');
+    if (mobileContentsLink) mobileContentsLink.classList.add('glow-sync');
   }
 
   // Trigger Tony Chopper welcome entrance transition after 5 seconds (5000ms) if not visited contents

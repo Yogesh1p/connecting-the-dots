@@ -75,15 +75,20 @@ function initGlobalNavigation(options = {}) {
     { href: 'https://github.com/Yogesh1p/connecting-the-dots', label: 'GitHub', target: '_blank' },
   ];
 
-  const drawerLinksHTML = NAV_LINKS.map(l => `
-    <li>
-      <a href="${l.href}"
-         ${l.section === currentSection ? 'style="color: var(--accent);"' : ''}
-         ${l.target ? `target="${l.target}" rel="noopener"` : ''}>
-        ${l.label}
-      </a>
-    </li>
-  `).join('');
+  const drawerLinksHTML = NAV_LINKS.map(l => {
+    const labelHTML = l.section === 'library' 
+      ? `<span class="mobile-contents-label">${l.label}</span>` 
+      : l.label;
+    return `
+      <li>
+        <a href="${l.href}"
+           ${l.section === currentSection ? 'style="color: var(--accent);"' : ''}
+           ${l.target ? `target="${l.target}" rel="noopener"` : ''}>
+          ${labelHTML}
+        </a>
+      </li>
+    `;
+  }).join('');
 
   const themeToggleHTML = `
     <button class="theme-toggle" aria-label="Toggle theme" type="button">
