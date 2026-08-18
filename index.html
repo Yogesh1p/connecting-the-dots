@@ -469,7 +469,7 @@
       animation: mobileGlow 4s ease-in-out infinite;
     }
 
-    .mobile-contents-label.glow-sync {
+    .mobile-library-label.glow-sync {
       position: relative;
       display: inline-block;
       animation: desktopGlow 4s ease-in-out infinite;
@@ -703,7 +703,7 @@
       <div class="chopper-shadow"></div>
     </div>
     <div class="chopper-speech" id="dev-chopper-speech">
-      Check the contents here!
+      <span class="chopper-speech-text">Check the library here!</span>
       <div class="speech-tail-left" id="dev-speech-tail"></div>
       <svg class="speech-accent-arrow" id="dev-speech-arrow" viewBox="0 0 16 22" fill="none">
         <path d="M8,20 L8,2 M8,2 L3,7 M8,2 L13,7" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -1219,12 +1219,12 @@ window.addEventListener('load', () => {
   }
   
   enterBtn.addEventListener('click', () => {
-    const contentsLink = document.querySelector('.nav-center a');
+    const libraryLink = document.querySelector('.nav-center a');
     const topHam = document.getElementById('topHamBtn');
-    const mobileContentsLink = document.querySelector('.mobile-contents-label');
-    if (contentsLink) contentsLink.classList.remove('glow-sync');
+    const mobileLibraryLink = document.querySelector('.mobile-library-label');
+    if (libraryLink) libraryLink.classList.remove('glow-sync');
     if (topHam) topHam.classList.remove('glow-sync');
-    if (mobileContentsLink) mobileContentsLink.classList.remove('glow-sync');
+    if (mobileLibraryLink) mobileLibraryLink.classList.remove('glow-sync');
 
     if (isMobile()) {
       // On mobile, just scroll to the content and exit. Do NOT start the graph transition.
@@ -1307,29 +1307,29 @@ window.addEventListener('load', () => {
 
   // Mobile layout adjustments for Chopper pointer speech bubble
   const isMob = window.innerWidth <= 768;
-  const bubbleText = document.getElementById('dev-chopper-speech');
-  if (bubbleText && isMob && bubbleText.firstChild) {
-    bubbleText.firstChild.textContent = "Tap menu for contents!";
+  const bubbleTextSpan = document.querySelector('#dev-chopper-speech .chopper-speech-text');
+  if (bubbleTextSpan && isMob) {
+    bubbleTextSpan.textContent = "Tap menu for library!";
   }
 
-  // Check if they have visited the contents page before
-  const hasVisitedContents = (() => {
-    try { return localStorage.getItem('contentsVisited') === 'true'; }
+  // Check if they have visited the library page before
+  const hasVisitedLibrary = (() => {
+    try { return localStorage.getItem('libraryVisited') === 'true' || localStorage.getItem('contentsVisited') === 'true'; }
     catch (e) { return false; }
   })();
 
-  // On load, add glow-sync immediately to navbar controls to show notification dots if not explored and not visited contents
-  if (!hasExplored && !hasVisitedContents) {
-    const contentsLink = document.querySelector('.nav-center a');
+  // On load, add glow-sync immediately to navbar controls to show notification dots if not explored and not visited library
+  if (!hasExplored && !hasVisitedLibrary) {
+    const libraryLink = document.querySelector('.nav-center a');
     const topHam = document.getElementById('topHamBtn');
-    const mobileContentsLink = document.querySelector('.mobile-contents-label');
-    if (contentsLink) contentsLink.classList.add('glow-sync');
+    const mobileLibraryLink = document.querySelector('.mobile-library-label');
+    if (libraryLink) libraryLink.classList.add('glow-sync');
     if (topHam) topHam.classList.add('glow-sync');
-    if (mobileContentsLink) mobileContentsLink.classList.add('glow-sync');
+    if (mobileLibraryLink) mobileLibraryLink.classList.add('glow-sync');
   }
 
-  // Trigger Tony Chopper welcome entrance transition after 5 seconds (5000ms) if not visited contents
-  if (!hasVisitedContents) {
+  // Trigger Tony Chopper welcome entrance transition after 5 seconds (5000ms) if not visited library
+  if (!hasVisitedLibrary) {
     setTimeout(() => {
       const chopperCont = document.querySelector('.homepage-chopper');
       if (chopperCont) {

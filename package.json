@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "This draft is in a very early stage. It is incomplete and likely contains many mistakes.",
   "main": "build.js",
- "scripts": {
-  "watch": "nodemon --watch Library -e html build.js"
-},
+  "scripts": {
+    "watch": "nodemon --watch Library -e html build.js",
+    "serve": "live-server --port=5500 --cors .",
+    "dev": "nodemon --watch Library -e html build.js & live-server --port=5500 --cors ."
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Yogesh1p/connecting-the-dots.git"
