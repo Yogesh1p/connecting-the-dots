@@ -14,7 +14,7 @@
 <meta name="status" content="draft">
 <meta name="date" content="2026-04-04">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="13">
+<meta name="reading_time" content="14">
 
 <meta property="og:title" content="Word Representation">
 <meta property="og:description" content="How words become vectors">
@@ -441,6 +441,59 @@
                         <p>The gradient of the log-probability with respect to the center vector $\mathbf{v}_c$ is:</p>
 
                         $$\nabla_{\mathbf{v}_c} \log p(o \mid c) = \underbrace{\mathbf{u}_o}_{\substack{\text{observed} \\ \text{context}}} \;-\; \underbrace{\sum_{x \in \mathcal{V}} p(x \mid c)\,\mathbf{u}_x}_{\substack{\text{model's current} \\ \text{expected context}}}.$$
+
+                        <details class="toggle">
+                            <summary>Derivation of the gradient</summary>
+                            <p>To derive the gradient of the log-probability with respect to the center vector $\mathbf{v}_c$, we start with the definition of $p(o \mid c)$:</p>
+                            <div class="math-display">
+                                $$\log p(o \mid c) = \log \left( \frac{\exp(\mathbf{u}_o^\top \mathbf{v}_c)}{\sum_{w \in \mathcal{V}} \exp(\mathbf{u}_w^\top \mathbf{v}_c)} \right)$$
+                            </div>
+                            <p>Using logarithm properties, we expand the quotient into a subtraction:</p>
+                            <div class="math-display">
+                                $$\log p(o \mid c) = \log\left(\exp(\mathbf{u}_o^\top \mathbf{v}_c)\right) - \log \left( \sum_{w \in \mathcal{V}} \exp(\mathbf{u}_w^\top \mathbf{v}_c) \right)$$
+                            </div>
+                            <div class="math-display">
+                                $$\log p(o \mid c) = \mathbf{u}_o^\top \mathbf{v}_c - \log \left( \sum_{w \in \mathcal{V}} \exp(\mathbf{u}_w^\top \mathbf{v}_c) \right)$$
+                            </div>
+                            <p>Now, we take the gradient with respect to $\mathbf{v}_c$ for each term:</p>
+                            <div class="math-display">
+                                $$\nabla_{\mathbf{v}_c} \log p(o \mid c) = \nabla_{\mathbf{v}_c} \left( \mathbf{u}_o^\top \mathbf{v}_c \right) - \nabla_{\mathbf{v}_c} \left( \log \left( \sum_{w \in \mathcal{V}} \exp(\mathbf{u}_w^\top \mathbf{v}_c) \right) \right)$$
+                            </div>
+                            <p>Let's calculate these two terms separately:</p>
+                            <ol>
+                                <li>
+                                    <strong>First Term:</strong> Since $\mathbf{u}_o^\top \mathbf{v}_c$ is linear in $\mathbf{v}_c$, its gradient is simply:
+                                    <div class="math-display">
+                                        $$\nabla_{\mathbf{v}_c} \left( \mathbf{u}_o^\top \mathbf{v}_c \right) = \mathbf{u}_o$$
+                                    </div>
+                                </li>
+                                <li>
+                                    <strong>Second Term:</strong> We apply the chain rule. Let $f(\mathbf{v}_c) = \sum_{w \in \mathcal{V}} \exp(\mathbf{u}_w^\top \mathbf{v}_c)$. The gradient of $\log(f(\mathbf{v}_c))$ is:
+                                    <div class="math-display">
+                                        $$\nabla_{\mathbf{v}_c} \left( \log(f(\mathbf{v}_c)) \right) = \frac{1}{f(\mathbf{v}_c)} \nabla_{\mathbf{v}_c} f(\mathbf{v}_c)$$
+                                    </div>
+                                    The gradient of the sum $f(\mathbf{v}_c)$ with respect to $\mathbf{v}_c$ is:
+                                    <div class="math-display">
+                                        $$\nabla_{\mathbf{v}_c} f(\mathbf{v}_c) = \sum_{x \in \mathcal{V}} \nabla_{\mathbf{v}_c} \left( \exp(\mathbf{u}_x^\top \mathbf{v}_c) \right) = \sum_{x \in \mathcal{V}} \exp(\mathbf{u}_x^\top \mathbf{v}_c) \, \mathbf{u}_x$$
+                                    </div>
+                                    Substituting this back:
+                                    <div class="math-display">
+                                        $$\nabla_{\mathbf{v}_c} \left( \log(f(\mathbf{v}_c)) \right) = \frac{1}{\sum_{w \in \mathcal{V}} \exp(\mathbf{u}_w^\top \mathbf{v}_c)} \sum_{x \in \mathcal{V}} \exp(\mathbf{u}_x^\top \mathbf{v}_c) \, \mathbf{u}_x$$
+                                    </div>
+                                    <div class="math-display">
+                                        $$\nabla_{\mathbf{v}_c} \left( \log(f(\mathbf{v}_c)) \right) = \sum_{x \in \mathcal{V}} \left( \frac{\exp(\mathbf{u}_x^\top \mathbf{v}_c)}{\sum_{w \in \mathcal{V}} \exp(\mathbf{u}_w^\top \mathbf{v}_c)} \right) \mathbf{u}_x$$
+                                    </div>
+                                    Since the fraction inside is the definition of $p(x \mid c)$, this simplifies to:
+                                    <div class="math-display">
+                                        $$\nabla_{\mathbf{v}_c} \left( \log(f(\mathbf{v}_c)) \right) = \sum_{x \in \mathcal{V}} p(x \mid c) \, \mathbf{u}_x$$
+                                    </div>
+                                </li>
+                            </ol>
+                            <p>Combining the results of the two terms gives the final gradient:</p>
+                            <div class="math-display">
+                                $$\nabla_{\mathbf{v}_c} \log p(o \mid c) = \mathbf{u}_o - \sum_{x \in \mathcal{V}} p(x \mid c) \, \mathbf{u}_x$$
+                            </div>
+                        </details>
 
                         <div class="insightbox">
                             This is a correction signal. The update moves $\mathbf{v}_c$ <strong>toward the vector of the word that actually appeared</strong> and <strong>away from the weighted average of all words the model currently predicts</strong>. If the model is already confident about the right context word, the correction is small. If it is confidently wrong, the correction is large.

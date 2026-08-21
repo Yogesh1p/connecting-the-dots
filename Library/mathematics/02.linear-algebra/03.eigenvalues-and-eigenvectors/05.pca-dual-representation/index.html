@@ -14,7 +14,7 @@
 <meta name="status" content="live">
 <meta name="date" content="2026-08-16">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="21">
+<meta name="reading_time" content="24">
 
 <title>Applications- PCA</title>
   
@@ -396,7 +396,7 @@
   </p>
 
   <p>
-    By the <strong>Spectral Theorem</strong>, because $C$ is a real symmetric matrix, it possesses an orthonormal basis of eigenvectors $q_1, q_2, \dots, q_d$ with real eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$. Writing any unit vector $w = \sum_{j=1}^d c_j q_j$ (with $\sum c_j^2 = 1$), the variance expands as:
+    By the <strong>Spectral Theorem</strong>, because $C$ is a real symmetric matrix, it possesses an orthonormal basis of eigenvectors $w_1, w_2, \dots, w_d$ with real eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$. Writing any unit vector $w = \sum_{j=1}^d c_j w_j$ (with $\sum c_j^2 = 1$), the variance expands as:
   </p>
 
   <div class="math-display">
@@ -405,6 +405,112 @@
 
   <p>
     Equality holds if and only if $c_1 = 1$ and $c_{j > 1} = 0$, confirming that the principal directions of variance are exactly the orthogonal eigenvectors of the sample covariance matrix $C$.
+  </p>
+
+  <p><strong>Step 5: Total Variance Conservation &amp; "Explaining $X\%$ of Variance"</strong></p>
+  <p>
+    Now that we have established that the orthogonal eigenvectors $w_1, w_2, \dots, w_d$ are the principal directions of variance, we can understand how they partition the information in our dataset.
+  </p>
+
+  <p>
+    Since $w_1, \dots, w_d$ form an orthonormal basis of $\mathbb{R}^d$, any centered data vector $x_i$ can be written exactly as a linear combination of these eigenvectors:
+  </p>
+
+  <div class="math-display">
+    $$x_i = \sum_{k=1}^d (x_i^T w_k) w_k$$
+  </div>
+
+  <p>
+    Because these basis vectors are orthonormal ($w_j^T w_k = \delta_{jk}$), the Pythagorean theorem holds in $d$ dimensions:
+  </p>
+
+  <div class="math-display">
+    $$\|x_i\|^2 = \sum_{k=1}^d (x_i^T w_k)^2$$
+  </div>
+
+  <p>
+    To find the average spread of our entire dataset, we sum this squared length across all $n$ data points and divide by $n$. By exchanging the order of summation:
+  </p>
+
+  <div class="math-display">
+    $$\frac{1}{n} \sum_{i=1}^n \|x_i\|^2 = \frac{1}{n} \sum_{i=1}^n \sum_{k=1}^d (x_i^T w_k)^2 = \sum_{k=1}^d \left( \frac{1}{n} \sum_{i=1}^n (x_i^T w_k)^2 \right)$$
+  </div>
+
+  <p>
+    Notice that the term inside the parenthesis on the right is exactly the sample variance of our projected data points along the direction $w_k$, which is equal to $w_k^T C w_k = \lambda_k$. This gives us the <strong>Total Variance Conservation Law</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\text{Total Variance} = \frac{1}{n} \sum_{i=1}^n \|x_i\|^2 = \sum_{k=1}^d \lambda_k$$
+  </div>
+
+  <p>
+    This conservation law reveals that the total variance in the original coordinate system is completely preserved when we rotate our axes to the principal component coordinates—the sum of the variances along each eigenvector (eigenvalue) is exactly equal to the total variance of the raw features.
+  </p>
+
+  <p><strong>Decomposing Variance and Residue Iteratively</strong></p>
+  <p>
+    This allows us to view the dimensionality reduction process as an iterative decomposition of variance and residue. For instance, if we only project our data onto the first principal component $w_1$, the Pythagorean theorem yields:
+  </p>
+
+  <div class="math-display">
+    $$\frac{1}{n} \sum_{i=1}^n \|x_i\|^2 = \frac{1}{n} \sum_{i=1}^n (x_i^T w_1)^2 + \frac{1}{n} \sum_{i=1}^n \|x_i - (x_i^T w_1) w_1\|^2$$
+  </div>
+
+  <p>
+    In words:
+  </p>
+
+  <div class="math-display">
+    $$\text{Total Variance} = \text{variance along } w_1 + \text{mean squared residue along } w_1$$
+  </div>
+
+  <p>
+    Since the residue $x_i - (x_i^T w_1)w_1$ lives in the $(d-1)$-dimensional orthogonal complement of $w_1$, we can repeat this process and project the residue onto the second component $w_2$, stripping away another orthogonal variance layer:
+  </p>
+
+  <div class="math-display">
+    $$\text{Mean squared residue along } w_1 = \text{variance along } w_2 + \text{mean squared residue along } w_2$$
+  </div>
+
+  <p>
+    Continuing this process down to $d$ dimensions yields the full decomposition:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+    \frac{1}{n} \sum_{i=1}^n \|x_i\|^2 &= \text{variance along } w_1 + \text{mean squared residue along } w_1 \\
+    &= \text{variance along } w_1 + \left(\text{variance along } w_2 + \text{mean squared residue along } w_2\right) \\
+    &= \dots \\
+    &= \sum_{k=1}^d \text{variance along } w_k \\
+    &= \sum_{k=1}^d \lambda_k
+    \end{aligned}$$
+  </div>
+
+  <p><strong>Intuition: What does it mean to "explain $X\%$ of variance"?</strong></p>
+  <p>
+    When we compress our dataset by projecting it onto the first $m$ principal components ($m &lt; d$), we retain only the variance along those $m$ directions. The rest is discarded as reconstruction error. 
+  </p>
+  <p>
+    The fraction of the total dataset variance captured by these $m$ components is called the <strong>Explained Variance Ratio</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\text{Explained Variance Ratio} = \frac{\sum_{k=1}^m \lambda_k}{\sum_{j=1}^d \lambda_j}$$
+  </div>
+
+  <p>
+    When a scientist or algorithm states that, <em>"with this eigenface, we are explaining $X\%$ of the covariance/variance,"</em> it means that:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      $$\frac{\lambda_1}{\sum_{j=1}^d \lambda_j} = \frac{X}{100}$$
+    </div>
+  </div>
+
+  <p>
+    Geometrically, it signifies that $X\%$ of the total squared distance of the centered data points from their mean is preserved along that single eigenvector axis, while the remaining $(100-X)\%$ of the spread lies in the perpendicular directions (residues) that we are choosing to discard.
   </p>
 </section>
 

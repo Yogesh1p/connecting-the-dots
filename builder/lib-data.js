@@ -154,7 +154,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "embeddings, word2vec, skipgram, CBOW",
     "status": "draft",
-    "readingTime": 13
+    "readingTime": 14
   },
   {
     "article_id": "4c3bd221",
@@ -648,7 +648,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "PCA, duality, kernel pca, eigenvectors, eigenvalues, representer theorem, covariance matrix, gram matrix, eigenfaces, mercer theorem, centering in feature space",
     "status": "live",
-    "readingTime": 21
+    "readingTime": 24
   },
   {
     "article_id": "e05e778e",
