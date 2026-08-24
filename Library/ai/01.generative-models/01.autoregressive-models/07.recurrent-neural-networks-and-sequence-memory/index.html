@@ -14,7 +14,7 @@
 <meta name="status" content="draft">
 <meta name="date" content="2026-04-09">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="14">
+<meta name="reading_time" content="15">
 
 <meta property="og:title" content="Recurrent Neural Networks">
 <meta property="og:description" content="How recurrent neural networks model sequential dependencies, why gradients vanish or explode, and how LSTMs, GRUs, bidirectional networks, and encoder-decoder models address memory limitations.">
@@ -669,6 +669,25 @@
 <div class="math-display">
   $$L_{\text{sequence}} = \sum_{t=1}^{T} L_t .$$
 </div>
+
+<details class="toggle">
+  <summary>What is the loss function $L_t$ here?</summary>
+  <p>In sequence modeling, the step loss $L_t = \mathcal{L}(\hat{y}_t, y_t)$ measures the error between the model's prediction $\hat{y}_t$ and the true target $y_t$ at step $t$. Depending on the task and data type, $L_t$ is typically defined as:</p>
+  <ul>
+    <li><strong>Categorical Cross-Entropy (Language Modeling):</strong> If we are predicting the next token from a discrete vocabulary $\mathcal{V}$ (such as words in text), the target $y_t$ is the index of the true token. The model outputs a probability distribution $\hat{y}_t \in \mathbb{R}^{|\mathcal{V}| \times 1}$ via a softmax layer. The loss at step $t$ is the negative log-probability of the true token:
+      <div class="math-display">
+        $$L_t = -\log p(y_t \mid h_t) = -\log \hat{y}_{t, y_t}$$
+      </div>
+      This generalizes the Binary Cross-Entropy (BCE) loss (which we saw for binary outcomes in previous chapters) to a multi-class setting.
+    </li>
+    <li><strong>Mean Squared Error (Continuous Sequence Modeling):</strong> If the sequence values are continuous (such as audio samples or physical measurements), both the prediction $\hat{y}_t$ and target $y_t$ are real-valued vectors. The loss is the squared error:
+      <div class="math-display">
+        $$L_t = \frac{1}{2} \|y_t - \hat{y}_t\|_2^2$$
+      </div>
+    </li>
+  </ul>
+</details>
+
 <p>To study gradient propagation, it is sufficient to examine the contribution of a single future loss term $L_k$ ($k \ge t$) to an earlier hidden state column vector $h_t$. The full gradient is obtained by summing such contributions.</p>
 
 <p>Our goal is therefore to understand how</p>
