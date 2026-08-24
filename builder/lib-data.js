@@ -180,7 +180,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "RNN, recurrent neural network, hidden state, BPTT, vanishing gradients, exploding gradients, LSTM, GRU, bidirectional RNN, stacked RNN, seq2seq, encoder decoder, sequence memory, attention bottleneck",
     "status": "draft",
-    "readingTime": 14
+    "readingTime": 15
   },
   {
     "article_id": "bfd42033",
@@ -1105,6 +1105,11 @@ window.rawLinks = [
     "type": "cross_reference"
   },
   {
+    "source": "title_AI_Generative Models_Autoregressive Models_Recurrent Neural Networks",
+    "target": "title_Mathematics_Information Theory_Information Theory_Entropy, Cross-Entropy, and KL Divergence",
+    "type": "cross_reference"
+  },
+  {
     "source": "title_AI_Generative Models_Autoregressive Models_Attention Mechanism",
     "target": "title_AI_Generative Models_Autoregressive Models_Experiments: Autoregressive Models",
     "type": "cross_reference"
@@ -1112,6 +1117,11 @@ window.rawLinks = [
   {
     "source": "title_AI_Generative Models_Autoregressive Models_The Transformer Architecture",
     "target": "title_AI_Generative Models_Autoregressive Models_Experiments: Autoregressive Models",
+    "type": "cross_reference"
+  },
+  {
+    "source": "title_Mathematics_Information Theory_Information Theory_Entropy, Cross-Entropy, and KL Divergence",
+    "target": "title_AI_Generative Models_Autoregressive Models_Recurrent Neural Networks",
     "type": "cross_reference"
   }
 ];

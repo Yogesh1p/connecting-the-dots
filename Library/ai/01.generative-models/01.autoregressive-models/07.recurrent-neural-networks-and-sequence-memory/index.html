@@ -678,7 +678,7 @@
       <div class="math-display">
         $$L_t = -\log p(y_t \mid h_t) = -\log \hat{y}_{t, y_t}$$
       </div>
-      This generalizes the Binary Cross-Entropy (BCE) loss (which we saw for binary outcomes in previous chapters) to a multi-class setting.
+      This generalizes the Binary Cross-Entropy (BCE) loss to a multi-class setting (for the formal information-theoretic derivation, see the article on <a href="/article/04c305f2">Entropy, Cross-Entropy, and KL Divergence</a>).
     </li>
     <li><strong>Mean Squared Error (Continuous Sequence Modeling):</strong> If the sequence values are continuous (such as audio samples or physical measurements), both the prediction $\hat{y}_t$ and target $y_t$ are real-valued vectors. The loss is the squared error:
       <div class="math-display">

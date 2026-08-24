@@ -261,10 +261,16 @@
   This geometric property provides meaningful, non-degenerate gradients even when $P$ and $Q$ barely overlap — a regime where KL divergence produces zero or infinite gradients and stalls training. Wasserstein distance was central to the stability improvements of Wasserstein GANs and continues to inform modern generative modelling.
 </p>
 
-<h2>Grounding It in Machine Learning: Binary Cross-Entropy</h2>
+<h2>Grounding It in Machine Learning: Cross-Entropy Loss</h2>
 
 <p>
-  The concepts above are not abstract — they converge directly on one of the most common loss functions in deep learning. In binary classification, the model outputs a single probability $\hat{p} = P(y=1 \mid x; \theta)$, and the true label $y \in \{0, 1\}$ defines a deterministic distribution over two outcomes. The true distribution $P$ and predicted distribution $Q$ are:
+  The concepts above are not abstract — they converge directly on the most common loss functions in deep learning.
+</p>
+
+<h3>Binary Cross-Entropy (BCE)</h3>
+
+<p>
+  In binary classification, the model outputs a single probability $\hat{p} = P(y=1 \mid x; \theta)$, and the true label $y \in \{0, 1\}$ defines a deterministic distribution over two outcomes. The true distribution $P$ and predicted distribution $Q$ are:
 </p>
 <ul>
   <li>$P = (y,\; 1-y)$, which is $(1, 0)$ when $y=1$ and $(0, 1)$ when $y=0$.</li>
@@ -294,6 +300,29 @@
 
 <p>
   Taking the logarithm (to convert the product to a sum, and to avoid numerical underflow) and negating (to turn maximisation into minimisation) recovers exactly the BCE loss. <strong>BCE is not an ad hoc engineering choice — it is the negative log likelihood of a Bernoulli model.</strong> Minimising BCE is precisely maximum likelihood estimation.
+</p>
+
+<h3>Categorical Cross-Entropy (Multi-Class Loss)</h3>
+
+<p>
+  When predicting a category from a discrete set of outcomes $\mathcal{V}$ (such as predicting the next word in a sequence model or classifying images into one of $C$ classes), we generalize from the binary case to the multi-class case. The true target $y \in \mathcal{V}$ is represented as a one-hot vector $P = [P(1), P(2), \dots, P(C)]^\top$, where $P(c) = 1$ if $c$ is the true class, and $0$ otherwise.
+</p>
+
+<p>
+  The model outputs a probability distribution vector $Q = \hat{y} = [\hat{y}_1, \hat{y}_2, \dots, \hat{y}_C]^\top$ (usually via a softmax activation). Substituting this into the cross-entropy formula $H(P, Q) = -\sum_{c=1}^C P(c) \log Q(c)$, all terms except the true target class drop out, leaving:
+</p>
+
+<div class="math-box key-box">
+  <div class="math-box-label">Categorical Cross-Entropy Loss</div>
+  <div class="math-box-body">
+    <div class="math-display">
+      $$L_i = -\log \hat{y}_{i, y_i}$$
+    </div>
+  </div>
+</div>
+
+<p>
+  Just like BCE, Categorical Cross-Entropy has an exact probabilistic interpretation: it is the negative log-likelihood of a categorical (multinoulli) distribution model. In sequence-level learning (such as <a href="/article/4c3bd221">Recurrent Neural Networks</a> or Transformers), the total loss is simply the sum (or average) of these step-wise negative log-likelihoods over all positions.
 </p>
 
 <h3>The Monte Carlo Connection</h3>
