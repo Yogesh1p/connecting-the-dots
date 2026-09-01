@@ -245,6 +245,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ${tagsHtml ? `<div class="article-header__tags">${tagsHtml}</div>` : ''}
       </header>
     `;
+    if (window.MathJax?.typesetPromise) {
+      window.MathJax.typesetPromise([container]).catch(() => {});
+    }
   };
 
   const getCurrentArticleKey = () => {

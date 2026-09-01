@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="eeb7e49f">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Clustering">
+<meta name="title" content="Kernel K-Means & Spectral Clustering">
+<meta name="description" content="A rigorous first-principles derivation showing how kernelizing K-means yields a matrix trace objective, why discrete optimization is NP-hard, and how continuous relaxation onto the Stiefel manifold reveals Spectral Clustering.">
+<meta name="keywords" content="kernel k-means, spectral clustering, continuous relaxation, stiefel manifold, rayleigh ritz, trace optimization, gram matrix, ng jordan weiss, graph laplacian, unsupervised learning, IITM FML">
+<meta name="status" content="draft">
+<meta name="date" content="2026-08-30">
+<meta name="author" content="Yogesh">
+
+<title>Kernel K-Means & Spectral Clustering</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 650px;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .svg-container svg {
+    width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="9">
+    <meta property="og:title" content="Kernel K-Means & Spectral Clustering">
+    <meta property="og:description" content="A rigorous first-principles derivation showing how kernelizing K-means yields a matrix trace objective, why discrete optimization is NP-hard, and how continuous relaxation onto the Stiefel manifold reveals Spectral Clustering.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-kernel-k-means-and-spectral-clustering.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1 — The Wall: Why Linear Voronoi Cells Fail            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="motivation">
+  <h2>The Geometric Wall: When Flat Boundaries Fail</h2>
+
+  <p>
+    In our analysis of standard $K$-means, we uncovered a geometric truth: the decision boundary separating any two clusters is the <strong>perpendicular bisector hyperplane</strong> between their centroids. Consequently, every cluster produced by Lloyd's algorithm is a convex Voronoi cell.
+  </p>
+
+  <p>
+    While convex cells work remarkably well for spherical blobs, they fail catastrophically on non-linear geometries.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg">
+        <!-- Failure Case: Concentric Circles -->
+        <circle cx="340" cy="170" r="130" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <circle cx="340" cy="170" r="65" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+
+        <!-- Outer ring points -->
+        <circle cx="210" cy="170" r="4.5" fill="#c53030" />
+        <circle cx="470" cy="170" r="4.5" fill="#2b6cb0" />
+        <circle cx="340" cy="40" r="4.5" fill="#c53030" />
+        <circle cx="340" cy="300" r="4.5" fill="#2b6cb0" />
+        <circle cx="250" cy="80" r="4.5" fill="#c53030" />
+        <circle cx="430" cy="80" r="4.5" fill="#2b6cb0" />
+        <circle cx="250" cy="260" r="4.5" fill="#c53030" />
+        <circle cx="430" cy="260" r="4.5" fill="#2b6cb0" />
+
+        <!-- Inner ring points -->
+        <circle cx="275" cy="170" r="4.5" fill="#c53030" />
+        <circle cx="405" cy="170" r="4.5" fill="#2b6cb0" />
+        <circle cx="340" cy="105" r="4.5" fill="#c53030" />
+        <circle cx="340" cy="235" r="4.5" fill="#2b6cb0" />
+        <circle cx="295" cy="125" r="4.5" fill="#c53030" />
+        <circle cx="385" cy="125" r="4.5" fill="#2b6cb0" />
+        <circle cx="295" cy="215" r="4.5" fill="#c53030" />
+        <circle cx="385" cy="215" r="4.5" fill="#2b6cb0" />
+
+        <!-- Flat Linear Cut that Lloyd's Algorithm Produces -->
+        <line x1="200" y1="310" x2="480" y2="30" stroke="#dd6b20" stroke-width="3" stroke-dasharray="6,6" />
+        <text x="495" y="45" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="#dd6b20">Linear Cut</text>
+        <text x="495" y="65" font-family="'Lora', serif" font-size="13" fill="var(--muted)">Chops rings into halves!</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> The fundamental failure case of linear $K$-means. Because Voronoi boundaries are straight hyperplanes, Lloyd's algorithm cannot isolate the inner ring from the outer ring; instead, it slices through both rings like a pie.
+    </figcaption>
+  </figure>
+
+  <p>
+    How do we break past the tyranny of flat hyperplanes? In <em>Representation Learning</em>, when linear PCA failed on curved manifolds, we mapped our data into a high-dimensional feature space $\phi(x)$ where non-linear curves straightened out into linear subspaces, unlocking <strong>Kernel PCA</strong>.
+  </p>
+
+  <p>
+    Can we do the exact same thing for $K$-means? What does <strong>Kernel $K$-Means</strong> look like, and what surprising connection does it forge with <strong>Spectral Clustering</strong>?
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2 — Formulating Kernel K-Means                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="kernel-kmeans-formulation">
+  <h2>Formulating Kernel $K$-Means</h2>
+
+  <p>
+    Let $\phi: \mathbb{R}^d \to \mathcal{H}$ be a non-linear feature mapping that lifts data points into a Reproducing Kernel Hilbert Space (RKHS) $\mathcal{H}$.
+  </p>
+
+  <p>
+    In this lifted feature space, the $K$-means objective seeks cluster assignments $z_1, \dots, z_n \in \{1, \dots, K\}$ that minimize the sum of squared distances to feature-space centroids:
+  </p>
+
+  <div class="math-display">
+    $$\min_{z_1, \dots, z_n} \sum_{i=1}^n \|\phi(x_i) - \mu_{z_i}\|^2 \quad \text{where} \quad \mu_k = \frac{\sum_{i=1}^n \phi(x_i) \mathbf{1}(z_i = k)}{\sum_{i=1}^n \mathbf{1}(z_i = k)}$$
+  </div>
+
+  <p>
+    <strong>The Immediate Obstacle:</strong> The feature space $\mathcal{H}$ can be infinitely dimensional (for instance, under a Gaussian RBF kernel). We cannot explicitly compute or store $\phi(x_i)$, let alone calculate coordinates for the centroid $\mu_k$.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Central Question</div>
+    <div class="math-box-body">
+      <p>
+        <em>Can we rewrite the entire feature-space distortion objective strictly in terms of pairwise inner products (kernel evaluations) $K_{ij} = \langle \phi(x_i), \phi(x_j) \rangle$?</em>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3 — Matrix Formulation: The Z, L, and M Architecture    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="matrix-architecture">
+  <h2>The Matrix Architecture: Building $Z$, $L$, and $M$</h2>
+
+  <p>
+    To translate the summation into clean linear algebra, let us stack our lifted data vectors as columns of an operator matrix $\Phi$:
+  </p>
+
+  <div class="math-display">
+    $$\Phi = \begin{bmatrix} | & | & & | \\ \phi(x_1) & \phi(x_2) & \dots & \phi(x_n) \\ | & | & & | \end{bmatrix}$$
+  </div>
+
+  <p>
+    Next, we define the corresponding matrix of assigned cluster means $M$:
+  </p>
+
+  <div class="math-display">
+    $$M = \begin{bmatrix} | & | & & | \\ \mu_{z_1} & \mu_{z_2} & \dots & \mu_{z_n} \\ | & | & & | \end{bmatrix}$$
+  </div>
+
+  <p>
+    The total distortion objective is simply the squared Frobenius norm of the residual matrix:
+  </p>
+
+  <div class="math-display">
+    $$\sum_{i=1}^n \|\phi(x_i) - \mu_{z_i}\|^2 = \|\Phi - M\|_F^2$$
+  </div>
+
+  <p>
+    How can we express $M$ in terms of $\Phi$? Let us inspect how the cluster assignments behave.
+  </p>
+
+  <h3>1. The Assignment Matrix $Z \in \{0, 1\}^{n \times K}$</h3>
+  <p>
+    Each row $i$ of $Z$ contains a 1-of-$K$ one-hot encoding indicating the cluster assignment of $x_i$:
+  </p>
+
+  <div class="math-display">
+    $$Z_{ik} = \begin{cases} 1 & \text{if point } x_i \in \text{cluster } k \\ 0 & \text{otherwise} \end{cases}$$
+  </div>
+
+  <h3>2. The Inverse Cluster-Size Matrix $L \in \mathbb{R}^{K \times K}$</h3>
+  <p>
+    Let $n_k = \sum_{i=1}^n \mathbf{1}(z_i = k)$ denote the total number of points in cluster $k$. We define $L$ as the diagonal matrix of inverse cluster counts:
+  </p>
+
+  <div class="math-display">
+    $$L = \begin{bmatrix} \frac{1}{n_1} & & 0 \\ & \ddots & \\ 0 & & \frac{1}{n_K} \end{bmatrix} \in \mathbb{R}^{K \times K}$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Fundamental Matrix Identity of Cluster Counts</div>
+    <div class="math-box-body">
+      <p>
+        Observe what happens when we compute the inner product $Z^T Z$:
+      </p>
+      <div class="math-display">
+        $$Z^T Z = \begin{bmatrix} n_1 & & 0 \\ & \ddots & \\ 0 & & n_K \end{bmatrix} = L^{-1}$$
+      </div>
+      <p>
+        Therefore, $Z^T Z L = I_K$ and $L^{1/2} Z^T Z L^{1/2} = I_K$.
+      </p>
+    </div>
+  </div>
+
+  <h3>3. The Mean Reconstruction Matrix $A$</h3>
+  <p>
+    When we multiply $\Phi$ by $Z$, column $k$ of the product $\Phi Z$ computes the unnormalized sum of all feature vectors in cluster $k$: $\sum_{i \in C_k} \phi(x_i)$.
+  </p>
+  <p>
+    Multiplying by $L$ divides each column by its cluster size $n_k$, yielding the exact cluster centroids $\mu_k$:
+  </p>
+
+  <div class="math-display">
+    $$\Phi Z L = \begin{bmatrix} | & & | \\ \mu_1 & \dots & \mu_K \\ | & & | \end{bmatrix}$$
+  </div>
+
+  <p>
+    Finally, multiplying by $Z^T$ broadcasts each centroid $\mu_k$ back to all data points belonging to cluster $k$:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Centroid Projection Matrix</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$M = \Phi \underbrace{Z L Z^T}_{A} = \Phi A$$
+      </div>
+      <p>
+        where $A = Z L Z^T \in \mathbb{R}^{n \times n}$ is an $n \times n$ symmetric block-averaging matrix with entries $A_{ij} = \frac{1}{n_k}$ if $i, j \in C_k$, and $0$ otherwise.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4 — The Trace Derivation & The Kernel Matrix            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="trace-derivation">
+  <h2>The Trace Derivation: Unlocking the Kernel Gram Matrix</h2>
+
+  <p>
+    Now let us substitute $M = \Phi Z L Z^T$ directly into our squared Frobenius distortion objective:
+  </p>
+
+  <div class="math-display">
+    $$\|\Phi - M\|_F^2 = \|\Phi - \Phi Z L Z^T\|_F^2$$
+  </div>
+
+  <p>
+    Using the standard trace identity for Frobenius norms $\|B\|_F^2 = \text{tr}(B^T B)$:
+  </p>
+
+  <div class="math-display">
+    $$\|\Phi - M\|_F^2 = \text{tr}\left[ (\Phi - \Phi Z L Z^T)^T (\Phi - \Phi Z L Z^T) \right]$$
+  </div>
+
+  <p>
+    Expanding the product gives four terms:
+  </p>
+
+  <div class="math-display">
+    $$= \text{tr}\left[ \Phi^T \Phi - \Phi^T \Phi Z L Z^T - Z L Z^T \Phi^T \Phi + Z L Z^T \Phi^T \Phi Z L Z^T \right]$$
+  </div>
+
+  <p>
+    Let $K = \Phi^T \Phi \in \mathbb{R}^{n \times n}$ denote the <strong>Kernel (Gram) Matrix</strong>, where each entry is the scalar dot product $K_{ij} = \phi(x_i)^T \phi(x_j) = k(x_i, x_j)$.
+  </p>
+
+  <div class="math-display">
+    $$= \text{tr}\left[ K - K Z L Z^T - Z L Z^T K + Z L Z^T K Z L Z^T \right]$$
+  </div>
+
+  <p>
+    Now apply the trace linearity $\text{tr}(A + B) = \text{tr}(A) + \text{tr}(B)$ and the <strong>cyclic permutation property</strong> of trace $\text{tr}(ABC) = \text{tr}(CAB) = \text{tr}(BCA)$:
+  </p>
+
+  <ol>
+    <li>$\text{tr}(Z L Z^T K) = \text{tr}(K Z L Z^T)$ (by swapping the cyclic order).</li>
+    <li>
+      For the fourth term:
+      $$\text{tr}(Z L Z^T K Z L Z^T) = \text{tr}(K \cdot \underbrace{Z L Z^T Z L Z^T}_{A^2})$$
+      Since $Z^T Z = L^{-1}$, the middle factors collapse:
+      $$Z L (Z^T Z) L Z^T = Z L (L^{-1}) L Z^T = Z L Z^T$$
+      Therefore, $\text{tr}(Z L Z^T K Z L Z^T) = \text{tr}(K Z L Z^T)$!
+    </li>
+  </ol>
+
+  <p>
+    Look at what happens when we substitute these back:
+  </p>
+
+  <div class="math-display">
+    $$\|\Phi - M\|_F^2 = \text{tr}(K) - \text{tr}(K Z L Z^T) - \text{tr}(K Z L Z^T) + \text{tr}(K Z L Z^T)$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Kernel $K$-Means Trace Theorem</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\sum_{i=1}^n \|\phi(x_i) - \mu_{z_i}\|^2 = \text{tr}(K) - \text{tr}(K Z L Z^T)$$
+      </div>
+      <p>
+        Because the total kernel trace $\text{tr}(K) = \sum_{i=1}^n k(x_i, x_i)$ is a fixed constant determined solely by the dataset, <strong>minimizing distortion is mathematically identical to maximizing the trace term</strong>:
+      </p>
+      <div class="math-display">
+        $$\min_{Z} \|\Phi - M\|_F^2 \iff \max_{Z \in \{0,1\}^{n \times K}} \text{tr}(K Z L Z^T)$$
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5 — The NP-Hardness & Continuous Relaxation             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="continuous-relaxation">
+  <h2>The Computational Wall &amp; The Continuous Relaxation</h2>
+
+  <p>
+    Let us split the diagonal matrix $L$ as $L = L^{1/2} L^{1/2}$ and use the cyclic property of trace once more:
+  </p>
+
+  <div class="math-display">
+    $$\text{tr}(K Z L Z^T) = \text{tr}\left( K (Z L^{1/2}) (L^{1/2} Z^T) \right) = \text{tr}\left( (Z L^{1/2})^T K (Z L^{1/2}) \right)$$
+  </div>
+
+  <p>
+    Let us define a transformed assignment matrix $H \in \mathbb{R}^{n \times K}$:
+  </p>
+
+  <div class="math-display">
+    $$H = Z L^{1/2}$$
+  </div>
+
+  <p>
+    Let us check the column inner products of $H$:
+  </p>
+
+  <div class="math-display">
+    $$H^T H = (Z L^{1/2})^T (Z L^{1/2}) = L^{1/2} (Z^T Z) L^{1/2} = L^{1/2} L^{-1} L^{1/2} = I_K$$
+  </div>
+
+  <p>
+    <strong>The columns of $H$ are strictly orthonormal!</strong>
+  </p>
+
+  <p>
+    Our optimization problem is:
+  </p>
+
+  <div class="math-display">
+    $$\max_{Z \in \{0,1\}^{n \times K}} \text{tr}\left( H^T K H \right) \quad \text{where } H = Z L^{1/2}$$
+  </div>
+
+  <p>
+    <strong>The Computational Roadblock:</strong> Because each element $Z_{ik} \in \{0, 1\}$ is a discrete binary choice, optimizing this directly over the combinatorial set of all partitions is <strong>NP-hard</strong>.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer Stiefel Manifold Sphere (Continuous) -->
+        <circle cx="360" cy="200" r="160" fill="rgba(72, 187, 120, 0.15)" stroke="#2f855a" stroke-width="2.5" />
+        <text x="360" y="380" font-family="'Lora', serif" font-size="16" font-weight="600" fill="#2f855a" text-anchor="middle">Continuous Stiefel Manifold: ℋ = {H ∈ ℝⁿˣᴷ : HᵀH = Iₖ}</text>
+
+        <!-- Inner Discrete Feasible Set (Red points) -->
+        <circle cx="360" cy="200" r="90" fill="rgba(229, 62, 62, 0.1)" stroke="#c53030" stroke-width="1.5" stroke-dasharray="4,4" />
+        <text x="360" y="270" font-family="'Lora', serif" font-size="14" fill="#c53030" text-anchor="middle">Discrete Set ℒ = {ZL¹/² : Z ∈ {0,1}ⁿˣᴷ}</text>
+
+        <!-- Discrete points inside -->
+        <circle cx="330" cy="160" r="6" fill="#c53030" />
+        <circle cx="390" cy="150" r="6" fill="#c53030" />
+        <circle cx="310" cy="210" r="6" fill="#c53030" />
+        <circle cx="410" cy="215" r="6" fill="#c53030" />
+        <circle cx="360" cy="180" r="6" fill="#c53030" />
+
+        <!-- Continuous optimal solution H* on the manifold boundary -->
+        <circle cx="475" cy="95" r="8" fill="#2b6cb0" />
+        <text x="495" y="95" font-family="'Lora', serif" font-size="18" font-weight="bold" fill="#2b6cb0">H* (Top K Eigenvectors)</text>
+        <text x="495" y="115" font-family="'Lora', serif" font-size="13" fill="var(--muted)">Continuous global optimum</text>
+
+        <!-- Arrow showing projection back -->
+        <path d="M 465 110 Q 420 150 395 150" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="4,4" marker-end="url(#arrow-red)" />
+        <text x="445" y="165" font-family="'Lora', serif" font-size="13" font-style="italic" fill="var(--accent)">Row Normalization + Lloyd's</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> The Continuous Relaxation Bridge. The discrete set of valid clustering matrices $\mathcal{L}$ is NP-hard to search. By relaxing to the continuous Stiefel manifold $\mathcal{H}$, the Rayleigh-Ritz theorem finds the exact continuous optimum $H^*$ (top eigenvectors of $K$), which is then projected back to discrete clusters.
+    </figcaption>
+  </figure>
+
+  <h3>The Continuous Relaxation</h3>
+  <p>
+    Instead of restricting $H$ to have the rigid discrete structure $Z L^{1/2}$, what if we <strong>relax</strong> the problem and allow $H$ to be <em>any</em> real-valued continuous matrix in $\mathbb{R}^{n \times K}$ satisfying $H^T H = I_K$?
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Relaxed Continuous Problem</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\max_{H \in \mathbb{R}^{n \times K}} \text{tr}(H^T K H) \quad \text{subject to} \quad H^T H = I_K$$
+      </div>
+      <p>
+        By the <strong>Rayleigh-Ritz / Ky Fan Theorem</strong>, the exact global solution to this continuous optimization problem is achieved when the columns of $H^*$ are the <strong>top $K$ eigenvectors of the Kernel matrix $K$</strong>!
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6 — Mapping H* Back to Z: Spectral Clustering          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="spectral-clustering">
+  <h2>Mapping $H^*$ Back to $Z^*$: The Spectral Clustering Algorithm</h2>
+
+  <p>
+    We have an exact continuous solution $H^* = [h_1, h_2, \dots, h_K] \in \mathbb{R}^{n \times K}$, where $h_k$ are the top eigenvectors of $K$. But our end goal is to assign each data point to a discrete cluster.
+  </p>
+
+  <p>
+    How do we map continuous rows of $H^*$ back to discrete cluster assignments $Z$?
+  </p>
+
+  <h3>The Ideal Case Insight: Why Row Normalization Works</h3>
+  <p>
+    Suppose we were in the ideal world where the continuous optimum $H^*$ matched the true discrete clustering $Z L^{1/2}$. What would the rows of $H^*$ look like?
+  </p>
+
+  <div class="math-display">
+    $$H^* = Z L^{1/2} = \begin{bmatrix}
+      0 & \frac{1}{\sqrt{n_2}} & 0 \\
+      \frac{1}{\sqrt{n_1}} & 0 & 0 \\
+      0 & \frac{1}{\sqrt{n_2}} & 0 \\
+      0 & 0 & \frac{1}{\sqrt{n_3}}
+    \end{bmatrix}$$
+  </div>
+
+  <p>
+    In this ideal matrix:
+  </p>
+  <ul>
+    <li>Every data point belonging to cluster $k$ has non-zeros <em>only</em> in column $k$, with value $\frac{1}{\sqrt{n_k}}$.</li>
+    <li>If we normalize each row of $H^*$ to have unit Euclidean norm ($\|H_{i,:}^*\| = 1$), every point in cluster $k$ becomes the pure unit standard basis vector $e_k = [0, \dots, 1, \dots, 0]$!</li>
+  </ul>
+
+  <div class="math-box">
+    <div class="math-box-label">The Complete Spectral Clustering Algorithm (Ng-Jordan-Weiss)</div>
+    <div class="math-box-body">
+      <ol>
+        <li>Given dataset $X = \{x_1, \dots, x_n\}$ and kernel function $k(\cdot, \cdot)$, compute the $n \times n$ Kernel matrix $K$.</li>
+        <li>Compute the top $K$ eigenvectors of $K$: $H^* = [h_1, h_2, \dots, h_K] \in \mathbb{R}^{n \times K}$.</li>
+        <li>
+          Normalize the rows of $H^*$ to unit length on the sphere $\mathbb{S}^{K-1}$:
+          $$U_{ik} = \frac{H_{ik}^*}{\sqrt{\sum_{j=1}^K (H_{ij}^*)^2}}$$
+        </li>
+        <li>
+          Treat each row $U_{i,:} \in \mathbb{R}^K$ as a new $K$-dimensional representation of data point $x_i$, and run standard <strong>Lloyd's $K$-means algorithm</strong> on $\{U_{1,:}, \dots, U_{n,:}\}$.
+        </li>
+        <li>Assign point $x_i$ to cluster $k$ if row $U_{i,:}$ was assigned to cluster $k$.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7 — The Grand Synthesis                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="grand-synthesis">
+  <h2>The Grand Synthesis: Connecting the Dots</h2>
+
+  <p>
+    When students first encounter <strong>Spectral Clustering</strong> in textbooks, it is often introduced via graph cuts, normalized Laplacians ($L = D - W$), and graph degree matrices.
+  </p>
+
+  <p>
+    Our first-principles derivation reveals what Spectral Clustering truly is:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Unifying Truth</div>
+    <div class="math-box-body">
+      <p>
+        <strong>Spectral Clustering is the continuous spectral relaxation of Kernel $K$-Means.</strong>
+      </p>
+      <p>
+        When you choose the Kernel matrix $K$ to be the pseudo-inverse or normalized adjacency matrix of a similarity graph, graph spectral partitioning and kernel $K$-means are mathematically identical.
+      </p>
+    </div>
+  </div>
+
+  <table style="width:100%; margin: 2rem 0; border-collapse: collapse; font-size: 0.95rem;">
+    <thead>
+      <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+        <th style="padding: 10px;">Method</th>
+        <th style="padding: 10px;">Domain</th>
+        <th style="padding: 10px;">Target Matrix</th>
+        <th style="padding: 10px;">Mathematical Nature</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Linear PCA</strong></td>
+        <td style="padding: 10px;">Continuous Subspace</td>
+        <td style="padding: 10px;">Sample Covariance $C = \frac{1}{n}XX^T$</td>
+        <td style="padding: 10px;">Direct Eigendecomposition</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Kernel PCA</strong></td>
+        <td style="padding: 10px;">Continuous RKHS Subspace</td>
+        <td style="padding: 10px;">Kernel Gram Matrix $K = \Phi^T \Phi$</td>
+        <td style="padding: 10px;">Dual Eigendecomposition</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Linear $K$-Means</strong></td>
+        <td style="padding: 10px;">Discrete Partition</td>
+        <td style="padding: 10px;">Euclidean Distance $\|x - \mu\|^2$</td>
+        <td style="padding: 10px;">Alternating Coordinate Descent</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px;"><strong>Spectral Clustering</strong></td>
+        <td style="padding: 10px;">Relaxed RKHS Partition</td>
+        <td style="padding: 10px;">Kernel Gram Matrix $K = \Phi^T \Phi$</td>
+        <td style="padding: 10px;">Eigendecomposition + Row Normalization + Lloyd's</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Both PCA and $K$-Means belong to the same grand family: finding optimal low-dimensional projections without generative assumptions. By unlocking the power of the Kernel Gram matrix, eigendecomposition unites continuous dimensionality reduction with discrete clustering.
+  </p>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

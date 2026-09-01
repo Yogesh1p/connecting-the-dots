@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="ffc54033">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="Kernel PCA">
+<meta name="description" content="How to extend PCA to non-linear manifolds using Mercer kernels — the Circle Experiment, centering in Hilbert space via HKH, and the 5-step Kernel PCA algorithm.">
+<meta name="keywords" content="kernel pca, non-linear dimensionality reduction, rbf kernel, mercer theorem, centering in feature space, gram matrix, representation learning, Foundations of Machine Learning">
+<meta name="status" content="draft">
+<meta name="date" content="2026-08-16">
+<meta name="author" content="Yogesh">
+
+<title>Kernel PCA</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 650px;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .svg-container svg {
+    width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="10">
+    <meta property="og:title" content="Kernel PCA">
+    <meta property="og:description" content="How to extend PCA to non-linear manifolds using Mercer kernels — the Circle Experiment, centering in Hilbert space via HKH, and the 5-step Kernel PCA algorithm.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-kernel-pca.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!--  5 — The Non-Linear Bottleneck                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="nonlinear-motivation">
+  <h2>The Non-Linear Bottleneck</h2>
+
+  <p>
+    The second limitation of linear PCA is that it only finds flat subspaces (lines, planes, and hyperplanes).
+  </p>
+
+  <p><strong>The Circle Experiment</strong></p>
+  <p>
+    Consider a simple 2D dataset where all data points lie on the circumference of a circle with center $(a, b)$ and radius $R$:
+  </p>
+
+  <div class="math-display">
+    $$(f_1 - a)^2 + (f_2 - b)^2 = R^2$$
+  </div>
+
+  <p>
+    Let us trace step-by-step what happens when standard linear PCA is applied to this dataset:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Centering:</strong> Subtracting the mean shifts the origin to the center of the circle: $(a, b) \to (0, 0)$. The equation simplifies to $f_1^2 + f_2^2 = R^2$.
+    </li>
+    <li>
+      <strong>Rotational Symmetry:</strong> Because the points are distributed uniformly around the perimeter, the spread along the $x$-axis is identical to the spread along the $y$-axis:
+      <div class="math-display">
+        $$\text{Var}(f_1) = \text{Var}(f_2) = \frac{R^2}{2}, \qquad \text{Cov}(f_1, f_2) = 0$$
+      </div>
+    </li>
+    <li>
+      <strong>Eigendecomposition:</strong> The covariance matrix is a multiple of the identity:
+      <div class="math-display">
+        $$C = \begin{bmatrix} \sigma^2 & 0 \\ 0 & \sigma^2 \end{bmatrix} \quad\Longrightarrow\quad \lambda_1 = \lambda_2 = \sigma^2$$
+      </div>
+    </li>
+    <li>
+      <strong>Dimensionality Retention:</strong> Because $\lambda_1 = \lambda_2$, each component explains exactly $50\%$ of the total variance. If we apply the standard rule of thumb to preserve $95\%$ of the variance, PCA forces us to retain <strong>both dimensions</strong> ($k = 2$).
+    </li>
+  </ol>
+
+  <p>
+    Linear PCA concludes that the data is 2-dimensional and achieves no dimensionality reduction, even though the points lie on a 1-dimensional curve.
+  </p>
+
+  <p><strong>Linearizing Curves in Higher Dimensions</strong></p>
+  <p>
+    How can linear algebra handle curved data? The key idea:
+  </p>
+
+  <p>
+    <strong>We can linearize non-linear relationships by mapping the data into a higher-dimensional space.</strong>
+  </p>
+
+  <p>
+    Let us expand the circle equation algebraically:
+  </p>
+
+  <div class="math-display">
+    $$f_1^2 + f_2^2 - 2a f_1 - 2b f_2 + (a^2 + b^2 - R^2) = 0$$
+  </div>
+
+  <p>
+    Now define a non-linear feature map $\phi(x)$ that lifts any 2D point $x = [f_1, f_2]^T$ into a 6-dimensional feature space $\mathbb{R}^6$:
+  </p>
+
+  <div class="math-display">
+    $$\phi(x) = \begin{bmatrix} 1 \\ f_1^2 \\ f_2^2 \\ f_1 f_2 \\ f_1 \\ f_2 \end{bmatrix} \in \mathbb{R}^6$$
+  </div>
+
+  <p>
+    and define a constant parameter vector $u \in \mathbb{R}^6$ based on the circle's parameters:
+  </p>
+
+  <div class="math-display">
+    $$u = \begin{bmatrix} a^2 + b^2 - R^2 \\ 1 \\ 1 \\ 0 \\ -2a \\ -2b \end{bmatrix} \in \mathbb{R}^6$$
+  </div>
+
+  <p>
+    Take the dot product between $\phi(x)$ and $u$:
+  </p>
+
+  <div class="math-display">
+    $$\phi(x)^T u = (a^2 + b^2 - R^2)(1) + (1)f_1^2 + (1)f_2^2 + (0)f_1 f_2 - 2a f_1 - 2b f_2 = 0$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Geometric Insight of Non-Linear Lifting</div>
+    <div class="math-box-body">
+      <p>
+        In 2D, the circle is non-linear and curved. But in 6D, <strong>every mapped point $\phi(x)$ lies on a perfectly flat hyperplane orthogonal to $u$</strong>.
+      </p>
+      <p>
+        In this 6D space, the variance in the direction of $u$ is exactly zero. Standard linear PCA in the lifted space will immediately detect this flat linear subspace and compress the data cleanly!
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6 — Implicit Inner Products & Kernels                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="kernel-trick">
+  <h2>Implicit Inner Products & Kernels</h2>
+
+  <p>
+    Mapping data into a higher-dimensional space makes curved relationships linear. However, explicitly computing and storing high-dimensional feature vectors is often computationally impractical.
+  </p>
+
+  <p>
+    If you have input vectors in $\mathbb{R}^d$ and want to consider all polynomial interactions up to degree $p$, the dimension of the mapped feature vector $\phi(x)$ explodes combinatorially:
+  </p>
+
+  <div class="math-display">
+    $$\dim(\phi(x)) = \binom{d + p}{p}$$
+  </div>
+
+  <p>
+    For a modest input of $d = 100$ features with degree $p = 5$, $\dim(\phi(x)) = \binom{105}{5} \approx 96.5\text{ million}$. And for richer, smooth mappings, the dimension can be literally infinite ($\infty$). You cannot compute, store, or manipulate vectors with 96 million components.
+  </p>
+
+  <p><strong>The Dual Bridge</strong></p>
+  <p>
+    Here is where our earlier work on the Dual Representation pays off. Look back at what we discovered when we solved PCA in the dual space:
+  </p>
+
+  <ol>
+    <li>
+      To find the principal components, we solve $K \vec{\alpha}_k = n \lambda_k \vec{\alpha}_k$. The matrix $K$ requires only the pairwise dot products between samples: $K_{ij} = \phi(x_i)^T \phi(x_j)$.
+    </li>
+    <li>
+      To project a new query point $x$, we compute:
+      <div class="math-display">
+        $$y_k(x) = \phi(x)^T w_k = \phi(x)^T \left( \sum_{j=1}^n \alpha_{kj} \phi(x_j) \right) = \sum_{j=1}^n \alpha_{kj} \left( \phi(x)^T \phi(x_j) \right)$$
+      </div>
+    </li>
+  </ol>
+
+  <p>
+    Look at both equations carefully. The dual representation <strong>never needs the individual coordinates of $\phi(x)$</strong>! It only ever needs the <strong>inner product</strong> between pairs of vectors: $\phi(x)^T \phi(x')$.
+  </p>
+
+  <p>
+    This leads directly to the central question:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Can we compute the high-dimensional inner product $\phi(x)^T \phi(x')$ directly from our original low-dimensional inputs $x$ and $x'$, without ever calculating or storing the vectors $\phi(x)$?</em></p>
+    </div>
+  </div>
+
+  <p><strong>Algebraic Proof: Evaluating 6D Inner Products in 2D</strong></p>
+  <p>
+    Let us test this idea on a concrete example. Take two 2D vectors $x = [f_1, f_2]^T$ and $x' = [g_1, g_2]^T$.
+  </p>
+
+  <p>
+    Instead of mapping $x$ and $x'$ into 6D, consider the following simple scalar operation computed purely using their 2D dot product:
+  </p>
+
+  <div class="math-display">
+    $$f(x, x') = (x^T x' + 1)^2$$
+  </div>
+
+  <p>
+    Let us expand this scalar expression algebraically:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+    (x^T x' + 1)^2 &= (f_1 g_1 + f_2 g_2 + 1)^2 \\
+    &= (f_1 g_1)^2 + (f_2 g_2)^2 + 1^2 + 2(f_1 g_1)(f_2 g_2) + 2(f_1 g_1)(1) + 2(f_2 g_2)(1) \\
+    &= f_1^2 g_1^2 + f_2^2 g_2^2 + 1 + 2 f_1 f_2 g_1 g_2 + 2 f_1 g_1 + 2 f_2 g_2
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Now consider the 6-dimensional feature vectors that represent all quadratic interactions:
+  </p>
+
+  <div class="math-display">
+    $$\phi(x) = \begin{bmatrix} f_1^2 \\ f_2^2 \\ 1 \\ \sqrt{2}f_1 f_2 \\ \sqrt{2}f_1 \\ \sqrt{2}f_2 \end{bmatrix} \in \mathbb{R}^6, \qquad \phi(x') = \begin{bmatrix} g_1^2 \\ g_2^2 \\ 1 \\ \sqrt{2}g_1 g_2 \\ \sqrt{2}g_1 \\ \sqrt{2}g_2 \end{bmatrix} \in \mathbb{R}^6$$
+  </div>
+
+  <p>
+    Take their direct Euclidean dot product $\phi(x)^T \phi(x')$:
+  </p>
+
+  <div class="math-display">
+    $$\phi(x)^T \phi(x') = f_1^2 g_1^2 + f_2^2 g_2^2 + 1 + 2 f_1 f_2 g_1 g_2 + 2 f_1 g_1 + 2 f_2 g_2$$
+  </div>
+
+  <p>
+    The two expressions are <strong>identically equal</strong>! Computing $(x^T x' + 1)^2$ in 2D gives the exact inner product in $\mathbb{R}^6$, with zero high-dimensional overhead.
+  </p>
+
+  <p><strong>Naming the Mechanism: Kernel Functions & The Kernel Trick</strong></p>
+  <p>
+    We have just evaluated an inner product in a 6-dimensional feature space using nothing more than a simple scalar operation in 2-dimensional space.
+  </p>
+
+  <p>
+    Now that the purpose and mechanism are clear, we give it its formal name:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Kernel Function & The Kernel Trick</div>
+    <div class="math-box-body">
+      <p>
+        A function $k(x, x')$ that computes the inner product between two points in some higher-dimensional feature space directly from their original coordinates—$k(x, x') = \langle \phi(x), \phi(x') \rangle$—is called a <strong>kernel function</strong>.
+      </p>
+      <p>
+        Performing linear algorithms in high-dimensional (or even infinite-dimensional) spaces purely through kernel evaluations without ever visiting those spaces explicitly is known as the <strong>Kernel Trick</strong>.
+      </p>
+    </div>
+  </div>
+
+  <p><strong>Common Kernel Functions</strong></p>
+  <ul>
+    <li>
+      <strong>Polynomial Kernel:</strong> $k(x, x') = (x^T x' + c)^p$. Maps data into the space of all monomial combinations up to degree $p$.
+    </li>
+    <li>
+      <strong>Radial Basis Function (RBF) / Gaussian Kernel:</strong>
+      <div class="math-display">
+        $$k(x, x') = \exp\left(-\frac{\|x - x'\|^2}{2\sigma^2}\right)$$
+      </div>
+      <p>
+        The RBF kernel maps data into an <strong>infinite-dimensional Hilbert space</strong>. To see why, recall the Taylor series of the exponential function:
+      </p>
+      <div class="math-display">
+        $$\exp\left(\frac{x^T x'}{\sigma^2}\right) = \sum_{m=0}^\infty \frac{1}{m!} \left(\frac{x^T x'}{\sigma^2}\right)^m$$
+      </div>
+      <p>
+        The exponential contains polynomial terms of <em>every integer degree from $0$ to $\infty$</em>!
+      </p>
+    </li>
+  </ul>
+
+  <p><strong>Mercer's Theorem: What Makes a Kernel Valid?</strong></p>
+  <p>
+    Can you pick any arbitrary mathematical function $k(x, x')$ and call it a kernel? No. Because $k(x, x')$ represents an inner product $\langle \phi(x), \phi(x') \rangle$ in some real Hilbert space, it must obey the geometric laws of inner products:
+  </p>
+
+  <ol>
+    <li><strong>Symmetry:</strong> $\langle \phi(x), \phi(x') \rangle = \langle \phi(x'), \phi(x) \rangle \implies k(x, x') = k(x', x)$.</li>
+    <li>
+      <strong>Non-Negative Lengths (Positive Semidefiniteness):</strong> For any set of points $\{x_1, \dots, x_n\}$ and any choice of real coefficients $c_1, \dots, c_n$, the squared length of the vector $v = \sum_{i=1}^n c_i \phi(x_i)$ must be non-negative:
+      <div class="math-display">
+        $$\|v\|^2 = \left\langle \sum_{i=1}^n c_i \phi(x_i), \sum_{j=1}^n c_j \phi(x_j) \right\rangle = \sum_{i=1}^n \sum_{j=1}^n c_i c_j k(x_i, x_j) = c^T K c \geq 0$$
+      </div>
+    </li>
+  </ol>
+
+  <p>
+    This connects directly back to our lesson on <strong>Positive Definite Matrices</strong>:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Mercer's Theorem</div>
+    <div class="math-box-body">
+      <p>
+        A continuous symmetric function $k(x, x')$ is a valid kernel corresponding to an inner product in some feature space if and only if the Gram matrix $K \in \mathbb{R}^{n \times n}$ (with $K_{ij} = k(x_i, x_j)$) is <strong>positive semidefinite (PSD)</strong> for every possible finite dataset.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7 — Centering in Feature Space                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="centering-feature-space">
+  <h2>Centering in Feature Space</h2>
+
+  <p>
+    Standard PCA requires the data to be centered at the origin: $\sum_{i=1}^n \phi(x_i) = \mathbf{0}$. If the data is not centered, the first component simply points toward the center of mass rather than capturing the direction of maximum variance.
+  </p>
+
+  <p>
+    Recall that standard PCA strictly requires the data to be centered at the origin: $\sum_{i=1}^n \phi(x_i) = \mathbf{0}$. If the data is not centered, the first "principal component" simply points from the origin toward the center of mass rather than capturing the axes of variance.
+  </p>
+
+  <p>
+    Even if your raw input data $x_i$ is centered in $\mathbb{R}^d$, the mapped features $\phi(x_i)$ in Hilbert space are almost <strong>never centered</strong> (e.g., if $\bar{x} = 0$, $x^2$ is strictly positive, so the mean of $\phi(x)$ is non-zero).
+  </p>
+
+  <p>
+    <em>The Dilemma:</em> We cannot compute the mean vector $\bar{\phi} = \frac{1}{n} \sum_{i=1}^n \phi(x_i)$ directly because we cannot access the infinite-dimensional vectors $\phi(x_i)$. How do we center points that we cannot see?
+  </p>
+
+  <p><strong>Deriving the Centered Gram Matrix $K_c$</strong></p>
+  <p>
+    Let the true, unobserved centered feature vector for sample $i$ be:
+  </p>
+
+  <div class="math-display">
+    $$\tilde{\phi}(x_i) = \phi(x_i) - \bar{\phi} = \phi(x_i) - \frac{1}{n} \sum_{r=1}^n \phi(x_r)$$
+  </div>
+
+  <p>
+    We want to compute the entry $(K_c)_{ij} = \tilde{\phi}(x_i)^T \tilde{\phi}(x_j)$ of the centered Gram matrix. Let us expand the inner product directly:
+  </p>
+
+  <div class="math-display">
+    $$(K_c)_{ij} = \left( \phi(x_i) - \frac{1}{n}\sum_{r=1}^n \phi(x_r) \right)^T \left( \phi(x_j) - \frac{1}{n}\sum_{s=1}^n \phi(x_s) \right)$$
+  </div>
+
+  <p>
+    Multiplying out the four terms:
+  </p>
+
+  <div class="math-display">
+    $$(K_c)_{ij} = \underbrace{\phi(x_i)^T \phi(x_j)}_{K_{ij}} \;-\; \underbrace{\frac{1}{n} \sum_{s=1}^n \phi(x_i)^T \phi(x_s)}_{\text{Row } i \text{ average}} \;-\; \underbrace{\frac{1}{n} \sum_{r=1}^n \phi(x_r)^T \phi(x_j)}_{\text{Col } j \text{ average}} \;+\; \underbrace{\frac{1}{n^2} \sum_{r=1}^n \sum_{s=1}^n \phi(x_r)^T \phi(x_s)}_{\text{Grand matrix average}}$$
+  </div>
+
+  <p>
+    Notice that every single term is an average of entries from our original, uncentered kernel matrix $K$:
+  </p>
+
+  <div class="math-display">
+    $$(K_c)_{ij} = K_{ij} - \frac{1}{n} \sum_{s=1}^n K_{is} - \frac{1}{n} \sum_{r=1}^n K_{rj} + \frac{1}{n^2} \sum_{r=1}^n \sum_{s=1}^n K_{rs}$$
+  </div>
+
+  <p><strong>The Centering Projector Matrix</strong></p>
+  <p>
+    We can write this entire operation in a single, beautiful matrix equation. Define the $n \times n$ <strong>centering projection matrix</strong> $H$:
+  </p>
+
+  <div class="math-display">
+    $$H = I_n - \frac{1}{n} \mathbf{1}_n \mathbf{1}_n^T$$
+  </div>
+
+  <p>
+    where $I_n$ is the $n \times n$ identity matrix and $\mathbf{1}_n$ is an $n \times 1$ column vector of all ones. Notice the geometric properties of $H$:
+  </p>
+
+  <ul>
+    <li>$H$ is symmetric: $H^T = H$.</li>
+    <li>$H$ is an orthogonal projector (idempotent): $H^2 = H$. It projects any vector onto the subspace orthogonal to $\mathbf{1}_n$, subtracting its mean.</li>
+  </ul>
+
+  <p>
+    Multiplying $K$ on both sides by $H$ gives:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Centered Gram Matrix</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$K_c = H K H$$
+      </div>
+      <p>
+        Multiplying on the left subtracts column means; multiplying on the right subtracts row means; and their composition automatically adds back the grand mean. We have centered the infinite-dimensional feature space using only $n \times n$ matrix multiplications!
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8 — Kernel PCA & Synthesis                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="kpca-algorithm">
+  <h2>Kernel PCA & Synthesis</h2>
+
+  <p>
+    Putting all our pieces together, here is the complete, rigorous algorithm for non-linear dimensionality reduction:
+  </p>
+
+  <p><strong>The 5 Steps of Kernel PCA</strong></p>
+  <ol>
+    <li>
+      <strong>Compute the Kernel Matrix:</strong> Choose a valid Mercer kernel (such as Gaussian RBF) and compute the $n \times n$ Gram matrix:
+      <div class="math-display">
+        $$K_{ij} = k(x_i, x_j)$$
+      </div>
+    </li>
+    <li>
+      <strong>Center the Kernel Matrix:</strong> Apply the centering projection:
+      <div class="math-display">
+        $$K_c = H K H = K - \frac{1}{n}\mathbf{1}\mathbf{1}^T K - K\frac{1}{n}\mathbf{1}\mathbf{1}^T + \frac{1}{n^2}\mathbf{1}\mathbf{1}^T K \mathbf{1}\mathbf{1}^T$$
+      </div>
+    </li>
+    <li>
+      <strong>Solve the Eigenvalue Problem:</strong> Compute the eigenvectors $\vec{\beta}_1, \dots, \vec{\beta}_k$ and eigenvalues $\lambda_1', \dots, \lambda_k'$ of $K_c$:
+      <div class="math-display">
+        $$K_c \vec{\beta}_k = \lambda_k' \vec{\beta}_k \qquad \text{with} \quad \|\vec{\beta}_k\| = 1$$
+      </div>
+    </li>
+    <li>
+      <strong>Normalize Dual Coefficients:</strong> Scale each eigenvector to satisfy $\vec{\alpha}_k^T K_c \vec{\alpha}_k = 1$:
+      <div class="math-display">
+        $$\vec{\alpha}_k = \frac{\vec{\beta}_k}{\sqrt{\lambda_k'}}$$
+      </div>
+    </li>
+    <li>
+      <strong>Project New Query Points:</strong> To extract the $k$-th non-linear coordinate $y_k(x^*)$ of any new data point $x^*$:
+      <div class="math-display">
+        $$y_k(x^*) = \tilde{\phi}(x^*)^T w_k = \sum_{i=1}^n \alpha_{ki} \tilde{k}_i(x^*)$$
+      </div>
+      where $\tilde{k}_i(x^*)$ is the centered kernel vector between the test point and the training data:
+      <div class="math-display">
+        $$\tilde{k}_i(x^*) = k(x^*, x_i) - \frac{1}{n} \sum_{j=1}^n k(x^*, x_j) - \frac{1}{n} \sum_{r=1}^n K_{ri} + \frac{1}{n^2} \sum_{r=1}^n \sum_{s=1}^n K_{rs}$$
+      </div>
+    </li>
+  </ol>
+
+  <p style="margin-top: 2rem;"><strong>Connecting the Dots: Summary of Representations</strong></p>
+
+  <p>
+    Let us step back and appreciate the unified progression we have constructed across this article:
+  </p>
+
+  <div class="math-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Central Matrix</th>
+          <th>Dimensions</th>
+          <th>When to Use</th>
+          <th>Key Insight</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Primal Linear PCA</strong></td>
+          <td>$C = \frac{1}{n} X X^T$</td>
+          <td>$d \times d$</td>
+          <td>$n \gg d$ (many samples, few features)</td>
+          <td>Maximizing projection variance is identical to minimizing reconstruction error.</td>
+        </tr>
+        <tr>
+          <td><strong>Dual Linear PCA</strong></td>
+          <td>$K = X^T X$</td>
+          <td>$n \times n$</td>
+          <td>$d \gg n$ (images, genomics, sensor arrays)</td>
+          <td>Eigenvectors must live in the span of the data ($w = X\alpha$), collapsing $O(d^3) \to O(n^3)$.</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA</strong></td>
+          <td>$K_c = H K H$</td>
+          <td>$n \times n$</td>
+          <td>Non-linear, curved manifolds (rings, Swiss rolls)</td>
+          <td>Lifting to high dimensions linearizes manifolds; kernel trick evaluates dot products in $O(d)$.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Every breakthrough in this lesson emerged from answering a single geometric or computational bottleneck. By connecting the Spectral Theorem, orthogonal projections, Gram matrices, and positive definiteness, linear algebra allows us to unravel non-linear structures in infinite dimensions using nothing more than simple $n \times n$ matrices.
+  </p>
+</section>
+
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

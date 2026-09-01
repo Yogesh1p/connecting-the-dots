@@ -25,6 +25,10 @@ function extractSectionMetadata(folderName) {
         name = "Probability & Statistics";
     }
 
+    if (name.toLowerCase().includes('foundations of machine learning') || (name.toLowerCase().includes('foundations') && name.toLowerCase().includes('learning')) || name.toLowerCase().includes('fml')) {
+        name = "Foundations of Machine Learning";
+    }
+
     return { order, name };
 }
 
@@ -106,8 +110,9 @@ function getAllHtmlFiles(dirPath, arrayOfFiles = []) {
 function getMeta(content, name) {
     const tag = content.match(new RegExp(`<meta[^>]*name=["']${name}["'][^>]*>`, "i"));
     if (!tag) return null;
-    const val = tag[0].match(/content=["']([^"']+)["']/i);
-    return val ? decodeHtmlEntities(val[1]) : null;
+    const val = tag[0].match(/content=("([^"]*)"|'([^']*)')/i);
+    if (!val) return null;
+    return decodeHtmlEntities(val[2] !== undefined ? val[2] : val[3]);
 }
 
 function decodeHtmlEntities(value) {

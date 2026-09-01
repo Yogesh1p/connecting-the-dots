@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="b9ec1e6b">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="Principal Component Analysis (PCA)">
+<meta name="description" content="How eigendecomposition unlocks Linear Principal Component Analysis (PCA) — deriving variance conservation, orthogonal decompositions, and Rayleigh quotients.">
+<meta name="keywords" content="PCA, principal component analysis, variance conservation, orthogonal projection, covariance matrix, eigendecomposition, spectral theorem, representation learning, Foundations of Machine Learning">
+<meta name="status" content="draft">
+<meta name="date" content="2026-08-16">
+<meta name="author" content="Yogesh">
+
+<title>Principal Component Analysis (PCA)</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .svg-container svg {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="15">
+    <meta property="og:title" content="Principal Component Analysis (PCA)">
+    <meta property="og:description" content="How eigendecomposition unlocks Linear Principal Component Analysis (PCA) — deriving variance conservation, orthogonal decompositions, and Rayleigh quotients.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-principal-component-analysis-pca.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Finding Order in High Dimensions                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="finding-order">
+  <h2>Finding Order in High Dimensions</h2>
+
+  <h3>The Dimensionality Dilemma</h3>
+  <p>
+    In our study of the Spectral Theorem, we uncovered a profound geometric truth: every symmetric matrix possesses a complete set of mutually perpendicular eigenvectors that decouple space into independent scaling axes. When you view a matrix through its eigenvectors, there is no cross-talk, no skewing, and no distortion—only pure, independent scaling along orthogonal directions.
+  </p>
+
+  <p>
+    Now, let us turn this powerful machinery toward the messiness of real-world data.
+  </p>
+
+  <p>
+    Suppose you collect measurements from a complex system: thousands of gene expressions, high-resolution camera pixels, financial market indicators, or sensor feeds from an aircraft. Each data point arrives as a vector in an intimidating $d$-dimensional space $\mathbb{R}^d$.
+  </p>
+
+  <p>
+    However, real physical phenomena rarely use all $d$ dimensions independently. Features correlate heavily, sensors record overlapping echoes of the same underlying cause, and most directions in the space contain little more than random background noise.
+  </p>
+
+  <p>
+    This brings us to the fundamental question of <strong>dimensionality reduction</strong>:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Can we rotate our perspective to discover the few, true orthogonal directions along which the data actually varies—and discard the rest without throwing away the underlying signal?</em></p>
+    </div>
+  </div>
+
+  <p>
+    This is the exact purpose of <strong>Principal Component Analysis (PCA)</strong>.
+  </p>
+
+  <h3>The Mental Model</h3>
+  <div class="math-box">
+    <div class="math-box-label">The Core Intuition of PCA</div>
+    <div class="math-box-body">
+      <p>
+        PCA rotates your coordinate axes to align perfectly with the directions of greatest spread. Because total variance is conserved under orthogonal projection, <strong>maximizing the variance you preserve is mathematically identical to minimizing the information you lose</strong>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Geometric First Principles                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="geometric-principles">
+  <h2>Geometric First Principles</h2>
+
+  <p>
+    Let us construct PCA from the ground up. We are given a dataset of $n$ observations $\{x_1, x_2, \dots, x_n\}$, where each data point $x_i \in \mathbb{R}^d$ is a column vector of $d$ features.
+  </p>
+
+  <h3>Centering the Data Cloud</h3>
+  <p>
+    Before searching for directions of variance, we must eliminate arbitrary coordinate offsets. We calculate the sample mean vector:
+  </p>
+
+  <div class="math-display">
+    $$\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$$
+  </div>
+
+  <p>
+    and center every observation by shifting the center of mass to the origin: $x_i \leftarrow x_i - \bar{x}$.
+  </p>
+
+  <p>
+    From this point onward, our dataset satisfies $\sum_{i=1}^n x_i = \mathbf{0}$. With the mean centered at the origin, the squared Euclidean length $\|x_i\|^2$ represents the pure variance of data point $x_i$ from the center of the dataset.
+  </p>
+
+  <h3>Projecting onto a Direction</h3>
+  <p>
+    Suppose we want to compress every $d$-dimensional vector down to a single scalar along a candidate unit direction vector $w \in \mathbb{R}^d$ (with $\|w\| = 1$).
+  </p>
+
+  <p>
+    What happens when data point $x_i$ is projected onto the line spanned by $w$?
+  </p>
+
+  <ul>
+    <li>The <strong>scalar coordinate</strong> (length of the shadow) is the dot product: $x_i^T w$.</li>
+    <li>The <strong>vector projection</strong> (the reconstructed point on the line) is: $(x_i^T w)w$.</li>
+    <li>The <strong>error vector</strong> (the piece perpendicular to $w$ that gets discarded) is: $e_i = x_i - (x_i^T w)w$.</li>
+  </ul>
+
+  <p>
+    Notice that the original point decomposes cleanly into two orthogonal components:
+  </p>
+
+  <div class="math-display">
+    $$x_i = \underbrace{(x_i^T w)w}_{\text{preserved signal}} \;+\; \underbrace{\left(x_i - (x_i^T w)w\right)}_{\text{discarded error } e_i}$$
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="marker-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+          <marker id="marker-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
+          </marker>
+          <marker id="marker-arrow-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="marker-arrow-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dark)" />
+          </marker>
+        </defs>
+        
+        <!-- Axis line w -->
+        <line x1="30" y1="452" x2="780" y2="103" stroke="var(--border)" stroke-width="2" stroke-dasharray="6,6"/>
+        
+        <!-- Right angle symbol -->
+        <polygon points="462,251 442.1,260.3 432.8,240.4 452.7,231.1" fill="none" stroke="var(--muted)" stroke-width="2"/>
+        
+        <!-- Origin -->
+        <circle cx="100" cy="420" r="5" fill="var(--text)"/>
+        <text x="75" y="445" font-family="'Lora', serif" font-size="22" fill="var(--text)">0</text>
+        
+        <!-- Candidate direction w -->
+        <line x1="100" y1="420" x2="720" y2="131" stroke="var(--text)" stroke-width="2.5" marker-end="url(#marker-arrow-text)"/>
+        <text x="735" y="135" font-family="'Lora', serif" font-size="28" font-style="italic" fill="var(--text)">w</text>
+        <text x="735" y="160" font-family="'Lora', serif" font-size="14" fill="var(--muted)">(‖w‖ = 1)</text>
+
+        <!-- Preserved Projection vector (x_i^T w)w -->
+        <line x1="100" y1="420" x2="462" y2="251" stroke="var(--box-label-bg)" stroke-width="6.5" marker-end="url(#marker-arrow-p)"/>
+        <text x="280" y="365" font-family="'Lora', serif" font-size="24" font-style="italic" fill="var(--box-label-bg)" text-anchor="middle" transform="rotate(-25, 280, 365) translate(0, 26)">(x<tspan dy="4" font-size="16">i</tspan><tspan dy="-4">ᵀ</tspan>w)w</text>
+        <text x="280" y="395" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--box-label-bg)" text-anchor="middle" transform="rotate(-25, 280, 395) translate(0, 26)">Preserved Projection</text>
+
+        <!-- Data vector x_i -->
+        <line x1="100" y1="420" x2="382" y2="79" stroke="var(--accent)" stroke-width="5" marker-end="url(#marker-arrow-accent)"/>
+        <circle cx="382" cy="79" r="5" fill="var(--accent)"/>
+        <text x="210" y="245" font-family="'Lora', serif" font-size="28" font-style="italic" fill="var(--accent)">x<tspan dy="5" font-size="19">i</tspan></text>
+        <text x="395" y="75" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--accent)">Data point x<tspan dy="4" font-size="13">i</tspan></text>
+
+        <!-- Reconstruction error vector e_i -->
+        <line x1="462" y1="251" x2="382" y2="79" stroke="var(--dark)" stroke-width="3.5" stroke-dasharray="6,6" marker-end="url(#marker-arrow-dark)"/>
+        <text x="460" y="150" font-family="'Lora', serif" font-size="24" font-style="italic" fill="var(--dark)">e<tspan dy="4" font-size="16">i</tspan><tspan dy="-4"> = x</tspan><tspan dy="4" font-size="16">i</tspan><tspan dy="-4"> - (x</tspan><tspan dy="4" font-size="16">i</tspan><tspan dy="-4">ᵀ</tspan>w)w</text>
+        <text x="460" y="180" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--muted)">Reconstruction Error</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> Orthogonal decomposition of data point $x_i$ along candidate direction $w$. The total squared length $\|x_i\|^2$ splits into the preserved projection $(x_i^T w)^2$ and the perpendicular reconstruction error $\|e_i\|^2$.
+    </figcaption>
+  </figure>
+
+  <h3>The Pythagorean Conservation Law</h3>
+  <p>
+    Because the projection vector $(x_i^T w)w$ and the error vector $e_i$ are perpendicular by construction, the Pythagorean theorem holds exactly:
+  </p>
+
+  <div class="math-display">
+    $$\|x_i\|^2 = \|(x_i^T w)w\|^2 + \|x_i - (x_i^T w)w\|^2 = (x_i^T w)^2 + \|x_i - (x_i^T w)w\|^2$$
+  </div>
+
+  <p>
+    Summing this equation across all $n$ data points and dividing by $n$:
+  </p>
+
+  <div class="math-display">
+    $$\underbrace{\frac{1}{n} \sum_{i=1}^n \|x_i\|^2}_{\text{Total Variance of Dataset (Constant)}} = \underbrace{\frac{1}{n} \sum_{i=1}^n (x_i^T w)^2}_{\text{Preserved Projection Variance}} + \underbrace{\frac{1}{n} \sum_{i=1}^n \|x_i - (x_i^T w)w\|^2}_{\text{Mean Squared Reconstruction Error}}$$
+  </div>
+
+  <p>
+    Look closely at what this equation reveals: the left-hand side is the total sum of squared distances of all data points from the origin—a constant value that depends only on the dataset itself, completely independent of our choice of $w$.
+  </p>
+
+  <p>
+    Because the sum is fixed, <strong>any increase in preserved variance forces an identical decrease in reconstruction error</strong>:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Equivalence Theorem of PCA</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\max_{\|w\|=1} \text{Var}(\text{Projections}) \;\iff\; \min_{\|w\|=1} \text{Reconstruction Error}$$
+      </div>
+      <p>
+        Maximizing the preserved projection variance is mathematically identical to minimizing the mean squared reconstruction error.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  From Variance to Eigendecomposition                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="eigendecomposition">
+  <h2>From Variance to Eigendecomposition</h2>
+
+  <p>
+    Let us write the preserved variance in compact matrix form. For any centered data vector $x_i \in \mathbb{R}^d$, the scalar projection is $x_i^T w = w^T x_i$. Its square is:
+  </p>
+
+  <div class="math-display">
+    $$(x_i^T w)^2 = (w^T x_i)(x_i^T w) = w^T (x_i x_i^T) w$$
+  </div>
+
+  <p>
+    Summing across all $n$ points and dividing by $n$:
+  </p>
+
+  <div class="math-display">
+    $$\frac{1}{n} \sum_{i=1}^n (x_i^T w)^2 = w^T \left( \frac{1}{n} \sum_{i=1}^n x_i x_i^T \right) w = w^T C w$$
+  </div>
+
+  <p>
+    where $C \in \mathbb{R}^{d \times d}$ is the <strong>sample covariance matrix</strong>:
+  </p>
+
+  <div class="math-display">
+    $$C = \frac{1}{n} \sum_{i=1}^n x_i x_i^T = \frac{1}{n} X X^T$$
+  </div>
+
+  <p>
+    Here, $X = [x_1, x_2, \dots, x_n] \in \mathbb{R}^{d \times n}$ is the data matrix whose columns are the centered data vectors. Because $C$ is a sum of symmetric rank-1 outer products $x_i x_i^T$, $C$ is symmetric ($C = C^T$) and positive semidefinite ($w^T C w \geq 0$).
+  </p>
+
+  <h3>Maximizing the First Principal Component</h3>
+  <p>
+    To find the first principal component $w_1$, we maximize the preserved variance subject to $w$ being a unit vector:
+  </p>
+
+  <div class="math-display">
+    $$\max_{w} \; w^T C w \quad \text{subject to} \quad w^T w = 1$$
+  </div>
+
+  <p>
+    We formulate the Lagrangian $\mathcal{L}(w, \lambda) = w^T C w - \lambda(w^T w - 1)$. Taking the gradient with respect to $w$ and setting it to zero:
+  </p>
+
+  <div class="math-display">
+    $$\nabla_w \mathcal{L} = 2 C w - 2 \lambda w = \mathbf{0} \quad\Longrightarrow\quad C w = \lambda w$$
+  </div>
+
+  <p>
+    Multiplying on the left by $w^T$:
+  </p>
+
+  <div class="math-display">
+    $$w^T C w = w^T (\lambda w) = \lambda (w^T w) = \lambda$$
+  </div>
+
+  <p>
+    The variance captured along direction $w$ is <em>precisely</em> the eigenvalue $\lambda$. To maximize variance, we pick the eigenvector $w_1$ corresponding to the <strong>largest eigenvalue</strong> $\lambda_1 = \lambda_{\max}(C)$.
+  </p>
+
+  <h3>Finding Subsequent Orthogonal Components</h3>
+  <p>
+    To find the second component $w_2$, we maximize variance subject to unit norm ($w_2^T w_2 = 1$) and orthogonality to the first component ($w_2^T w_1 = 0$):
+  </p>
+
+  <div class="math-display">
+    $$\mathcal{L}(w_2, \lambda, \mu) = w_2^T C w_2 - \lambda(w_2^T w_2 - 1) - 2\mu (w_2^T w_1)$$
+  </div>
+
+  <p>
+    Setting the gradient with respect to $w_2$ to zero:
+  </p>
+
+  <div class="math-display">
+    $$\nabla_{w_2} \mathcal{L} = 2 C w_2 - 2 \lambda w_2 - 2 \mu w_1 = \mathbf{0} \quad\Longrightarrow\quad C w_2 = \lambda w_2 + \mu w_1$$
+  </div>
+
+  <p>
+    Multiplying on the left by $w_1^T$:
+  </p>
+
+  <div class="math-display">
+    $$w_1^T C w_2 = \lambda (w_1^T w_2) + \mu (w_1^T w_1) = 0 + \mu(1) = \mu$$
+  </div>
+
+  <p>
+    Because $C$ is symmetric ($C = C^T$) and $C w_1 = \lambda_1 w_1$, the left-hand side is:
+  </p>
+
+  <div class="math-display">
+    $$w_1^T C w_2 = (C w_1)^T w_2 = (\lambda_1 w_1)^T w_2 = \lambda_1 (w_1^T w_2) = 0$$
+  </div>
+
+  <p>
+    Therefore, $\mu = 0$, which reduces the equation back to $C w_2 = \lambda w_2$. The second principal component $w_2$ is simply the eigenvector corresponding to the <strong>second-largest eigenvalue</strong> $\lambda_2$.
+  </p>
+
+  <h3>Why Eigenvectors Globally Maximize Variance</h3>
+  <p>
+    We found $w_1$ and $w_2$ using calculus with Lagrange multipliers. But why are we guaranteed that <em>no other direction in the entire $d$-dimensional space</em> can yield higher variance? Let us prove it from geometric first principles:
+  </p>
+
+  <ol>
+    <li>
+      <strong>The Spectral Theorem Eigenbasis:</strong> Because $C$ is a real symmetric matrix ($C^T = C$), the Spectral Theorem guarantees that $C$ has $d$ mutually perpendicular unit eigenvectors $\{w_1, w_2, \dots, w_d\}$ with non-negative real eigenvalues sorted in descending order:
+      <div class="math-display">
+        $$\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$$
+      </div>
+      Because these $d$ vectors are mutually perpendicular and unit length ($w_j^T w_k = \delta_{jk}$), they form a complete <strong>orthonormal basis</strong> for $\mathbb{R}^d$—a rotated coordinate grid aligned with the data cloud.
+    </li>
+    <li>
+      <strong>Expressing Any Arbitrary Direction $w$:</strong> Since $\{w_1, \dots, w_d\}$ is a complete basis, <em>any</em> candidate unit vector $w \in \mathbb{R}^d$ can be expressed as a linear combination of these eigenvectors:
+      <div class="math-display">
+        $$w = c_1 w_1 + c_2 w_2 + \dots + c_d w_d = \sum_{j=1}^d c_j w_j$$
+      </div>
+      where each $c_j = w^T w_j$ is the coordinate of $w$ along eigenvector axis $w_j$. Because $w$ has unit length ($\|w\|^2 = w^T w = 1$) and the basis is orthonormal:
+      <div class="math-display">
+        $$\|w\|^2 = \left(\sum_{i=1}^d c_i w_i\right)^T \left(\sum_{j=1}^d c_j w_j\right) = \sum_{j=1}^d c_j^2 = 1$$
+      </div>
+      You can think of each $c_j^2 \ge 0$ as a <strong>budget allocation</strong> (weights summing to $1.0$) describing how much direction $w$ points along each eigenvector axis.
+    </li>
+    <li>
+      <strong>Computing the Variance $w^T C w$:</strong> When the covariance matrix $C$ acts on $w$, by definition of eigenvectors ($C w_j = \lambda_j w_j$):
+      <div class="math-display">
+        $$C w = C\left(\sum_{j=1}^d c_j w_j\right) = \sum_{j=1}^d c_j (C w_j) = \sum_{j=1}^d c_j \lambda_j w_j$$
+      </div>
+      Multiplying on the left by $w^T$:
+      <div class="math-display">
+        $$w^T C w = \left(\sum_{i=1}^d c_i w_i\right)^T \left(\sum_{j=1}^d c_j \lambda_j w_j\right) = \sum_{j=1}^d \lambda_j c_j^2$$
+      </div>
+      <p>
+        Look at this equation carefully: <strong>The variance along any direction $w$ is simply a weighted average of the eigenvalues $\lambda_j$, weighted by $c_j^2$!</strong>
+      </p>
+    </li>
+    <li>
+      <strong>Upper Bounding by the Maximum Eigenvalue $\lambda_1$:</strong> Since all eigenvalues are bounded by the largest one ($\lambda_j \le \lambda_1$ for all $j$):
+      <div class="math-display">
+        $$w^T C w = \sum_{j=1}^d \lambda_j c_j^2 \;\le\; \sum_{j=1}^d \lambda_1 c_j^2 \;=\; \lambda_1 \underbrace{\sum_{j=1}^d c_j^2}_{= 1} \;=\; \lambda_1$$
+      </div>
+    </li>
+  </ol>
+
+  <div class="math-box">
+    <div class="math-box-label">The Global Optimality of Eigenvectors</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$w^T C w \le \lambda_1$$
+      </div>
+      <p>
+        To maximize the weighted sum $\sum \lambda_j c_j^2$, you must allocate $100\%$ of your budget to the largest eigenvalue $\lambda_1$:
+      </p>
+      <div class="math-display">
+        $$c_1^2 = 1 \implies c_1 = 1, \quad c_2 = c_3 = \dots = c_d = 0 \quad\Longrightarrow\quad w = w_1$$
+      </div>
+      <p>
+        No unit direction in $\mathbb{R}^d$ can ever yield variance greater than $\lambda_1$, and the unique direction that achieves this maximum is precisely the first eigenvector $w_1$.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Variance Conservation & Information Retention         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="variance-conservation">
+  <h2>Variance Conservation &amp; Information Retention</h2>
+
+  <h3>Total Variance Conservation</h3>
+  <p>
+    Now that we have established that the orthogonal eigenvectors $w_1, w_2, \dots, w_d$ are the principal directions of variance, we can understand how they partition the total information in our dataset.
+  </p>
+
+  <p>
+    Since $w_1, \dots, w_d$ form an orthonormal basis of $\mathbb{R}^d$, any centered data vector $x_i$ can be written exactly as a linear combination of these eigenvectors:
+  </p>
+
+  <div class="math-display">
+    $$x_i = \sum_{k=1}^d (x_i^T w_k) w_k$$
+  </div>
+
+  <p>
+    Because these basis vectors are orthonormal ($w_j^T w_k = \delta_{jk}$), the Pythagorean theorem holds across all $d$ dimensions:
+  </p>
+
+  <div class="math-display">
+    $$\|x_i\|^2 = \sum_{k=1}^d (x_i^T w_k)^2$$
+  </div>
+
+  <p>
+    To find the average spread of our entire dataset, we sum this squared length across all $n$ data points and divide by $n$. By exchanging the order of summation:
+  </p>
+
+  <div class="math-display">
+    $$\frac{1}{n} \sum_{i=1}^n \|x_i\|^2 = \frac{1}{n} \sum_{i=1}^n \sum_{k=1}^d (x_i^T w_k)^2 = \sum_{k=1}^d \left( \frac{1}{n} \sum_{i=1}^n (x_i^T w_k)^2 \right)$$
+  </div>
+
+  <p>
+    Notice that the term inside the parenthesis on the right is exactly the sample variance of our projected data points along direction $w_k$, which is equal to $w_k^T C w_k = \lambda_k$. This gives us the <strong>Total Variance Conservation Law</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\text{Total Variance} = \frac{1}{n} \sum_{i=1}^n \|x_i\|^2 = \sum_{k=1}^d \lambda_k$$
+  </div>
+
+  <p>
+    This conservation law reveals that the total variance in the original coordinate system is completely preserved when we rotate our axes to the principal component coordinates—the sum of the variances along each eigenvector (eigenvalue) is exactly equal to the total variance of the raw features.
+  </p>
+
+  <h3>Iterative Residue Decomposition</h3>
+  <p>
+    This allows us to view the dimensionality reduction process as an iterative decomposition of variance and residue. For instance, if we only project our data onto the first principal component $w_1$, the Pythagorean theorem yields:
+  </p>
+
+  <div class="math-display">
+    $$\frac{1}{n} \sum_{i=1}^n \|x_i\|^2 = \frac{1}{n} \sum_{i=1}^n (x_i^T w_1)^2 + \frac{1}{n} \sum_{i=1}^n \|x_i - (x_i^T w_1) w_1\|^2$$
+  </div>
+
+  <p>
+    In words:
+  </p>
+
+  <div class="math-display">
+    $$\text{Total Variance} = \text{variance along } w_1 + \text{mean squared residue along } w_1$$
+  </div>
+
+  <p>
+    Since the residue $x_i - (x_i^T w_1)w_1$ lives in the $(d-1)$-dimensional orthogonal complement of $w_1$, we can repeat this process and project the residue onto the second component $w_2$, stripping away another orthogonal variance layer:
+  </p>
+
+  <div class="math-display">
+    $$\text{Mean squared residue along } w_1 = \text{variance along } w_2 + \text{mean squared residue along } w_2$$
+  </div>
+
+  <p>
+    Continuing this process down to $d$ dimensions yields the complete decomposition:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+    \frac{1}{n} \sum_{i=1}^n \|x_i\|^2 &= \text{variance along } w_1 + \text{mean squared residue along } w_1 \\
+    &= \text{variance along } w_1 + \left(\text{variance along } w_2 + \text{mean squared residue along } w_2\right) \\
+    &= \dots \\
+    &= \sum_{k=1}^d \text{variance along } w_k \\
+    &= \sum_{k=1}^d \lambda_k
+    \end{aligned}$$
+  </div>
+
+  <h3>What Does It Mean to "Explain X% of Variance"?</h3>
+  <p>
+    When we compress our dataset by projecting it onto the first $m$ principal components ($m &lt; d$), we retain only the variance along those $m$ directions. The rest is discarded as reconstruction error. 
+  </p>
+  <p>
+    The fraction of the total dataset variance captured by these $m$ components is called the <strong>Explained Variance Ratio</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\text{Explained Variance Ratio} = \frac{\sum_{k=1}^m \lambda_k}{\sum_{j=1}^d \lambda_j}$$
+  </div>
+
+  <p>
+    When a scientist or algorithm states that, <em>"with this eigenface, we are explaining $X\%$ of the covariance/variance,"</em> it means that:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      $$\frac{\lambda_1}{\sum_{j=1}^d \lambda_j} = \frac{X}{100}$$
+    </div>
+  </div>
+
+  <p>
+    Geometrically, it signifies that $X\%$ of the total squared distance of the centered data points from their mean is preserved along that single eigenvector axis, while the remaining $(100-X)\%$ of the spread lies in the perpendicular directions (residues) that we are choosing to discard.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  The Matrix View: Orthogonal Coordinate Rotation        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="coordinate-rotation">
+  <h2>The Matrix View: Orthogonal Coordinate Rotation</h2>
+
+  <p>
+    We have derived PCA component-by-component using Lagrange multipliers. Now, let us step back and look at the entire operation through the unifying lens of matrix algebra.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Geometric Essence of PCA</div>
+    <div class="math-box-body">
+      <p>
+        <strong>You are not changing or distorting the data cloud. You are simply rotating the coordinate system until the axes line up with the natural directions in which the data varies.</strong>
+      </p>
+    </div>
+  </div>
+
+  <h3>Assembling the Rotation Matrix</h3>
+  <p>
+    From our eigendecomposition of the covariance matrix $C$, we obtained $d$ orthonormal eigenvectors $v_1, v_2, \dots, v_d$. Let us place these vectors as the columns of a matrix $V$:
+  </p>
+
+  <div class="math-display">
+    $$V = \begin{bmatrix} | & | & & | \\ v_1 & v_2 & \cdots & v_d \\ | & | & & | \end{bmatrix} \in \mathbb{R}^{d \times d}$$
+  </div>
+
+  <p>
+    Because the eigenvectors are mutually perpendicular and unit length ($v_i^T v_j = \delta_{ij}$), the matrix $V$ satisfies:
+  </p>
+
+  <div class="math-display">
+    $$V^T V = I_d \qquad \text{and} \qquad V V^T = I_d$$
+  </div>
+
+  <p>
+    Therefore, $V$ is an <strong>orthogonal matrix</strong> representing a pure rigid rotation (and possible reflection) of $\mathbb{R}^d$.
+  </p>
+
+  <h3>Rotating the Data Cloud</h3>
+  <p>
+    Suppose our centered dataset of $n$ observations is stacked into an $n \times d$ matrix $X$ (where each row $x_i^T \in \mathbb{R}^d$ is a centered sample). To express every data point in this new orthonormal coordinate system, we multiply by $V$:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The PCA Coordinate Transformation</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$Z = X V$$
+      </div>
+      <p>
+        The matrix $Z \in \mathbb{R}^{n \times d}$ is the <strong>PCA-transformed dataset</strong>.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    Let us inspect the rows and columns of $Z$:
+  </p>
+
+  <div class="math-display">
+    $$Z = \begin{bmatrix} x_1^T \\ x_2^T \\ \vdots \\ x_n^T \end{bmatrix} \begin{bmatrix} v_1 & v_2 & \cdots & v_d \end{bmatrix} = \begin{bmatrix} x_1^T v_1 & x_1^T v_2 & \cdots & x_1^T v_d \\ x_2^T v_1 & x_2^T v_2 & \cdots & x_2^T v_d \\ \vdots & \vdots & \ddots & \vdots \\ x_n^T v_1 & x_n^T v_2 & \cdots & x_n^T v_d \end{bmatrix}$$
+  </div>
+
+  <p>
+    The $j$-th column of $Z$ contains the coordinates of every data point along the $j$-th principal component axis $v_j$. Each entry is a scalar projection onto a PCA axis.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 880 370" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
+        <defs>
+          <marker id="rot-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+          <marker id="rot-arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
+          </marker>
+          <marker id="rot-arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2f855a" />
+          </marker>
+        </defs>
+
+        <!-- Left: Correlated Original Axes -->
+        <g transform="translate(45, 25)">
+          <text x="150" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Original Coordinates (X)</text>
+          
+          <!-- Original Axes -->
+          <line x1="20" y1="180" x2="280" y2="180" stroke="var(--muted)" stroke-width="2" />
+          <text x="295" y="185" font-family="'Lora', serif" font-size="15" fill="var(--muted)">x₁</text>
+          <line x1="150" y1="290" x2="150" y2="45" stroke="var(--muted)" stroke-width="2" />
+          <text x="150" y="38" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">x₂</text>
+
+          <!-- Tilted Ellipse -->
+          <ellipse cx="150" cy="180" rx="95" ry="40" transform="rotate(-35, 150, 180)" fill="rgba(212, 140, 112, 0.15)" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6,4" />
+
+          <!-- Principal Component Vectors -->
+          <line x1="150" y1="180" x2="225" y2="128" stroke="#2b6cb0" stroke-width="3.5" marker-end="url(#rot-arrow-blue)" />
+          <text x="238" y="122" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="#2b6cb0">v₁</text>
+          
+          <line x1="150" y1="180" x2="112" y2="125" stroke="#2f855a" stroke-width="3.5" marker-end="url(#rot-arrow-green)" />
+          <text x="98" y="120" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="#2f855a">v₂</text>
+
+          <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Correlated: C has non-zero off-diagonals</text>
+        </g>
+
+        <!-- Transformation Arrow -->
+        <g transform="translate(390, 160)">
+          <line x1="0" y1="0" x2="45" y2="0" stroke="var(--text)" stroke-width="2.5" marker-end="url(#rot-arrow-text)" />
+          <text x="22" y="-12" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">Z = XV</text>
+          <text x="22" y="22" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Rotate Frame</text>
+        </g>
+
+        <!-- Right: Rotated PCA Frame -->
+        <g transform="translate(485, 25)">
+          <text x="150" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">PCA Coordinates (Z = XV)</text>
+          
+          <!-- PCA Axes aligned with frame -->
+          <line x1="20" y1="180" x2="280" y2="180" stroke="#2b6cb0" stroke-width="2.5" />
+          <text x="295" y="185" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="#2b6cb0">z₁</text>
+          <line x1="150" y1="290" x2="150" y2="45" stroke="#2f855a" stroke-width="2.5" />
+          <text x="150" y="38" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="#2f855a" text-anchor="middle">z₂</text>
+
+          <!-- Upright Ellipse -->
+          <ellipse cx="150" cy="180" rx="95" ry="40" fill="rgba(43, 108, 176, 0.15)" stroke="#2b6cb0" stroke-width="2.5" />
+
+          <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Uncorrelated: Cov(Z) = Λ (Diagonal)</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> PCA as an orthogonal coordinate rotation. Multiplying $Z = XV$ rotates the coordinate axes until they align with the natural eigenvectors of the data cloud, completely eliminating off-diagonal correlations.
+    </figcaption>
+  </figure>
+
+  <h3>Diagonalizing the Covariance Matrix</h3>
+  <p>
+    What is the sample covariance matrix of our transformed data $Z$? Let us calculate it directly:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+    \text{Cov}(Z) &= \frac{1}{n} Z^T Z \\
+    &= \frac{1}{n} (X V)^T (X V) \\
+    &= \frac{1}{n} V^T X^T X V \\
+    &= V^T \left( \frac{1}{n} X^T X \right) V \\
+    &= V^T C V
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Recall the fundamental matrix eigenvector equation: $C V = V \Lambda$, where $\Lambda = \text{diag}(\lambda_1, \dots, \lambda_d)$.
+  </p>
+
+  <p>
+    Multiplying both sides on the left by $V^T$ (since $V^T V = I_d$):
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Diagonalization of the Covariance Matrix</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\text{Cov}(Z) = V^T C V = \Lambda = \begin{bmatrix} \lambda_1 & 0 & \cdots & 0 \\ 0 & \lambda_2 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & \lambda_d \end{bmatrix}$$
+      </div>
+      <p>
+        Because $\Lambda$ is strictly diagonal, the covariance between any two distinct coordinates $z_i$ and $z_j$ is zero:
+      </p>
+      <div class="math-display">
+        $$\text{Cov}(Z_i, Z_j) = 0 \qquad \text{for all } i \neq j$$
+      </div>
+      <p>
+        The transformed features $Z_1, Z_2, \dots, Z_d$ are completely <strong>uncorrelated</strong>, and their individual variances are precisely the eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_d$.
+      </p>
+    </div>
+  </div>
+
+  <h3>Two Matrix Conventions: Columns vs Rows</h3>
+  <p>
+    In machine learning and linear algebra literature, you will encounter two matrix conventions. Both describe the exact same mathematics:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Two Matrix Conventions</div>
+    <div class="math-box-body">
+      <table style="width:100%; border-collapse: collapse; font-size: 0.95em;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 6px 8px;">Concept</th>
+            <th style="padding: 6px 8px;">Samples as Columns ($X \in \mathbb{R}^{d \times n}$)</th>
+            <th style="padding: 6px 8px;">Samples as Rows ($X \in \mathbb{R}^{n \times d}$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 8px;"><strong>Feature Covariance ($C$)</strong></td>
+            <td style="padding: 6px 8px;">$C = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$</td>
+            <td style="padding: 6px 8px;">$C = \frac{1}{n} X^T X \in \mathbb{R}^{d \times d}$</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 8px;"><strong>Sample Gram Matrix ($K$)</strong></td>
+            <td style="padding: 6px 8px;">$K = X^T X \in \mathbb{R}^{n \times n}$</td>
+            <td style="padding: 6px 8px;">$K = X X^T \in \mathbb{R}^{n \times n}$</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><strong>Projected Data</strong></td>
+            <td style="padding: 6px 8px;">$Y = V^T X \in \mathbb{R}^{k \times n}$</td>
+            <td style="padding: 6px 8px;">$Z = X V \in \mathbb{R}^{n \times k}$</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Where This Leads: Two Natural Questions                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="where-this-leads">
+  <h2>Where This Leads: Two Natural Questions</h2>
+
+  <p>
+    We now have the complete mathematical foundation of Principal Component Analysis: rotate the coordinate axes to line up with the largest spread, and you preserve the maximum possible information while discarding noise.
+  </p>
+
+  <p>
+    Yet, when applying this directly to real-world machine learning problems, two practical questions immediately arise:
+  </p>
+
+  <h3>What if you have far more features than data points?</h3>
+  <p>
+    Imagine you are working with photos in a facial recognition system. You have $500$ photographs, and each photo is $100 \times 100$ pixels. That means each individual photo is described by $10{,}000$ numbers ($d = 10{,}000$).
+  </p>
+
+  <p>
+    If you follow the formula we just derived, you have to build a covariance matrix of size $10{,}000 \times 10{,}000$. That is a grid of $100\text{ million}$ numbers, and computing its eigenvectors can bring a computer to a halt.
+  </p>
+
+  <p>
+    <strong>Here is the intuitive realization:</strong> with only $500$ photos, how many independent directions can your data actually vary in? At most $500$! The other $9{,}500$ directions contain zero data and zero variance.
+  </p>
+
+  <p>
+    Is it possible to flip the calculations around so we only work with a small $500 \times 500$ grid of photo-to-photo comparisons, instead of a gigantic $10{,}000 \times 10{,}000$ pixel grid?
+  </p>
+
+  <p>
+    Yes. In the next lesson, <strong><a href="../02.high-dimensional-pca/">PCA for High-Dimensional Data</a></strong>, we explore how to invert this bottleneck and compute exact principal components in a fraction of the time.
+  </p>
+
+  <h3>What if the pattern is curved, not straight?</h3>
+  <p>
+    PCA is strictly a linear tool: it searches for straight lines and flat planes of greatest spread.
+  </p>
+
+  <p>
+    However, real data often lies along curved structures—such as concentric circles, horseshoes, or spirals. If you shine a light and cast a straight shadow of a circular ring onto a 1D line, points on opposite sides of the circle collapse and overlap in the middle. The structure is lost because a straight line cannot capture a curved shape.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
+        <defs>
+          <marker id="fig3-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+        </defs>
+
+        <!-- Left: 2D Concentric Circles -->
+        <g transform="translate(30, 20)">
+          <text x="170" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Original 2D Concentric Data</text>
+          
+          <!-- Outer Circle Guide -->
+          <circle cx="170" cy="170" r="105" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+          <!-- Inner Circle Guide -->
+          <circle cx="170" cy="170" r="45" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+
+          <!-- Candidate Linear Projection Axis w -->
+          <line x1="20" y1="170" x2="320" y2="170" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6,4" />
+          <text x="330" y="175" font-family="'Lora', serif" font-size="15" fill="var(--muted)">w</text>
+
+          <!-- Outer Ring Points (Blue) -->
+          <circle cx="275" cy="170" r="5" fill="#2b6cb0" />
+          <circle cx="261" cy="222" r="5" fill="#2b6cb0" />
+          <circle cx="222" cy="261" r="5" fill="#2b6cb0" />
+          <circle cx="170" cy="275" r="5" fill="#2b6cb0" />
+          <circle cx="118" cy="261" r="5" fill="#2b6cb0" />
+          <circle cx="79" cy="222" r="5" fill="#2b6cb0" />
+          <circle cx="65" cy="170" r="5" fill="#2b6cb0" />
+          <circle cx="79" cy="118" r="5" fill="#2b6cb0" />
+          <circle cx="118" cy="79" r="5" fill="#2b6cb0" />
+          <circle cx="170" cy="65" r="5" fill="#2b6cb0" />
+          <circle cx="222" cy="79" r="5" fill="#2b6cb0" />
+          <circle cx="261" cy="118" r="5" fill="#2b6cb0" />
+
+          <!-- Inner Ring Points (Orange) -->
+          <circle cx="215" cy="170" r="5" fill="var(--accent)" />
+          <circle cx="202" cy="202" r="5" fill="var(--accent)" />
+          <circle cx="170" cy="215" r="5" fill="var(--accent)" />
+          <circle cx="138" cy="202" r="5" fill="var(--accent)" />
+          <circle cx="125" cy="170" r="5" fill="var(--accent)" />
+          <circle cx="138" cy="138" r="5" fill="var(--accent)" />
+          <circle cx="170" cy="125" r="5" fill="var(--accent)" />
+          <circle cx="202" cy="138" r="5" fill="var(--accent)" />
+
+          <!-- Projection Drop Lines (Sample) -->
+          <line x1="170" y1="65" x2="170" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
+          <line x1="170" y1="275" x2="170" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
+          <line x1="118" y1="79" x2="118" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
+          <line x1="222" y1="79" x2="222" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
+
+          <text x="170" y="310" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Separable in 2D (Concentric Manifolds)</text>
+        </g>
+
+        <!-- Center Arrow -->
+        <g transform="translate(395, 150)">
+          <line x1="0" y1="20" x2="50" y2="20" stroke="var(--text)" stroke-width="2.5" marker-end="url(#fig3-arrow-text)" />
+          <text x="25" y="0" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">Linear 1D</text>
+          <text x="25" y="45" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Projection</text>
+        </g>
+
+        <!-- Right: 1D Collapsed Line -->
+        <g transform="translate(490, 20)">
+          <text x="170" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Linear PCA 1D Projection</text>
+
+          <!-- 1D Axis Line -->
+          <line x1="20" y1="170" x2="320" y2="170" stroke="var(--text)" stroke-width="2.5" />
+          <text x="330" y="175" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)">w</text>
+
+          <!-- Origin Mark -->
+          <line x1="170" y1="160" x2="170" y2="180" stroke="var(--muted)" stroke-width="1.5" />
+          <text x="170" y="198" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">0</text>
+
+          <!-- Projected Points (Inner and Outer Collapsed) -->
+          <circle cx="65" cy="170" r="5" fill="#2b6cb0" />
+          <circle cx="79" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
+          <circle cx="118" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
+          <circle cx="170" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
+          <circle cx="222" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
+          <circle cx="261" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
+          <circle cx="275" cy="170" r="5" fill="#2b6cb0" />
+
+          <circle cx="125" cy="170" r="5" fill="var(--accent)" />
+          <circle cx="138" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
+          <circle cx="170" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
+          <circle cx="202" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
+          <circle cx="215" cy="170" r="5" fill="var(--accent)" />
+
+          <!-- Failure Callout Bracket / Highlight -->
+          <rect x="110" y="125" width="120" height="30" rx="6" fill="rgba(212, 140, 112, 0.18)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="170" y="145" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--accent)" text-anchor="middle">Heavy Overlap</text>
+
+          <text x="170" y="310" font-family="'Lora', serif" font-size="13" fill="#e53e3e" font-weight="bold" text-anchor="middle">Linear PCA collapses and destroys the concentric pattern</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 3:</strong> The limitation of linear projections on non-linear data. Projecting concentric rings onto any 1D straight line collapses both rings together in the middle, destroying the ring structure and entangling the clusters.
+    </figcaption>
+  </figure>
+
+  <p>
+    How can we adapt PCA to discover and preserve curved patterns?
+  </p>
+
+  <p>
+    In <strong><a href="../03.kernel-pca/">Kernel PCA</a></strong>, we explore a geometric idea: by mapping data into higher dimensions where curved relationships untangle into straight lines, PCA can easily separate and compress complex non-linear shapes.
+  </p>
+</section>
+
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

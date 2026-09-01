@@ -31,7 +31,6 @@
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/index.html": "08939cc86991ce7693ddb7ded29084cc",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/03.positive-defnite-matrices/index.html": "b68a763fdd3fef0c04977b9fb7bf8227",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/04.google-search/index.html": "807fe78a11502e3dad60f941c5f17c9b",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/03.eigenvalues-and-eigenvectors/05.pca-dual-representation/index.html": "2afba0efb8f96020dca2653be3699db3",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/04.orthogonality-and-projections/01.orthogonality-of-the-four-subspaces/index.html": "d5e4338f4a88dacb329e58ab5faabb07",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/04.orthogonality-and-projections/02.projections-onto-subspaces/index.html": "af8dc4113076bbe2719576901640009d",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/04.orthogonality-and-projections/03.projection-matrices-and-least-squares/index.html": "60eef3f35feebf7a3d62d26ae1cce627",
@@ -49,5 +48,10 @@
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/01.Hypothesis_test/01. Hypothesis_test/index.html": "6df355801aa25243c181e6f0fb032554",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/01.common-probability-distributions/index.html": "b7b0b328524fab1e76ee13a1bfd3556f",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/02.the-central-limit-theorem-and-maximum-entropy/index.html": "eae9df8cb4b128a4827c7987b1193291",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/03.foundations-of-probability/01.probability-and-counting/index.html": "a5b9fe506a7a586e50390c809b6d4673"
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/03.foundations-of-probability/01.probability-and-counting/index.html": "a5b9fe506a7a586e50390c809b6d4673",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/01.principal-component-analysis/index.html": "99656b6355c90ef9740e57f8d3882f0f",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/02.high-dimensional-pca/index.html": "798ba49d4589c10bf3975d270b32e886",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/03.kernel-pca/index.html": "f4022313862b024b8417a6ce03d40449",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/04.kmeans-clustering/index.html": "e3d41d6d9053f4c5ffc44110cff36c6e",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/05.spectral-clustering/index.html": "aa5afb07e4135afc1e132c96d0733187"
 }

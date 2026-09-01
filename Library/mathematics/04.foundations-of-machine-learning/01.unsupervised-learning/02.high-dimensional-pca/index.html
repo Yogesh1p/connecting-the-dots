@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="843b5cad">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="PCA for High-Dimensional Data">
+<meta name="description" content="The conceptual and geometric duality of PCA — understanding feature space (X Xᵀ) vs. sample space (Xᵀ X), uncorrelating features vs. uncorrelating samples, the Representer property, and solving high-dimensional data (d ≫ n).">
+<meta name="keywords" content="dual pca, gram matrix, high dimensional data, representer theorem, eigenfaces, SVD, computational complexity, representation learning, Foundations of Machine Learning">
+<meta name="status" content="draft">
+<meta name="date" content="2026-08-16">
+<meta name="author" content="Yogesh">
+
+<title>PCA for High-Dimensional Data</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 650px;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .svg-container svg {
+    width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="15">
+    <meta property="og:title" content="PCA for High-Dimensional Data">
+    <meta property="og:description" content="The conceptual and geometric duality of PCA — understanding feature space (X Xᵀ) vs. sample space (Xᵀ X), uncorrelating features vs. uncorrelating samples, the Representer property, and solving high-dimensional data (d ≫ n).">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-pca-for-high-dimensional-data.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1 — The Two Geometric Views of a Dataset               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="matrix-perspectives">
+  <h2>The Two Geometric Views of a Dataset</h2>
+
+  <p>
+    When we first learn Principal Component Analysis, we are taught to think of data in a very specific way: each observation is a point floating in a space whose axes are the measured <strong>features</strong>.
+  </p>
+
+  <p>
+    In this standard view, we compute the sample covariance matrix $C = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$ and search for directions $w \in \mathbb{R}^d$ that maximize preserved variance. If two features (like the height and weight of an individual, or two neighboring pixels in an image) covary strongly, PCA rotates our coordinate axes to replace those redundant measurements with a single decorrelated principal axis.
+  </p>
+
+  <p>
+    However, any dataset consisting of $n$ observations across $d$ features arranged into a matrix $X \in \mathbb{R}^{d \times n}$ poses a deeper, fundamental question:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Central Question of Representation</div>
+    <div class="math-box-body">
+      <p>
+        <strong>What determines what gets plotted as an axis, and what gets plotted as a point?</strong>
+      </p>
+      <p>
+        A matrix $X \in \mathbb{R}^{d \times n}$ can be read in two completely symmetrical ways:
+      </p>
+      <ul>
+        <li><strong>Features as Axes ($\mathbb{R}^d$):</strong> The $d$ features form the coordinate system, and the $n$ observations are points floating inside it.</li>
+        <li><strong>Data Points as Axes ($\mathbb{R}^n$):</strong> The $n$ observations form the coordinate system, and the $d$ features are points (profile vectors) floating inside it.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>
+    To build an intuitive foundation for both spaces before touching high-dimensional abstractions, let us walk through a concrete example.
+  </p>
+
+  <h3>A Concrete Dataset: Real Estate Housing</h3>
+  <p>
+    Suppose we record $d = 2$ features across $n = 3$ residential properties:
+  </p>
+
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Observation ($x_i$)</th>
+        <th>Living Area ($F_1$, in $100\text{ sq ft}$)</th>
+        <th>Market Price ($F_2$, in $\$100\text{k}$)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Property 1 ($x_1$)</strong> — Compact Urban Studio</td>
+        <td>$8$ ($800\text{ sq ft}$)</td>
+        <td>$1$ ($\$100\text{k}$)</td>
+      </tr>
+      <tr>
+        <td><strong>Property 2 ($x_2$)</strong> — Suburban Townhouse</td>
+        <td>$16$ ($1{,}600\text{ sq ft}$)</td>
+        <td>$5$ ($\$500\text{k}$)</td>
+      </tr>
+      <tr>
+        <td><strong>Property 3 ($x_3$)</strong> — Luxury Estate</td>
+        <td>$18$ ($1{,}800\text{ sq ft}$)</td>
+        <td>$6$ ($\$600\text{k}$)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Arranging these raw observations into our data matrix $X_{\text{raw}} \in \mathbb{R}^{2 \times 3}$:
+  </p>
+
+  <div class="math-display">
+    $$X_{\text{raw}} = \begin{bmatrix} 8 & 16 & 18 \\ 1 & 5 & 6 \end{bmatrix}$$
+  </div>
+
+  <p>
+    The dataset has a mean feature vector $\bar{x} = \begin{bmatrix} 14 \\ 4 \end{bmatrix}$. Subtracting the mean shifts the center of mass to the origin, giving our centered data matrix $X$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X = X_{\text{raw}} - \bar{x}\mathbf{1}^T &= \begin{bmatrix} 8 - 14 & 16 - 14 & 18 - 14 \\ 1 - 4 & 5 - 4 & 6 - 4 \end{bmatrix} \\[6pt]
+      &= \begin{bmatrix} -6 & 2 & 4 \\ -3 & 1 & 2 \end{bmatrix} \in \mathbb{R}^{2 \times 3}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Every property exhibits a genuine, non-zero market deviation from average. Now let us explore what happens when we plot this exact matrix $X$ through our two geometric perspectives.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2 — Perspective 1: The Primal View (Feature Space)     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="primal-view">
+  <h2>Perspective 1: The Primal View (2D Feature Space $\mathbb{R}^2$)</h2>
+
+  <p>
+    In the primal view, our coordinate axes are the <strong>Features</strong>:
+  </p>
+
+  <ul>
+    <li><strong>Horizontal Axis ($F_1$):</strong> Living Area deviation from average (in $100\text{ sq ft}$).</li>
+    <li><strong>Vertical Axis ($F_2$):</strong> Market Price deviation from average (in $\$100\text{k}$).</li>
+  </ul>
+
+  <p>
+    The columns of $X$ represent our $n = 3$ property observations as points in this 2D plane:
+  </p>
+
+  <div class="math-display">
+    $$x_1 = \begin{bmatrix} -6 \\ -3 \end{bmatrix} \quad (\text{Studio}), \qquad x_2 = \begin{bmatrix} 2 \\ 1 \end{bmatrix} \quad (\text{Townhouse}), \qquad x_3 = \begin{bmatrix} 4 \\ 2 \end{bmatrix} \quad (\text{Estate})$$
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="marker-arrow-muted" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--muted)" />
+          </marker>
+          <marker id="marker-arrow-accent" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+        </defs>
+
+        <!-- Vertical Grid Lines (45px per unit on F1) -->
+        <line x1="160" y1="50" x2="160" y2="430" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="250" y1="50" x2="250" y2="430" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="340" y1="50" x2="340" y2="430" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="520" y1="50" x2="520" y2="430" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="610" y1="50" x2="610" y2="430" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="700" y1="50" x2="700" y2="430" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+
+        <!-- Horizontal Grid Lines (45px per unit on F2) -->
+        <line x1="60" y1="105" x2="800" y2="105" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="60" y1="150" x2="800" y2="150" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="60" y1="195" x2="800" y2="195" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="60" y1="285" x2="800" y2="285" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="60" y1="330" x2="800" y2="330" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <line x1="60" y1="375" x2="800" y2="375" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+
+        <!-- Coordinate Axes (Center at 430, 240) -->
+        <line x1="60" y1="240" x2="760" y2="240" stroke="var(--muted)" stroke-width="2" marker-end="url(#marker-arrow-muted)" />
+        <text x="772" y="246" font-family="'Lora', serif" font-size="22" font-style="italic" fill="var(--dark)">F₁ <tspan font-size="16" font-style="normal" fill="var(--muted)">(Area)</tspan></text>
+        
+        <line x1="430" y1="440" x2="430" y2="40" stroke="var(--muted)" stroke-width="2" marker-end="url(#marker-arrow-muted)" />
+        <text x="430" y="28" font-family="'Lora', serif" font-size="22" font-style="italic" fill="var(--dark)" text-anchor="middle">F₂ <tspan font-size="16" font-style="normal" fill="var(--muted)">(Price)</tspan></text>
+
+        <!-- Axis Ticks F1 -->
+        <text x="160" y="265" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">-6</text>
+        <text x="250" y="265" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">-4</text>
+        <text x="340" y="265" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">-2</text>
+        <text x="520" y="265" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">+2</text>
+        <text x="610" y="265" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">+4</text>
+        <text x="700" y="265" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">+6</text>
+
+        <!-- Axis Ticks F2 -->
+        <text x="415" y="380" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="end">-3</text>
+        <text x="415" y="335" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="end">-2</text>
+        <text x="415" y="290" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="end">-1</text>
+        <text x="415" y="200" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="end">+1</text>
+        <text x="415" y="155" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="end">+2</text>
+        <text x="415" y="110" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="end">+3</text>
+
+        <!-- Principal Component Axis Line w (Slope: 1/2) -->
+        <line x1="92" y1="409" x2="768" y2="71" stroke="var(--box-label-bg)" stroke-width="2" stroke-dasharray="6,6" opacity="0.6" />
+        
+        <!-- Principal Component Vector w -->
+        <line x1="430" y1="240" x2="475" y2="218" stroke="var(--box-label-bg)" stroke-width="3.5" marker-end="url(#marker-arrow-accent)" />
+        <text x="448" y="210" font-family="'Lora', serif" font-size="24" font-style="italic" fill="var(--box-label-bg)">w</text>
+
+        <!-- Sample Points & Labels (Uniform bottom-right layout) -->
+        <!-- x1 = (-6, -3) -->
+        <circle cx="160" cy="375" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+        <text x="176" y="396" font-family="'Lora', serif" font-size="17" font-weight="600" fill="var(--dark)">x₁: Studio (-6, -3)</text>
+
+        <!-- x2 = (2, 1) -->
+        <circle cx="520" cy="195" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+        <text x="536" y="216" font-family="'Lora', serif" font-size="17" font-weight="600" fill="var(--dark)">x₂: Townhouse (2, 1)</text>
+
+        <!-- x3 = (4, 2) -->
+        <circle cx="610" cy="150" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+        <text x="626" y="171" font-family="'Lora', serif" font-size="17" font-weight="600" fill="var(--dark)">x₃: Luxury Estate (4, 2)</text>
+
+        <!-- Origin -->
+        <circle cx="430" cy="240" r="4" fill="var(--muted)" />
+        <text x="442" y="258" font-family="'Lora', serif" font-size="15" fill="var(--muted)">0</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> The Primal Feature Space ($\mathbb{R}^d$). The $d = 2$ coordinate axes represent features (Living Area and Market Price), and the observations are plotted as points ($x_1, x_2, x_3$). Primal PCA discovers the principal axis $w \in \mathbb{R}^2$ that rotates the coordinates to eliminate cross-feature covariance.
+    </figcaption>
+  </figure>
+
+  <h3>What Does PCA Do in Feature Space?</h3>
+  <p>
+    Looking at Figure 1, the three property points fall on a single diagonal line. Larger houses cost more money. Because Living Area ($F_1$) and Market Price ($F_2$) are strongly correlated, maintaining two separate coordinate axes carries redundant information.
+  </p>
+
+  <p>
+    To find the optimal direction of maximum variance, we multiply the rows of $X$ by themselves, forming the $d \times d$ feature covariance matrix:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X X^T &= \begin{bmatrix} r_1 \cdot r_1 & r_1 \cdot r_2 \\ r_2 \cdot r_1 & r_2 \cdot r_2 \end{bmatrix} \\[6pt]
+      &= \begin{bmatrix} 56 & 28 \\ 28 & 14 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    The eigenvalues of $X X^T$ are $\lambda_1 = 70$ and $\lambda_2 = 0$. The leading unit eigenvector is:
+  </p>
+
+  <div class="math-display">
+    $$w = \frac{1}{\sqrt{5}} \begin{bmatrix} 2 \\ 1 \end{bmatrix} \approx \begin{bmatrix} 0.894 \\ 0.447 \end{bmatrix} \in \mathbb{R}^2$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Primal Interpretation: A Recipe Over Features</div>
+    <div class="math-box-body">
+      <p>
+        The eigenvector $w \in \mathbb{R}^d$ is a <strong>recipe over Features</strong>:
+      </p>
+      <div class="math-display">
+        $$\text{Principal Axis } w = 0.894 \times (\text{Living Area}) + 0.447 \times (\text{Market Price})$$
+      </div>
+      <p>
+        Diagonalizing $X X^T$ uncorrelates the features. It compresses our two original measurements into a single "Size &amp; Value Index" without discarding any genuine variance.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3 — Perspective 2: The Dual View (Sample Space)        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="dual-view">
+  <h2>Perspective 2: The Dual View (3D Sample Space $\mathbb{R}^n$)</h2>
+
+  <p>
+    Now let us flip the entire formulation on its head. What happens if we treat the <strong>Observations</strong> as the coordinate axes?
+  </p>
+
+  <ul>
+    <li><strong>Axis 1 ($S_1$):</strong> Property 1 (Compact Urban Studio)</li>
+    <li><strong>Axis 2 ($S_2$):</strong> Property 2 (Suburban Townhouse)</li>
+    <li><strong>Axis 3 ($S_3$):</strong> Property 3 (Luxury Estate)</li>
+  </ul>
+
+  <p>
+    Because we have $n = 3$ observations, this is a <strong>3-dimensional space</strong> ($\mathbb{R}^3$).
+  </p>
+
+  <p>
+    In this 3D space, the points are the <strong>Feature Profiles</strong> (the rows of $X$):
+  </p>
+
+  <div class="math-display">
+    $$r_1 = \begin{bmatrix} -6 \\ \phantom{-}2 \\ \phantom{-}4 \end{bmatrix} \quad (\text{Living Area Profile}), \qquad r_2 = \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix} \quad (\text{Market Price Profile})$$
+  </div>
+
+  <p>
+    Each feature is now plotted as a single point in this 3-dimensional space, where its coordinate position along each axis reflects its deviation value for that specific property.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="dual3dSvg" viewBox="0 0 860 620" xmlns="http://www.w3.org/2000/svg" style="display: block; width: 100%; height: auto; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none;">
+        <defs>
+          <marker id="marker-arrow-muted-2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--muted)" />
+          </marker>
+          <marker id="marker-arrow-accent-2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+          <!-- Floor Shadow Gradient -->
+          <linearGradient id="groundFloorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--muted)" stop-opacity="0.03" />
+            <stop offset="50%" stop-color="var(--dark)" stop-opacity="0.07" />
+            <stop offset="100%" stop-color="var(--dark)" stop-opacity="0.12" />
+          </linearGradient>
+        </defs>
+
+        <!-- 3D Ground Floor Shadow Base (S3 = 0 plane) -->
+        <polygon id="floorPlane" fill="url(#groundFloorGrad)" stroke="var(--border)" stroke-width="1.2" />
+        <g id="floorGrid"></g>
+
+        <!-- Negative Axis Extensions -->
+        <g id="negAxes"></g>
+
+        <!-- Positive Axes -->
+        <g id="posAxes"></g>
+
+        <!-- Dual Component Axis Line beta in 3D -->
+        <line id="betaAxisLine" stroke="var(--box-label-bg)" stroke-width="2" stroke-dasharray="6,6" opacity="0.6" />
+        
+        <!-- Dual Principal Vector Arrow beta -->
+        <line id="betaVectorLine" stroke="var(--box-label-bg)" stroke-width="5" marker-end="url(#marker-arrow-accent-2)" />
+        <text id="betaLabel" font-family="'Lora', serif" font-size="28" font-style="italic" fill="var(--box-label-bg)">β</text>
+        <text id="betaNorm" font-family="'Lora', serif" font-size="14" fill="var(--muted)">(‖β‖ = 1)</text>
+
+        <!-- Ground Floor Projections and Vertical Drop Lines -->
+        <g id="dropLines"></g>
+
+        <!-- Feature Profile Points in 3D -->
+        <g id="dataPoints"></g>
+
+        <!-- Origin Node -->
+        <circle id="originNode" r="4.5" fill="var(--muted)" />
+        <text id="originText" font-family="'Lora', serif" font-size="16" fill="var(--muted)">0</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> The Dual Sample Space ($\mathbb{R}^n$). The $n = 3$ coordinate axes represent observations ($S_1$: Studio, $S_2$: Townhouse, $S_3$: Luxury Estate), and the features are plotted as points ($r_1, r_2 \in \mathbb{R}^3$). Dual PCA discovers the principal axis $\vec{\beta} \in \mathbb{R}^3$ that captures the dominant sample archetype. <em>(Drag to rotate in 3D)</em>
+    </figcaption>
+  </figure>
+
+  <script>
+    (function initInteractive3DSvg() {
+      const svg = document.getElementById('dual3dSvg');
+      if (!svg) return;
+
+      // 3D Parameters
+      let yaw = 0.58;
+      let pitch = 0.36;
+      let isDragging = false;
+      let startX = 0, startY = 0;
+
+      const cx = 430;
+      const cy = 310;
+      const scale = 88;
+      const cameraDist = 8.0;
+
+      function project(x, y, z) {
+        // x = S1, y = S2, z = S3
+        const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+        const x1 = x * cosY - y * sinY;
+        const y1 = x * sinY + y * cosY;
+        const z1 = z;
+
+        const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+        const x2 = x1;
+        const y2 = y1 * cosP - z1 * sinP;
+        const z2 = y1 * sinP + z1 * cosP;
+
+        const fov = cameraDist / (cameraDist + y2);
+        return {
+          x: cx + x2 * scale * fov,
+          y: cy - z2 * scale * fov,
+          depth: y2,
+          fov: fov
+        };
+      }
+
+      function formatPoints(pts) {
+        return pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+      }
+
+      function getOffsetLabelPos(pTip, pOrig, offset) {
+        const dx = pTip.x - pOrig.x;
+        const dy = pTip.y - pOrig.y;
+        const len = Math.hypot(dx, dy) || 1;
+        return {
+          x: pTip.x + (dx / len) * offset,
+          y: pTip.y + (dy / len) * offset
+        };
+      }
+
+      function update() {
+        // 1. Ground Floor (S3 = 0)
+        const f1 = project(-2.6, -2.6, 0);
+        const f2 = project(2.6, -2.6, 0);
+        const f3 = project(2.6, 2.6, 0);
+        const f4 = project(-2.6, 2.6, 0);
+        const floorEl = document.getElementById('floorPlane');
+        if (floorEl) floorEl.setAttribute('points', formatPoints([f1, f2, f3, f4]));
+
+        // Floor Grid lines
+        const floorGrid = document.getElementById('floorGrid');
+        if (floorGrid) {
+          let gridSvg = '';
+          for (let s1 = -2; s1 <= 2; s1 += 1) {
+            const pA = project(s1, -2.6, 0);
+            const pB = project(s1, 2.6, 0);
+            gridSvg += `<line x1="${pA.x.toFixed(1)}" y1="${pA.y.toFixed(1)}" x2="${pB.x.toFixed(1)}" y2="${pB.y.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />`;
+          }
+          for (let s2 = -2; s2 <= 2; s2 += 1) {
+            const pA = project(-2.6, s2, 0);
+            const pB = project(2.6, s2, 0);
+            gridSvg += `<line x1="${pA.x.toFixed(1)}" y1="${pA.y.toFixed(1)}" x2="${pB.x.toFixed(1)}" y2="${pB.y.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />`;
+          }
+          floorGrid.innerHTML = gridSvg;
+        }
+
+        // 2. Axes
+        const orig = project(0, 0, 0);
+        const s1Pos = project(2.7, 0, 0);
+        const s1Neg = project(-2.4, 0, 0);
+        const s2Pos = project(0, 2.7, 0);
+        const s2Neg = project(0, -2.4, 0);
+        const s3Pos = project(0, 0, 2.7);
+        const s3Neg = project(0, 0, -2.2);
+
+        const negAxes = document.getElementById('negAxes');
+        if (negAxes) {
+          negAxes.innerHTML = `
+            <line x1="${orig.x.toFixed(1)}" y1="${orig.y.toFixed(1)}" x2="${s1Neg.x.toFixed(1)}" y2="${s1Neg.y.toFixed(1)}" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+            <line x1="${orig.x.toFixed(1)}" y1="${orig.y.toFixed(1)}" x2="${s2Neg.x.toFixed(1)}" y2="${s2Neg.y.toFixed(1)}" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+            <line x1="${orig.x.toFixed(1)}" y1="${orig.y.toFixed(1)}" x2="${s3Neg.x.toFixed(1)}" y2="${s3Neg.y.toFixed(1)}" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+          `;
+        }
+
+        const posAxes = document.getElementById('posAxes');
+        if (posAxes) {
+          const lbl1 = getOffsetLabelPos(s1Pos, orig, 24);
+          const lbl2 = getOffsetLabelPos(s2Pos, orig, 24);
+          const lbl3 = getOffsetLabelPos(s3Pos, orig, 22);
+
+          posAxes.innerHTML = `
+            <line x1="${orig.x.toFixed(1)}" y1="${orig.y.toFixed(1)}" x2="${s1Pos.x.toFixed(1)}" y2="${s1Pos.y.toFixed(1)}" stroke="var(--muted)" stroke-width="2" marker-end="url(#marker-arrow-muted-2)" />
+            <text x="${lbl1.x.toFixed(1)}" y="${lbl1.y.toFixed(1)}" font-family="'Lora', serif" fill="var(--dark)" dominant-baseline="central">
+              <tspan font-style="italic" font-size="20" font-weight="600">S₁</tspan><tspan font-size="14" font-style="normal" font-weight="normal" fill="var(--muted)"> (Studio)</tspan>
+            </text>
+
+            <line x1="${orig.x.toFixed(1)}" y1="${orig.y.toFixed(1)}" x2="${s2Pos.x.toFixed(1)}" y2="${s2Pos.y.toFixed(1)}" stroke="var(--muted)" stroke-width="2" marker-end="url(#marker-arrow-muted-2)" />
+            <text x="${lbl2.x.toFixed(1)}" y="${lbl2.y.toFixed(1)}" font-family="'Lora', serif" fill="var(--dark)" dominant-baseline="central">
+              <tspan font-style="italic" font-size="20" font-weight="600">S₂</tspan><tspan font-size="14" font-style="normal" font-weight="normal" fill="var(--muted)"> (Townhouse)</tspan>
+            </text>
+
+            <line x1="${orig.x.toFixed(1)}" y1="${orig.y.toFixed(1)}" x2="${s3Pos.x.toFixed(1)}" y2="${s3Pos.y.toFixed(1)}" stroke="var(--muted)" stroke-width="2" marker-end="url(#marker-arrow-muted-2)" />
+            <text x="${lbl3.x.toFixed(1)}" y="${lbl3.y.toFixed(1)}" font-family="'Lora', serif" fill="var(--dark)" text-anchor="middle" dominant-baseline="auto">
+              <tspan font-style="italic" font-size="20" font-weight="600">S₃</tspan><tspan font-size="14" font-style="normal" font-weight="normal" fill="var(--muted)"> (Estate)</tspan>
+            </text>
+          `;
+        }
+
+        // 3. Dual Principal Axis Line & Vector beta (direction [-3, 1, 2])
+        const betaStart = project(2.25, -0.75, -1.5);
+        const betaEnd = project(-2.25, 0.75, 1.5);
+        const betaVec = project(-1.2, 0.4, 0.8);
+
+        const betaAxisEl = document.getElementById('betaAxisLine');
+        if (betaAxisEl) {
+          betaAxisEl.setAttribute('x1', betaStart.x.toFixed(1));
+          betaAxisEl.setAttribute('y1', betaStart.y.toFixed(1));
+          betaAxisEl.setAttribute('x2', betaEnd.x.toFixed(1));
+          betaAxisEl.setAttribute('y2', betaEnd.y.toFixed(1));
+        }
+
+        const betaVecEl = document.getElementById('betaVectorLine');
+        if (betaVecEl) {
+          betaVecEl.setAttribute('x1', orig.x.toFixed(1));
+          betaVecEl.setAttribute('y1', orig.y.toFixed(1));
+          betaVecEl.setAttribute('x2', betaVec.x.toFixed(1));
+          betaVecEl.setAttribute('y2', betaVec.y.toFixed(1));
+        }
+
+        const betaLbl = document.getElementById('betaLabel');
+        if (betaLbl) {
+          betaLbl.setAttribute('x', (betaVec.x + 12).toFixed(1));
+          betaLbl.setAttribute('y', (betaVec.y - 8).toFixed(1));
+        }
+        const betaNrm = document.getElementById('betaNorm');
+        if (betaNrm) {
+          betaNrm.setAttribute('x', (betaVec.x + 12).toFixed(1));
+          betaNrm.setAttribute('y', (betaVec.y + 12).toFixed(1));
+        }
+
+        // 4. Data Points r1 = [-6, 2, 4], r2 = [-3, 1, 2] (scaled for plot: [-1.8, 0.6, 1.2] and [-0.9, 0.3, 0.6])
+        const r1 = project(-1.8, 0.6, 1.2);
+        const r1Base = project(-1.8, 0.6, 0);
+
+        const r2 = project(-0.9, 0.3, 0.6);
+        const r2Base = project(-0.9, 0.3, 0);
+
+        const dropLines = document.getElementById('dropLines');
+        if (dropLines) {
+          dropLines.innerHTML = `
+            <ellipse cx="${r1Base.x.toFixed(1)}" cy="${r1Base.y.toFixed(1)}" rx="${(12 * r1Base.fov).toFixed(1)}" ry="${(5 * r1Base.fov).toFixed(1)}" fill="var(--dark)" opacity="0.20" />
+            <line x1="${r1.x.toFixed(1)}" y1="${r1.y.toFixed(1)}" x2="${r1Base.x.toFixed(1)}" y2="${r1Base.y.toFixed(1)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,4" />
+            <circle cx="${r1Base.x.toFixed(1)}" cy="${r1Base.y.toFixed(1)}" r="3.5" fill="var(--muted)" />
+
+            <ellipse cx="${r2Base.x.toFixed(1)}" cy="${r2Base.y.toFixed(1)}" rx="${(10 * r2Base.fov).toFixed(1)}" ry="${(4 * r2Base.fov).toFixed(1)}" fill="var(--dark)" opacity="0.16" />
+            <line x1="${r2.x.toFixed(1)}" y1="${r2.y.toFixed(1)}" x2="${r2Base.x.toFixed(1)}" y2="${r2Base.y.toFixed(1)}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,4" />
+            <circle cx="${r2Base.x.toFixed(1)}" cy="${r2Base.y.toFixed(1)}" r="3.5" fill="var(--muted)" />
+          `;
+        }
+
+        const dataPts = document.getElementById('dataPoints');
+        if (dataPts) {
+          dataPts.innerHTML = `
+            <circle cx="${r1.x.toFixed(1)}" cy="${r1.y.toFixed(1)}" r="${(7.5 * r1.fov).toFixed(1)}" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+            <text x="${(r1.x - 14).toFixed(1)}" y="${(r1.y - 12).toFixed(1)}" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--dark)" text-anchor="end">r₁: Living Area (-6, 2, 4)</text>
+
+            <circle cx="${r2.x.toFixed(1)}" cy="${r2.y.toFixed(1)}" r="${(7.5 * r2.fov).toFixed(1)}" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+            <text x="${(r2.x + 12).toFixed(1)}" y="${(r2.y - 8).toFixed(1)}" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--dark)">r₂: Market Price (-3, 1, 2)</text>
+          `;
+        }
+
+        // Origin node
+        const origNode = document.getElementById('originNode');
+        if (origNode) {
+          origNode.setAttribute('cx', orig.x.toFixed(1));
+          origNode.setAttribute('cy', orig.y.toFixed(1));
+        }
+        const origText = document.getElementById('originText');
+        if (origText) {
+          origText.setAttribute('x', (orig.x + 10).toFixed(1));
+          origText.setAttribute('y', (orig.y + 14).toFixed(1));
+        }
+      }
+
+      // Mouse & Touch interaction
+      svg.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        svg.style.cursor = 'grabbing';
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          svg.style.cursor = 'grab';
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        yaw += dx * 0.008;
+        pitch = Math.max(-1.3, Math.min(1.3, pitch + dy * 0.008));
+        startX = e.clientX;
+        startY = e.clientY;
+        update();
+      });
+
+      // Touch
+      svg.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        isDragging = false;
+      });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        yaw += dx * 0.008;
+        pitch = Math.max(-1.3, Math.min(1.3, pitch + dy * 0.008));
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        update();
+      }, { passive: true });
+
+      // Initial render
+      update();
+    })();
+  </script>
+
+  <h3>What Does PCA Do in Sample Space?</h3>
+  <p>
+    Look closely at Figure 2. In this 3-dimensional sample space, both feature points ($r_1$ and $r_2$) lie on the <strong>exact same straight line</strong> passing through the origin:
+  </p>
+
+  <ul>
+    <li><strong>Living Area Profile ($r_1$):</strong> $\begin{bmatrix} -6 & 2 & 4 \end{bmatrix}^T$</li>
+    <li><strong>Market Price Profile ($r_2$):</strong> $\begin{bmatrix} -3 & 1 & 2 \end{bmatrix}^T = \frac{1}{2} r_1$</li>
+  </ul>
+
+  <p>
+    Notice what this geometry reveals: across these three properties, the variation in living area is proportional to the variation in market price. All feature profile vectors point in the exact same direction in $\mathbb{R}^3$.
+  </p>
+
+  <p>
+    Dual PCA finds this dominant direction in sample space. To find this principal axis, we construct the $n \times n$ <strong>Sample Gram Matrix</strong> ($X^T X$), which computes the pairwise dot products between our observation columns:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X^T X &= \begin{bmatrix} x_1 \cdot x_1 & x_1 \cdot x_2 & x_1 \cdot x_3 \\ x_2 \cdot x_1 & x_2 \cdot x_2 & x_2 \cdot x_3 \\ x_3 \cdot x_1 & x_3 \cdot x_2 & x_3 \cdot x_3 \end{bmatrix} \\[8pt]
+      &= \begin{bmatrix} \phantom{-}45 & -15 & -30 \\ -15 & \phantom{-}5 & \phantom{-}10 \\ -30 & \phantom{-}10 & \phantom{-}20 \end{bmatrix} \in \mathbb{R}^{3 \times 3}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    The eigenvalues of $X^T X$ are $\mu_1 = 70, \mu_2 = 0, \mu_3 = 0$. <em>The non-zero eigenvalue is identically $70$, exactly matching $X X^T$!</em>
+  </p>
+
+  <p>
+    The leading unit eigenvector of $X^T X$ is:
+  </p>
+
+  <div class="math-display">
+    $$\vec{\beta} = \frac{1}{\sqrt{14}} \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix} \approx \begin{bmatrix} -0.802 \\ \phantom{-}0.267 \\ \phantom{-}0.535 \end{bmatrix} \in \mathbb{R}^{3}$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Dual Interpretation: A Recipe Over Samples</div>
+    <div class="math-box-body">
+      <p>
+        The eigenvector $\vec{\beta} \in \mathbb{R}^n$ is a <strong>recipe over Samples</strong>:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{Property Archetype } \vec{\beta} &= -0.802 \times (\text{Property 1}) + 0.267 \times (\text{Property 2}) \\
+          &\quad + 0.535 \times (\text{Property 3})
+        \end{aligned}$$
+      </div>
+      <p>
+        Diagonalizing $X^T X$ eliminates sample redundancy. All three properties actively participate in defining the dominant market archetype.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4 — The Duality Bridge: Connecting Both Geometries     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="duality-bridge">
+  <h2>The Duality Bridge: Connecting Both Geometries</h2>
+
+  <p>
+    We have uncovered two completely different geometric spaces:
+  </p>
+
+  <ol>
+    <li>The <strong>Primal Space ($\mathbb{R}^2$)</strong> produces an axis $w \in \mathbb{R}^2$ that blends features to uncorrelate measurements.</li>
+    <li>The <strong>Dual Space ($\mathbb{R}^3$)</strong> produces an axis $\vec{\beta} \in \mathbb{R}^3$ that blends samples to uncorrelate observations.</li>
+  </ol>
+
+  <p>
+    Are these two formulations disconnected, or is there an exact mathematical bridge between them?
+  </p>
+
+  <p>
+    To turn the sample mixture $\vec{\beta}$ into the feature principal axis $w$, we scale $\vec{\beta}$ by $\frac{1}{\sqrt{\mu_1}} = \frac{1}{\sqrt{70}}$:
+  </p>
+
+  <div class="math-display">
+    $$\vec{\alpha} = \frac{\vec{\beta}}{\sqrt{70}} = \frac{1}{\sqrt{980}} \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix} = \frac{1}{14\sqrt{5}} \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix}$$
+  </div>
+
+  <p>
+    Now multiply the centered dataset $X$ by the dual weights $\vec{\alpha}$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      w = X \vec{\alpha} &= \begin{bmatrix} -6 & 2 & 4 \\ -3 & 1 & 2 \end{bmatrix} \left( \frac{1}{14\sqrt{5}} \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix} \right) \\[8pt]
+      &= \frac{1}{14\sqrt{5}} \begin{bmatrix} 28 \\ 14 \end{bmatrix} = \frac{1}{\sqrt{5}} \begin{bmatrix} 2 \\ 1 \end{bmatrix}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Multiplying the dataset by the sample recipe $\vec{\alpha}$ recovers the <strong>exact same principal component $w$</strong> computed directly from the feature covariance matrix $X X^T$.
+  </p>
+
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Perspective</th>
+        <th>Primal Formulation ($X X^T \in \mathbb{R}^{d \times d}$)</th>
+        <th>Dual Formulation ($X^T X \in \mathbb{R}^{n \times n}$)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Coordinate Axes</strong></td>
+        <td>Features ($F_1, F_2, \dots, F_d$)</td>
+        <td>Observations ($S_1, S_2, \dots, S_n$)</td>
+      </tr>
+      <tr>
+        <td><strong>Points Floating in Space</strong></td>
+        <td>Observations ($x_i \in \mathbb{R}^d$)</td>
+        <td>Feature Profiles ($r_j \in \mathbb{R}^n$)</td>
+      </tr>
+      <tr>
+        <td><strong>Inner Product Matrix</strong></td>
+        <td>Feature Covariance Matrix $C \propto X X^T$</td>
+        <td>Sample Gram Matrix $K = X^T X$</td>
+      </tr>
+      <tr>
+        <td><strong>What is Uncorrelated</strong></td>
+        <td>Removes correlated <strong>features / pixels</strong></td>
+        <td>Removes correlated / duplicate <strong>samples</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Eigenvector Meaning</strong></td>
+        <td>Weights to blend features ($w \in \mathbb{R}^d$)</td>
+        <td>Weights to blend samples ($\vec{\beta} \in \mathbb{R}^n$)</td>
+      </tr>
+      <tr>
+        <td><strong>Optimal Problem Regime</strong></td>
+        <td>$n \gg d$ (Many samples, few features)</td>
+        <td>$d \gg n$ (Few samples, massive feature dimensions)</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5 — The High-Dimensional Breakthrough (d ≫ n)         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="eigenfaces">
+  <h2>The High-Dimensional Breakthrough ($d \gg n$)</h2>
+
+  <p>
+    When sample observations are abundant and feature counts are modest ($n \gg d$), standard Primal PCA is computationally trivial. If we have $n = 1{,}000{,}000$ samples and $d = 50$ features:
+  </p>
+
+  <ul>
+    <li>The covariance matrix $C \in \mathbb{R}^{50 \times 50}$ requires only $2{,}500$ floating-point numbers ($\approx 10\text{ KB}$).</li>
+    <li>Eigendecomposing $C$ scales as $\mathcal{O}(d^3) = 50^3 = 125{,}000$ operations—finishing in under a millisecond.</li>
+  </ul>
+
+  <p>
+    In this classical regime, using Dual PCA would be absurd: it would require building a $1{,}000{,}000 \times 1{,}000{,}000$ Gram matrix.
+  </p>
+
+  <p>
+    However, modern computer vision, genomics, and signal processing invert this regime: <strong>$d \gg n$</strong>.
+  </p>
+
+  <p><strong>Case Study: The Extended Yale Face Dataset</strong></p>
+  <p>
+    Consider facial recognition on the Extended Yale Face Dataset. Each photograph is a grayscale image of size $192 \times 168$ pixels. Flattening each 2D image into a 1D vector gives:
+  </p>
+
+  <div class="math-display">
+    $$d = 192 \times 168 = 32{,}256 \quad \text{features (pixels)}, \qquad n = 200 \quad \text{images}$$
+  </div>
+
+  <p>
+    Attempting standard Primal PCA on this dataset leads to immediate computational collapse:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Storage:</strong> The covariance matrix $C = \frac{1}{n} X X^T$ has size $32{,}256 \times 32{,}256$ ($1{,}040{,}449{,}536$ entries), requiring over <strong>$4.16\text{ GB}$ of RAM</strong> just to hold in memory.
+    </li>
+    <li>
+      <strong>Compute:</strong> Eigendecomposing a $32{,}256 \times 32{,}256$ matrix scales as $\mathcal{O}(d^3) \approx (32{,}256)^3 \approx 3.35 \times 10^{13}$ operations—taking hours or crashing memory buffers.
+    </li>
+  </ul>
+
+  <p><strong>The Subspace Dimension &amp; Effective Rank ($n - 1$)</strong></p>
+  <p>
+    Consider what is happening geometrically. We have $n = 200$ data points situated inside a $32{,}256$-dimensional space.
+  </p>
+
+  <p>
+    Because the data is mean-centered, the sum of all centered sample vectors is zero ($\sum_{i=1}^n x_i = \mathbf{0} \iff X \mathbf{1} = \mathbf{0}$). This introduces an exact linear dependency among the sample columns, constraining all $200$ points to lie within an at most <strong>$(n - 1) = 199$-dimensional linear subspace</strong>.
+  </p>
+
+  <p>
+    The remaining $32{,}057$ dimensions are pure null space where no data variance exists. Over $99.4\%$ of the eigenvalues of the $32{,}256 \times 32{,}256$ covariance matrix are identically zero. Computing $X^T X \in \mathbb{R}^{200 \times 200}$ bypasses the null space entirely, solving PCA strictly within the $199$-dimensional subspace where variance actually lives.
+  </p>
+
+  <p><strong>Reconstructing Out-of-Distribution Data &amp; Representation Capacity</strong></p>
+  <p>
+    When PCA is trained on face images, each leading principal component $w_k \in \mathbb{R}^{32,256}$ can be reshaped back into a $192 \times 168$ image, known as an <strong>Eigenface</strong>:
+  </p>
+
+  <ul>
+    <li>$w_1$ captures global illumination (lighting gradients across the canvas).</li>
+    <li>$w_2$ and $w_3$ capture coarse structural layout (eye spacing, nose bridge width, jawline).</li>
+    <li>Higher-order components capture localized edge transitions and high-frequency textures.</li>
+  </ul>
+
+  <p>
+    Any training face is reconstructed with high fidelity using only $k \approx 20\text{--}50$ leading components: $\text{Face} \approx \bar{x} + \sum_{j=1}^k c_j w_j$.
+  </p>
+
+  <p>
+    What happens if you project an out-of-distribution image—such as a <strong>dog</strong>—onto these eigenfaces?
+  </p>
+
+  <p>
+    If you retain only the first $k = 10$ components, the reconstructed image resembles a distorted human face. Because the top components capture variance patterns unique to human facial anatomy, they constrain the dog's pixels to human facial templates.
+  </p>
+
+  <p>
+    However, the eigenbasis $\{w_1, w_2, \dots, w_{n-1}\}$ spans an $(n-1)$-dimensional subspace of image patterns. As you increase $k$ and include higher-order components, they capture generic localized edges, line angles, and contrast boundaries common to natural images. With a large enough component budget, the representation resolves the dog's contours, ears, and snout.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Principle of Representation Efficiency</div>
+    <div class="math-box-body">
+      <p>
+        PCA does not make out-of-distribution data impossible to represent—it makes it <strong>inefficient to represent</strong>:
+      </p>
+      <ul>
+        <li><strong>In-distribution data (faces):</strong> Variance is concentrated in the top $k \ll n$ components. High-fidelity reconstruction requires only a few representations.</li>
+        <li><strong>Out-of-distribution data (a dog):</strong> Variance is scattered across the long tail of higher-order components. It requires substantially more components to achieve acceptable reconstruction fidelity.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6 — The Mathematical Derivation of Dual PCA           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="dual-formulation">
+  <h2>The Mathematical Derivation of Dual PCA</h2>
+
+  <p>
+    We now derive the algebraic equivalence that allows us to obtain exact principal components from the $n \times n$ Gram matrix for any high-dimensional dataset $X \in \mathbb{R}^{d \times n}$.
+  </p>
+
+  <p><strong>1. Outer Product Representation of Covariance</strong></p>
+  <p>
+    Let $X = [x_1, x_2, \dots, x_n] \in \mathbb{R}^{d \times n}$ be the centered data matrix. The sample covariance matrix is:
+  </p>
+
+  <div class="math-display">
+    $$C = \frac{1}{n} \sum_{i=1}^n x_i x_i^T$$
+  </div>
+
+  <p>
+    By column-by-row matrix multiplication:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X X^T &= \begin{bmatrix} \mid & \dots & \mid \\ x_1 & \dots & x_n \\ \mid & \dots & \mid \end{bmatrix} \begin{bmatrix} \text{---} & x_1^T & \text{---} \\ & \vdots & \\ \text{---} & x_n^T & \text{---} \end{bmatrix} = \sum_{i=1}^n x_i x_i^T \\[10pt]
+      &\implies C = \frac{1}{n} X X^T
+    \end{aligned}$$
+  </div>
+
+  <p><strong>2. The Representer Property of PCA</strong></p>
+  <p>
+    The eigenvector equation for $C$ is:
+  </p>
+
+  <div class="math-display">
+    $$C w_k = \lambda_k w_k \iff \left(\frac{1}{n} \sum_{i=1}^n x_i x_i^T\right) w_k = \lambda_k w_k$$
+  </div>
+
+  <p>
+    Using associativity of matrix multiplication, $x_i x_i^T w_k = x_i (x_i^T w_k)$. Because $x_i^T w_k$ is a scalar:
+  </p>
+
+  <div class="math-display">
+    $$\frac{1}{n} \sum_{i=1}^n x_i (x_i^T w_k) = \lambda_k w_k$$
+  </div>
+
+  <p>
+    For any non-zero eigenvalue ($\lambda_k > 0$), dividing by $\lambda_k$ yields:
+  </p>
+
+  <div class="math-display">
+    $$w_k = \sum_{i=1}^n \left( \frac{x_i^T w_k}{n \lambda_k} \right) x_i$$
+  </div>
+
+  <p>
+    Setting the scalar dual coefficient $\alpha_{ki} = \frac{x_i^T w_k}{n \lambda_k}$ and assembling $\vec{\alpha}_k = [\alpha_{k1}, \dots, \alpha_{kn}]^T \in \mathbb{R}^n$:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Representer Property of PCA</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$w_k = X \vec{\alpha}_k = \sum_{i=1}^n \alpha_{ki} x_i$$
+      </div>
+      <p>
+        Every principal component $w_k$ corresponding to a non-zero eigenvalue is an exact <strong>linear combination of the training observations</strong>. The optimal projection directions lie entirely within $\operatorname{span}\{x_1, x_2, \dots, x_n\}$.
+      </p>
+    </div>
+  </div>
+
+  <p><strong>3. Projecting Test Points Without Materializing $w_k$</strong></p>
+  <p>
+    For any query point $x_{\text{test}} \in \mathbb{R}^{d}$, its projection coordinate onto $w_k$ is:
+  </p>
+
+  <div class="math-display">
+    $$x_{\text{test}}^T w_k = x_{\text{test}}^T \left( \sum_{i=1}^n \alpha_{ki} x_i \right) = \sum_{i=1}^n \alpha_{ki} (x_{\text{test}}^T x_i)$$
+  </div>
+
+  <p>
+    We can compute the exact compressed coordinate of any query point using only the dual weights $\vec{\alpha}_k$ and pairwise inner products $(x_{\text{test}}^T x_i)$ with the training samples, without ever forming the $d$-dimensional vector $w_k$.
+  </p>
+
+  <p><strong>4. Deriving the Gram Matrix Eigenvalue Problem</strong></p>
+  <p>
+    Substitute $w_k = X \vec{\alpha}_k$ into the primal eigenvector equation $\frac{1}{n} X X^T w_k = \lambda_k w_k$:
+  </p>
+
+  <div class="math-display">
+    $$\frac{1}{n} X X^T (X \vec{\alpha}_k) = \lambda_k (X \vec{\alpha}_k) \iff X X^T X \vec{\alpha}_k = n \lambda_k X \vec{\alpha}_k$$
+  </div>
+
+  <p>
+    Premultiplying both sides by $X^T \in \mathbb{R}^{n \times d}$:
+  </p>
+
+  <div class="math-display">
+    $$(X^T X)(X^T X) \vec{\alpha}_k = n \lambda_k (X^T X) \vec{\alpha}_k$$
+  </div>
+
+  <p>
+    Defining the $n \times n$ <strong>Gram matrix</strong> $K = X^T X \in \mathbb{R}^{n \times n}$ where $K_{ij} = x_i^T x_j$:
+  </p>
+
+  <div class="math-display">
+    $$K^2 \vec{\alpha}_k = (n \lambda_k) K \vec{\alpha}_k$$
+  </div>
+
+  <p>
+    This relationship is satisfied if $\vec{\alpha}_k$ solves the standard $n \times n$ eigenvalue problem:
+  </p>
+
+  <div class="math-display">
+    $$K \vec{\alpha}_k = (n \lambda_k) \vec{\alpha}_k$$
+  </div>
+
+  <p><strong>5. Dual Normalization</strong></p>
+  <p>
+    In standard PCA, the principal component must have unit Euclidean norm: $\|w_k\|^2 = w_k^T w_k = 1$. Expressed in terms of $\vec{\alpha}_k$:
+  </p>
+
+  <div class="math-display">
+    $$w_k^T w_k = (X \vec{\alpha}_k)^T (X \vec{\alpha}_k) = \vec{\alpha}_k^T (X^T X) \vec{\alpha}_k = \vec{\alpha}_k^T K \vec{\alpha}_k = 1$$
+  </div>
+
+  <p>
+    A standard numerical eigensolver applied to $K$ produces eigenvectors $\vec{\beta}_k \in \mathbb{R}^n$ with standard unit Euclidean norm ($\|\vec{\beta}_k\|^2 = \vec{\beta}_k^T \vec{\beta}_k = 1$), satisfying $K \vec{\beta}_k = \mu_k \vec{\beta}_k$ with $\mu_k = n \lambda_k$.
+  </p>
+
+  <p>
+    Evaluating the quadratic form for $\vec{\beta}_k$:
+  </p>
+
+  <div class="math-display">
+    $$\vec{\beta}_k^T K \vec{\beta}_k = \vec{\beta}_k^T (\mu_k \vec{\beta}_k) = \mu_k (\vec{\beta}_k^T \vec{\beta}_k) = \mu_k = n \lambda_k$$
+  </div>
+
+  <p>
+    To ensure $\vec{\alpha}_k^T K \vec{\alpha}_k = 1$, we scale $\vec{\beta}_k$ by $\frac{1}{\sqrt{\mu_k}} = \frac{1}{\sqrt{n \lambda_k}}$:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Dual Normalization Formula</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\vec{\alpha}_k = \frac{\vec{\beta}_k}{\sqrt{n \lambda_k}} = \frac{\vec{\beta}_k}{\sqrt{\mu_k}}$$
+      </div>
+      <p>
+        where $\vec{\beta}_k$ is the standard unit eigenvector of $K$ ($\|\vec{\beta}_k\| = 1$) and $\mu_k = n \lambda_k$ is the corresponding eigenvalue.
+      </p>
+    </div>
+  </div>
+
+  <details class="toggle">
+    <summary><strong>Verification: Check that $\vec{\alpha}_k$ satisfies both constraints</strong></summary>
+    <div class="toggle-body">
+      <p>Verifying the norm constraint:</p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \vec{\alpha}_k^T K \vec{\alpha}_k &= \left(\frac{\vec{\beta}_k}{\sqrt{n \lambda_k}}\right)^T K \left(\frac{\vec{\beta}_k}{\sqrt{n \lambda_k}}\right) \\[8pt]
+          &= \frac{\vec{\beta}_k^T K \vec{\beta}_k}{n \lambda_k} = \frac{n \lambda_k}{n \lambda_k} = 1 \quad \checkmark
+        \end{aligned}$$
+      </div>
+      <p>Verifying the eigenvalue equation:</p>
+      <div class="math-display">
+        $$\begin{aligned}
+          K \vec{\alpha}_k &= K \left(\frac{\vec{\beta}_k}{\sqrt{n \lambda_k}}\right) = \frac{K \vec{\beta}_k}{\sqrt{n \lambda_k}} \\[8pt]
+          &= \frac{(n \lambda_k) \vec{\beta}_k}{\sqrt{n \lambda_k}} = (n \lambda_k) \vec{\alpha}_k \quad \checkmark
+        \end{aligned}$$
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7 — The Step-by-Step Procedure                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="procedure">
+  <h2>The Procedure</h2>
+
+  <p>
+    Given a centered dataset $\{x_1, x_2, \dots, x_n\}$ with $x_i \in \mathbb{R}^{d}$ where $d \gg n$:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Calculate the Gram Matrix:</strong>
+      <div class="math-display">
+        $$K = X^T X \in \mathbb{R}^{n \times n}, \qquad K_{ij} = x_i^T x_j$$
+      </div>
+    </li>
+    <li>
+      <strong>Eigendecompose $K$:</strong>
+      <div class="math-display">
+        $$K \to \{\vec{\beta}_1, \dots, \vec{\beta}_\ell\}, \quad \vec{\beta}_k \in \mathbb{R}^n, \quad \|\vec{\beta}_k\|^2 = 1, \quad n\lambda_1 \ge n\lambda_2 \ge \dots \ge n\lambda_\ell > 0$$
+      </div>
+    </li>
+    <li>
+      <strong>Normalize Dual Vectors:</strong>
+      <div class="math-display">
+        $$\vec{\alpha}_k = \frac{\vec{\beta}_k}{\sqrt{n \lambda_k}} = \frac{\vec{\beta}_k}{\sqrt{\mu_k}}, \quad \vec{\alpha}_k \in \mathbb{R}^n$$
+      </div>
+    </li>
+    <li>
+      <strong>Recover Directions or Project Queries:</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{Component: } &\quad w_k = X \vec{\alpha}_k \in \mathbb{R}^d \quad (\|w_k\|^2 = 1) \\[6pt]
+          \text{Projection: } &\quad x_{\text{test}}^T w_k = \sum_{i=1}^n \alpha_{ki} (x_{\text{test}}^T x_i)
+        \end{aligned}$$
+      </div>
+    </li>
+  </ol>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8 — Key Advantages & The Gateway to Kernel PCA         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="advantages">
+  <h2>Key Advantages &amp; The Gateway to Kernel PCA</h2>
+
+  <p><strong>1. Computational and Memory Scaling</strong></p>
+  <p>
+    By replacing the $d \times d$ covariance matrix with the $n \times n$ Gram matrix, eigendecomposition complexity drops from $\mathcal{O}(d^3)$ to $\mathcal{O}(n^3)$.
+  </p>
+
+  <p>
+    For the Yale Face Dataset ($d = 32{,}256, n = 200$):
+  </p>
+
+  <ul>
+    <li><strong>Primal PCA:</strong> Decomposing a $32{,}256 \times 32{,}256$ matrix requires $\mathcal{O}(d^3) \approx 3.35 \times 10^{13}$ operations and $4.16\text{ GB}$ of RAM.</li>
+    <li><strong>Dual PCA:</strong> Forming $K$ requires $\mathcal{O}(d n^2) \approx 1.29 \times 10^9$ operations; decomposing $K$ takes $\mathcal{O}(n^3) \approx 8 \times 10^6$ operations ($<320\text{ KB}$ of RAM).</li>
+  </ul>
+
+  <p>
+    The eigensolver runs over $4{,}000{,}000\times$ faster, yielding an overall <strong>$26{,}000\times$ speedup</strong> while cutting memory by four orders of magnitude.
+  </p>
+
+  <p><strong>2. The Gateway to Kernel PCA</strong></p>
+  <p>
+    Notice that the entire dual formulation depends solely on inner products between data vectors: $x_i^T x_j$ and $x_{\text{test}}^T x_i$. At no point does the algorithm require individual feature coordinates.
+  </p>
+
+  <p>
+    This allows us to replace the standard dot product with a non-linear kernel function:
+  </p>
+
+  <div class="math-display">
+    $$k(x_i, x_j) = \langle \phi(x_i), \phi(x_j) \rangle$$
+  </div>
+
+  <p>
+    This direct bridge unlocks <strong>Kernel PCA</strong>, allowing us to perform dimensionality reduction in infinite-dimensional Hilbert spaces without ever computing high-dimensional feature coordinates explicitly.
+  </p>
+
+  <details class="toggle">
+    <summary><strong>Connection to the Singular Value Decomposition (SVD)</strong></summary>
+    <div class="toggle-body">
+      <p>
+        This duality is the direct reflection of the Thin SVD of the data matrix $X \in \mathbb{R}^{d \times n}$:
+      </p>
+      <div class="math-display">
+        $$X = U \Sigma V^T$$
+      </div>
+      <p>
+        where $U \in \mathbb{R}^{d \times r}$ contains the orthonormal left singular vectors, $V \in \mathbb{R}^{n \times r}$ contains the orthonormal right singular vectors, and $\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_r)$.
+      </p>
+      <div class="math-display">
+        $$C = \frac{1}{n} X X^T = \frac{1}{n} U \Sigma^2 U^T \qquad \text{and} \qquad K = X^T X = V \Sigma^2 V^T$$
+      </div>
+      <p>
+        Both $X X^T$ and $X^T X$ share the <em>exact same non-zero eigenvalues</em> $\mu_k = \sigma_k^2 = n \lambda_k$:
+      </p>
+      <ul>
+        <li><strong>Primal PCA</strong> directly computes the left singular vectors $U$ ($w_k = u_k$).</li>
+        <li><strong>Dual PCA</strong> computes the right singular vectors $V$ ($\vec{\beta}_k = v_k$), from which left singular vectors are recovered via $w_k = X \vec{\alpha}_k = X \left(\frac{v_k}{\sigma_k}\right) = (U \Sigma V^T) \frac{v_k}{\sigma_k} = u_k$.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
