@@ -85,86 +85,230 @@
   border-top: none !important;
 }
 
-/* Minimal Input/Comment Box */
-.gsc-comment-box {
-  border: none !important;
-  border-radius: 0 !important;
-  background-color: transparent !important;
-  overflow: visible !important;
-  margin-bottom: 2rem !important;
-}
+/* ============================================================
+   Unified & Minimal Comment Box
+   ============================================================ */
 
-.gsc-comment-box-textarea {
-  font-family: inherit;
+.gsc-comment-box {
   border: 1px solid #E8DFD1 !important;
   border-radius: 12px !important;
-  padding: 1rem 1.2rem !important;
   background-color: #FDFBF7 !important;
-  min-height: 100px !important;
-  transition: all 0.2s ease !important;
+  overflow: hidden !important;
+  margin-bottom: 2rem !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-.gsc-comment-box-textarea:focus {
-  background-color: #FDFBF7 !important;
-  border-color: #D48C70 !important;
-  box-shadow: 0 0 0 1px #D48C70 !important;
+.gsc-comment-box:focus-within {
+  border-color: #E8DFD1 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
+/* Tabs */
 .gsc-comment-box-tabs {
-  background-color: transparent !important;
-  border-bottom: none !important;
-  padding: 0 !important;
-  margin-bottom: 0.5rem !important;
+  background-color: rgba(74, 63, 53, 0.03) !important;
+  border: none !important;
+  border-bottom: 1px solid #E8DFD1 !important;
+  padding: 0.35rem 0.85rem 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
 }
 
-.gsc-comment-box-tab {
+.gsc-comment-box-tabs > div {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  gap: 0.5rem !important;
+}
+
+.gsc-comment-box-tabs button {
+  border: none !important;
+  background: transparent !important;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
   font-size: 0.82rem !important;
   font-weight: 500 !important;
-  color: rgba(74, 63, 53, 0.5) !important;
-  border: none !important;
+  color: rgba(74, 63, 53, 0.45) !important;
+  padding: 0.4rem 0.75rem !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  box-shadow: none !important;
   border-bottom: 2px solid transparent !important;
-  padding: 0.25rem 0 !important;
-  margin-right: 1.25rem !important;
-  margin-bottom: 0 !important;
+  border-radius: 0 !important;
   transition: all 0.2s ease !important;
 }
 
-.gsc-comment-box-tab--active {
-  color: #D48C70 !important;
-  border-bottom: 2px solid #D48C70 !important;
+.gsc-comment-box-tabs button:hover {
+  color: #4A3F35 !important;
+}
+
+.gsc-comment-box-tabs button.color-text-primary,
+.gsc-comment-box-tabs button.color-bg-canvas,
+.gsc-comment-box-tabs button[aria-selected="true"] {
+  color: #4A3F35 !important;
   font-weight: 600 !important;
+  border-bottom: 2px solid #D48C70 !important;
+  background-color: transparent !important;
+}
+
+.gsc-comment-box-md-toolbar {
+  display: none !important;
+}
+
+/* Main Textarea Area */
+.gsc-comment-box-main {
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: #FDFBF7 !important;
+}
+
+.gsc-comment-box-write {
+  border: none !important;
+  background-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.gsc-comment-box-write:focus,
+.gsc-comment-box-write:focus-within {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.gsc-comment-box-textarea {
+  font-family: inherit !important;
+  font-size: 0.92rem !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0.85rem 1rem !important;
+  background-color: #FDFBF7 !important;
+  color: #4A3F35 !important;
+  min-height: 100px !important;
+  width: 100% !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+  resize: vertical !important;
+}
+
+.gsc-comment-box-textarea::placeholder {
+  color: rgba(74, 63, 53, 0.35) !important;
+}
+
+.gsc-comment-box-textarea:focus,
+.gsc-comment-box-textarea:focus-visible,
+.form-control:focus,
+.form-control:focus-visible,
+.input-contrast:focus {
+  background-color: #FDFBF7 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.gsc-comment-box-textarea-extras {
+  display: none !important;
+}
+
+.gsc-comment-box-preview {
+  border: none !important;
+  padding: 0.85rem 1rem !important;
+  background-color: #FDFBF7 !important;
+  min-height: 100px !important;
+  color: #4A3F35 !important;
+}
+
+/* Bottom Actions Bar */
+.gsc-comment-box-bottom {
+  border-top: 1px solid #E8DFD1 !important;
+  padding: 0.5rem 0.85rem !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background-color: rgba(74, 63, 53, 0.02) !important;
+}
+
+.gsc-comment-box-bottom .link-secondary {
+  color: rgba(74, 63, 53, 0.5) !important;
+  font-size: 0.82rem !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+}
+
+.gsc-comment-box-bottom .link-secondary:hover {
+  color: #4A3F35 !important;
+  text-decoration: underline !important;
 }
 
 .gsc-comment-box-buttons {
   background-color: transparent !important;
-  padding: 0.75rem 0 0 0 !important;
+  padding: 0 !important;
   border-top: none !important;
+  margin-left: auto !important;
 }
 
-.gsc-btn-primary {
+/* Primary Button (e.g. Sign in with GitHub / Submit) */
+.btn-primary,
+.gsc-btn-primary,
+a.btn-primary,
+a.btn,
+.gsc-comment-box-buttons a,
+.gsc-comment-box-buttons .btn-primary {
   background-color: #D48C70 !important;
-  border: 1px solid #BE765A !important;
-  border-radius: 30px !important;
-  padding: 0.45rem 1.4rem !important;
+  border: 1px solid #D48C70 !important;
+  border-radius: 6px !important;
+  padding: 0.45rem 1.1rem !important;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif !important;
   font-size: 0.82rem !important;
   font-weight: 600 !important;
-  color: #FDFBF7 !important;
+  color: #FFFFFF !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.4rem !important;
   transition: all 0.2s ease !important;
   cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(212, 140, 112, 0.15) !important;
+  box-shadow: none !important;
 }
 
-.gsc-btn-primary:hover {
+.btn-primary:hover,
+.gsc-btn-primary:hover,
+a.btn-primary:hover,
+a.btn:hover,
+.gsc-comment-box-buttons a:hover,
+.gsc-comment-box-buttons .btn-primary:hover {
   background-color: #BE765A !important;
   border-color: #BE765A !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(212, 140, 112, 0.25) !important;
+  color: #FFFFFF !important;
+  text-decoration: none !important;
+  box-shadow: none !important;
 }
 
-.gsc-btn-primary:active {
-  transform: translateY(1px) !important;
+.btn-primary:active,
+.gsc-btn-primary:active,
+a.btn-primary:active,
+a.btn:active,
+.gsc-comment-box-buttons a:active,
+.gsc-comment-box-buttons .btn-primary:active {
+  color: #FFFFFF !important;
+  background-color: #B0694F !important;
+}
+
+.btn-primary svg,
+.btn-primary .octicon,
+a.btn-primary svg,
+a.btn-primary .octicon,
+.gsc-comment-box-buttons a svg,
+.gsc-comment-box-buttons a .octicon {
+  fill: #FFFFFF !important;
+  color: #FFFFFF !important;
 }
 
 /* Minimal Comment List */
@@ -239,4 +383,19 @@ a {
 
 a:hover {
   text-decoration: underline !important;
+}
+
+/* Ensure button links always preserve button text colors and never get link underline */
+a.btn,
+a.btn-primary,
+.gsc-comment-box-buttons a {
+  color: #FFFFFF !important;
+  text-decoration: none !important;
+}
+
+a.btn:hover,
+a.btn-primary:hover,
+.gsc-comment-box-buttons a:hover {
+  color: #FFFFFF !important;
+  text-decoration: none !important;
 }
