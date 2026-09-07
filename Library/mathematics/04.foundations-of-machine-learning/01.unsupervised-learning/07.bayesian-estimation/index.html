@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="c3a7e912">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Estimation">
+<meta name="title" content="Bayesian Estimation">
+<meta name="description" content="A first-principles guide to Bayesian parameter estimation: formalizing prior hunches, Bayes' rule for parameters, uniform priors, Beta-Bernoulli conjugacy, MAP vs. posterior mean, Laplace smoothing, Gaussian-Gaussian conjugacy, and ghost samples.">
+<meta name="keywords" content="bayesian estimation, MAP, maximum a posteriori, prior distribution, posterior distribution, conjugate prior, beta distribution, beta bernoulli conjugacy, gaussian conjugacy, ghost samples, laplace smoothing, foundations of machine learning, IITM FML">
+<meta name="status" content="draft">
+<meta name="date" content="2026-09-06">
+<meta name="author" content="Yogesh">
+
+<title>Bayesian Estimation</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 760px;
+  }
+  .svg-container {
+    width: 100%;
+    overflow: visible;
+  }
+  .figure-caption {
+    margin-top: 0.85rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+</style>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="18">
+    <meta property="og:title" content="Bayesian Estimation">
+    <meta property="og:description" content="A first-principles guide to Bayesian parameter estimation: formalizing prior hunches, Bayes' rule for parameters, uniform priors, Beta-Bernoulli conjugacy, MAP vs. posterior mean, Laplace smoothing, Gaussian-Gaussian conjugacy, and ghost samples.">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-bayesian-estimation.png">
+    <script src="../../../../../js/base.js" defer></script>
+    <script src="../../../../../js/components.js" defer></script>
+    <script src="../../../../../js/article_components.js" defer></script>
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1 — The Core Idea: What Is a Hunch?                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="the-hunch">
+  <p>
+    In the previous lesson, we looked at Maximum Likelihood Estimation (MLE). The idea was straightforward: collect some data, write down the probability of observing that data given a candidate parameter $\theta$, and pick the parameter value that makes that probability as large as possible.
+  </p>
+
+  <p>
+    If you have huge amounts of data, MLE works very well. But when data is scarce, it runs into severe trouble.
+  </p>
+
+  <p>
+    Suppose you pick up a coin, flip it 3 times, and get 3 heads. What does MLE say?
+  </p>
+
+  <div class="math-display">
+    $$\hat{p}_{ML} = \frac{3}{3} = 1.0$$
+  </div>
+
+  <p>
+    MLE claims that the probability of getting tails is literally zero. According to MLE, this coin will never land on tails for the rest of eternity.
+  </p>
+
+  <p>
+    Nobody actually believes that. If a friend flips a coin 3 times and gets 3 heads, you wouldn't bet your life savings that the 4th toss is guaranteed to be heads. Why? Because you didn't enter the room with a blank slate. You already have experience with physical coins. You have a <strong>hunch</strong> that coins are usually close to fair.
+  </p>
+
+  <p>
+    Earlier, we saw Laplace fix this with his rule of succession:
+  </p>
+
+  <div class="math-display">
+    $$\hat{p}_{\text{new}} = \frac{n_h + 1}{n + 2}$$
+  </div>
+
+  <p>
+    By pretending we had already seen 1 virtual head and 1 virtual tail, Laplace gave us $\frac{3 + 1}{3 + 2} = \frac{4}{5} = 0.8$ instead of $1.0$. And we proved that this biased estimator actually gets a lower Mean Squared Error than the "optimal" unbiased MLE when data is scarce.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>"Where did the $+1$ and $+2$ come from? How do we formalize a hunch mathematically and systematically combine it with data?"</em></p>
+    </div>
+  </div>
+
+  <p>
+    This brings us to <strong>Bayesian Estimation</strong>.
+  </p>
+
+  <p>
+    In Maximum Likelihood, the parameter $\theta$ is treated as a fixed, unknown constant in the world. Probability is only used to describe the data.
+  </p>
+
+  <p>
+    In Bayesian estimation, we flip that assumption on its head: <strong>we treat the parameter $\theta$ as a random variable itself.</strong>
+  </p>
+
+  <p>
+    Before we look at the data, we codify our hunch as a probability distribution over $\theta$. This is our <strong>prior distribution</strong> $P(\theta)$.
+  </p>
+
+  <p>
+    Then the data $D = \{x_1, \dots, x_n\}$ arrives. We evaluate the <strong>likelihood</strong> $P(D \mid \theta)$.
+  </p>
+
+  <p>
+    Finally, we use Bayes' law to update our initial hunch into an <strong>updated belief</strong>: the <strong>posterior distribution</strong> $P(\theta \mid D)$.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Bayes' Law for Parameters</div>
+    <div class="math-box-body">
+      <p>
+        Let $\theta$ be an unknown parameter with prior distribution $P(\theta)$, and let $D$ be observed data. The posterior distribution of belief is:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          P(\theta \mid D) &= \frac{P(D \mid \theta) P(\theta)}{P(D)} \\[8pt]
+          &= \frac{P(D \mid \theta) P(\theta)}{\int_\Theta P(D \mid \theta') P(\theta')\,d\theta'}
+        \end{aligned}$$
+      </div>
+      <p>
+        Here are the four pieces:
+      </p>
+      <ul>
+        <li><strong>Prior $P(\theta)$:</strong> What you believed about $\theta$ before collecting any data.</li>
+        <li><strong>Likelihood $P(D \mid \theta)$:</strong> How well each candidate value of $\theta$ explains the observed data.</li>
+        <li><strong>Evidence $P(D)$:</strong> The normalizing constant (the denominator) that ensures the posterior integrates to $1$.</li>
+        <li><strong>Posterior $P(\theta \mid D)$:</strong> Your updated belief about $\theta$ after absorbing the empirical evidence.</li>
+      </ul>
+    </div>
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+        <!-- Panels -->
+        <rect x="20" y="20" width="200" height="210" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <rect x="280" y="20" width="200" height="210" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <rect x="540" y="20" width="200" height="210" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+
+        <!-- Block 1: Prior Hunch -->
+        <text x="120" y="52" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">Prior Hunch P(θ)</text>
+        <path d="M 40 180 C 70 180, 90 140, 120 140 C 150 140, 170 180, 200 180" fill="none" stroke="var(--muted)" stroke-width="2.5" />
+        <line x1="40" y1="180" x2="200" y2="180" stroke="var(--border)" stroke-width="1.5" />
+        <text x="120" y="205" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Initial State of Belief</text>
+
+        <!-- Multiplier -->
+        <line x1="230" y1="125" x2="265" y2="125" stroke="var(--border)" stroke-width="2" />
+        <text x="250" y="115" font-family="'Lora', serif" font-size="16" fill="var(--text)" text-anchor="middle">×</text>
+
+        <!-- Block 2: Likelihood -->
+        <text x="380" y="52" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">Likelihood P(D|θ)</text>
+        <path d="M 300 180 C 330 180, 370 90, 400 90 C 430 90, 450 180, 460 180" fill="none" stroke="var(--border)" stroke-width="2.5" />
+        <line x1="300" y1="180" x2="460" y2="180" stroke="var(--border)" stroke-width="1.5" />
+        <text x="380" y="205" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">What the Data Tells Us</text>
+
+        <!-- Arrow -->
+        <line x1="490" y1="125" x2="525" y2="125" stroke="var(--border)" stroke-width="2" />
+        <text x="510" y="115" font-family="'Lora', serif" font-size="16" fill="var(--text)" text-anchor="middle">→</text>
+
+        <!-- Block 3: Posterior -->
+        <text x="640" y="52" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">Posterior P(θ|D)</text>
+        <path d="M 560 180 C 590 180, 620 70, 640 70 C 660 70, 690 180, 720 180" fill="none" stroke="var(--accent)" stroke-width="3" />
+        <line x1="560" y1="180" x2="720" y2="180" stroke="var(--border)" stroke-width="1.5" />
+        <text x="640" y="205" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Updated Belief (Normalized)</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> The Bayesian Updating Engine. Multiply your prior belief $P(\theta)$ by the data likelihood $P(D \mid \theta)$, normalize by the evidence integral, and you get the updated posterior belief $P(\theta \mid D)$.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2 — What If We Have No Hunch? The Uniform Prior       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="uniform-prior">
+  <h2>What If We Have No Hunch? The Uniform Prior</h2>
+
+  <p>
+    A fair question to ask first: <em>"What if we have no prior hunch at all? What if we're flipping a coin from an alien civilization and literally have zero clue what $p$ could be?"</em>
+  </p>
+
+  <p>
+    When we have no reason to favor any value over another, we use a <strong>flat, uniform prior</strong>. Every value of $p \in [0, 1]$ gets equal probability density:
+  </p>
+
+  <div class="math-display">
+    $$P(p) = 1, \quad \forall p \in [0, 1]$$
+  </div>
+
+  <p>
+    Let's see what Bayes' law does when we plug in this uniform prior for $n$ coin flips with $n_h$ heads and $n_t$ tails:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      P(p \mid D) &= \frac{P(D \mid p) \cdot 1}{\int_0^1 P(D \mid p') \cdot 1 \,dp'} \\[8pt]
+      &= \frac{p^{n_h} (1 - p)^{n_t}}{\int_0^1 u^{n_h} (1 - u)^{n_t} \,du}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Notice what happened: because $P(p) = 1$ is just a constant, the numerator is literally just the likelihood:
+  </p>
+
+  <div class="math-display">
+    $$P(p \mid D) \propto P(D \mid p)$$
+  </div>
+
+  <p>
+    <strong>Under a uniform prior, the posterior is simply the normalized likelihood function.</strong>
+  </p>
+
+  <p>
+    Because the curve has the exact same shape as the likelihood, where is its peak (the mode)? At the exact same location:
+  </p>
+
+  <div class="math-display">
+    $$\hat{p}_{\text{mode}} = \arg\max_p P(p \mid D) = \arg\max_p P(D \mid p) = \frac{n_h}{n} = \hat{p}_{ML}$$
+  </div>
+
+  <p>
+    This connects our first two dots: <strong>Maximum Likelihood is secretly a special case of Bayesian inference.</strong> It is what you get if you take the peak of the posterior under a flat, non-informative prior.
+  </p>
+
+  <h3>Taking the Mean of the Posterior</h3>
+  <p>
+    Picking the peak (the mode) is only one way to summarize a distribution. What if, instead of finding the single most likely point, we compute the <strong>center of mass (the mean)</strong> of our posterior belief?
+  </p>
+
+  <p>
+    Let's integrate $\int_0^1 p \cdot P(p \mid D) \,dp$. We can evaluate these integrals using the Beta function identity $\text{B}(a, b) = \int_0^1 u^{a-1}(1-u)^{b-1}\,du = \frac{(a-1)!(b-1)!}{(a+b-1)!}$ for integers:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \mathbb{E}[p \mid D] &= \frac{\int_0^1 p \cdot p^{n_h} (1 - p)^{n_t} \,dp}{\int_0^1 u^{n_h} (1 - u)^{n_t} \,du} \\[8pt]
+      &= \frac{\int_0^1 p^{(n_h + 1)} (1 - p)^{n_t} \,dp}{\text{B}(n_h + 1, \; n_t + 1)} \\[8pt]
+      &= \frac{\text{B}(n_h + 2, \; n_t + 1)}{\text{B}(n_h + 1, \; n_t + 1)} \\[8pt]
+      &= \frac{\frac{(n_h + 1)! \, n_t!}{(n + 2)!}}{\frac{n_h! \, n_t!}{(n + 1)!}} \\[8pt]
+      &= \frac{n_h + 1}{n + 2}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Look at the result: $\frac{n_h + 1}{n + 2}$.
+  </p>
+
+  <p>
+    This is Laplace's rule of succession! Laplace's $+1$ wasn't an arbitrary hack. <strong>It is the exact expected value of your belief when you start with a uniform prior.</strong>
+  </p>
+
+  <p>
+    When Fisher picked the mode, he focused only on the peak and got $3/3 = 1.0$. When Laplace computed the expectation, he averaged across the entire curve, taking into account the possibility of tails, which gave $\frac{3 + 1}{3 + 2} = 0.8$.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>"A uniform prior means total ignorance. How do we encode real hunches — like knowing a coin is probably fair?"</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3 — Flexible Hunches: The Beta Family & Conjugacy     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="beta-family">
+  <h2>Flexible Hunches: The Beta Family &amp; Conjugacy</h2>
+
+  <p>
+    Think carefully about what the parameter $p$ actually represents.
+  </p>
+
+  <p>
+    In our coin toss experiment, $p$ is the true underlying probability of landing Heads. Because it is a probability, it cannot be negative, and it cannot exceed $1$. But within that interval, $p$ can take <strong>any continuous real value between $0$ and $1$</strong> ($p \in [0, 1]$). It could be $0.500$, $0.723$, $0.001$, or $0.999$.
+  </p>
+
+  <p>
+    In the previous section, we assumed complete ignorance: we drew a flat horizontal line across $[0, 1]$ and declared that every single value of $p$ was equally plausible ($P(p) = 1$).
+  </p>
+
+  <p>
+    But what if you <em>do</em> have a hunch?
+  </p>
+
+  <p>
+    If someone hands you a standard quarter from their pocket, you don't believe that $p = 0.05$ or $p = 0.95$ is just as likely as $p = 0.5$. You suspect—with high confidence—that the coin is manufactured well and lands near $0.5$. On the other hand, if a carnival operator hands you a coin, you might have a hunch it is heavily weighted, but you don't know which side is favored. If you are tossing a thumbtack or an asymmetric bottle cap, you might suspect it lands point-up far more often than point-down.
+  </p>
+
+  <p>
+    Because $p$ lives on a continuous continuum, <strong>we cannot represent our hunch as a single number or a discrete list</strong>. We need a continuous probability density function $P(p)$ defined over the entire interval $[0, 1]$.
+  </p>
+
+  <p>
+    What properties must such a distribution have?
+  </p>
+
+  <ul>
+    <li>
+      <strong>Valid Probability Density:</strong> The total area under the curve across the unit interval must equal $1$:
+      $$\int_0^1 P(p) \, dp = 1$$
+      and the density can never be negative ($P(p) \ge 0$).
+    </li>
+    <li>
+      <strong>Universal Geometric Flexibility:</strong> Depending on our prior knowledge, the curve must be able to bend, stretch, peak, or flatten into whatever shape our belief demands:
+      <ul>
+        <li>A sharp, narrow spike centered at $0.5$ (high certainty of a fair coin).</li>
+        <li>A gentle, wide mound around $0.5$ (a weak hunch of fairness).</li>
+        <li>An asymmetric hill leaning towards $1$ or $0$ (a hunch that heads or tails dominates).</li>
+        <li>A U-shaped bowl that peaks at both boundaries and dips in the middle (a belief that the coin is rigged toward extremes, but we aren't sure which side).</li>
+        <li>A flat horizontal line across $[0, 1]$ (our baseline of total ignorance).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>"What mathematical function can flex into all of these continuous shapes over the interval $[0, 1]$ without spilling outside?"</em></p>
+    </div>
+  </div>
+
+  <h3>Constructing the Function: The Beta Family</h3>
+
+  <p>
+    Look at the likelihood function we have been working with: $p^{n_h} (1 - p)^{n_t}$.
+  </p>
+
+  <p>
+    Notice how that algebraic product behaves on $[0, 1]$:
+  </p>
+
+  <ul>
+    <li>The factor $p$ naturally pulls the value to zero as $p \to 0$.</li>
+    <li>The factor $(1 - p)$ naturally pulls the value to zero as $p \to 1$.</li>
+    <li>Between $0$ and $1$, the product rises smoothly to form a curved hill!</li>
+  </ul>
+
+  <p>
+    What if we generalize this algebraic structure? Instead of data counts $n_h$ and $n_t$, let's introduce two adjustable continuous shape parameters, which we will call $\alpha > 0$ and $\beta > 0$:
+  </p>
+
+  <div class="math-display">
+    $$P(p) \propto p^{\alpha - 1} (1 - p)^{\beta - 1}, \quad \text{for } p \in [0, 1]$$
+  </div>
+
+  <p>
+    (The $-1$ in the exponents is a standard convention so that when $\alpha = 1$ and $\beta = 1$, the powers vanish ($p^0 (1 - p)^0 = 1$), returning our familiar flat uniform prior.)
+  </p>
+
+  <p>
+    By simply turning these two knobs, $\alpha$ and $\beta$, we can sculpt every single hunch we imagined:
+  </p>
+
+  <ul>
+    <li><strong>$\alpha = 1, \beta = 1$:</strong> A flat line ($p^0 (1-p)^0 = 1$). Total ignorance.</li>
+    <li><strong>$\alpha = 2, \beta = 2$:</strong> A gentle parabolic mound peaking at $p = 0.5$. A mild hunch of fairness.</li>
+    <li><strong>$\alpha = 10, \beta = 10$:</strong> A tall, concentrated bell curve at $0.5$. High confidence that the coin is fair.</li>
+    <li><strong>$\alpha = 2, \beta = 5$:</strong> Asymmetric curve leaning toward tails, peaking at $p = 0.2$.</li>
+    <li><strong>$\alpha = 0.5, \beta = 0.5$:</strong> Because both exponents are negative ($\alpha - 1 = -0.5$), the density shoots upward as $p \to 0$ and $p \to 1$, creating a <strong>U-shaped bowl</strong>! This models a belief that the coin is strongly rigged, but we don't know which side.</li>
+  </ul>
+
+  <p>
+    To turn this proportional shape into a strict probability distribution whose area integrates to $1$, we divide by the normalizing integral:
+  </p>
+
+  <div class="math-display">
+    $$\text{B}(\alpha, \beta) = \int_0^1 u^{\alpha - 1}(1 - u)^{\beta - 1}\,du$$
+  </div>
+
+  <p>
+    This gives us the <strong>Beta distribution</strong>.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Beta Distribution</div>
+    <div class="math-box-body">
+      <p>
+        A continuous random variable $p \in [0, 1]$ follows a Beta distribution with shape parameters $\alpha > 0$ and $\beta > 0$, written $p \sim \text{Beta}(\alpha, \beta)$, if its probability density function is:
+      </p>
+      <div class="math-display">
+        $$\text{Beta}(p; \alpha, \beta) = \frac{1}{\text{B}(\alpha, \beta)} p^{\alpha - 1} (1 - p)^{\beta - 1}, \quad p \in [0, 1]$$
+      </div>
+      <p>
+        where the Beta function $\text{B}(\alpha, \beta) = \int_0^1 u^{\alpha - 1}(1 - u)^{\beta - 1}\,du$ is the normalizing constant.
+      </p>
+    </div>
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 740 310" xmlns="http://www.w3.org/2000/svg">
+        <!-- Axes -->
+        <line x1="70" y1="250" x2="680" y2="250" stroke="var(--border)" stroke-width="2" />
+        <line x1="70" y1="250" x2="70" y2="30" stroke="var(--border)" stroke-width="2" />
+
+        <!-- Axis Labels -->
+        <text x="685" y="254" font-family="'Lora', serif" font-size="14" fill="var(--text)">p</text>
+        <text x="70" y="22" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">Density f(p)</text>
+
+        <!-- Y-axis Ticks -->
+        <line x1="65" y1="190" x2="70" y2="190" stroke="var(--border)" stroke-width="1.5" />
+        <text x="60" y="194" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="end">1.0</text>
+
+        <line x1="65" y1="130" x2="70" y2="130" stroke="var(--border)" stroke-width="1.5" />
+        <text x="60" y="134" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="end">2.0</text>
+
+        <line x1="65" y1="70" x2="70" y2="70" stroke="var(--border)" stroke-width="1.5" />
+        <text x="60" y="74" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="end">3.0</text>
+
+        <!-- X ticks -->
+        <text x="70" y="272" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">0.0</text>
+        <text x="190" y="272" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">0.2</text>
+        <text x="310" y="272" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">0.4</text>
+        <text x="370" y="272" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">0.5</text>
+        <text x="430" y="272" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">0.6</text>
+        <text x="550" y="272" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">0.8</text>
+        <text x="670" y="272" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">1.0</text>
+
+        <!-- Beta(1,1) -->
+        <line x1="70" y1="190" x2="670" y2="190" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4,4" />
+        <text x="110" y="180" font-family="'Lora', serif" font-size="12" fill="var(--muted)">Beta(1, 1): Flat Uniform</text>
+
+        <!-- Beta(2,2) -->
+        <path d="M 70 250 Q 370 70 670 250" fill="none" stroke="var(--border)" stroke-width="2.5" />
+        <text x="260" y="150" font-family="'Lora', serif" font-size="12" fill="var(--text)">Beta(2, 2): Weak Center Hunch</text>
+
+        <!-- Beta(10,10) -->
+        <path d="M 190 250 C 260 250, 310 210, 335 120 C 350 70, 362 46, 370 46 C 378 46, 390 70, 405 120 C 430 210, 480 250, 550 250" fill="none" stroke="var(--accent)" stroke-width="3" />
+        <text x="440" y="60" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)">Beta(10, 10): Strong Hunch</text>
+        <line x1="430" y1="60" x2="380" y2="50" stroke="var(--accent)" stroke-width="1.2" />
+
+        <!-- Beta(2,5) -->
+        <path d="M 70 250 C 90 200, 140 103, 190 103 C 240 103, 330 220, 500 248 L 670 250" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6,3" />
+        <text x="210" y="95" font-family="'Lora', serif" font-size="12" fill="var(--muted)">Beta(2, 5): Tails Skewed</text>
+
+        <!-- Beta(0.5, 0.5) U-Shape -->
+        <path d="M 78 50 C 95 180, 220 212, 370 212 C 520 212, 645 180, 662 50" fill="none" stroke="var(--border)" stroke-width="2" stroke-dasharray="3,3" />
+        <text x="505" y="140" font-family="'Lora', serif" font-size="12" fill="var(--muted)">Beta(0.5, 0.5): Rigged (U-shape)</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> The Beta distribution family. A continuous parameter $p \in [0, 1]$ can represent any state of belief: flat ignorance ($\alpha = \beta = 1$), weak or strong hunch of fairness ($\alpha = \beta > 1$), directional bias ($\alpha \ne \beta$), or a rigged coin with extreme outcomes ($\alpha, \beta < 1$).
+    </figcaption>
+  </figure>
+
+  <h3>The Mathematical Miracle: Conjugacy &amp; Pseudo-Counts</h3>
+
+  <p>
+    Beyond its geometric ability to shape any hunch over $[0, 1]$, the Beta family possesses a second, extraordinary mathematical superpower.
+  </p>
+
+  <p>
+    In Bayesian estimation, to compute the posterior distribution $P(p \mid D)$ from an arbitrary prior, Bayes' theorem requires dividing by the marginal likelihood:
+  </p>
+
+  <div class="math-display">
+    $$P(p \mid D) = \frac{P(D \mid p) \cdot P(p)}{\int_0^1 P(D \mid p') \cdot P(p') \, dp'}$$
+  </div>
+
+  <p>
+    If you pick an arbitrary mathematical function for your prior (like a piecewise polynomial or a cosine wave), that integral in the denominator becomes an intractable bottleneck that cannot be solved in closed form.
+  </p>
+
+  <p>
+    Now look at what happens when our prior comes from the Beta family.
+  </p>
+
+  <p>
+    We multiply our Bernoulli likelihood $P(D \mid p) \propto p^{n_h} (1 - p)^{n_t}$ directly by our Beta prior $P(p) \propto p^{\alpha - 1} (1 - p)^{\beta - 1}$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      P(p \mid D) &\propto P(D \mid p) \cdot P(p) \\[6pt]
+      &\propto \Big[ p^{n_h} (1 - p)^{n_t} \Big] \cdot \Big[ p^{\alpha - 1} (1 - p)^{\beta - 1} \Big] \\[8pt]
+      &= p^{(\alpha - 1) + n_h} (1 - p)^{(\beta - 1) + n_t} \\[8pt]
+      &= p^{(\alpha + n_h) - 1} (1 - p)^{(\beta + n_t) - 1}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Look at that final expression. The posterior has the <strong>exact same algebraic form</strong> as the prior!
+  </p>
+
+  <p>
+    We don't need to evaluate a nasty integral. We already know the normalizing constant for this functional form—it is simply another Beta distribution:
+  </p>
+
+  <div class="math-display">
+    $$p \mid D \sim \text{Beta}(\alpha + n_h, \;\beta + n_t)$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Conjugate Prior</div>
+    <div class="math-box-body">
+      <p>
+        A prior distribution is called <strong>conjugate</strong> to a likelihood function if the resulting posterior distribution belongs to the <strong>exact same distribution family</strong> as the prior.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    When a prior is conjugate, updating your belief after observing data never requires calculus. It simply reduces to <strong>updating the parameters</strong> of that distribution:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \alpha_{\text{post}} &= \alpha + n_h \\[6pt]
+      \beta_{\text{post}} &= \beta + n_t
+    \end{aligned}$$
+  </div>
+
+  <p>
+    This gives the parameters $\alpha$ and $\beta$ a clear physical meaning: they are <strong>pseudo-counts</strong> (virtual coin flips).
+  </p>
+
+  <ul>
+    <li>$\alpha - 1$ is the number of virtual heads you had observed in your mind before the experiment began.</li>
+    <li>$\beta - 1$ is the number of virtual tails you had observed in your mind before the experiment began.</li>
+    <li>$\alpha + \beta - 2$ represents your <em>prior sample size</em>—the strength or certainty of your hunch.</li>
+  </ul>
+
+  <p>
+    Every time you observe a real coin flip, you simply add it to your ledger: heads increment $\alpha$, tails increment $\beta$.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4 — What Do We Do With the Posterior? MAP vs. Mean    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="posterior-decisions">
+  <h2>What Do We Do With the Posterior? MAP vs. Expected Belief</h2>
+
+  <p>
+    Now that we have the full posterior distribution $P(p \mid D) = \text{Beta}(\alpha + n_h, \beta + n_t)$, what do we do with it?
+  </p>
+
+  <p>
+    Often in machine learning, we need a single number to make a decision. There are two standard choices:
+  </p>
+
+  <h3>1. Maximum A Posteriori (MAP)</h3>
+  <p>
+    Pick the <strong>mode (peak)</strong> of the posterior distribution:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \hat{\theta}_{MAP} &= \arg\max_\theta P(\theta \mid D) \\[6pt]
+      &= \arg\max_\theta \Big[ \log P(D \mid \theta) + \log P(\theta) \Big] \\[8pt]
+      &= \arg\max_\theta \Big[ \underbrace{\ell(\theta)}_{\text{Likelihood}} + \underbrace{\log P(\theta)}_{\text{Prior Penalty}} \Big]
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Look at that last line: <strong>MAP estimation is Maximum Likelihood with a regularization term!</strong> The prior penalizes extreme, absurd parameter values, acting as a built-in regularizer.
+  </p>
+
+  <p>
+    For our Beta posterior with parameters $\alpha' = \alpha + n_h$ and $\beta' = \beta + n_t$, taking the derivative of the log density and setting it to zero gives the mode:
+  </p>
+
+  <div class="math-display">
+    $$\hat{p}_{MAP} = \frac{\alpha' - 1}{\alpha' + \beta' - 2} = \mathbf{\frac{n_h + (\alpha - 1)}{n + (\alpha + \beta - 2)}}$$
+  </div>
+
+  <h3>2. Expected Posterior Belief (Bayes Estimator)</h3>
+  <p>
+    Instead of picking the peak, pick the <strong>mean (center of mass)</strong> of the posterior distribution:
+  </p>
+
+  <div class="math-display">
+    $$\hat{p}_{\text{Bayes}} = \mathbb{E}[p \mid D] = \frac{\alpha'}{\alpha' + \beta'} = \mathbf{\frac{n_h + \alpha}{n + \alpha + \beta}}$$
+  </div>
+
+  <p>
+    If you evaluate your estimator using Mean Squared Error $(\hat{p} - p)^2$, decision theory proves that the posterior mean is the unique estimator that minimizes your expected loss.
+  </p>
+
+  <h3>Laplace from Both Perspectives</h3>
+  <p>
+    Notice how both estimators connect back to Laplace's rule of succession:
+  </p>
+
+  <ul>
+    <li>Under a <strong>uniform prior</strong> $\text{Beta}(1, 1)$, the posterior mean is $\frac{n_h + 1}{n + 2}$.</li>
+    <li>Under a <strong>weak fairness prior</strong> $\text{Beta}(2, 2)$ (which encodes 1 prior head and 1 prior tail), the MAP mode is $\frac{n_h + (2-1)}{n + (2+2-2)} = \frac{n_h + 1}{n + 2}$.</li>
+  </ul>
+
+  <p>
+    Both paths arrive at the exact same formula.
+  </p>
+
+  <h3>What Happens When You Collect More Data?</h3>
+  <p>
+    What if your initial hunch was wrong? Suppose you thought a coin was biased toward heads ($\alpha = 10, \beta = 2$), but the coin is actually fair ($p = 0.5$).
+  </p>
+
+  <p>
+    At first, your estimate will be pulled toward your hunch. But as you collect real observations ($n \to \infty$):
+  </p>
+
+  <div class="math-display">
+    $$\lim_{n \to \infty} \hat{p}_{MAP} = \lim_{n \to \infty} \frac{n_h + \alpha - 1}{n + \alpha + \beta - 2} = \lim_{n \to \infty} \frac{n_h}{n} = \hat{p}_{ML}$$
+  </div>
+
+  <p>
+    <strong>The data always wins in the end.</strong> As sample size grows, the influence of the prior decays away, and the Bayesian estimate converges to the empirical MLE.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5 — Continuous Parameters: Gaussian Conjugacy         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="gaussian-conjugacy">
+  <h2>Continuous Parameters: Gaussian Conjugacy &amp; "Ghost Samples"</h2>
+
+  <p>
+    We saw how this works for coin flips. Now let's apply the exact same logic to continuous numbers.
+  </p>
+
+  <p>
+    Suppose we collect $n$ measurements $x_1, \dots, x_n$ drawn from a Gaussian distribution with known measurement noise $\sigma^2$, but unknown mean $\mu$:
+  </p>
+
+  <div class="math-display">
+    $$x_i \sim \mathcal{N}(\mu, \sigma^2)$$
+  </div>
+
+  <p>
+    The likelihood of our dataset given $\mu$ is:
+  </p>
+
+  <div class="math-display">
+    $$P(X \mid \mu) = \left( 2\pi\sigma^2 \right)^{-n/2} \exp\left( -\frac{1}{2\sigma^2} \sum_{i=1}^n (x_i - \mu)^2 \right)$$
+  </div>
+
+  <p>
+    What prior over $\mu$ keeps this conjugate? Since the Gaussian likelihood is an exponential of a quadratic in $\mu$, choosing a <strong>Gaussian prior</strong> over the mean preserves that quadratic form:
+  </p>
+
+  <div class="math-display">
+    $$\mu \sim \mathcal{N}(\mu_0, \sigma_0^2) \implies P(\mu) = \frac{1}{\sqrt{2\pi\sigma_0^2}} \exp\left( -\frac{(\mu - \mu_0)^2}{2\sigma_0^2} \right)$$
+  </div>
+
+  <p>
+    Here, $\mu_0$ is your hunch about the mean, and $\sigma_0^2$ is your uncertainty in that hunch.
+  </p>
+
+  <h3>Completing the Square</h3>
+  <p>
+    Let's multiply the likelihood by the prior and group the terms inside the exponent:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      P(\mu \mid X) &\propto P(X \mid \mu) \cdot P(\mu) \\[8pt]
+      &\propto \exp\left( -\frac{1}{2} \left[ \frac{1}{\sigma^2} \sum_{i=1}^n (x_i - \mu)^2 + \frac{(\mu - \mu_0)^2}{\sigma_0^2} \right] \right)
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Let's expand the terms in the brackets and group by powers of $\mu$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \text{Exponent} &= \frac{1}{\sigma^2} \sum_{i=1}^n (x_i^2 - 2x_i\mu + \mu^2) + \frac{1}{\sigma_0^2} (\mu^2 - 2\mu\mu_0 + \mu_0^2) \\[8pt]
+      &= \mu^2 \left( \frac{n}{\sigma^2} + \frac{1}{\sigma_0^2} \right) - 2\mu \left( \frac{\sum_{i=1}^n x_i}{\sigma^2} + \frac{\mu_0}{\sigma_0^2} \right) + \text{constant}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    We want this to match the exponent of a new Gaussian $\mathcal{N}(\mu_n, \sigma_n^2)$, which has the form $\frac{\mu^2}{\sigma_n^2} - \frac{2\mu \mu_n}{\sigma_n^2}$.
+  </p>
+
+  <p>
+    1. Match the $\mu^2$ coefficient:
+  </p>
+
+  <div class="math-display">
+    $$\mathbf{\frac{1}{\sigma_n^2} = \frac{n}{\sigma^2} + \frac{1}{\sigma_0^2}}$$
+  </div>
+
+  <p>
+    2. Match the linear $\mu$ coefficient:
+  </p>
+
+  <div class="math-display">
+    $$\frac{\mu_n}{\sigma_n^2} = \frac{n \hat{\mu}_{ML}}{\sigma^2} + \frac{\mu_0}{\sigma_0^2}$$
+  </div>
+
+  <p>
+    Multiplying by $\sigma_n^2$ gives the updated posterior mean:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \mu_n &= \frac{\frac{n}{\sigma^2}\hat{\mu}_{ML} + \frac{1}{\sigma_0^2}\mu_0}{\frac{n}{\sigma^2} + \frac{1}{\sigma_0^2}} \\[10pt]
+      &= \mathbf{\frac{n \sigma_0^2 \hat{\mu}_{ML} + \sigma^2 \mu_0}{\sigma^2 + n \sigma_0^2}}
+    \end{aligned}$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Gaussian-Gaussian Updating</div>
+    <div class="math-box-body">
+      <p>
+        If the data is Gaussian with known variance $\sigma^2$, and the prior is $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$, then the posterior is also Gaussian:
+      </p>
+      <div class="math-display">
+        $$\mu \mid X \sim \mathcal{N}(\mu_n, \sigma_n^2)$$
+      </div>
+      <p>
+        The <strong>posterior precision</strong> (precision is inverse variance, $\tau = 1/\sigma^2$) is the direct sum:
+      </p>
+      <div class="math-display">
+        $$\tau_n = \tau_0 + n \tau_{\text{data}}$$
+      </div>
+      <p>
+        and the posterior mean $\mu_n$ is a <strong>precision-weighted average</strong> between your prior hunch $\mu_0$ and the sample mean $\hat{\mu}_{ML}$.
+      </p>
+    </div>
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 760 290" xmlns="http://www.w3.org/2000/svg">
+        <!-- Axes -->
+        <line x1="60" y1="240" x2="700" y2="240" stroke="var(--border)" stroke-width="2" />
+        <line x1="60" y1="240" x2="60" y2="30" stroke="var(--border)" stroke-width="2" />
+
+        <!-- Axis labels -->
+        <text x="705" y="244" font-family="'Lora', serif" font-size="14" fill="var(--text)">μ</text>
+        <text x="60" y="22" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">Density</text>
+
+        <!-- Curve 1: Prior -->
+        <path d="M 80 240 C 130 240, 160 210, 180 180 C 190 170, 200 168, 200 168 C 200 168, 210 170, 220 180 C 240 210, 270 240, 320 240" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5,5" />
+        <text x="200" y="152" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Prior: N(μ₀, σ₀²)</text>
+        <line x1="200" y1="240" x2="200" y2="168" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+        <text x="200" y="258" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">μ₀ = 30</text>
+
+        <!-- Curve 2: Likelihood -->
+        <path d="M 420 240 C 460 240, 480 200, 500 150 C 510 128, 515 120, 520 120 C 525 120, 530 128, 540 150 C 560 200, 580 240, 620 240" fill="none" stroke="var(--border)" stroke-width="2.5" />
+        <text x="520" y="105" font-family="'Lora', serif" font-size="12" fill="var(--text)" text-anchor="middle">Data Likelihood (MLE)</text>
+        <line x1="520" y1="240" x2="520" y2="120" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+        <text x="520" y="258" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">μ̂_ML = 70</text>
+
+        <!-- Curve 3: Posterior -->
+        <path d="M 370 240 C 400 240, 420 190, 435 120 C 442 80, 448 48, 450 48 C 452 48, 458 80, 465 120 C 480 190, 500 240, 530 240" fill="none" stroke="var(--accent)" stroke-width="3" />
+        <circle cx="450" cy="48" r="4" fill="var(--text)" />
+        <text x="450" y="34" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">Posterior N(μₙ, σₙ²)</text>
+        <line x1="450" y1="240" x2="450" y2="48" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="3,3" />
+        <text x="450" y="258" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="middle">μₙ = 60</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 3:</strong> Gaussian-Gaussian conjugate updating. The posterior sits between the prior hunch $\mu_0$ and the sample mean $\hat{\mu}_{ML}$. Because precisions add ($\tau_n = \tau_0 + n\tau_{\text{data}}$), the posterior curve is narrower and taller than both curves.
+    </figcaption>
+  </figure>
+
+  <h3>Effective "Ghost Samples"</h3>
+  <p>
+    To understand this formula physically, look at the ratio of measurement variance to prior variance:
+  </p>
+
+  <div class="math-display">
+    $$n_0 = \frac{\sigma^2}{\sigma_0^2}$$
+  </div>
+
+  <p>
+    Now substitute $n_0$ into the posterior formulas:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \hat{\mu}_{MAP} = \mu_n &= \mathbf{\frac{n \hat{\mu}_{ML} + n_0 \mu_0}{n + n_0}} \\[10pt]
+      \sigma_n^2 &= \mathbf{\frac{\sigma^2}{n + n_0}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Look at $n_0$. It literally represents the <strong>effective number of "ghost samples"</strong> you held in your head before seeing any real data!
+  </p>
+
+  <ul>
+    <li>Your prior acts like $n_0$ virtual observations with average value $\mu_0$.</li>
+    <li>If your prior was very uncertain ($\sigma_0^2 \to \infty$), your ghost count $n_0 \to 0$. The estimate relies purely on real data: $\mu_n \to \hat{\mu}_{ML}$.</li>
+    <li>If your prior was absolute certainty ($\sigma_0^2 \to 0$), $n_0 \to \infty$. No amount of data will ever budge your estimate from $\mu_0$.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6 — Connecting the Dots: Summary & The Next Hurdle    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots: The Estimation Spectrum</h2>
+
+  <p>
+    We now have a complete picture of single-distribution parameter estimation across both frequentist and Bayesian paradigms:
+  </p>
+
+  <table style="width:100%; margin: 2.5rem 0; border-collapse: collapse; font-size: 0.95rem;">
+    <thead>
+      <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+        <th style="padding: 10px;">Method</th>
+        <th style="padding: 10px;">What is $\theta$?</th>
+        <th style="padding: 10px;">What does it compute?</th>
+        <th style="padding: 10px;">Small-Sample Behavior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Maximum Likelihood (MLE)</strong></td>
+        <td style="padding: 10px;">Fixed, unknown number</td>
+        <td style="padding: 10px;">$\arg\max_\theta \log P(D \mid \theta)$</td>
+        <td style="padding: 10px;">Overfits easily; prone to zero-frequency errors ($3/3 \implies 1.0$).</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Maximum A Posteriori (MAP)</strong></td>
+        <td style="padding: 10px;">Random variable with prior</td>
+        <td style="padding: 10px;">$\arg\max_\theta [\log P(D \mid \theta) + \log P(\theta)]$</td>
+        <td style="padding: 10px;">Regularized by the prior hunch; beats MVUE when the hunch is sensible.</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px;"><strong>Full Bayesian Posterior</strong></td>
+        <td style="padding: 10px;">Random variable with full distribution</td>
+        <td style="padding: 10px;">$P(\theta \mid D) = \frac{P(D \mid \theta)P(\theta)}{\int P(D \mid \theta')P(\theta')d\theta'}$</td>
+        <td style="padding: 10px;">Retains all uncertainty; avoids false certainty completely.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>From Single Distributions to Ambiguous Mixtures</h3>
+  <p>
+    Notice the unspoken assumption behind every model we've built so far—whether MLE, MAP, or conjugate updating: <em>we assumed every data point came from a single, known distribution whose source was directly observed</em>. In coin flips, every toss was generated by the same coin. In Gaussian estimation, every measurement came from the same bell curve.
+  </p>
+
+  <p>
+    Earlier, when we studied clustering, we saw the need to group data into discrete prototypes. But $K$-Means forced a rigid, deterministic choice: every point belonged 100% to one cluster and 0% to all others.
+  </p>
+
+  <p>
+    When a data point could plausibly belong to multiple clusters—like an animal image with dog-like ears but cat-like paws—<strong>Bayesian estimation provides a principled way to represent this uncertainty</strong>: by assigning probabilities to candidate cluster assignments rather than making a purely deterministic choice.
+  </p>
+
+  <h3>The Hidden Barrier: Latent Variables</h3>
+  <p>
+    Every model we've built up to this point—whether MLE, MAP, or conjugate updating—shared one unspoken assumption: <em>we assumed every data point came from a single, known distribution whose source was directly observed</em>.
+  </p>
+
+  <p>
+    What happens in real machine learning problems when data emerges from a <strong>mixture of multiple sub-populations</strong>? For example:
+  </p>
+
+  <ul>
+    <li>Customer purchase histories from three different buyer personas (students, bargain hunters, luxury buyers).</li>
+    <li>Sensor signals from an engine operating across distinct modes (idle, cruise, heavy load).</li>
+    <li>Images of handwritten digits from 10 different number categories without any labels.</li>
+  </ul>
+
+  <p>
+    If you try to fit a single Gaussian to multimodal data, it smears across all the clusters and misses the true structure completely. But if you try to fit a mixture of Gaussians, you run into a fundamental chicken-and-egg dilemma: <strong>you don't know which data point came from which cluster</strong>. The cluster assignments are hidden, unobserved, and <em>latent</em>.
+  </p>
+
+  <p>
+    Even worse: when you write down the log-likelihood of a mixture, you get a logarithm outside a sum:
+  </p>
+
+  <div class="math-display">
+    $$\ell(\Theta) = \sum_{i=1}^n \log \left( \sum_{k=1}^K \pi_k \mathcal{N}(x_i; \mu_k, \Sigma_k) \right)$$
+  </div>
+
+  <p>
+    You can no longer set the derivative to zero and solve cleanly in closed form.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>"How do we estimate parameters and assign cluster probabilities when the cluster labels themselves are latent?"</em></p>
+    </div>
+  </div>
+
+  <p>
+    In the next lesson, <strong>Expectation-Maximization (EM)</strong>, we conquer this exact problem. We will see how alternating between computing soft Bayesian cluster probabilities (the E-step) and updating cluster parameters (the M-step) allows us to cluster complex, overlapping data with full mathematical rigor.
+  </p>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

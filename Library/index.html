@@ -259,7 +259,6 @@
             font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 1rem;
         }
         .toc-part::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-        .toc-row { transition: all 0.15s ease; border-left: 2px solid transparent; }
         .toc-row a {
             display: flex; align-items: baseline; gap: 0.7rem; padding: 0.85rem 2rem 0.85rem 2.8rem;
             width: 100%; box-sizing: border-box; text-decoration: none; color: inherit;
@@ -267,6 +266,21 @@
         .toc-row:hover { background: var(--highlight); border-left-color: var(--accent); }
         .row-title { font-size: 1.08rem; color: var(--text); flex: 1; line-height: 1.55; font-weight: 400; }
         .toc-row:hover .row-title { color: var(--accent); }
+        .row-reading-time {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-left: auto;
+            white-space: nowrap;
+            padding-left: 1rem;
+            flex-shrink: 0;
+            opacity: 0.65;
+            transition: opacity 0.15s, color 0.15s;
+        }
+        .toc-row:hover .row-reading-time {
+            opacity: 1;
+            color: var(--accent);
+        }
 
         .deep-dive-section {
             margin-top: 1rem;
@@ -382,6 +396,7 @@
             .ch-summary-count { font-size: 0.65rem; }
             .toc-row a { padding: 0.75rem 1rem; } 
             .row-title { font-size: 0.95rem; }
+            .row-reading-time { font-size: 0.7rem; padding-left: 0.5rem; }
             .deep-dive-header { padding-left: 1rem; font-size: 0.6rem; }
         }
     </style>
@@ -731,6 +746,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let coreRowsHtml = "";
         let deepDiveRowsHtml = "";
         let totalSections = 0;
+        let totalChapterMinutes = 0;
 
         Object.keys(parts)
             .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
@@ -747,13 +763,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     })
                     .forEach(page => {
                         totalSections++;
+                        const rTime = page.readingTime || 0;
+                        totalChapterMinutes += rTime;
                         const status = (page.status || 'draft').toLowerCase();
                         const statusBadge = status === 'draft' ? `<span class="status-badge status-draft">Draft</span>` : '';
+                        const readingTimeBadge = rTime ? `<span class="row-reading-time">${rTime}m</span>` : '';
                         let displayTitle = page.lessonNumber ? `${page.lessonNumber}. ${page.title}` : page.title;
                         const rowHTML = `
                             <div class="toc-row ${page.tier === 'deep-dive' ? 'is-deep-dive' : ''}">
                                 <a href="${page.url}" data-source-path="${page.sourcePath || ''}">
                                     <span class="row-title">${displayTitle} ${statusBadge}</span>
+                                    ${readingTimeBadge}
                                 </a>
                             </div>
                         `;
@@ -771,12 +791,19 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         }
 
+        const chapterTimeStr = totalChapterMinutes >= 60 
+            ? `${(totalChapterMinutes / 60).toFixed(1)}h` 
+            : `${totalChapterMinutes}m`;
+        const chapterCountBadge = totalChapterMinutes > 0
+            ? `${totalSections} Lessons · ${chapterTimeStr}`
+            : `${totalSections} Lessons`;
+
         const isOpen = (isSearching || currentState.openChapters.includes(chapter)) ? "open" : "";
         return { html: `
             <details class="toc-block" data-chapter="${chapter}" ${isOpen}>
                 <summary>
                     <span class="ch-summary-title">${chapterTitle}</span>
-                    <span class="ch-summary-count">${totalSections} Lessons</span>
+                    <span class="ch-summary-count">${chapterCountBadge}</span>
                     <svg class="ch-summary-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
@@ -786,7 +813,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${deepDiveRowsHtml}
                 </div>
             </details>
-        `, lessonCount: totalSections };
+        `, lessonCount: totalSections, chapterMinutes: totalChapterMinutes };
     }
 
     function renderLibrary(library, isSearching) {
@@ -818,21 +845,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let sectionInnerHtml = "";
             let totalSectionLessons = 0;
+            let totalSectionMinutes = 0;
 
             sectionChapters.forEach(chapter => {
-                const { html: chHtml, lessonCount } = renderChapter(chapter, library[chapter], isSearching);
+                const { html: chHtml, lessonCount, chapterMinutes } = renderChapter(chapter, library[chapter], isSearching);
                 sectionInnerHtml += chHtml;
                 totalSectionLessons += lessonCount;
+                totalSectionMinutes += (chapterMinutes || 0);
             });
 
             const hasNoSavedState = !bookMemory[activeBook];
             const isSectionOpen = (isSearching || hasNoSavedState || (currentState.openSections || []).includes(section.key)) ? "open" : "";
+            const sectionTimeStr = totalSectionMinutes >= 60 
+                ? `${(totalSectionMinutes / 60).toFixed(1)}h` 
+                : `${totalSectionMinutes}m`;
+            const sectionMetaBadge = totalSectionMinutes > 0
+                ? `${sectionChapters.length} Chapters · ${totalSectionLessons} Lessons · ${sectionTimeStr}`
+                : `${sectionChapters.length} Chapters · ${totalSectionLessons} Lessons`;
 
             html += `
                 <details class="toc-section-block" data-section="${section.key}" ${isSectionOpen}>
                     <summary>
                         <span class="section-summary-title">${section.title}</span>
-                        <span class="section-summary-meta">${sectionChapters.length} Chapters · ${totalSectionLessons} Lessons</span>
+                        <span class="section-summary-meta">${sectionMetaBadge}</span>
                         <svg class="section-summary-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="9 18 15 12 9 6"></polyline>
                         </svg>
@@ -901,383 +936,6 @@ document.addEventListener("DOMContentLoaded", () => {
     restoreScrollState();
 });
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1494,6 +1152,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/03.kernel-pca/">Kernel PCA</a></li>
         <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/04.kmeans-clustering/">K-Means Clustering</a></li>
         <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/05.spectral-clustering/">Kernel K-Means & Spectral Clustering</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/06.maximum-likelihood-estimation/">Maximum Likelihood Estimation</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/07.bayesian-estimation/">Bayesian Estimation</a></li>
       </ul>
     </section>
   </section>

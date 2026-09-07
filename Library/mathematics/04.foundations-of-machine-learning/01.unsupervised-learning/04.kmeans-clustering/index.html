@@ -11,7 +11,7 @@
 <meta name="part" content="Clustering">
 <meta name="title" content="K-Means Clustering">
 <meta name="description" content="A first-principles guide to Lloyd's algorithm — Voronoi geometry, perpendicular bisector hyperplanes, finite convergence proof, k-means++ seeding guarantees, and model selection via penalized likelihood.">
-<meta name="keywords" content="k-means, lloyd algorithm, clustering, voronoi cells, perpendicular bisector, convergence proof, kmeans++, careful seeding, AIC, BIC, elbow method, unsupervised learning, IITM FML">
+<meta name="keywords" content="k-means, lloyd algorithm, clustering, voronoi cells, perpendicular bisector, convergence proof, kmeans++, careful seeding, AIC, BIC, elbow method, unsupervised learning, Foundations of Machine Learning">
 <meta name="status" content="draft">
 <meta name="date" content="2026-08-30">
 <meta name="author" content="Yogesh">
@@ -36,7 +36,7 @@
     align-items: center;
     text-align: center;
     width: 100%;
-    max-width: 650px;
+    max-width: 720px;
   }
   .svg-container {
     display: flex;
@@ -85,7 +85,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="9">
+  <meta name="reading_time" content="21">
     <meta property="og:title" content="K-Means Clustering">
     <meta property="og:description" content="A first-principles guide to Lloyd's algorithm — Voronoi geometry, perpendicular bisector hyperplanes, finite convergence proof, k-means++ seeding guarantees, and model selection via penalized likelihood.">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-k-means-clustering.png">
@@ -106,84 +106,142 @@
                     <section class="article-body">
 
 <!-- ═══════════════════════════════════════════════════════ -->
-<!--  1 — The Big Picture: Unsupervised Taxonomy             -->
+<!--  1 — The Big Picture: Structure Without Supervision     -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="taxonomy">
-  <h2>The Big Picture: Structure Without Supervision</h2>
+  <h2>The Big Picture: Discovering Structure Without Labels</h2>
 
   <p>
-    In supervised machine learning, an explicit target $y$ guides the algorithm toward a specific objective. But in the vast majority of real-world scenarios, labels do not exist. We are handed a raw, unlabeled dataset $\mathcal{X} = \{x_1, x_2, \dots, x_n\} \subset \mathbb{R}^d$ and asked to find meaningful underlying patterns.
+    In the previous lessons on PCA, we looked for a continuous flat subspace that captures the most information while removing redundancy. We compressed high-dimensional data by projecting it along a few continuous orthogonal sliders.
   </p>
 
   <p>
-    How should we systematically think about <strong>Unsupervised Learning</strong>? In the Foundations of Machine Learning (FML) paradigm, the entire field splits cleanly along a single foundational dividing line: <em>Do we make assumptions about how the data was generated?</em>
+    Now consider a different question: what if our data doesn't vary smoothly along a single continuous plane, but instead falls into distinct <strong>types</strong>?
+  </p>
+
+  <p>
+    Instead of continuous sliders, we want <strong>discrete anchors</strong>—a small set of prototypes or centroids that summarize the space. We want to know: <em>what kinds of data points do we have, and how do they sit with each other?</em>
+  </p>
+
+  <p>
+    Why do we benefit from grouping data like this? Think about a collection of images of cats and dogs. A single high-resolution image might contain a million pixels. It is impossible to reason about a million raw numbers directly. But if an algorithm groups the images into clusters, simply knowing that an image belongs to the "Cat" cluster immediately tells you what that data point is like—it likely has whiskers, pointed ears, and fur. You trade away individual pixel quirks in exchange for immediate semantic predictability.
+  </p>
+
+  <p>
+    In information theory and signal processing, this idea is called <strong>Vector Quantization</strong>: instead of storing continuous coordinates for every point, we summarize the entire dataset using a compact "codebook" of $K$ representative prototypes, known as <strong>cluster centroids</strong> ($\mu_1, \dots, \mu_K \in \mathbb{R}^d$). Every observation is then approximated by its nearest centroid.
+  </p>
+
+  <p>
+    This formulation exposes a fundamental <strong>mutual dependency</strong> (a classic chicken-and-egg dilemma):
+  </p>
+
+  <ul>
+    <li>
+      <strong>If we knew the centroid locations:</strong> assigning each observation would be trivial—simply map each point to whichever centroid is geometrically closest.
+    </li>
+    <li>
+      <strong>If we knew the cluster assignments:</strong> calculating the optimal centroids would be trivial—simply compute the arithmetic average (center of mass) of each cluster's assigned points.
+    </li>
+  </ul>
+
+  <p>
+    Because neither set of variables can be determined without already knowing the other, we cannot solve for both in closed form simultaneously. The point assignments depend entirely on knowing where the centroids are located, while each centroid's position depends entirely on knowing which points belong to its cluster.
   </p>
 
   <div class="math-box">
-    <div class="math-box-label">The Unsupervised Learning Taxonomy</div>
-    <div class="math-box-body">
-      <ul>
-        <li>
-          <strong>No Assumptions About Data Generation (Geometric &amp; Matrix Projections):</strong>
-          <ul>
-            <li><strong>Representation Learning (Continuous Subspaces):</strong> Rotating and projecting data onto optimal continuous low-dimensional subspaces $\implies$ <em>PCA, Kernel PCA</em>.</li>
-            <li><strong>Clustering (Discrete Partitions):</strong> Grouping data into discrete geometric neighborhoods $\implies$ <em>Lloyd's Algorithm ($K$-Means), Spectral Clustering</em>.</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Probabilistic Assumptions (Generative Modeling):</strong>
-          <ul>
-            <li><strong>Estimation:</strong> Assuming data is drawn from a latent probability density (e.g., Gaussian Mixtures) and fitting parameters via maximum likelihood $\implies$ <em>EM Algorithm, Density Estimation</em>.</li>
-          </ul>
-        </li>
-      </ul>
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If we seek the best discrete partition of data, what mathematical objective captures our clustering error, and how do we optimize both cluster assignments and centroids simultaneously?</em></p>
     </div>
   </div>
-
-  <p>
-    Notice the remarkable symmetry: <strong>PCA</strong> solves a <em>continuous</em> projection problem (finding the best low-rank subspace), while <strong>$K$-Means</strong> solves a <em>discrete</em> projection problem (finding the best partition of points into $K$ representative cluster centers).
-  </p>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!--  2 — The Optimization Objective & Lloyd's Algorithm      -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="lloyds-algorithm">
-  <h2>The $K$-Means Formulation &amp; Lloyd's Algorithm</h2>
+  <h2>The Distortion Objective &amp; Lloyd's Alternating Descent</h2>
 
   <p>
-    Suppose we are given $n$ data points $x_1, x_2, \dots, x_n \in \mathbb{R}^d$. We want to partition them into $K$ distinct clusters $C_1, C_2, \dots, C_K$, each represented by a centroid vector $\mu_k \in \mathbb{R}^d$.
+    Suppose we are given $n$ observations $x_1, x_2, \dots, x_n \in \mathbb{R}^d$. Our goal is to partition this dataset into $K$ disjoint groups $C_1, C_2, \dots, C_K$ such that $\bigcup_{k=1}^K C_k = \{1, 2, \dots, n\}$, with each group represented by an idealized central prototype $\mu_k \in \mathbb{R}^d$.
   </p>
 
   <p>
-    Let $z_i \in \{1, 2, \dots, K\}$ denote the cluster assignment index for point $x_i$. The quality of our clustering is measured by the total squared Euclidean distance from every point to its assigned centroid (often called the <em>inertia</em> or <em>distortion objective</em>):
+    Let $z_i \in \{1, 2, \dots, K\}$ denote the discrete assignment label for observation $x_i$, indicating that point $x_i$ belongs to cluster $C_{z_i}$. How do we evaluate whether a given choice of assignments $\{z_i\}$ and centroids $\{\mu_k\}$ is good? A natural geometric criterion is the total squared Euclidean distance between every data point and its assigned cluster prototype. This objective is known as the <strong>distortion objective</strong> or <strong>cluster inertia</strong>:
   </p>
 
   <div class="math-display">
-    $$F(z_1, \dots, z_n, \mu_1, \dots, \mu_K) = \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2 = \sum_{k=1}^K \sum_{i: z_i = k} \|x_i - \mu_k\|^2$$
+    $$\begin{aligned}
+      F(z_1, \dots, z_n, \mu_1, \dots, \mu_K) &= \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2 \\[8pt]
+      &= \sum_{k=1}^K \sum_{i \in C_k} \|x_i - \mu_k\|^2
+    \end{aligned}$$
   </div>
 
   <p>
-    This optimization problem is deceptively challenging: it couples discrete variables ($z_i$) with continuous variables ($\mu_k$). To solve it, <strong>Lloyd's Algorithm</strong> employs a coordinate descent strategy—alternating between two straightforward steps until convergence:
+    This optimization problem presents a formidable mathematical bottleneck. It simultaneously couples <strong>discrete combinatorial variables</strong> ($z_i \in \{1, \dots, K\}$) with <strong>continuous geometric vectors</strong> ($\mu_k \in \mathbb{R}^d$). The space of all possible partitions consists of approximately $K^n / K!$ arrangements. Even for modest datasets (e.g., $n = 100, K = 4$), the number of possible partitions exceeds the number of atoms in the observable universe. In fact, globally minimizing this objective is known to be NP-hard even for $K=2$ in general dimensions, or for $d=2$ with arbitrary $K$.
   </p>
+
+  <p>
+    Faced with this combinatorial barrier, Stuart Lloyd (1957) proposed an elegant <strong>coordinate descent strategy</strong>. While optimizing $z$ and $\mu$ simultaneously is intractable, optimizing either set of variables while holding the other set fixed is remarkably straightforward:
+  </p>
+
+  <h3>Subproblem 1: Optimizing Centroids for Fixed Assignments</h3>
+  <p>
+    Suppose the cluster memberships $z_1, \dots, z_n$ are held constant. The overall objective decomposes into $K$ independent sub-problems, one for each cluster $k$:
+  </p>
+
+  <div class="math-display">
+    $$\mu_k^* = \arg\min_{\mu \in \mathbb{R}^d} \sum_{i \in C_k} \|x_i - \mu\|^2$$
+  </div>
+
+  <p>
+    Because each sub-problem is a smooth, unconstrained convex quadratic function of $\mu$, we find the global minimizer by computing the gradient and setting it to zero:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \nabla_\mu \left[ \sum_{i \in C_k} (x_i - \mu)^T (x_i - \mu) \right] &= \sum_{i \in C_k} \left( -2(x_i - \mu) \right) \\[8pt]
+      &= -2 \sum_{i \in C_k} x_i + 2 |C_k| \mu = \mathbf{0}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Solving directly for $\mu$ yields the sample arithmetic mean:
+  </p>
+
+  <div class="math-display">
+    $$\mu_k^* = \frac{1}{|C_k|} \sum_{i \in C_k} x_i$$
+  </div>
+
+  <p>
+    Under squared Euclidean distance, the unique optimal representative of a point set is its <strong>center of mass</strong> (arithmetic mean). This explains why the algorithm is named <em>$K$-Means</em>.
+  </p>
+
+  <h3>Subproblem 2: Optimizing Assignments for Fixed Centroids</h3>
+  <p>
+    Now suppose the centroids $\mu_1, \dots, \mu_K$ are held constant. The objective $F(z, \mu) = \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2$ splits into $n$ completely independent terms—one for each data point $x_i$. To minimize the total sum, we simply assign each point to its nearest centroid:
+  </p>
+
+  <div class="math-display">
+    $$z_i^* = \arg\min_{k \in \{1, \dots, K\}} \|x_i - \mu_k\|^2$$
+  </div>
 
   <div class="math-box">
     <div class="math-box-label">Lloyd's Alternating Algorithm</div>
     <div class="math-box-body">
       <ol>
         <li>
-          <strong>Initialization:</strong> Pick initial centroids $\mu_1^0, \dots, \mu_K^0$ (or initial cluster assignments $z_1^0, \dots, z_n^0$).
+          <strong>Initialization:</strong> Choose $K$ initial centroid vectors $\mu_1^{(0)}, \mu_2^{(0)}, \dots, \mu_K^{(0)} \in \mathbb{R}^d$.
         </li>
         <li>
-          <strong>Mean Calculation Step (Centroid Update):</strong> With cluster assignments $z_i^{(t)}$ held fixed, compute the optimal centroid $\mu_k^{(t)}$ for each cluster $k$:
-          $$\mu_k^{(t)} = \arg\min_{\mu} \sum_{i: z_i = k} \|x_i - \mu\|^2 = \frac{\sum_{i=1}^n x_i \mathbf{1}(z_i^{(t)} = k)}{\sum_{i=1}^n \mathbf{1}(z_i^{(t)} = k)}$$
-        </li>
-        <li>
-          <strong>Reassignment Step (Cluster Update):</strong> With centroids $\mu_k^{(t)}$ held fixed, reassign each point $x_i$ to its closest centroid:
+          <strong>Assignment Step (Voronoi Partitioning):</strong> Holding centroids fixed, assign each point $x_i$ to its nearest prototype:
           $$z_i^{(t+1)} = \arg\min_{k \in \{1, \dots, K\}} \|x_i - \mu_k^{(t)}\|^2$$
         </li>
         <li>
-          <strong>Repeat:</strong> Continue alternating between Mean Calculation and Reassignment until assignments no longer change.
+          <strong>Centroid Update Step (Center of Mass):</strong> Holding assignments fixed, recompute each centroid as the arithmetic mean of its assigned points:
+          $$\mu_k^{(t+1)} = \frac{1}{|C_k^{(t+1)}|} \sum_{i \in C_k^{(t+1)}} x_i$$
+        </li>
+        <li>
+          <strong>Convergence Check:</strong> Repeat steps 2 and 3 until cluster assignments no longer change: $z^{(t+1)} = z^{(t)}$.
         </li>
       </ol>
     </div>
@@ -191,17 +249,268 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
-<!--  3 — The Geometry of Clusters: Voronoi Hyperplanes      -->
+<!--  3 — Concrete Numerical Walkthrough                     -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<section id="cluster-geometry">
-  <h2>The Nature of Clusters: Why Boundaries are Hyperplanes</h2>
+<section id="numerical-walkthrough">
+  <h2>Concrete Grounding: A Hands-On 2D Numerical Walkthrough</h2>
 
   <p>
-    What geometric shapes do $K$-means clusters take? Let us consider the simplest non-trivial case: $K = 2$ with two learned cluster means $\mu_1$ and $\mu_2$.
+    Before diving into higher-dimensional geometry, let us ground Lloyd's alternating steps in a tangible two-dimensional dataset with real numbers. Seeing the arithmetic in action reveals how coordinate descent drives down the distortion objective step by step.
   </p>
 
   <p>
-    A data point $x$ is assigned to Cluster 1 if and only if it is at least as close to $\mu_1$ as it is to $\mu_2$:
+    Consider four observations in $\mathbb{R}^2$:
+  </p>
+
+  <div class="math-display">
+    $$x_1 = \begin{bmatrix} 1 \\ 2 \end{bmatrix}, \quad x_2 = \begin{bmatrix} 2 \\ 1 \end{bmatrix}, \quad x_3 = \begin{bmatrix} 6 \\ 8 \end{bmatrix}, \quad x_4 = \begin{bmatrix} 7 \\ 9 \end{bmatrix}$$
+  </div>
+
+  <p>
+    We set $K = 2$ and choose two arbitrary starting vectors in $\mathbb{R}^2$:
+  </p>
+
+  <div class="math-display">
+    $$\mu_1^{(0)} = \begin{bmatrix} 1 \\ 1 \end{bmatrix}, \quad \mu_2^{(0)} = \begin{bmatrix} 2 \\ 3 \end{bmatrix}$$
+  </div>
+
+  <p>
+    <em>A note on initialization:</em> In practical implementations and algorithms like $k$-means++, initial centroids are usually chosen by sampling actual data points from the dataset (known as <strong>Forgy initialization</strong>, discussed in Section 6). Here, we deliberately select two arbitrary points not in the dataset to demonstrate an important property: because the parameter space $\mu \in \mathbb{R}^d$ is continuous, Lloyd's algorithm works from <em>any</em> initial coordinates in space—the first centroid update step will automatically pull them onto the exact centers of mass of the data.
+  </p>
+
+  <h3>Iteration 1 — Assignment Step</h3>
+  <p>
+    We evaluate the squared Euclidean distances $\|x_i - \mu_k^{(0)}\|^2$ from each point to both centroids:
+  </p>
+
+  <div class="math-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Point</th>
+          <th>$\|x_i - \mu_1^{(0)}\|^2$</th>
+          <th>$\|x_i - \mu_2^{(0)}\|^2$</th>
+          <th>Assignment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>$x_1 = (1, 2)$</td>
+          <td>$1$</td>
+          <td>$2$</td>
+          <td>$z_1^{(1)} = 1$</td>
+        </tr>
+        <tr>
+          <td>$x_2 = (2, 1)$</td>
+          <td>$1$</td>
+          <td>$4$</td>
+          <td>$z_2^{(1)} = 1$</td>
+        </tr>
+        <tr>
+          <td>$x_3 = (6, 8)$</td>
+          <td>$74$</td>
+          <td>$41$</td>
+          <td>$z_3^{(1)} = 2$</td>
+        </tr>
+        <tr>
+          <td>$x_4 = (7, 9)$</td>
+          <td>$100$</td>
+          <td>$61$</td>
+          <td>$z_4^{(1)} = 2$</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Total initial distortion: $F(z^{(1)}, \mu^{(0)}) = 1 + 1 + 41 + 61 = 104$.
+  </p>
+
+  <h3>Iteration 1 — Centroid Update Step</h3>
+  <p>
+    Recomputing centroids as the arithmetic means of their assigned points:
+  </p>
+
+  <div class="math-display">
+    $$\mu_1^{(1)} = \frac{x_1 + x_2}{2} = \begin{bmatrix} 1.5 \\ 1.5 \end{bmatrix}, \quad \mu_2^{(1)} = \frac{x_3 + x_4}{2} = \begin{bmatrix} 6.5 \\ 8.5 \end{bmatrix}$$
+  </div>
+
+  <p>
+    Each point is now at squared distance $\|x_i - \mu_{z_i}^{(1)}\|^2 = 0.5$ from its new centroid, collapsing total distortion:
+  </p>
+
+  <div class="math-display">
+    $$F(z^{(1)}, \mu^{(1)}) = 4 \times 0.5 = 2.0$$
+  </div>
+
+  <p>
+    The distortion collapsed from $104 \to 2.0$ in a single iteration. Checking Iteration 2 confirms that no assignments change ($z^{(2)} = z^{(1)}$), and the algorithm terminates.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 840 430" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="walkthrough-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  PANEL 1: Initialization & Assignment (t = 0, F = 104)     -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <g id="panel-1">
+          <!-- Panel Title -->
+          <text x="220" y="32" text-anchor="middle" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">Stage 1: Initialization &amp; Partition (t = 0)</text>
+          <text x="220" y="52" text-anchor="middle" font-family="'Lora', serif" font-size="13" fill="var(--muted)">Initial centroids near origin · Distortion F = 104</text>
+
+          <!-- Coordinate Axes -->
+          <line x1="70" y1="360" x2="370" y2="360" stroke="var(--border)" stroke-width="1.8" />
+          <line x1="70" y1="360" x2="70" y2="80" stroke="var(--border)" stroke-width="1.8" />
+
+          <!-- Axis Labels -->
+          <text x="375" y="364" font-family="'Lora', serif" font-size="14" font-style="italic" fill="var(--muted)">x₁</text>
+          <text x="70" y="70" text-anchor="middle" font-family="'Lora', serif" font-size="14" font-style="italic" fill="var(--muted)">x₂</text>
+
+          <!-- Ticks -->
+          <text x="134" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">2</text>
+          <text x="198" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">4</text>
+          <text x="262" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">6</text>
+          <text x="326" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">8</text>
+
+          <text x="54" y="308" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">2</text>
+          <text x="54" y="252" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">4</text>
+          <text x="54" y="196" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">6</text>
+          <text x="54" y="140" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">8</text>
+
+          <!-- Initial Separating Boundary: x + 2y = 5.5 -->
+          <line x1="70" y1="288" x2="214" y2="347" stroke="var(--dark)" stroke-width="1.8" stroke-dasharray="5,4" />
+          <text x="150" y="270" text-anchor="middle" font-family="'Lora', serif" font-size="11" fill="var(--muted)">Boundary: x + 2y = 5.5</text>
+
+          <!-- Assignment Distances (dashed lines to assigned centroids) -->
+          <line x1="102" y1="308" x2="102" y2="334" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.6" />
+          <line x1="134" y1="334" x2="102" y2="334" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.6" />
+          <line x1="262" y1="152" x2="134" y2="282" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.6" />
+          <line x1="294" y1="126" x2="134" y2="282" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.6" />
+
+          <!-- Data Points -->
+          <circle cx="102" cy="308" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="88" y="306" text-anchor="end" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₁</text>
+
+          <circle cx="134" cy="334" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="148" y="350" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₂</text>
+
+          <circle cx="262" cy="152" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="250" y="148" text-anchor="end" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₃</text>
+
+          <circle cx="294" cy="126" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="310" y="124" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₄</text>
+
+          <!-- Initial Centroids (mu1, mu2) -->
+          <circle cx="102" cy="334" r="6.5" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+          <text x="88" y="347" text-anchor="end" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">μ₁⁽⁰⁾</text>
+
+          <circle cx="134" cy="282" r="6.5" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+          <text x="148" y="278" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">μ₂⁽⁰⁾</text>
+        </g>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  TRANSITION ARROW (Between Panels)                         -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <g id="transition">
+          <line x1="392" y1="215" x2="442" y2="215" stroke="var(--accent)" stroke-width="2.2" marker-end="url(#walkthrough-arrow)" />
+          <text x="417" y="200" text-anchor="middle" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)">Update</text>
+          <text x="417" y="238" text-anchor="middle" font-family="'Lora', serif" font-size="11" fill="var(--muted)">means</text>
+        </g>
+
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!--  PANEL 2: Centroid Update & Convergence (t = 1, F = 2.0)   -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <g id="panel-2">
+          <!-- Panel Title -->
+          <text x="650" y="32" text-anchor="middle" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">Stage 2: Centroid Update &amp; Convergence (t = 1)</text>
+          <text x="650" y="52" text-anchor="middle" font-family="'Lora', serif" font-size="13" fill="var(--muted)">Centroids at cluster means · Distortion F = 2.0</text>
+
+          <!-- Coordinate Axes -->
+          <line x1="500" y1="360" x2="800" y2="360" stroke="var(--border)" stroke-width="1.8" />
+          <line x1="500" y1="360" x2="500" y2="80" stroke="var(--border)" stroke-width="1.8" />
+
+          <!-- Axis Labels -->
+          <text x="805" y="364" font-family="'Lora', serif" font-size="14" font-style="italic" fill="var(--muted)">x₁</text>
+          <text x="500" y="70" text-anchor="middle" font-family="'Lora', serif" font-size="14" font-style="italic" fill="var(--muted)">x₂</text>
+
+          <!-- Ticks -->
+          <text x="564" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">2</text>
+          <text x="628" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">4</text>
+          <text x="692" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">6</text>
+          <text x="756" y="380" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">8</text>
+
+          <text x="484" y="308" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">2</text>
+          <text x="484" y="252" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">4</text>
+          <text x="484" y="196" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">6</text>
+          <text x="484" y="140" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">8</text>
+
+          <!-- Cluster Shaded Halos -->
+          <ellipse cx="548" cy="318" rx="42" ry="32" fill="var(--highlight)" stroke="none" />
+          <ellipse cx="708" cy="122" rx="42" ry="32" fill="var(--highlight)" stroke="none" />
+
+          <!-- Centroid Migration Paths -->
+          <!-- mu1 slight shift -->
+          <line x1="532" y1="334" x2="548" y2="318" stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="3,3" marker-end="url(#walkthrough-arrow)" />
+          <!-- mu2 dramatic leap across the plane -->
+          <path d="M 564 282 Q 615 210 700 130" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#walkthrough-arrow)" />
+          <text x="624" y="235" font-family="'Lora', serif" font-size="12" font-style="italic" fill="var(--muted)">μ₂ leaps to mean</text>
+
+          <!-- Final Separating Boundary -->
+          <line x1="520" y1="152" x2="736" y2="288" stroke="var(--dark)" stroke-width="2" />
+          <text x="532" y="142" font-family="'Lora', serif" font-size="11" fill="var(--muted)">Final boundary</text>
+
+          <!-- Data Points -->
+          <circle cx="532" cy="308" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="518" y="306" text-anchor="end" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₁</text>
+
+          <circle cx="564" cy="334" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="578" y="350" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₂</text>
+
+          <circle cx="692" cy="152" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="678" y="148" text-anchor="end" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₃</text>
+
+          <circle cx="724" cy="126" r="5" fill="var(--muted)" stroke="var(--dark)" stroke-width="1.5" />
+          <text x="740" y="124" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₄</text>
+
+          <!-- Updated Centroids (at exact means) -->
+          <circle cx="548" cy="318" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+          <text x="548" y="344" text-anchor="middle" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">μ₁⁽¹⁾</text>
+
+          <circle cx="708" cy="122" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+          <text x="708" y="102" text-anchor="middle" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">μ₂⁽¹⁾</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> Visual execution of Lloyd's algorithm on the 2D numerical walkthrough. <strong>Stage 1:</strong> Two initial centroids $\mu_1^{(0)}, \mu_2^{(0)}$ start clustered near the origin; points are assigned to the nearest prototype, yielding high initial distortion ($F = 104$). <strong>Stage 2:</strong> Centroids recompute as the arithmetic means of their assigned points. Centroid $\mu_1$ adjusts locally to $(1.5, 1.5)$, while $\mu_2$ leaps across the plane to $(6.5, 8.5)$ to capture the upper cluster, collapsing distortion to $F = 2.0$ with zero further assignment changes.
+    </figcaption>
+  </figure>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>What geometric boundaries carve up space between competing centroids, and why are $K$-means clusters fundamentally constrained to be convex polygons?</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4 — The Geometry of Clusters: Voronoi Hyperplanes      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="cluster-geometry">
+  <h2>The Geometry of Clusters: Why Boundaries are Hyperplanes</h2>
+
+  <p>
+    To uncover the geometric shapes carved out by $K$-means, let us analyze the decision boundary separating any two cluster centers $\mu_1$ and $\mu_2$.
+  </p>
+
+  <p>
+    A point $x \in \mathbb{R}^d$ is assigned to Cluster 1 rather than Cluster 2 if and only if it is closer to $\mu_1$ than to $\mu_2$ in squared Euclidean distance:
   </p>
 
   <div class="math-display">
@@ -209,20 +518,21 @@
   </div>
 
   <p>
-    Let us expand both Euclidean norms:
+    Expanding both norms using inner products reveals an essential algebraic cancellation:
   </p>
 
   <div class="math-display">
-    $$\|x\|^2 + \|\mu_1\|^2 - 2x^T \mu_1 \le \|x\|^2 + \|\mu_2\|^2 - 2x^T \mu_2$$
+    $$\begin{aligned}
+      \underbrace{\|x\|^2 - 2x^T \mu_1 + \|\mu_1\|^2}_{\|x - \mu_1\|^2} &\le \underbrace{\|x\|^2 - 2x^T \mu_2 + \|\mu_2\|^2}_{\|x - \mu_2\|^2} \\[8pt]
+      -2x^T \mu_1 + \|\mu_1\|^2 &\le -2x^T \mu_2 + \|\mu_2\|^2 \\[8pt]
+      2x^T (\mu_2 - \mu_1) &\le \|\mu_2\|^2 - \|\mu_1\|^2 \\[8pt]
+      x^T (\mu_2 - \mu_1) &\le \frac{\|\mu_2\|^2 - \|\mu_1\|^2}{2}
+    \end{aligned}$$
   </div>
 
   <p>
-    Notice that the quadratic term $\|x\|^2$ appears on both sides and cancels out completely! Rearranging the remaining terms yields:
+    The quadratic term $\|x\|^2$ appears on both sides with identical sign and magnitude, canceling out completely. What remains is purely <strong>linear in $x$</strong>:
   </p>
-
-  <div class="math-display">
-    $$2x^T \mu_2 - 2x^T \mu_1 \le \|\mu_2\|^2 - \|\mu_1\|^2$$
-  </div>
 
   <div class="math-box">
     <div class="math-box-label">The Separating Hyperplane Equation</div>
@@ -230,129 +540,296 @@
       <div class="math-display">
         $$x^T (\mu_2 - \mu_1) \le \frac{\|\mu_2\|^2 - \|\mu_1\|^2}{2}$$
       </div>
+      <p>
+        The decision boundary is the equality surface $x^T w = b$, where the normal vector is $w = \mu_2 - \mu_1$ and the scalar offset is $b = \frac{\|\mu_2\|^2 - \|\mu_1\|^2}{2}$.
+      </p>
     </div>
   </div>
 
   <p>
-    This is the equation of a <strong>half-space</strong> bounded by a flat hyperplane!
-  </p>
-
-  <p>
-    To see the geometry clearly, let us test what happens at the midpoint $m = \frac{\mu_1 + \mu_2}{2}$:
+    To verify where this boundary sits in space, evaluate what happens at the geometric midpoint $m = \frac{\mu_1 + \mu_2}{2}$:
   </p>
 
   <div class="math-display">
-    $$m^T (\mu_2 - \mu_1) = \left(\frac{\mu_1 + \mu_2}{2}\right)^T (\mu_2 - \mu_1) = \frac{\mu_2^T \mu_2 - \mu_1^T \mu_1}{2} = \frac{\|\mu_2\|^2 - \|\mu_1\|^2}{2}$$
+    $$\begin{aligned}
+      m^T (\mu_2 - \mu_1) &= \left(\frac{\mu_1 + \mu_2}{2}\right)^T (\mu_2 - \mu_1) \\[8pt]
+      &= \frac{\mu_2^T \mu_2 - \mu_1^T \mu_1}{2} = \frac{\|\mu_2\|^2 - \|\mu_1\|^2}{2}
+    \end{aligned}$$
   </div>
 
   <p>
-    The decision boundary is the <strong>perpendicular bisector</strong> of the line segment connecting $\mu_1$ and $\mu_2$. The normal vector pointing across the boundary is exactly the difference vector $\mu_2 - \mu_1$.
+    The midpoint satisfies the equality condition exactly! Thus, the boundary is the <strong>perpendicular bisector</strong> of the line segment joining $\mu_1$ and $\mu_2$. It cuts orthogonally across the vector $\mu_2 - \mu_1$ at the exact halfway point.
+  </p>
+
+  <p>
+    This gives the exact algebraic and geometric role of the inner product: because $x$ is a position vector <strong>emanating from the origin</strong>, evaluating the dot product $x^T(\mu_2 - \mu_1)$ computes the orthogonal projection of vector $x$ along the normal direction $w = \mu_2 - \mu_1$. The scalar threshold $b = m^T(\mu_2 - \mu_1)$ represents the projection of the midpoint vector $m$ along that same normal axis. For any observation $x$ closer to $\mu_1$, its projection along $w$ from the origin is strictly less than the midpoint threshold ($x^T w < m^T w = b$), placing it on $\mu_1$'s side of the perpendicular bisector:
   </p>
 
   <figure class="diagram-figure">
     <div class="svg-container">
       <svg viewBox="0 0 780 480" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
+          <marker id="marker-arrow-accent-old" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
           </marker>
-          <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#c53030" />
+          <marker id="marker-arrow-dark-old" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dark)" />
           </marker>
         </defs>
 
-        <!-- Shaded Cluster 1 Region -->
-        <polygon points="40,20 330,20 480,450 40,450" fill="rgba(72, 187, 120, 0.15)" />
-        <text x="140" y="100" font-family="'Lora', serif" font-size="20" font-weight="600" fill="#2f855a">Cluster 1 Region</text>
-        <text x="140" y="125" font-family="'Lora', serif" font-size="14" fill="#2f855a">‖x - μ₁‖² ≤ ‖x - μ₂‖²</text>
+        <!-- Shaded Cluster 1 Half-Space (Conforming to project color: var(--highlight)) -->
+        <polygon points="0,0 357,0 423,480 0,480" fill="var(--highlight)" />
+        <text x="60" y="55" font-family="'Lora', serif" font-size="22" font-weight="600" fill="var(--text)">Cluster 1 Region</text>
+        <text x="60" y="80" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--text)">xᵀw &lt; b</text>
+        <text x="60" y="104" font-family="'Lora', serif" font-size="15" fill="var(--muted)">‖x - μ₁‖² &lt; ‖x - μ₂‖²</text>
+
+        <!-- Cluster 2 Region label -->
+        <text x="560" y="55" font-family="'Lora', serif" font-size="22" font-weight="600" fill="var(--text)">Cluster 2 Region</text>
+        <text x="560" y="80" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--text)">xᵀw &gt; b</text>
+        <text x="560" y="104" font-family="'Lora', serif" font-size="15" fill="var(--muted)">‖x - μ₁‖² &gt; ‖x - μ₂‖²</text>
 
         <!-- Coordinate axes -->
-        <line x1="60" y1="280" x2="720" y2="280" stroke="var(--border)" stroke-width="1.5" />
-        <line x1="380" y1="30" x2="380" y2="440" stroke="var(--border)" stroke-width="1.5" />
-
-        <!-- Origin -->
-        <circle cx="380" cy="280" r="4" fill="var(--text)" />
-        <text x="365" y="300" font-family="'Lora', serif" font-size="16" fill="var(--muted)">0</text>
-
-        <!-- Vector mu1 -->
-        <line x1="380" y1="280" x2="270" y2="160" stroke="#2b6cb0" stroke-width="3" marker-end="url(#arrow-blue)" />
-        <circle cx="270" cy="160" r="6" fill="#2b6cb0" />
-        <text x="240" y="150" font-family="'Lora', serif" font-size="22" font-weight="bold" fill="#2b6cb0">μ₁</text>
-
-        <!-- Vector mu2 -->
-        <line x1="380" y1="280" x2="520" y2="120" stroke="#c53030" stroke-width="3" marker-end="url(#arrow-red)" />
-        <circle cx="520" cy="120" r="6" fill="#c53030" />
-        <text x="535" y="120" font-family="'Lora', serif" font-size="22" font-weight="bold" fill="#c53030">μ₂</text>
+        <line x1="40" y1="320" x2="740" y2="320" stroke="var(--border)" stroke-width="1.5" />
+        <line x1="380" y1="30" x2="380" y2="450" stroke="var(--border)" stroke-width="1.5" />
 
         <!-- Line joining mu1 and mu2 -->
-        <line x1="270" y1="160" x2="520" y2="120" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5,5" />
+        <line x1="240" y1="180" x2="520" y2="140" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="6,6" />
 
-        <!-- Midpoint (mu1 + mu2)/2 -->
-        <circle cx="395" cy="140" r="5" fill="var(--accent)" />
-        <text x="410" y="155" font-family="'Lora', serif" font-size="16" font-style="italic" fill="var(--accent)">(μ₁ + μ₂)/2</text>
+        <!-- Vector mu1 from origin -->
+        <line x1="380" y1="320" x2="242" y2="182" stroke="var(--dark)" stroke-width="2" marker-end="url(#marker-arrow-dark-old)" />
+        <circle cx="240" cy="180" r="6" fill="var(--dark)" />
+        <text x="210" y="175" font-family="'Lora', serif" font-size="22" font-weight="bold" fill="var(--text)">μ₁</text>
 
-        <!-- Perpendicular bisector boundary -->
-        <line x1="335" y1="20" x2="480" y2="450" stroke="#2f855a" stroke-width="3" />
-        <text x="475" y="400" font-family="'Lora', serif" font-size="15" font-weight="600" fill="#2f855a">Perpendicular Bisector</text>
-        <text x="475" y="420" font-family="'Lora', serif" font-size="13" fill="var(--muted)">xᵀ(μ₂ - μ₁) = (‖μ₂‖² - ‖μ₁‖²)/2</text>
+        <!-- Vector mu2 from origin -->
+        <line x1="380" y1="320" x2="518" y2="142" stroke="var(--dark)" stroke-width="2" marker-end="url(#marker-arrow-dark-old)" />
+        <circle cx="520" cy="140" r="6" fill="var(--dark)" />
+        <text x="535" y="135" font-family="'Lora', serif" font-size="22" font-weight="bold" fill="var(--text)">μ₂</text>
 
-        <!-- Normal difference vector mu2 - mu1 -->
-        <line x1="380" y1="280" x2="630" y2="240" stroke="#c53030" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrow-red)" />
-        <text x="640" y="245" font-family="'Lora', serif" font-size="18" font-style="italic" fill="#c53030">μ₂ - μ₁</text>
+        <!-- Vector m from origin to midpoint (380, 160) -->
+        <line x1="380" y1="320" x2="380" y2="167" stroke="var(--dark)" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#marker-arrow-dark-old)" />
+        <circle cx="380" cy="160" r="5" fill="var(--dark)" />
+        <text x="395" y="152" font-family="'Lora', serif" font-size="15" font-style="italic" font-weight="bold" fill="var(--text)">m = (μ₁ + μ₂)/2</text>
+
+        <!-- Right angle symbol at midpoint (380, 160) -->
+        <polyline points="394,158 396,172 382,174" fill="none" stroke="var(--muted)" stroke-width="1.5" />
+
+        <!-- Perpendicular bisector boundary: passes through (360, 20) and (420, 440), exactly through (380, 160) -->
+        <line x1="360" y1="20" x2="420" y2="440" stroke="var(--dark)" stroke-width="3" />
+        <text x="440" y="415" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--text)">Perpendicular Bisector</text>
+        <text x="440" y="437" font-family="'Lora', serif" font-size="13" fill="var(--muted)">xᵀw = b = mᵀw</text>
+
+        <!-- Normal vector w = mu2 - mu1 axis line through origin -->
+        <line x1="170" y1="350" x2="640" y2="282.9" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="5,4" />
+        <line x1="380" y1="320" x2="600" y2="288.6" stroke="var(--dark)" stroke-width="2.5" marker-end="url(#marker-arrow-dark-old)" />
+        <text x="615" y="280" font-family="'Lora', serif" font-size="18" font-style="italic" fill="var(--text)">w = μ₂ - μ₁</text>
+        <text x="615" y="300" font-family="'Lora', serif" font-size="12" fill="var(--muted)">(Normal axis from origin)</text>
+
+        <!-- Orthogonal projection line of m onto normal axis w: drops from (380, 160) to (402.4, 316.8) -->
+        <line x1="380" y1="160" x2="402.4" y2="316.8" stroke="var(--dark)" stroke-width="1.8" stroke-dasharray="4,4" />
+        <!-- Right angle symbol at (402.4, 316.8) -->
+        <polyline points="412.3,315.4 410.9,305.5 401.0,306.9" fill="none" stroke="var(--muted)" stroke-width="1.4" />
+        <circle cx="402.4" cy="316.8" r="5" fill="var(--dark)" stroke="var(--bg)" stroke-width="1.5" />
+        <text x="420" y="338" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)">proj_w(m) = b/‖w‖</text>
+        <text x="420" y="355" font-family="'Lora', serif" font-size="11" font-style="italic" fill="var(--muted)">Threshold (mᵀw = b)</text>
+
+        <!-- Highlighted projection segment of m along normal axis: from origin (380, 320) to (402.4, 316.8) -->
+        <line x1="380" y1="320" x2="402.4" y2="316.8" stroke="var(--dark)" stroke-width="5" stroke-linecap="round" />
+
+        <!-- ── DATA POINT x AS VECTOR FROM ORIGIN (ACCENT COLOR) ── -->
+        <!-- Vector x from origin (380, 320) to (240, 95) -->
+        <line x1="380" y1="320" x2="242" y2="98" stroke="var(--accent)" stroke-width="2.8" marker-end="url(#marker-arrow-accent-old)" />
+        <circle cx="240" cy="95" r="6" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+        <text x="240" y="78" text-anchor="middle" font-family="'Lora', serif" font-size="18" font-weight="bold" fill="var(--text)">x</text>
+
+        <!-- Orthogonal drop line from x(240, 95) onto normal axis w: drop point is (272.9, 335.3) -->
+        <line x1="240" y1="95" x2="272.9" y2="335.3" stroke="var(--accent)" stroke-width="1.8" stroke-dasharray="4,4" />
+        <polyline points="282.8,333.9 281.4,324.0 271.5,325.4" fill="none" stroke="var(--muted)" stroke-width="1.4" />
+        <circle cx="272.9" cy="335.3" r="5" fill="var(--accent)" stroke="var(--dark)" stroke-width="1.5" />
+        <text x="260" y="360" text-anchor="middle" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)">proj_w(x)</text>
+
+        <!-- Highlighted projection segment of x along normal axis: from origin (380, 320) to (272.9, 335.3) -->
+        <line x1="380" y1="320" x2="272.9" y2="335.3" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" />
+
+        <!-- Origin 0 -->
+        <circle cx="380" cy="320" r="4.5" fill="var(--text)" />
+        <text x="365" y="342" font-family="'Lora', serif" font-size="16" fill="var(--muted)">0</text>
+
+        <!-- Projection annotation comparing xᵀw and mᵀw in open area -->
+        <text x="60" y="240" font-family="'Lora', serif" font-size="13" font-weight="600" fill="var(--text)">Projections from origin along w:</text>
+        <text x="60" y="262" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)">xᵀw &lt; mᵀw = b</text>
+        <text x="60" y="282" font-family="'Lora', serif" font-size="12" font-style="italic" fill="var(--muted)">proj_w(x) &lt; proj_w(m)</text>
       </svg>
     </div>
     <figcaption class="figure-caption">
-      <strong>Figure 1:</strong> Geometry of the two-cluster decision boundary. The boundary separating points belonging to $\mu_1$ from $\mu_2$ is the perpendicular bisector hyperplane passing through their midpoint $( \mu_1 + \mu_2 )/2$.
+      <strong>Figure 2:</strong> Geometry of the two-cluster decision boundary and orthogonal vector projections from the origin. The midpoint vector $m = (\mu_1 + \mu_2)/2$ projects orthogonally onto the normal axis $w = \mu_2 - \mu_1$ (shown as the bold dark segment), establishing the scalar boundary threshold $\text{proj}_w(m) = b / \|w\|$. The observation $x$ (in accent color) projects along the same normal axis (shown as the bold accent segment). Because $\text{proj}_w(x) < \text{proj}_w(m)$ ($x^T w < b$), the point falls on $\mu_1$'s side of the perpendicular bisector, assigning it to Cluster 1.
+    </figcaption>
+  </figure>
+
+  <h3>Generalization to $K > 2$: Voronoi Tessellations</h3>
+  <p>
+    When we move beyond two clusters to $K \ge 3$, each observation $x$ must be closer to its assigned centroid $\mu_k$ than to <em>every other centroid simultaneously</em>. Consequently, the region belonging to cluster $k$ is formed by the <strong>intersection of $K - 1$ linear half-spaces</strong>:
+  </p>
+
+  <div class="math-display">
+    $$C_k = \bigcap_{j \neq k} \left\{ x \in \mathbb{R}^d : x^T(\mu_j - \mu_k) \le \frac{\|\mu_j\|^2 - \|\mu_k\|^2}{2} \right\}$$
+  </div>
+
+  <p>
+    When $K = 3$, the boundary between any pair of centroids $\mu_i$ and $\mu_j$ is simply the perpendicular bisector passing through their midpoint $m_{ij} = \frac{\mu_i + \mu_j}{2}$.
+  </p>
+
+  <p>
+    In classical Euclidean geometry, the perpendicular bisectors of the three sides of triangle $\triangle \mu_1 \mu_2 \mu_3$ are <strong>concurrent</strong>—they all intersect at a single point known as the <strong>circumcenter</strong>. In clustering and computational geometry, this three-way junction is called a <strong>Voronoi vertex</strong> ($V$).
+  </p>
+
+  <p>
+    At the Voronoi vertex $V$, a data point is equidistant from all three cluster centers:
+  </p>
+
+  <div class="math-display">
+    $$\|V - \mu_1\| = \|V - \mu_2\| = \|V - \mu_3\|$$
+  </div>
+
+  <p>
+    The cluster boundaries separating the Voronoi cells are not infinite lines; rather, they are <strong>three rays emanating outward from $V$</strong>, each passing directly through the corresponding midpoint ($m_{12}, m_{13}, m_{23}$) and heading away from the third competing centroid. These three rays partition the continuous plane into three convex polygonal regions:
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 780 490" xmlns="http://www.w3.org/2000/svg">
+        <!-- Delaunay Triangle connecting centroids -->
+        <polygon points="230,110 550,110 390,430" fill="none" stroke="var(--border)" stroke-width="2" stroke-dasharray="6,6" />
+
+        <!-- Voronoi Boundary Rays radiating from V(390, 230) through the midpoints -->
+        <!-- Ray 12: separating C1 and C2 (straight up through m12 at 390,110) -->
+        <line x1="390" y1="230" x2="390" y2="15" stroke="var(--dark)" stroke-width="3" />
+
+        <!-- Ray 13: separating C1 and C3 (down-left through m13 at 310,270) -->
+        <line x1="390" y1="230" x2="20" y2="415" stroke="var(--dark)" stroke-width="3" />
+
+        <!-- Ray 23: separating C2 and C3 (down-right through m23 at 470,270) -->
+        <line x1="390" y1="230" x2="760" y2="415" stroke="var(--dark)" stroke-width="3" />
+
+        <!-- Right-angle square indicator at midpoint m12 -->
+        <polyline points="390,96 376,96 376,110" fill="none" stroke="var(--muted)" stroke-width="1.5" />
+
+        <!-- Midpoint Markers on the separating rays -->
+        <!-- m12 at (390, 110) -->
+        <circle cx="390" cy="110" r="5" fill="var(--bg)" stroke="var(--dark)" stroke-width="2.5" />
+        <text x="408" y="86" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">m₁₂</text>
+        <text x="408" y="102" font-family="'Lora', serif" font-size="12" fill="var(--muted)">= (μ₁ + μ₂)/2</text>
+
+        <!-- m13 at (310, 270) with clean dashed leader line to open space -->
+        <circle cx="310" cy="270" r="5" fill="var(--bg)" stroke="var(--dark)" stroke-width="2.5" />
+        <line x1="262" y1="262" x2="303" y2="268" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="2,2" />
+        <text x="210" y="255" text-anchor="middle" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">m₁₃</text>
+        <text x="210" y="272" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">= (μ₁ + μ₃)/2</text>
+
+        <!-- m23 at (470, 270) with clean dashed leader line to open space -->
+        <circle cx="470" cy="270" r="5" fill="var(--bg)" stroke="var(--dark)" stroke-width="2.5" />
+        <line x1="518" y1="262" x2="477" y2="268" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="2,2" />
+        <text x="570" y="255" text-anchor="middle" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">m₂₃</text>
+        <text x="570" y="272" text-anchor="middle" font-family="'Lora', serif" font-size="12" fill="var(--muted)">= (μ₂ + μ₃)/2</text>
+
+        <!-- Clustered observations (uniform data point color across all clusters) -->
+        <!-- In Cell C1 -->
+        <circle cx="170" cy="80" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="210" cy="60" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="270" cy="70" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="160" cy="130" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="230" cy="170" r="3.5" fill="var(--muted)" opacity="0.75" />
+
+        <!-- In Cell C2 -->
+        <circle cx="610" cy="80" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="570" cy="60" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="510" cy="70" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="620" cy="130" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="550" cy="170" r="3.5" fill="var(--muted)" opacity="0.75" />
+
+        <!-- In Cell C3 -->
+        <circle cx="340" cy="390" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="440" cy="390" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="350" cy="455" r="3.5" fill="var(--muted)" opacity="0.75" />
+        <circle cx="430" cy="455" r="3.5" fill="var(--muted)" opacity="0.75" />
+
+        <!-- Centroid mu1 -->
+        <circle cx="230" cy="110" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+        <text x="210" y="116" text-anchor="end" font-family="'Lora', serif" font-size="24" font-weight="bold" fill="var(--text)">μ₁</text>
+
+        <!-- Centroid mu2 -->
+        <circle cx="550" cy="110" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+        <text x="570" y="116" font-family="'Lora', serif" font-size="24" font-weight="bold" fill="var(--text)">μ₂</text>
+
+        <!-- Centroid mu3 -->
+        <circle cx="390" cy="430" r="7" fill="var(--accent)" stroke="var(--dark)" stroke-width="2" />
+        <text x="412" y="436" font-family="'Lora', serif" font-size="24" font-weight="bold" fill="var(--text)">μ₃</text>
+
+        <!-- Voronoi Vertex V (placed safely to the left above V in open sector) -->
+        <circle cx="390" cy="230" r="6" fill="var(--dark)" />
+        <text x="372" y="200" text-anchor="end" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">V</text>
+        <text x="372" y="216" text-anchor="end" font-family="'Lora', serif" font-size="12" fill="var(--muted)">Voronoi vertex</text>
+
+        <!-- Cell labels with generous breathing room -->
+        <text x="120" y="55" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--text)">Voronoi Cell C₁</text>
+        <text x="120" y="76" font-family="'Lora', serif" font-size="13" fill="var(--muted)">Points closest to μ₁</text>
+
+        <text x="660" y="55" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--text)" text-anchor="middle">Voronoi Cell C₂</text>
+        <text x="660" y="76" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Points closest to μ₂</text>
+
+        <text x="120" y="440" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--text)">Voronoi Cell C₃</text>
+        <text x="120" y="461" font-family="'Lora', serif" font-size="13" fill="var(--muted)">Points closest to μ₃</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 3:</strong> Voronoi tessellation for $K = 3$ clusters. Each separating boundary ray passes directly through the midpoint of the segment connecting two centroids ($m_{12}, m_{13}, m_{23}$) as its perpendicular bisector. All three bisectors are concurrent at the circumcenter (Voronoi vertex $V$), where distances to all three centroids are identical ($\|V - \mu_1\| = \|V - \mu_2\| = \|V - \mu_3\|$), carving space into three convex polyhedral cells.
     </figcaption>
   </figure>
 
   <p>
-    When generalized to $K > 2$ clusters, each cluster region is the intersection of $K-1$ half-spaces:
+    Because every individual half-space is a convex set, and the intersection of any collection of convex sets is guaranteed to be convex, <strong>every $K$-means cluster cell is fundamentally a convex polyhedron</strong>. This geometric partitioning of space into nearest-neighbor convex polygons is known as a <strong>Voronoi Tessellation</strong>.
   </p>
-
-  <div class="math-display">
-    $$C_k = \left\{ x \in \mathbb{R}^d : x^T(\mu_j - \mu_k) \le \frac{\|\mu_j\|^2 - \|\mu_k\|^2}{2}, \quad \forall j \neq k \right\}$$
-  </div>
 
   <p>
-    Because each half-space is convex, and the intersection of convex sets is always convex, <strong>$K$-means partitions space into convex polyhedral cells called a Voronoi Tessellation</strong>. This immediately reveals a core limitation: $K$-means cannot separate clusters that require non-linear or non-convex boundaries (such as concentric circles or intertwined spirals).
+    This geometric reality exposes the primary limitation of $K$-means: <em>it can never separate clusters whose natural boundaries are non-convex or non-linear</em> (such as concentric circles, interlocking spirals, or moon shapes). In such geometries, the flat Voronoi hyperplanes unavoidably slice directly through natural clusters.
   </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Can Lloyd's alternating descent get caught in an infinite cycle, oscillating between two partitions forever without stopping?</em></p>
+    </div>
+  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
-<!--  4 — The Convergence Proof                             -->
+<!--  5 — The Convergence Proof                             -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="convergence">
   <h2>Why Lloyd's Algorithm Must Converge</h2>
 
   <p>
-    A crucial question arises: <em>Can Lloyd's algorithm get caught in an infinite loop, ping-ponging assignments back and forth forever?</em>
-  </p>
-
-  <p>
-    The answer is an emphatic <strong>no</strong>. Lloyd's algorithm is mathematically guaranteed to terminate in a finite number of iterations. The proof rests on two pillars:
+    Lloyd's algorithm is mathematically guaranteed to terminate in a finite number of iterations—it can never enter an infinite cycle or bounce between partitions indefinitely. The proof rests upon two foundational pillars:
   </p>
 
   <ol>
     <li>
       <strong>Strict Monotonic Objective Reduction:</strong>
       <p>
-        In the reassignment step, each data point $x_i$ is reassigned to the centroid that minimizes $\|x_i - \mu_k^{(t)}\|^2$. Therefore:
+        In the reassignment step, each point $x_i$ is greedily assigned to whichever centroid minimizes $\|x_i - \mu_k^{(t)}\|^2$. Therefore, the total sum of distances cannot increase:
       </p>
       <div class="math-display">
         $$F(z^{(t+1)}, \mu^{(t)}) = \sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t)}\|^2 \le \sum_{i=1}^n \|x_i - \mu_{z_i^{(t)}}^{(t)}\|^2 = F(z^{(t)}, \mu^{(t)})$$
       </div>
       <p>
-        If any point changes its cluster assignment, the objective value <em>strictly decreases</em>.
+        If any point changes its cluster membership, the objective function <em>strictly decreases</em>.
       </p>
       <p>
-        Next, in the mean calculation step, $\mu_k^{(t+1)}$ is set to the exact sample mean of cluster $k$, which is the unique global minimizer of $\sum_{i: z_i=k} \|x_i - \mu\|^2$. Thus:
+        Next, in the centroid update step, each $\mu_k^{(t+1)}$ is set to the sample mean of cluster $k$. As derived earlier, the arithmetic mean is the unique global minimizer of $\sum_{i \in C_k} \|x_i - \mu\|^2$. Consequently:
       </p>
       <div class="math-display">
         $$F(z^{(t+1)}, \mu^{(t+1)}) \le F(z^{(t+1)}, \mu^{(t)})$$
       </div>
       <p>
-        Hence, across every full iteration, the objective sequence strictly decreases whenever assignments change:
+        Combining both steps proves that across every complete iteration, the objective value strictly decreases whenever any assignment changes:
       </p>
       <div class="math-display">
         $$F(z^{(t+1)}, \mu^{(t+1)}) < F(z^{(t)}, \mu^{(t)})$$
@@ -361,107 +838,127 @@
     <li>
       <strong>Finite State Space of Partitions:</strong>
       <p>
-        There are $n$ data points and $K$ possible cluster labels. The total number of possible assignments $z = (z_1, \dots, z_n)$ is at most $K^n$, a finite number.
+        There are $n$ data points and $K$ possible cluster labels. The total number of conceivable assignment vectors $z = (z_1, \dots, z_n)$ is at most $K^n$—a finite number.
       </p>
     </li>
   </ol>
 
   <div class="math-box">
-    <div class="math-box-label">The Convergence Conclusion</div>
+    <div class="math-box-label">Theorem: Finite Convergence of Lloyd's Algorithm</div>
     <div class="math-box-body">
       <p>
-        Because the objective function strictly decreases whenever a reassignment occurs, <strong>no partition can ever be visited twice</strong>. Since the total number of partitions is finite, the algorithm must stop changing assignments after a finite number of steps $\implies$ <strong>Convergence is guaranteed</strong>.
+        Because the distortion objective $F(z, \mu)$ strictly decreases whenever assignments change, <strong>no partition $z \in \{1, \dots, K\}^n$ can ever be visited twice</strong>. Since the total number of partitions is finite ($K^n$), the algorithm cannot cycle indefinitely and must terminate after a finite number of iterations $\implies$ <strong>Convergence is mathematically guaranteed</strong>.
       </p>
     </div>
   </div>
 
   <p>
-    <strong>The Critical Caveat:</strong> Convergence tells us that the algorithm will stop, but it says <em>nothing</em> about the quality of the converged solution. The $K$-means objective is non-convex with countless local minima. Lloyd's algorithm easily gets trapped in poor local configurations depending entirely on initialization.
+    <strong>The Critical Caveat: Local Minima.</strong> Finite convergence guarantees that the algorithm will stop, but offers <em>zero guarantee</em> about the global quality of the final solution. The distortion landscape is highly non-convex with numerous local valleys. Depending entirely on the starting centroids, Lloyd's algorithm easily becomes trapped in poor local configurations where Voronoi boundaries split dense clusters in half.
   </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If Lloyd's algorithm is a prisoner of its initial seeds, how can we initialize centroids so we are mathematically protected against catastrophic local traps?</em></p>
+    </div>
+  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
-<!--  5 — Initialization Pitfalls & The Chocolate Challenge  -->
+<!--  6 — Initialization Pitfalls & k-Means++                -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="initialization">
-  <h2>Initialization Pitfalls &amp; The Furthest-Point Failure</h2>
+  <h2>Initialization Pitfalls &amp; $k$-Means++ Careful Seeding</h2>
 
   <p>
-    How should we choose the initial seeds? Two common heuristics are:
+    Historically, practitioners selected initial centroids $\mu_1^{(0)}, \dots, \mu_K^{(0)}$ using simple heuristic strategies:
   </p>
   <ul>
-    <li><strong>Random Partition:</strong> Assign each point randomly to one of $\{1, \dots, K\}$ and compute initial means. (This pulls all initial means close to the global dataset center due to the Law of Large Numbers, often performing poorly).</li>
-    <li><strong>Random Centroids:</strong> Choose $K$ distinct points uniformly at random from the dataset $\mathcal{X}$. (Prone to picking multiple seeds from the same dense cluster, leaving other clusters unseeded).</li>
+    <li>
+      <strong>Random Partition:</strong> Assign each point randomly to one of $\{1, \dots, K\}$ and compute initial cluster means. Because each random subset has approximately the same overall distribution, the Law of Large Numbers pulls all initial means close to the global dataset center $\bar{x}$, collapsing initial cluster separation.
+    </li>
+    <li>
+      <strong>Forgy Uniform Selection:</strong> Pick $K$ distinct observations uniformly at random from $\mathcal{X}$. While better than random partition, it frequently samples multiple seeds from dense clusters while leaving smaller, distinct clusters entirely unrepresented.
+    </li>
   </ul>
 
+  <h3>The Greedy Trap: Furthest-Point Initialization</h3>
   <p>
-    One might wonder: <em>Why not use a deterministic "furthest-point" heuristic?</em> Pick $\mu_1$ as an arbitrary data point, and then greedily pick each subsequent center $\mu_\ell$ as the point that is farthest from all previously selected centers:
+    To ensure that centroids spread across the data, one might naturally propose a deterministic greedy rule (furthest-first traversal): pick $\mu_1$ randomly from $\mathcal{X}$, and subsequently select each next center $\mu_\ell$ as the data point farthest from all existing centers:
   </p>
 
   <div class="math-display">
-    $$\mu_\ell = \arg\max_{x_i \in \mathcal{X}} \min_{j=1,\dots,\ell-1} \|x_i - \mu_j\|^2$$
+    $$\mu_\ell = \arg\max_{x_i \in \mathcal{X}} \min_{j \in \{1, \dots, \ell-1\}} \|x_i - \mu_j\|^2$$
   </div>
-
-  <div class="math-box">
-    <div class="math-box-label">The IITM FML Chocolate Challenge</div>
-    <div class="math-box-body">
-      <p>
-        <em>Can you construct a dataset where this deterministic furthest-point initialization causes Lloyd's algorithm to converge to an arbitrarily bad approximation ratio compared to the optimal clustering?</em>
-      </p>
-      <p>
-        <strong>The Counterexample:</strong> Consider data arranged on symmetric circular rings or elongated parallel pairs. By placing extreme outliers or choosing a symmetric layout, the greedy furthest-point rule deterministically selects outlier points or points on opposite ends of the same cluster boundary. The resulting Voronoi cells cut across natural clusters, trapping Lloyd's algorithm in an adversarial configuration with catastrophic approximation ratios.
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!--  6 — k-means++: Careful Seeding                         -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section id="kmeans-plus-plus">
-  <h2>$k$-Means++: The Power of $D^2$-Sampling</h2>
 
   <p>
-    To resolve the trade-off between greedy determinism and naive uniform random selection, David Arthur and Sergei Vassilvitskii (2007) introduced <strong>$k$-means++</strong>.
+    While intuitive, this deterministic rule has a fatal flaw: <strong>it is hypersensitive to outliers</strong>. If the dataset contains even a single noise point or outlier far away from the true clusters, the greedy rule aggressively targets it as a legitimate centroid. Furthermore, on symmetric datasets (such as clusters arranged in parallel pairs or concentric rings), the furthest-point heuristic deterministically places seeds at opposite extremes of the same cluster, locking Lloyd's algorithm into pathological configurations with arbitrarily terrible approximation ratios compared to the true optimum.
   </p>
 
+  <h3>The Breakthrough: $k$-Means++</h3>
   <p>
-    Instead of deterministically picking the farthest point (which is fragile to outliers) or picking uniformly at random (which clusters seeds together), $k$-means++ picks new centers with a probability proportional to the <strong>squared distance</strong> to the nearest existing center.
+    In 2007, David Arthur and Sergei Vassilvitskii resolved this dilemma with <strong>$k$-means++</strong>. Instead of deterministically selecting the absolute farthest point (which falls into outlier traps) or picking uniformly at random (which clusters seeds together), $k$-means++ selects new seeds using a randomized distribution proportional to the <strong>squared shortest distance</strong> to existing centers ($D^2$-weighting).
   </p>
 
   <div class="math-box">
     <div class="math-box-label">The $k$-Means++ Seeding Algorithm</div>
     <div class="math-box-body">
       <ol>
-        <li>Choose the first center $\mu_1^0$ uniformly at random from dataset $\mathcal{X}$.</li>
-        <li>For $\ell = 2, \dots, K$:
+        <li>
+          Choose the first centroid $\mu_1^0$ uniformly at random from the dataset $\mathcal{X}$.
+        </li>
+        <li>
+          For each remaining center $\ell = 2, 3, \dots, K$:
           <ul>
-            <li>For each $x_i \in \mathcal{X}$, compute its shortest distance to already chosen centers:
-              $$D_i^2 = \min_{j \in \{1, \dots, \ell-1\}} \|x_i - \mu_j^0\|^2$$
+            <li>
+              For every data point $x_i \in \mathcal{X}$, compute its squared Euclidean distance to the closest center already chosen:
+              $$D(x_i)^2 = \min_{j \in \{1, \dots, \ell-1\}} \|x_i - \mu_j^0\|^2$$
             </li>
-            <li>Choose the next center $\mu_\ell^0 = x_i$ with probability:
-              $$\Pr(x_i) = \frac{D_i^2}{\sum_{r=1}^n D_r^2}$$
+            <li>
+              Select the next center $\mu_\ell^0 = x_i$ with probability proportional to $D(x_i)^2$:
+              $$\Pr(x_i \text{ is chosen}) = \frac{D(x_i)^2}{\sum_{r=1}^n D(x_r)^2}$$
             </li>
           </ul>
         </li>
-        <li>Run standard Lloyd's algorithm using $\mu_1^0, \dots, \mu_K^0$ as initial centers.</li>
+        <li>
+          Proceed with standard Lloyd's alternating descent using $\mu_1^0, \dots, \mu_K^0$ as initial prototypes.
+        </li>
       </ol>
     </div>
   </div>
 
   <p>
-    Why does this work so well? Points already near an existing center have $D_i \approx 0$ and have virtually zero chance of being picked again. Meanwhile, points far away in unrepresented clusters have high $D_i^2$ and dominate the sampling distribution.
+    Why is $D^2$-sampling so effective? Consider what happens during the seeding process:
   </p>
+  <ul>
+    <li>
+      Points in a cluster that already contains a seed have $D(x_i) \approx 0$. Their selection probability drops to near zero, preventing redundant seeds in the same cluster.
+    </li>
+    <li>
+      Points in an unrepresented cluster located at distance $L$ from existing seeds contribute $D(x_i)^2 \approx L^2$. If that unrepresented cluster has $M$ points, the cluster as a whole contributes roughly $M \cdot L^2$ to the total sampling mass.
+    </li>
+    <li>
+      An isolated outlier point at distance $2L$ contributes $(2L)^2 = 4L^2$. But because it is only <em>one point</em> ($M = 1$), an unseeded cluster of 100 points at distance $L$ contributes $100 L^2$—twenty-five times more probability weight than the outlier!
+    </li>
+  </ul>
 
   <div class="math-box">
-    <div class="math-box-label">Theoretical Approximation Guarantee</div>
+    <div class="math-box-label">Theorem: $\mathcal{O}(\log K)$ Approximation Guarantee of $k$-Means++</div>
     <div class="math-box-body">
+      <p>
+        Let $F_{\text{opt}} = \min_{z, \mu} \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2$ be the globally optimal clustering distortion. The clustering returned by Lloyd's algorithm initialized with $k$-means++ seeding satisfies:
+      </p>
       <div class="math-display">
-        $$\mathbb{E}\left[ \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2 \right] \le 8(\ln K + 2) \min_{z_1, \dots, z_n} \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2 = \mathcal{O}(\log K) \cdot F_{\text{opt}}$$
+        $$\mathbb{E}[F(z, \mu)] \le 8(\ln K + 2) \cdot F_{\text{opt}} = \mathcal{O}(\log K) \cdot F_{\text{opt}}$$
       </div>
       <p>
-        The expectation is taken over the randomness in the algorithm's seeding choices. In expectation, $k$-means++ is guaranteed to be within an $\mathcal{O}(\log K)$ factor of the optimal clustering!
+        The expectation is taken over the randomness of the initial seeding choices. In expectation, $k$-means++ is mathematically guaranteed to be within an $\mathcal{O}(\log K)$ factor of the true global optimum.
       </p>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>In unsupervised learning, no one tells us the true number of clusters. Why does minimizing clustering distortion fail to choose $K$, and how do we mathematically penalize model complexity?</em></p>
     </div>
   </div>
 </section>
@@ -470,26 +967,30 @@
 <!--  7 — Model Selection: Choosing K                        -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="choice-of-k">
-  <h2>Model Selection: How to Choose $K$</h2>
+  <h2>Model Selection: Penalized Distortion &amp; Probabilistic Grounding</h2>
 
   <p>
-    A fundamental question in clustering is: <em>How do we determine the true number of clusters $K$?</em>
-  </p>
-
-  <p>
-    Attempting to find $K$ by simply minimizing the objective function $F(K)$ is mathematically futile:
+    A natural first instinct is to optimize the number of clusters $K$ alongside the parameters by minimizing the distortion objective directly:
   </p>
 
   <div class="math-display">
-    $$F(K) = \min_{z, \mu} \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2$$
+    $$K^* = \arg\min_K F(K) = \arg\min_K \left[ \min_{z, \mu} \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2 \right]$$
   </div>
 
   <p>
-    As $K$ increases, $F(K)$ is strictly monotonically decreasing. If we set $K = n$, we can place a centroid at every single data point, yielding a trivial and useless objective value of $F(n) = 0$.
+    This formulation fails completely: <strong>the distortion objective $F(K)$ is monotonically non-increasing in $K$</strong>. Every time we add an extra cluster centroid ($K \to K+1$), we give the model an additional degree of freedom to reduce Euclidean distances:
+  </p>
+
+  <div class="math-display">
+    $$F(K+1) \le F(K)$$
+  </div>
+
+  <p>
+    If we set $K = n$, we can place a centroid directly on top of every single observation ($x_i = \mu_i$). The resulting distortion drops to $F(n) = 0$, but the model is completely useless—it has merely memorized the data rather than discovering structure.
   </p>
 
   <p>
-    To find the optimal $K^*$, we must introduce a <strong>regularization penalty</strong> that penalizes model complexity (larger $K$):
+    To determine the optimal $K^*$, we must introduce a <strong>regularization penalty</strong> that penalizes model complexity:
   </p>
 
   <div class="math-display">
@@ -498,63 +999,101 @@
 
   <figure class="diagram-figure">
     <div class="svg-container">
-      <svg viewBox="0 0 740 420" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 740 430" xmlns="http://www.w3.org/2000/svg">
         <!-- Axes -->
         <line x1="80" y1="360" x2="680" y2="360" stroke="var(--border)" stroke-width="2" />
         <line x1="80" y1="40" x2="80" y2="360" stroke="var(--border)" stroke-width="2" />
-        <text x="680" y="390" font-family="'Lora', serif" font-size="20" font-style="italic" fill="var(--text)">K</text>
-        <text x="30" y="45" font-family="'Lora', serif" font-size="18" fill="var(--text)">Score</text>
+        <text x="685" y="365" font-family="'Lora', serif" font-size="20" font-style="italic" fill="var(--text)">K</text>
+        <text x="75" y="32" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--text)">Total Score / Distortion</text>
 
         <!-- Ticks -->
-        <text x="120" y="385" font-family="'Lora', serif" font-size="16" fill="var(--muted)">1</text>
-        <text x="220" y="385" font-family="'Lora', serif" font-size="16" fill="var(--muted)">2</text>
-        <text x="380" y="385" font-family="'Lora', serif" font-size="18" font-weight="bold" fill="var(--accent)">K*</text>
-        <text x="620" y="385" font-family="'Lora', serif" font-size="16" fill="var(--muted)">n</text>
+        <text x="110" y="385" font-family="'Lora', serif" font-size="16" fill="var(--muted)">1</text>
+        <text x="210" y="385" font-family="'Lora', serif" font-size="16" fill="var(--muted)">2</text>
+        <text x="375" y="385" text-anchor="middle" font-family="'Lora', serif" font-size="18" font-weight="bold" fill="var(--text)">K*</text>
+        <text x="635" y="385" font-family="'Lora', serif" font-size="16" fill="var(--muted)">n</text>
 
-        <!-- Objective Curve (Decreasing blue) -->
-        <path d="M 100 80 Q 200 240 640 340" fill="none" stroke="#2b6cb0" stroke-width="3" />
-        <text x="180" y="140" font-family="'Lora', serif" font-size="18" font-weight="600" fill="#2b6cb0">Objective F(K)</text>
+        <!-- Objective Curve F(K) (Monotonically decreasing, strictly positive) -->
+        <path d="M 100 120 C 200 225, 340 280, 640 318" fill="none" stroke="var(--muted)" stroke-width="3" />
+        <text x="160" y="225" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--text)">Objective F(K)</text>
 
-        <!-- Penalty Curve (Increasing red) -->
-        <path d="M 100 340 Q 300 270 640 80" fill="none" stroke="#c53030" stroke-width="3" />
-        <text x="520" y="140" font-family="'Lora', serif" font-size="18" font-weight="600" fill="#c53030">Penalty(K)</text>
+        <!-- Penalty Curve Penalty(K) (Monotonically increasing) -->
+        <path d="M 100 328 C 260 290, 460 225, 640 165" fill="none" stroke="var(--box-label-bg)" stroke-width="3" />
+        <text x="535" y="225" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--text)">Penalty(K)</text>
 
-        <!-- Total Cost Curve (U-shaped orange) -->
-        <path d="M 100 120 Q 380 360 640 140" fill="none" stroke="#dd6b20" stroke-width="3.5" />
-        <text x="320" y="195" font-family="'Lora', serif" font-size="20" font-weight="bold" fill="#dd6b20">Objective + Penalty</text>
+        <!-- Total Score Curve = Objective + Penalty (Must be strictly above both curves everywhere!) -->
+        <path d="M 100 82 C 220 152, 290 152, 375 152 C 460 152, 530 152, 640 120" fill="none" stroke="var(--accent)" stroke-width="3.5" />
+        <text x="375" y="70" text-anchor="middle" font-family="'Lora', serif" font-size="18" font-weight="bold" fill="var(--text)">Objective F(K) + Penalty(K)</text>
 
-        <!-- Optimum vertical dashed line -->
-        <line x1="380" y1="260" x2="380" y2="360" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5,5" />
-        <circle cx="380" cy="260" r="6" fill="var(--accent)" />
+        <!-- Optimum vertical dashed line and marker -->
+        <line x1="375" y1="152" x2="375" y2="360" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5,5" />
+        <circle cx="375" cy="152" r="6" fill="var(--accent)" stroke="var(--dark)" stroke-width="1.5" />
+        <text x="390" y="146" font-family="'Lora', serif" font-size="13" font-style="italic" fill="var(--muted)">Optimal trade-off K*</text>
       </svg>
     </div>
     <figcaption class="figure-caption">
-      <strong>Figure 2:</strong> Model selection trade-off. The raw objective decreases with $K$, while model complexity penalties increase. The optimal $K^*$ minimizes the combined score.
+      <strong>Figure 4:</strong> Model selection trade-off. The raw distortion objective $F(K)$ strictly decreases as $K$ increases, while complexity penalties increase with parameter count. The combined score $F(K) + \text{Penalty}(K)$ is the vertical sum of both functions, sitting strictly above both individual curves, with a unique global minimum at the optimal complexity $K^*$.
     </figcaption>
   </figure>
 
-  <h3>Probabilistic Grounding: AIC and BIC</h3>
+  <h3>Probabilistic Grounding: Connection to Gaussian Mixture Models</h3>
   <p>
-    If we interpret $K$-means under a probabilistic framework (as a Gaussian Mixture Model with spherical covariance $\sigma^2 I$), the log-likelihood is directly proportional to the negative distortion objective: $\log \hat{L} \propto -F(K)$.
+    Where do formal penalty functions come from? We can derive them directly by viewing $K$-means through the lens of <a href="../../../03.probability-statistics/02.distributions/01.common-probability-distributions/index.html">Gaussian distributions</a>.
   </p>
 
   <p>
-    This allows us to leverage principled statistical criteria:
+    Suppose data points are independently sampled from a mixture of $K$ spherical Gaussian distributions with identical variance $\sigma^2 I$ and uniform mixing weights $\pi_k = 1/K$:
+  </p>
+
+  <div class="math-display">
+    $$p(x_i \mid z_i = k, \mu_k, \sigma^2) = \frac{1}{(2\pi \sigma^2)^{d/2}} \exp\left( -\frac{\|x_i - \mu_k\|^2}{2\sigma^2} \right)$$
+  </div>
+
+  <p>
+    Under hard assignment (where each point is assigned strictly to its most probable cluster), the joint log-likelihood of the dataset is:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \log p(X \mid z, \mu, \sigma^2) &= \sum_{i=1}^n \log\left[ \frac{1}{(2\pi \sigma^2)^{d/2}} \exp\left( -\frac{\|x_i - \mu_{z_i}\|^2}{2\sigma^2} \right) \right] \\[8pt]
+      &= \sum_{i=1}^n \left( -\frac{d}{2}\ln(2\pi\sigma^2) - \frac{\|x_i - \mu_{z_i}\|^2}{2\sigma^2} \right) \\[8pt]
+      &= -\frac{nd}{2}\ln(2\pi\sigma^2) - \frac{1}{2\sigma^2} \underbrace{\sum_{i=1}^n \|x_i - \mu_{z_i}\|^2}_{F(K)}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Maximizing the hard-assignment Gaussian log-likelihood is mathematically identical to <strong>minimizing the $K$-means distortion objective $F(K)$</strong>!
+  </p>
+
+  <p>
+    Each cluster center $\mu_k$ is a $d$-dimensional vector. Specifying $K$ centroids requires estimating $q = K \cdot d$ continuous parameters. This direct connection to maximum likelihood unlocks two classical information-theoretic model selection criteria:
   </p>
 
   <ul>
     <li>
       <strong>Akaike Information Criterion (AIC):</strong>
-      $$\text{AIC} = 2q - 2\log \hat{L}$$
-      where $q = K \cdot d$ is the number of estimated parameters (the centroid coordinates).
+      <div class="math-display">
+        $$\text{AIC} = 2q - 2\log \hat{L} = 2Kd + \frac{1}{\sigma^2}F(K) + \text{const}$$
+      </div>
+      Penalizes the number of parameters linearly with weight $2$.
     </li>
     <li>
       <strong>Bayesian Information Criterion (BIC):</strong>
-      $$\text{BIC} = q \log(n) - 2\log \hat{L}$$
-      which imposes a heavier penalty on sample size $n$, preferring simpler, more parsimonious models.
+      <div class="math-display">
+        $$\text{BIC} = q \ln(n) - 2\log \hat{L} = Kd \ln(n) + \frac{1}{\sigma^2}F(K) + \text{const}$$
+      </div>
+      Imposes a heavier penalty scaled by $\ln(n)$, asymptotically identifying the true dimension of the underlying generative model.
     </li>
     <li>
-      <strong>The Elbow Method:</strong> A geometric heuristic where one plots $F(K)$ against $K$ and identifies the "elbow"—the inflection point where adding more clusters yields diminishing marginal reduction in distortion.
+      <strong>The Geometric Elbow Method:</strong>
+      <p>
+        In heuristic practice, one plots $F(K)$ against $K$ and looks for the "elbow"—the point where the rate of marginal reduction sharply diminishes:
+      </p>
+      <div class="math-display">
+        $$\Delta^2 F(K) = [F(K+1) - F(K)] - [F(K) - F(K-1)] = F(K+1) - 2F(K) + F(K-1)$$
+      </div>
+      <p>
+        The elbow corresponds to the point of maximum positive discrete curvature $\Delta^2 F(K)$.
+      </p>
     </li>
   </ul>
 </section>
@@ -562,31 +1101,153 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!--  8 — Connecting the Dots: Looking Ahead                 -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<section id="next-steps">
-  <h2>Connecting the Dots: The Non-Linear Frontier</h2>
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots: The Unified Landscape of Clustering</h2>
 
   <p>
-    We have seen that standard $K$-means has two fundamental traits:
-  </p>
-  <ol>
-    <li>It partitions space using <strong>linear Voronoi hyperplanes</strong>.</li>
-    <li>It alternates over <strong>discrete assignment variables</strong>, which can be seen as an NP-hard combinatorial problem.</li>
-  </ol>
-
-  <p>
-    What if our data lies on complex, non-linear manifolds—like concentric rings or intertwined spirals—where no flat hyperplane can separate the clusters?
+    Let us step back and examine where $K$-Means sits within the broader spectrum of clustering algorithms:
   </p>
 
+  <div class="math-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Cluster Geometry &amp; Shape</th>
+          <th>Optimization Objective</th>
+          <th>Assignment Type</th>
+          <th>Computational Complexity</th>
+          <th>Handling of Outliers &amp; Shapes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Standard Lloyd $K$-Means</strong></td>
+          <td>Convex polyhedra (Voronoi cells)</td>
+          <td>Distortion: $\min_{M, Z} \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2$</td>
+          <td>Hard discrete ($z_{ik} \in \{0, 1\}$)</td>
+          <td>$\mathcal{O}(I \cdot nKd)$ ($I$ iterations)</td>
+          <td>Sensitive to initialization seeds and isolated outliers</td>
+        </tr>
+        <tr>
+          <td><strong>$K$-Means++</strong></td>
+          <td>Convex polyhedra (Voronoi cells)</td>
+          <td>$D^2$-weighted seeding + Lloyd distortion descent</td>
+          <td>Hard discrete ($z_{ik} \in \{0, 1\}$)</td>
+          <td>$\mathcal{O}(Kn d + I \cdot nKd)$</td>
+          <td>$\mathcal{O}(\log K)$ competitive guarantee against bad initial seeds</td>
+        </tr>
+        <tr>
+          <td><strong>$K$-Medoids (PAM)</strong></td>
+          <td>Convex polyhedra (arbitrary metrics)</td>
+          <td>Sum of pairwise dissimilarities to exemplars</td>
+          <td>Hard discrete (centers are actual data points)</td>
+          <td>$\mathcal{O}(K(n-K)^2)$ or $\mathcal{O}(nKd)$</td>
+          <td>Highly robust to extreme outliers and non-Euclidean distances</td>
+        </tr>
+        <tr>
+          <td><strong>Gaussian Mixtures (GMM)</strong></td>
+          <td>Ellipsoidal (arbitrary covariances $\Sigma_k$)</td>
+          <td>Marginal log-likelihood via Expectation-Maximization</td>
+          <td>Soft probabilistic ($\gamma_{ik} \in [0, 1]$)</td>
+          <td>$\mathcal{O}(I \cdot n K d^2)$ per iteration</td>
+          <td>Captures varying cluster sizes, orientations, and soft overlaps</td>
+        </tr>
+        <tr>
+          <td><strong>DBSCAN</strong></td>
+          <td>Arbitrary non-convex density shapes</td>
+          <td>Core-point $\varepsilon$-neighborhood density reachability</td>
+          <td>Hard density-connected + Noise labels</td>
+          <td>$\mathcal{O}(n \log n)$ with spatial indexing</td>
+          <td>Automatically detects noise points; handles arbitrary non-convex clusters</td>
+        </tr>
+        <tr>
+          <td><strong>Spectral Clustering</strong></td>
+          <td>Arbitrary graph manifolds / complex topologies</td>
+          <td>Normalized graph cut via Graph Laplacian eigenvectors</td>
+          <td>Hard discrete in low-dimensional spectral space</td>
+          <td>$\mathcal{O}(n^3) + \mathcal{O}(I \cdot n K^2)$</td>
+          <td>Separates interlocking rings, spirals, and intricate geometric manifolds</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The Hidden Duality: Why Clustering and Dimensionality Reduction Are Two Sides of the Same Coin</h3>
+
   <p>
-    Can we kernelize $K$-means just as we kernelized PCA? How does a continuous relaxation of discrete cluster assignments lead directly to <strong>Spectral Clustering</strong>? We explore this in the next article.
+    With the clustering landscape clear, we can now address a natural question: <em>Why are Dimensionality Reduction (such as PCA) and Clustering (such as $K$-Means) so frequently discussed together under the banner of "Unsupervised Learning"?</em>
+  </p>
+
+  <p>
+    At first glance, they seem to solve completely different problems:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Dimensionality reduction</strong> finds a continuous low-dimensional subspace onto which high-dimensional features are compressed.
+    </li>
+    <li>
+      <strong>Clustering</strong> partitions data points into a discrete set of groups represented by centroid prototypes.
+    </li>
+  </ul>
+
+  <p>
+    Yet beneath the surface, both paradigms are two realizations of the exact same mathematical engine: <strong>low-rank matrix factorization</strong>:
+  </p>
+
+  <div class="math-display">
+    $$X \approx A B^T$$
+  </div>
+
+  <ul>
+    <li>
+      <strong>Continuous Matrix Factorization (PCA):</strong> We approximate data matrix $X \in \mathbb{R}^{d \times n}$ as $X \approx W Z^T$, where the column vectors of $W \in \mathbb{R}^{d \times k}$ are continuous projection axes and the coordinates $Z \in \mathbb{R}^{n \times k}$ are <em>continuous and orthonormal</em> ($Z^T Z = I$).
+    </li>
+    <li>
+      <strong>Discrete Matrix Factorization ($K$-Means):</strong> We approximate data matrix $X \in \mathbb{R}^{d \times n}$ as $X \approx M Z^T$, where $M \in \mathbb{R}^{d \times K}$ holds continuous centroid coordinates, but $Z \in \{0, 1\}^{n \times K}$ is strictly constrained to be a <em>discrete, binary one-hot assignment matrix</em> ($z_{ik} \in \{0, 1\}$ with $\sum_k z_{ik} = 1$).
+    </li>
+  </ul>
+
+  <p>
+    This matrix duality explains why $K$-means is computationally difficult while PCA is computationally tractable:
+  </p>
+
+  <p>
+    Because $Z$ is restricted to binary integers, $K$-means is a non-convex combinatorial optimization problem that is NP-hard. But notice what happens if we <strong>relax the discrete constraint</strong>: if we allow the rows of $Z$ to vary continuously as orthonormal vectors, <strong>the $K$-means objective function mathematically collapses directly into Principal Component Analysis!</strong>
+  </p>
+
+  <p>
+    Furthermore, both standard algorithms share the exact same geometric bottleneck: <em>they are fundamentally linear tools</em>. Linear PCA cannot unfold non-linear manifolds, and $K$-means cannot separate non-convex clusters (concentric circles, spirals). To escape this limitation, both paradigms deploy the exact same geometric philosophy:
+  </p>
+
+  <ul>
+    <li>
+      In dimensionality reduction, we lift input coordinates into a high-dimensional feature Hilbert space where curves flatten into hyperplanes (<strong>Kernel PCA</strong>).
+    </li>
+    <li>
+      In clustering, we transform pairwise Euclidean distances into an affinity graph and compute the continuous eigenvectors of the <strong>Graph Laplacian</strong> (<strong>Spectral Clustering</strong>), which we will explore next.
+    </li>
+  </ul>
+
+  <p>
+    Whether projecting continuously onto orthogonal subspaces or partitioning discretely into Voronoi cells, unsupervised learning is the unified pursuit of discovering latent structure without labels.
   </p>
 </section>
 
                     </section>
                 </article>
+                <div id="article-comments"></div>
             </div>
         </div>
     </main>
 
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof injectGiscusComments === 'function') {
+          injectGiscusComments('article-comments');
+        }
+      });
+    </script>
 </body>
 </html>

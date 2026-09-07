@@ -550,23 +550,31 @@ async function build() {
         return;
     }
 
-    console.log("🖼️ Initialising Satori and Lora font…");
-    const { default: satori } = await import("satori");
-    const { html }            = await import("satori-html");
-    const { Resvg }           = await import("@resvg/resvg-js");
+    let fonts = null, satori = null, html = null, Resvg = null;
+    try {
+        console.log("🖼️ Initialising Satori and Lora font…");
+        const satoriMod = await import("satori");
+        satori = satoriMod.default;
+        const htmlMod = await import("satori-html");
+        html = htmlMod.html;
+        const resvgMod = await import("@resvg/resvg-js");
+        Resvg = resvgMod.Resvg;
 
-    const [res400, res700] = await Promise.all([
-        fetch("https://cdn.jsdelivr.net/npm/@fontsource/lora/files/lora-latin-400-normal.woff"),
-        fetch("https://cdn.jsdelivr.net/npm/@fontsource/lora/files/lora-latin-700-normal.woff"),
-    ]);
-    const [font400, font700] = await Promise.all([
-        res400.arrayBuffer(),
-        res700.arrayBuffer(),
-    ]);
-    const fonts = [
-        { name: "Lora", data: font400, weight: 400, style: "normal" },
-        { name: "Lora", data: font700, weight: 700, style: "normal" },
-    ];
+        const [res400, res700] = await Promise.all([
+            fetch("https://cdn.jsdelivr.net/npm/@fontsource/lora/files/lora-latin-400-normal.woff"),
+            fetch("https://cdn.jsdelivr.net/npm/@fontsource/lora/files/lora-latin-700-normal.woff"),
+        ]);
+        const [font400, font700] = await Promise.all([
+            res400.arrayBuffer(),
+            res700.arrayBuffer(),
+        ]);
+        fonts = [
+            { name: "Lora", data: font400, weight: 400, style: "normal" },
+            { name: "Lora", data: font700, weight: 700, style: "normal" },
+        ];
+    } catch (err) {
+        console.warn("⚠️  Font fetch for OG cards skipped (offline/sandboxed environment).");
+    }
 
     const tempPageCache = [];
     const newHashMap = force ? {} : { ...cachedHashMap };
@@ -600,7 +608,7 @@ async function build() {
                 const ogMeta = ensureOgMetaTags(content, pageObj, ogImageName);
                 if (ogMeta.changed) { content = ogMeta.content; fileChanged = true; }
 
-                if (!fs.existsSync(targetOgPath) || force) {
+                if ((!fs.existsSync(targetOgPath) || force) && fonts && satori) {
                     console.log(`🎨 Generating OG Card Image -> ${ogImageName}`);
                     const markupNode = buildOgMarkup(html, pageObj);
                     const svg = await satori(markupNode, { width: 1200, height: 630, fonts });

@@ -213,15 +213,53 @@
   overflow-y: hidden;
   max-width: 100%;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
-.reading-content mjx-container[display="true"] {
+.math-display::-webkit-scrollbar,
+.math-block::-webkit-scrollbar,
+.reading-content mjx-container::-webkit-scrollbar,
+.reading-content .katex-display::-webkit-scrollbar,
+.katex-display::-webkit-scrollbar {
+  height: 4px;
+}
+
+.math-display::-webkit-scrollbar-track,
+.math-block::-webkit-scrollbar-track,
+.reading-content mjx-container::-webkit-scrollbar-track,
+.reading-content .katex-display::-webkit-scrollbar-track,
+.katex-display::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.math-display::-webkit-scrollbar-thumb,
+.math-block::-webkit-scrollbar-thumb,
+.reading-content mjx-container::-webkit-scrollbar-thumb,
+.reading-content .katex-display::-webkit-scrollbar-thumb,
+.katex-display::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.math-display::-webkit-scrollbar-thumb:hover,
+.math-block::-webkit-scrollbar-thumb:hover,
+.reading-content mjx-container::-webkit-scrollbar-thumb:hover,
+.reading-content .katex-display::-webkit-scrollbar-thumb:hover,
+.katex-display::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+.reading-content mjx-container[display="true"],
+.reading-content .katex-display {
   /* Match the 1.5rem paragraph margin perfectly */
   margin-top: 1.5rem !important; 
   margin-bottom: 1.5rem !important; 
   padding: 0 !important;
   overflow-x: auto;
   overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 mjx-container svg {
@@ -256,9 +294,37 @@ mjx-container svg {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  margin: 1.5rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.math-table::-webkit-scrollbar {
+  height: 4px;
+}
+
+.math-table::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.math-table::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.math-table::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+.math-table,
+.math-table table {
+  border-collapse: separate;
+  border-spacing: 0;
   white-space: nowrap;
-  border-collapse: collapse;
-  margin: 1rem 0;
+}
+
+.math-table table {
+  width: 100%;
 }
 
 .math-table th,
@@ -272,6 +338,21 @@ mjx-container svg {
 .math-table th {
   font-weight: 700;
   color: var(--dark);
+  background-color: var(--bg);
+}
+
+/* Sticky First Column (Method) */
+.math-table th:first-child,
+.math-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--bg);
+  border-right: 1px solid var(--table-rule);
+}
+
+.math-table th:first-child {
+  z-index: 3;
 }
 
 /* ─────────────────────────────────────
@@ -533,6 +614,37 @@ mjx-container svg {
             font-weight: 600;
             color: var(--box-label-text);
         }
+
+.animation-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 1rem 0 0.5rem;
+  flex-wrap: wrap;
+}
+
+.anim-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 14px;
+  border-radius: 4px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.anim-btn:hover {
+  background: var(--surface);
+  border-color: var(--text);
+}
+
+.anim-btn:active {
+  transform: scale(0.97);
+}
 
 
 @media (max-width: 640px) {

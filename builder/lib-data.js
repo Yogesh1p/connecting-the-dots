@@ -1130,8 +1130,8 @@ window.rawPages = [
     "bookSlug": "mathematics",
     "bookOrder": 999,
     "title": "Kernel PCA",
-    "description": "How to extend PCA to non-linear manifolds using Mercer kernels — the Circle Experiment, centering in Hilbert space via HKH, and the 5-step Kernel PCA algorithm.",
-    "date": "2026-08-16",
+    "description": "Discovering non-linear dependencies and eliminating redundancy by implicitly mapping data into higher-dimensional feature spaces via the Kernel Trick.",
+    "date": "2026-09-02",
     "section": "Foundations of Machine Learning",
     "chapter": "Unsupervised Learning",
     "chapterOrder": 1,
@@ -1142,7 +1142,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "kernel pca, non-linear dimensionality reduction, rbf kernel, mercer theorem, centering in feature space, gram matrix, representation learning, Foundations of Machine Learning",
     "status": "draft",
-    "readingTime": 10
+    "readingTime": 19
   },
   {
     "article_id": "e6be6211",
@@ -1166,9 +1166,9 @@ window.rawPages = [
     "lessonNumber": "4",
     "part": "Clustering",
     "tier": "core",
-    "keywords": "k-means, lloyd algorithm, clustering, voronoi cells, perpendicular bisector, convergence proof, kmeans++, careful seeding, AIC, BIC, elbow method, unsupervised learning, IITM FML",
+    "keywords": "k-means, lloyd algorithm, clustering, voronoi cells, perpendicular bisector, convergence proof, kmeans++, careful seeding, AIC, BIC, elbow method, unsupervised learning, Foundations of Machine Learning",
     "status": "draft",
-    "readingTime": 9
+    "readingTime": 21
   },
   {
     "article_id": "eeb7e49f",
@@ -1195,6 +1195,58 @@ window.rawPages = [
     "keywords": "kernel k-means, spectral clustering, continuous relaxation, stiefel manifold, rayleigh ritz, trace optimization, gram matrix, ng jordan weiss, graph laplacian, unsupervised learning, IITM FML",
     "status": "draft",
     "readingTime": 9
+  },
+  {
+    "article_id": "a8f3b91c",
+    "url": "../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/06.maximum-likelihood-estimation/",
+    "cleanUrl": "../Library/mathematics/foundations-of-machine-learning/unsupervised-learning/maximum-likelihood-estimation/",
+    "sourcePath": "Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/06.maximum-likelihood-estimation/index.html",
+    "publicPath": "Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/06.maximum-likelihood-estimation/",
+    "cleanPath": "Library/mathematics/foundations-of-machine-learning/unsupervised-learning/maximum-likelihood-estimation/",
+    "book": "Mathematics",
+    "bookTitle": "Mathematics",
+    "bookSlug": "mathematics",
+    "bookOrder": 999,
+    "title": "Maximum Likelihood Estimation",
+    "description": "A rigorous first-principles guide to parameter estimation in machine learning: deriving Fisher's MLE, resolving the continuous likelihood paradox, analyzing sampling distributions, unpacking the bias-variance decomposition, and setting the stage for Bayesian prior beliefs.",
+    "date": "2026-09-05",
+    "section": "Foundations of Machine Learning",
+    "chapter": "Unsupervised Learning",
+    "chapterOrder": 1,
+    "chapterNumber": "1",
+    "lessonorder": 6,
+    "lessonNumber": "6",
+    "part": "Estimation",
+    "tier": "core",
+    "keywords": "maximum likelihood estimation, MLE, bias-variance tradeoff, MVUE, cramer-rao lower bound, laplace smoothing, gaussian MLE, bessel correction, sampling distribution, parameter estimation, unsupervised learning, IITM FML",
+    "status": "draft",
+    "readingTime": 12
+  },
+  {
+    "article_id": "c3a7e912",
+    "url": "../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/07.bayesian-estimation/",
+    "cleanUrl": "../Library/mathematics/foundations-of-machine-learning/unsupervised-learning/bayesian-estimation/",
+    "sourcePath": "Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/07.bayesian-estimation/index.html",
+    "publicPath": "Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/07.bayesian-estimation/",
+    "cleanPath": "Library/mathematics/foundations-of-machine-learning/unsupervised-learning/bayesian-estimation/",
+    "book": "Mathematics",
+    "bookTitle": "Mathematics",
+    "bookSlug": "mathematics",
+    "bookOrder": 999,
+    "title": "Bayesian Estimation",
+    "description": "A first-principles guide to Bayesian parameter estimation: formalizing prior hunches, Bayes' rule for parameters, uniform priors, Beta-Bernoulli conjugacy, MAP vs. posterior mean, Laplace smoothing, Gaussian-Gaussian conjugacy, and ghost samples.",
+    "date": "2026-09-06",
+    "section": "Foundations of Machine Learning",
+    "chapter": "Unsupervised Learning",
+    "chapterOrder": 1,
+    "chapterNumber": "1",
+    "lessonorder": 7,
+    "lessonNumber": "7",
+    "part": "Estimation",
+    "tier": "core",
+    "keywords": "bayesian estimation, MAP, maximum a posteriori, prior distribution, posterior distribution, conjugate prior, beta distribution, beta bernoulli conjugacy, gaussian conjugacy, ghost samples, laplace smoothing, foundations of machine learning, IITM FML",
+    "status": "draft",
+    "readingTime": 18
   }
 ];
 window.rawLinks = [

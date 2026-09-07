@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="b2f4c6e8">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Estimation">
+<meta name="title" content="Expectation-Maximization">
+<meta name="description" content="A rigorous first-principles guide to latent variable models and the EM algorithm: deriving multivariate GMMs, Jensen's inequality and the ELBO, step-by-step E-step and M-step updates, a pencil-and-paper solved example, EM vs. Gradient Descent, and the modern bridge to Variational Autoencoders (VAEs).">
+<meta name="keywords" content="expectation-maximization, EM algorithm, gaussian mixture models, GMM, latent variable models, jensen inequality, ELBO, variational inference, complete-data log-likelihood, Q-function, variational autoencoders, VAE, unsupervised learning, IITM FML">
+<meta name="status" content="hide">
+<meta name="date" content="2026-09-05">
+<meta name="author" content="Yogesh">
+
+<title>Expectation-Maximization</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 760px;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .svg-container svg {
+    width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="21">
+    <meta property="og:title" content="Expectation-Maximization">
+    <meta property="og:description" content="A rigorous first-principles guide to latent variable models and the EM algorithm: deriving multivariate GMMs, Jensen's inequality and the ELBO, step-by-step E-step and M-step updates, a pencil-and-paper solved example, EM vs. Gradient Descent, and the modern bridge to Variational Autoencoders (VAEs).">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-expectation-maximization.png">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1 — Multimodal Data & Latent Variable Mixture Models   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="latent-mixture-models">
+  <h2>The Wall of Multimodality &amp; Latent Variable Models</h2>
+
+  <p>
+    Suppose an observation sits right on the boundary between two clusters—like an image of an animal that has dog-like ears but cat-like paws.
+  </p>
+
+  <p>
+    When we studied $K$-Means, the algorithm made a rigid, deterministic choice: every data point was forced to belong 100% to one centroid and 0% to all others. It arbitrarily snapped boundary points to one side, completely discarding the real-world ambiguity of the data.
+  </p>
+
+  <p>
+    As we saw in the previous lesson, <strong>Bayesian estimation provides a principled way to represent this uncertainty</strong>: instead of making an arbitrary hard choice, we assign probabilities to the candidate clusters (e.g. $55\%$ Dog, $45\%$ Cat).
+  </p>
+
+  <p>
+    To do this, we need to move beyond single unimodal distributions and model the data as a <strong>mixture of multiple sub-populations</strong>:
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 740 330" xmlns="http://www.w3.org/2000/svg">
+        <!-- Top panel: Unimodal Gaussian failing on 3 clusters -->
+        <g transform="translate(0, 5)">
+          <!-- Axis line -->
+          <line x1="80" y1="80" x2="660" y2="80" stroke="var(--border)" stroke-width="1.5" />
+
+          <!-- Data points (3 clusters) -->
+          <circle cx="180" cy="80" r="4" fill="var(--text)" />
+          <circle cx="195" cy="80" r="4" fill="var(--text)" />
+          <circle cx="210" cy="80" r="4" fill="var(--text)" />
+
+          <circle cx="360" cy="80" r="4" fill="var(--text)" />
+          <circle cx="370" cy="80" r="4" fill="var(--text)" />
+          <circle cx="385" cy="80" r="4" fill="var(--text)" />
+
+          <circle cx="535" cy="80" r="4" fill="var(--text)" />
+          <circle cx="550" cy="80" r="4" fill="var(--text)" />
+          <circle cx="565" cy="80" r="4" fill="var(--text)" />
+
+          <!-- Broad, useless single Gaussian curve (apex at 370, 25) -->
+          <path d="M 100 80 C 180 80, 260 70, 310 45 C 340 30, 355 25, 370 25 C 385 25, 400 30, 430 45 C 480 70, 560 80, 640 80" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4,4" />
+          <text x="370" y="14" font-family="'Lora', serif" font-size="12" font-weight="600" fill="var(--muted)" text-anchor="middle">Single Gaussian MLE: Peaks in empty valley!</text>
+        </g>
+
+        <!-- Bottom panel: True Mixture Model (3 Gaussians) -->
+        <g transform="translate(0, 145)">
+          <!-- Axis line -->
+          <line x1="80" y1="120" x2="660" y2="120" stroke="var(--border)" stroke-width="1.5" />
+
+          <!-- Data points -->
+          <circle cx="180" cy="120" r="4" fill="var(--text)" />
+          <circle cx="195" cy="120" r="4" fill="var(--text)" />
+          <circle cx="210" cy="120" r="4" fill="var(--text)" />
+
+          <circle cx="360" cy="120" r="4" fill="var(--text)" />
+          <circle cx="370" cy="120" r="4" fill="var(--text)" />
+          <circle cx="385" cy="120" r="4" fill="var(--text)" />
+
+          <circle cx="535" cy="120" r="4" fill="var(--text)" />
+          <circle cx="550" cy="120" r="4" fill="var(--text)" />
+          <circle cx="565" cy="120" r="4" fill="var(--text)" />
+
+          <!-- Component 1: smooth Gaussian at x=195, apex at y=48 -->
+          <path d="M 125 120 C 155 120, 175 105, 185 75 C 190 55, 195 48, 195 48 C 195 48, 200 55, 205 75 C 215 105, 235 120, 265 120" fill="none" stroke="var(--border)" stroke-width="1.8" stroke-dasharray="3,3" />
+          <text x="195" y="40" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">π₁·N₁</text>
+
+          <!-- Component 2: smooth Gaussian at x=370, apex at y=36 -->
+          <path d="M 300 120 C 330 120, 350 100, 360 68 C 365 45, 370 36, 370 36 C 370 36, 375 45, 380 68 C 390 100, 410 120, 440 120" fill="none" stroke="var(--border)" stroke-width="1.8" stroke-dasharray="3,3" />
+          <text x="370" y="28" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">π₂·N₂</text>
+
+          <!-- Component 3: smooth Gaussian at x=550, apex at y=54 -->
+          <path d="M 480 120 C 510 120, 530 108, 540 82 C 545 62, 550 54, 550 54 C 550 54, 555 62, 560 82 C 570 108, 590 120, 620 120" fill="none" stroke="var(--border)" stroke-width="1.8" stroke-dasharray="3,3" />
+          <text x="550" y="46" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">π₃·N₃</text>
+
+          <!-- True Mixture Envelope (Sum of 3 components) -->
+          <path d="M 115 120 C 150 120, 175 102, 185 72 C 190 53, 195 46, 195 46 C 195 46, 200 53, 207 75 C 220 115, 255 119, 285 119 C 315 119, 345 105, 358 66 C 364 43, 370 34, 370 34 C 370 34, 376 43, 382 66 C 395 105, 425 119, 455 119 C 485 119, 520 115, 538 80 C 544 60, 550 52, 550 52 C 550 52, 556 60, 562 80 C 575 110, 605 120, 630 120" fill="none" stroke="var(--accent)" stroke-width="2.5" />
+          
+          <text x="370" y="150" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">Marginal Mixture Density: p(x) = ∑ πₖ N(x; μₖ, σₖ²)</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> The Breakdown of Single Gaussians. <em>Top:</em> Fitting a unimodal Gaussian to multimodal data creates a broad, useless distribution that places its highest density in empty space where no data exists! <em>Bottom:</em> A Gaussian Mixture Model expresses the overall density as a convex linear combination of $K$ distinct Gaussian components.
+    </figcaption>
+  </figure>
+
+  <p>
+    If we force a single Gaussian onto multimodal data, the MLE algorithm behaves mechanically: it averages all observations together into a single global mean $\hat{\mu}$, and blows up the variance $\hat{\sigma}^2$ to stretch across the entire dataset. The result is catastrophic: <strong>the model predicts peak probability density in the vast empty valleys where virtually no data exists!</strong>
+  </p>
+
+  <h3>Introducing Latent Variables</h3>
+  <p>
+    To faithfully represent multimodal data, we imagine that nature operates via a two-stage <strong>hierarchical generative process</strong>:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Latent Cluster Choice:</strong> For each data point $i$, nature rolls a $K$-sided die to choose a hidden cluster identity $z_i \in \{1, 2, \dots, K\}$ according to categorical mixing probabilities:
+      $$P(z_i = k) = \pi_k, \quad \text{where } \sum_{k=1}^K \pi_k = 1, \quad \pi_k \ge 0$$
+    </li>
+    <li>
+      <strong>Conditional Emission:</strong> Once cluster $k$ is selected, nature draws the observed feature vector $x_i$ from that specific component distribution:
+      $$x_i \mid (z_i = k) \sim \mathcal{N}(\mu_k, \Sigma_k)$$
+    </li>
+  </ol>
+
+  <p>
+    The variable $z_i$ is <strong>latent (hidden)</strong>: we observe only the resulting coordinate vector $x_i$.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2 — The Multivariate Gaussian Mixture Model in R^d     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="multivariate-gmm">
+  <h2>The Multivariate Gaussian Mixture Model in $\mathbb{R}^d$</h2>
+
+  <p>
+    In real-world applications, our data points are not single numbers; they are $d$-dimensional coordinate vectors $x_i \in \mathbb{R}^d$.
+  </p>
+
+  <p>
+    For each component $k$, the emission density is a <strong>multivariate normal distribution</strong> governed by a mean vector $\mu_k \in \mathbb{R}^d$ and a symmetric positive-definite covariance matrix $\Sigma_k \in \mathbb{R}^{d \times d}$:
+  </p>
+
+  <div class="math-display">
+    $$\mathcal{N}(x; \mu_k, \Sigma_k) = \frac{1}{(2\pi)^{d/2} |\Sigma_k|^{1/2}} \exp\left( -\frac{1}{2}(x - \mu_k)^T \Sigma_k^{-1} (x - \mu_k) \right)$$
+  </div>
+
+  <p>
+    By marginalizing (summing) over all possible discrete states of the latent indicator $z \in \{1, \dots, K\}$, the marginal density of an observation is:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      p(x) &= \sum_{k=1}^K p(z = k) \, p(x \mid z = k) \\[6pt]
+      &= \sum_{k=1}^K \pi_k \mathcal{N}(x; \mu_k, \Sigma_k)
+    \end{aligned}$$
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 740 340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="axis-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+            <path d="M 0 2 L 8 5 L 0 8 z" fill="var(--muted)" />
+          </marker>
+        </defs>
+
+        <!-- Panel 1: (a) Individual Components with Covariance Ellipses -->
+        <g transform="translate(10, 10)">
+          <text x="175" y="22" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">(a) Components &amp; Covariance Ellipses</text>
+          
+          <!-- Axes -->
+          <line x1="30" y1="280" x2="330" y2="280" stroke="var(--border)" stroke-width="1.5" />
+          <line x1="30" y1="280" x2="30" y2="40" stroke="var(--border)" stroke-width="1.5" />
+          <text x="335" y="284" font-family="'Lora', serif" font-size="12" fill="var(--muted)">x₁</text>
+          <text x="30" y="32" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">x₂</text>
+
+          <!-- Component 1: Center (110, 190), Weight π₁ = 0.5 -->
+          <g transform="translate(110, 190) rotate(-25)">
+            <ellipse cx="0" cy="0" rx="55" ry="32" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,3" />
+            <ellipse cx="0" cy="0" rx="30" ry="18" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)" stroke-width="2" />
+            <!-- Principal axis -->
+            <line x1="-50" y1="0" x2="50" y2="0" stroke="var(--accent)" stroke-width="1.2" />
+            <circle cx="0" cy="0" r="3.5" fill="var(--text)" />
+          </g>
+          <text x="110" y="210" font-family="'Lora', serif" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">μ₁, π₁=0.5</text>
+
+          <!-- Component 2: Center (240, 205), Weight π₂ = 0.3 -->
+          <g transform="translate(240, 205) rotate(35)">
+            <ellipse cx="0" cy="0" rx="45" ry="25" fill="var(--text)" fill-opacity="0.08" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,3" />
+            <ellipse cx="0" cy="0" rx="25" ry="14" fill="var(--text)" fill-opacity="0.12" stroke="var(--border)" stroke-width="2" />
+            <line x1="-40" y1="0" x2="40" y2="0" stroke="var(--muted)" stroke-width="1.2" />
+            <circle cx="0" cy="0" r="3.5" fill="var(--text)" />
+          </g>
+          <text x="240" y="226" font-family="'Lora', serif" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">μ₂, π₂=0.3</text>
+
+          <!-- Component 3: Center (175, 95), Weight π₃ = 0.2 -->
+          <g transform="translate(175, 95) rotate(-60)">
+            <ellipse cx="0" cy="0" rx="38" ry="20" fill="var(--muted)" fill-opacity="0.08" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,3" />
+            <ellipse cx="0" cy="0" rx="20" ry="11" fill="var(--muted)" fill-opacity="0.12" stroke="var(--muted)" stroke-width="2" />
+            <line x1="-32" y1="0" x2="32" y2="0" stroke="var(--muted)" stroke-width="1.2" />
+            <circle cx="0" cy="0" r="3.5" fill="var(--text)" />
+          </g>
+          <text x="175" y="85" font-family="'Lora', serif" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">μ₃, π₃=0.2</text>
+
+          <!-- Faint Scatter Points (Grounding) -->
+          <circle cx="95" cy="180" r="2" fill="var(--muted)" opacity="0.6" />
+          <circle cx="120" cy="195" r="2" fill="var(--muted)" opacity="0.6" />
+          <circle cx="105" cy="200" r="2" fill="var(--muted)" opacity="0.6" />
+          <circle cx="130" cy="185" r="2" fill="var(--muted)" opacity="0.6" />
+          <circle cx="230" cy="200" r="2" fill="var(--muted)" opacity="0.6" />
+          <circle cx="250" cy="210" r="2" fill="var(--muted)" opacity="0.6" />
+          <circle cx="170" cy="90" r="2" fill="var(--muted)" opacity="0.6" />
+          <circle cx="180" cy="105" r="2" fill="var(--muted)" opacity="0.6" />
+        </g>
+
+        <!-- Panel 2: (b) Resulting Multimodal Mixture Contours -->
+        <g transform="translate(380, 10)">
+          <text x="175" y="22" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">(b) Marginal Density Contours p(x)</text>
+
+          <!-- Axes -->
+          <line x1="30" y1="280" x2="330" y2="280" stroke="var(--border)" stroke-width="1.5" />
+          <line x1="30" y1="280" x2="30" y2="40" stroke="var(--border)" stroke-width="1.5" />
+          <text x="335" y="284" font-family="'Lora', serif" font-size="12" fill="var(--muted)">x₁</text>
+          <text x="30" y="32" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">x₂</text>
+
+          <!-- Outer Low-density Contour Level Set (smooth single wrapping envelope) -->
+          <path d="M 50 200 C 45 130, 100 50, 175 50 C 235 50, 275 110, 295 180 C 310 240, 260 270, 185 260 C 120 250, 55 245, 50 200 Z" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,2" />
+          <text x="280" y="140" font-family="'Lora', serif" font-size="10" fill="var(--muted)">p(x) = c₁</text>
+
+          <!-- Intermediate Contour Level Set (peanut waist wrapping components 1 & 2, separate loop for 3) -->
+          <path d="M 75 195 C 75 155, 125 155, 155 175 C 185 185, 215 175, 245 195 C 270 215, 260 245, 210 240 C 155 235, 85 230, 75 195 Z" fill="none" stroke="var(--border)" stroke-width="1.8" />
+          
+          <ellipse cx="175" cy="95" rx="30" ry="16" transform="rotate(-60 175 95)" fill="none" stroke="var(--border)" stroke-width="1.8" />
+          <text x="245" y="175" font-family="'Lora', serif" font-size="10" fill="var(--muted)">p(x) = c₂</text>
+
+          <!-- High-density Inner Peaks around each component -->
+          <ellipse cx="110" cy="190" rx="26" ry="15" transform="rotate(-25 110 190)" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)" stroke-width="2" />
+          <circle cx="110" cy="190" r="3" fill="var(--text)" />
+
+          <ellipse cx="240" cy="205" rx="18" ry="11" transform="rotate(35 240 205)" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-width="2" />
+          <circle cx="240" cy="205" r="3" fill="var(--text)" />
+
+          <ellipse cx="175" cy="95" rx="16" ry="9" transform="rotate(-60 175 95)" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-width="2" />
+          <circle cx="175" cy="95" r="3" fill="var(--text)" />
+          <text x="135" y="180" font-family="'Lora', serif" font-size="10" font-weight="bold" fill="var(--text)">p(x) = c₃</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> Multivariate Gaussian Mixture Model in 2D. <em>Left (a):</em> Three separate Gaussian components with individual covariance ellipsoids $\Sigma_k$ and class mixing proportions $\pi_k$. <em>Right (b):</em> Because the true cluster identity $z$ is latent, the marginal distribution $p(x) = \sum_k \pi_k \mathcal{N}(x; \mu_k, \Sigma_k)$ forms complex, non-Gaussian, multimodal contours.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3 — Why Classical MLE Fails on Latent Variable Models  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="mle-breakdown">
+  <h2>Why Classical MLE Fails on Latent Variable Models</h2>
+
+  <p>
+    Now let us attempt to estimate the full parameter vector $\Theta = \{\pi_1, \dots, \pi_K, \mu_1, \dots, \mu_K, \Sigma_1, \dots, \Sigma_K\}$ using Fisher's Maximum Likelihood procedure.
+  </p>
+
+  <p>
+    We write the marginal log-likelihood for an observed sample $\mathcal{D} = \{x_1, \dots, x_N\}$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \ell(\Theta) &= \log \prod_{i=1}^N p(x_i; \Theta) \\[8pt]
+      &= \sum_{i=1}^N \log \left( \sum_{k=1}^K \pi_k \mathcal{N}(x_i; \mu_k, \Sigma_k) \right)
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Look closely at this equation. A mathematical disaster has occurred: <strong>the summation $\sum_{k=1}^K$ is trapped inside the logarithm $\log(\cdot)$</strong>!
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p>
+        <em>In standard Gaussian MLE, the logarithm acted directly on the exponential function, vaporizing it: $\log \exp(-u^2) = -u^2$. But the logarithm of a sum is NOT the sum of logarithms: $\log(a + b) \ne \log a + \log b$!</em>
+      </p>
+    </div>
+  </div>
+
+  <p>
+    If we attempt to differentiate $\ell(\Theta)$ directly with respect to $\mu_k$ using the chain rule:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \frac{\partial \ell}{\partial \mu_k} &= \sum_{i=1}^N \frac{1}{\sum_{\ell=1}^K \pi_\ell \mathcal{N}(x_i; \mu_\ell, \Sigma_\ell)} \cdot \pi_k \frac{\partial}{\partial \mu_k}\mathcal{N}(x_i; \mu_k, \Sigma_k) \\[10pt]
+      &= \sum_{i=1}^N \underbrace{\left[ \frac{\pi_k \mathcal{N}(x_i; \mu_k, \Sigma_k)}{\sum_{\ell=1}^K \pi_\ell \mathcal{N}(x_i; \mu_\ell, \Sigma_\ell)} \right]}_{\gamma_{ik}} \Sigma_k^{-1}(x_i - \mu_k) \\[10pt]
+      &= 0
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Notice that the term in brackets—which we denote by $\gamma_{ik}$—is the <strong>posterior responsibility</strong> (the conditional probability that component $k$ generated point $x_i$).
+  </p>
+
+  <p>
+    Look at the circular dependency:
+  </p>
+  <ul>
+    <li>To solve for the optimal cluster mean $\mu_k$, we need the responsibilities $\gamma_{ik}$.</li>
+    <li>To compute the responsibilities $\gamma_{ik}$, we need the cluster mean $\mu_k$!</li>
+  </ul>
+
+  <p>
+    The parameters are completely entangled in a complex non-linear system with <strong>no closed-form analytical solution</strong>.
+  </p>
+
+  <h3>The Non-Convexity of Mixture Likelihoods</h3>
+  <p>
+    Worse still, single exponential families have strictly concave log-likelihood functions with a unique global maximum. But as soon as we construct a mixture of such distributions, <strong>concavity is completely destroyed</strong>:
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 720 290" xmlns="http://www.w3.org/2000/svg">
+        <!-- Axes -->
+        <line x1="50" y1="240" x2="680" y2="240" stroke="var(--border)" stroke-width="2" />
+        <line x1="50" y1="240" x2="50" y2="30" stroke="var(--border)" stroke-width="2" />
+        <text x="685" y="244" font-family="'Lora', serif" font-size="13" fill="var(--text)">θ</text>
+        <text x="50" y="20" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">Log-Likelihood ℓ(θ)</text>
+
+        <!-- Individual strictly concave components (dashed curves) -->
+        <path d="M 70 230 Q 180 50 300 230" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <text x="180" y="42" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">log p(x | z=1; θ) [Concave]</text>
+
+        <path d="M 370 230 Q 500 20 640 230" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <text x="505" y="16" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">log p(x | z=2; θ) [Concave]</text>
+
+        <!-- Secant chord connecting local peak (190, 85) to global peak (500, 55) -->
+        <line x1="190" y1="85" x2="500" y2="55" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <text x="355" y="60" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Secant Chord</text>
+
+        <!-- Downward indicator from secant chord (330, 71.5) to curve valley (330, 165) -->
+        <line x1="330" y1="72" x2="330" y2="165" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="3,3" />
+        <text x="338" y="120" font-family="'Lora', serif" font-size="11" fill="var(--muted)">Curve dips below chord</text>
+        <text x="338" y="135" font-family="'Lora', serif" font-size="11" font-weight="600" fill="var(--text)">⇒ Non-concave</text>
+
+        <!-- Combined Mixture Log-Likelihood: Non-convex multimodal with local max, valley, global max -->
+        <path d="M 70 215 C 110 190, 145 85, 190 85 C 235 85, 275 165, 330 165 C 385 165, 445 55, 500 55 C 560 55, 600 170, 640 215" fill="none" stroke="var(--text)" stroke-width="2.5" />
+
+        <!-- Zero-gradient horizontal tangent markers -->
+        <line x1="165" y1="85" x2="215" y2="85" stroke="var(--text)" stroke-width="1.5" />
+        <line x1="305" y1="165" x2="355" y2="165" stroke="var(--text)" stroke-width="1.5" />
+        <line x1="475" y1="55" x2="525" y2="55" stroke="var(--text)" stroke-width="1.5" />
+
+        <!-- Stationary points annotations -->
+        <circle cx="190" cy="85" r="4.5" fill="var(--accent)" />
+        <text x="190" y="70" font-family="'Lora', serif" font-size="12" font-weight="600" fill="var(--text)" text-anchor="middle">Local Maximum</text>
+        <text x="190" y="103" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">∇ℓ(θ) = 0</text>
+
+        <circle cx="330" cy="165" r="4.5" fill="var(--muted)" />
+        <text x="330" y="185" font-family="'Lora', serif" font-size="12" font-weight="600" fill="var(--text)" text-anchor="middle">Valley / Saddle</text>
+        <text x="330" y="200" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">∇ℓ(θ) = 0</text>
+
+        <circle cx="500" cy="55" r="4.5" fill="var(--accent)" />
+        <text x="500" y="40" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="middle">Global Maximum</text>
+        <text x="500" y="73" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">∇ℓ(θ) = 0</text>
+
+        <text x="360" y="270" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">Mixture Log-Likelihood: Non-Concave Multimodal Landscape</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 3:</strong> The Non-Convexity Breakdown. Individual exponential family distributions (dashed curves) have strictly concave log-likelihoods with a unique peak. However, their convex linear combination creates a non-concave objective (solid curve) containing multiple stationary points ($\nabla \ell = 0$). Connecting the two peaks with a secant chord demonstrates that the log-likelihood dips below the chord, formally violating concavity.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4 — Jensen's Inequality, Variational Bounds & ELBO    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="jensens-inequality">
+  <h2>The Geometric Core: Jensen's Inequality &amp; The ELBO</h2>
+
+  <p>
+    How do we bypass the intractable sum inside the logarithm? The breakthrough comes from a foundational result in convex geometry: <strong>Jensen's Inequality</strong>.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Theorem: Jensen's Inequality</div>
+    <div class="math-box-body">
+      <p>
+        Let $g: \mathbb{R} \to \mathbb{R}$ be a strictly concave function (such as $g(u) = \log(u)$), and let $U$ be a random variable. Then:
+      </p>
+      <div class="math-display">
+        $$\mathbb{E}[g(U)] \le g(\mathbb{E}[U])$$
+      </div>
+      <p>
+        For discrete probabilities $q_1, \dots, q_K$ with $\sum q_k = 1$ and $q_k \ge 0$:
+      </p>
+      <div class="math-display">
+        $$\sum_{k=1}^K q_k \log(u_k) \le \log\left( \sum_{k=1}^K q_k u_k \right)$$
+      </div>
+    </div>
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+        <!-- Axes -->
+        <line x1="60" y1="260" x2="620" y2="260" stroke="var(--border)" stroke-width="2" />
+        <line x1="60" y1="260" x2="60" y2="25" stroke="var(--border)" stroke-width="2" />
+        <text x="625" y="264" font-family="'Lora', serif" font-size="13" fill="var(--text)">u</text>
+        <text x="60" y="16" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">log(u)</text>
+
+        <!-- Exact Concave Log Curve: y(x) = 260 - 90 * ln(x/40) -->
+        <path d="M 80 197.6 C 122.6 149.8, 192.6 108.7, 320 73 C 419.9 44.7, 530.8 27.1, 580 19.3" fill="none" stroke="var(--text)" stroke-width="2.5" />
+        <text x="585" y="18" font-family="'Lora', serif" font-size="12" fill="var(--muted)">g(u) = log(u)</text>
+
+        <!-- Points u₁ = 140 (y=147.3) and u₂ = 500 (y=32.7) -->
+        <!-- Secant chord connecting (140, 147.3) to (500, 32.7) -->
+        <line x1="140" y1="147.3" x2="500" y2="32.7" stroke="var(--border)" stroke-width="2" stroke-dasharray="5,5" />
+        <circle cx="140" cy="147.3" r="4.5" fill="var(--text)" />
+        <circle cx="500" cy="32.7" r="4.5" fill="var(--text)" />
+
+        <text x="140" y="280" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">u₁</text>
+        <text x="500" y="280" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">u₂</text>
+        <line x1="140" y1="147.3" x2="140" y2="260" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+        <line x1="500" y1="32.7" x2="500" y2="260" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+
+        <!-- Midpoint E[U] = 0.5*140 + 0.5*500 = 320 -->
+        <line x1="320" y1="260" x2="320" y2="73" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+        <text x="320" y="280" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="middle">E[u]</text>
+
+        <!-- Point on secant: E[log(u)] at (320, 90) -->
+        <circle cx="320" cy="90" r="5" fill="var(--muted)" />
+        <text x="335" y="94" font-family="'Lora', serif" font-size="12" fill="var(--muted)">E[log(u)] (On Secant Chord)</text>
+
+        <!-- Point on curve: log(E[u]) at (320, 73) -->
+        <circle cx="320" cy="73" r="5" fill="var(--accent)" />
+        <text x="335" y="68" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)">log(E[u]) (On Concave Curve)</text>
+
+        <!-- Jensen Gap Annotation with Bracket -->
+        <line x1="320" y1="73" x2="320" y2="90" stroke="var(--accent)" stroke-width="2.5" />
+        <line x1="316" y1="73" x2="324" y2="73" stroke="var(--accent)" stroke-width="1.5" />
+        <line x1="316" y1="90" x2="324" y2="90" stroke="var(--accent)" stroke-width="1.5" />
+        <text x="305" y="79" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="end">Jensen Gap ≥ 0</text>
+        <text x="305" y="93" font-family="'Lora', serif" font-size="10" fill="var(--muted)" text-anchor="end">log(E[u]) − E[log(u)]</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 4:</strong> Geometric depiction of Jensen's Inequality. Because $g(u) = \log(u)$ is strictly concave ($\nabla^2 \log(u) &lt; 0$), any secant line segment connecting two points on the curve lies strictly beneath the curve. For any convex combination $\mathbb{E}[u]$, the function value $\log(\mathbb{E}[u])$ exceeds the expectation of function values $\mathbb{E}[\log(u)]$ by the non-negative Jensen Gap.
+    </figcaption>
+  </figure>
+
+  <h3>The Variational Decomposition: Deriving the ELBO</h3>
+  <p>
+    Now let us leverage Jensen's inequality to construct a tractable lower bound for the marginal log-likelihood $\log p(x; \Theta)$.
+  </p>
+
+  <p>
+    Let $q(z)$ be <strong>any arbitrary candidate probability distribution</strong> over the hidden states $z$. We multiply and divide inside the sum by $q(z)$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \log p(x; \Theta) &= \log \sum_z p(x, z; \Theta) \\[8pt]
+      &= \log \sum_z q(z) \left[ \frac{p(x, z; \Theta)}{q(z)} \right]
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Notice that the expression inside the logarithm is now an <strong>expectation with respect to $q(z)$</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\log p(x; \Theta) = \log \mathbb{E}_{z \sim q}\left[ \frac{p(x, z; \Theta)}{q(z)} \right]$$
+  </div>
+
+  <p>
+    Applying Jensen's inequality pushes the logarithm inside the expectation, flipping the equality into a universal lower bound:
+  </p>
+
+  <div class="math-display">
+    $$\log p(x; \Theta) \ge \mathbb{E}_{z \sim q}\left[ \log \frac{p(x, z; \Theta)}{q(z)} \right] \equiv \mathbf{\operatorname{ELBO}(q, \Theta)}$$
+  </div>
+
+  <p>
+    This lower bound is the <strong>Evidence Lower Bound (ELBO)</strong>.
+  </p>
+
+  <h3>The Exact Decomposition &amp; KL Divergence</h3>
+  <p>
+    To discover exactly how loose or tight this lower bound is, let us compute the difference $\log p(x; \Theta) - \operatorname{ELBO}(q, \Theta)$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \log p(x; \Theta) - \operatorname{ELBO}(q, \Theta) &= \sum_z q(z) \log p(x; \Theta) - \sum_z q(z) \log \frac{p(x, z; \Theta)}{q(z)} \\[8pt]
+      &= \sum_z q(z) \left[ \log p(x; \Theta) - \log \frac{p(z \mid x; \Theta) p(x; \Theta)}{q(z)} \right] \\[8pt]
+      &= \sum_z q(z) \log \frac{q(z)}{p(z \mid x; \Theta)} = \mathbf{D_{\text{KL}}\Big( q(z) \;\parallel\; p(z \mid x; \Theta) \Big)}
+    \end{aligned}$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Theorem: The Fundamental Variational Identity</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\mathbf{\log p(x; \Theta) = \operatorname{ELBO}(q, \Theta) + D_{\text{KL}}\Big( q(z) \;\parallel\; p(z \mid x; \Theta) \Big)}$$
+      </div>
+      <p>
+        Because the Kullback-Leibler (KL) divergence is non-negative ($D_{\text{KL}} \ge 0$) and equals zero if and only if $q(z) = p(z \mid x; \Theta)$:
+      </p>
+      <ol>
+        <li>$\operatorname{ELBO}(q, \Theta) \le \log p(x; \Theta)$ for any distribution $q$.</li>
+        <li><strong>The lower bound becomes an exact equality if and only if $q(z)$ is chosen to be the exact true posterior distribution $p(z \mid x; \Theta)$!</strong></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5 — The Expectation-Maximization Algorithm             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="em-algorithm">
+  <h2>The Expectation-Maximization Algorithm</h2>
+
+  <p>
+    The variational decomposition reveals a stunning strategy: <strong>instead of optimizing the intractable log-likelihood $\ell(\Theta)$ directly, we perform coordinate ascent on the ELBO</strong>!
+  </p>
+
+  <p>
+    This two-step alternating coordinate ascent loop is the <strong>Expectation-Maximization (EM) algorithm</strong>:
+  </p>
+
+  <h3>1. The E-Step (Expectation)</h3>
+  <p>
+    Fix the model parameters at their current values $\Theta^{(t)}$. Maximize the ELBO with respect to $q$:
+  </p>
+
+  <div class="math-display">
+    $$q^{(t+1)} = \arg\max_q \operatorname{ELBO}(q, \Theta^{(t)})$$
+  </div>
+
+  <p>
+    Because $\log p(x; \Theta^{(t)})$ does not depend on $q$, maximizing the ELBO with respect to $q$ is identical to minimizing $D_{\text{KL}}(q(z) \parallel p(z \mid x; \Theta^{(t)}))$. The minimum of KL divergence is 0, which occurs when $q$ matches the true posterior:
+  </p>
+
+  <div class="math-display">
+    $$\mathbf{q^{(t+1)}(z) = p(z \mid x; \Theta^{(t)})}$$
+  </div>
+
+  <p>
+    For a Gaussian Mixture Model, evaluating this posterior is simple Bayes' rule:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \mathbf{\gamma_{ik}} &= p(z_i = k \mid x_i; \Theta^{(t)}) \\[8pt]
+      &= \mathbf{\frac{\pi_k^{(t)} \mathcal{N}(x_i; \mu_k^{(t)}, \Sigma_k^{(t)})}{\sum_{\ell=1}^K \pi_\ell^{(t)} \mathcal{N}(x_i; \mu_\ell^{(t)}, \Sigma_\ell^{(t)})}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    <strong>Geometrical effect of the E-step:</strong> The lower bound curve is elevated until it touches the true log-likelihood function at the current parameter value $\Theta^{(t)}$ with zero gap!
+  </p>
+
+  <h3>2. The M-Step (Maximization)</h3>
+  <p>
+    Now hold the posterior distribution $q^{(t+1)}$ (the responsibilities $\gamma_{ik}$) completely fixed. Maximize the ELBO with respect to the model parameters $\Theta$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \Theta^{(t+1)} &= \arg\max_\Theta \operatorname{ELBO}(q^{(t+1)}, \Theta) \\[8pt]
+      &= \arg\max_\Theta \mathbb{E}_{z \sim q^{(t+1)}}\big[ \log p(X, z; \Theta) \big]
+    \end{aligned}$$
+  </div>
+
+  <p>
+    This expectation of the complete-data log-likelihood under the current responsibilities is known as the <strong>$Q$-function</strong>:
+  </p>
+
+  <div class="math-display">
+    $$Q(\Theta \mid \Theta^{(t)}) = \sum_{i=1}^N \sum_{k=1}^K \gamma_{ik} \Big[ \log \pi_k + \log \mathcal{N}(x_i; \mu_k, \Sigma_k) \Big]$$
+  </div>
+
+  <p>
+    Notice the breakthrough: <strong>the logarithm now acts directly on the individual Gaussian components without any inner summation!</strong> The parameters decouple cleanly into standard weighted statistics:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The M-Step Closed-Form Update Equations</div>
+    <div class="math-box-body">
+      <p>
+        Define the effective number of data points assigned to cluster $k$:
+      </p>
+      <div class="math-display">
+        $$N_k = \sum_{i=1}^N \gamma_{ik}$$
+      </div>
+      <p>
+        The closed-form parameter updates are:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \mathbf{\pi_k^{(t+1)}} &= \frac{N_k}{N} \\[8pt]
+          \mathbf{\mu_k^{(t+1)}} &= \frac{1}{N_k}\sum_{i=1}^N \gamma_{ik} x_i \\[8pt]
+          \mathbf{\Sigma_k^{(t+1)}} &= \frac{1}{N_k}\sum_{i=1}^N \gamma_{ik} (x_i - \mu_k^{(t+1)})(x_i - \mu_k^{(t+1)})^T
+        \end{aligned}$$
+      </div>
+    </div>
+  </div>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="em-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+          <marker id="em-arrow-accent" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- ==================== PANEL A: GEOMETRIC ELBO ASCENT ==================== -->
+        <text x="235" y="22" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">(a) Geometric ELBO Ascent &amp; Tangency</text>
+
+        <!-- Axes Panel A -->
+        <line x1="45" y1="270" x2="430" y2="270" stroke="var(--border)" stroke-width="1.5" />
+        <line x1="45" y1="270" x2="45" y2="38" stroke="var(--border)" stroke-width="1.5" />
+        <text x="435" y="274" font-family="'Lora', serif" font-size="12" fill="var(--text)">Θ</text>
+        <text x="45" y="28" font-family="'Lora', serif" font-size="11" fill="var(--text)" text-anchor="middle">Objective</text>
+
+        <!-- True Log-Likelihood Curve ℓ(Θ) -->
+        <path d="M 55 255.5 C 145 135, 255 92, 420 75" fill="none" stroke="var(--text)" stroke-width="2.5" />
+        <text x="360" y="66" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)">ℓ(Θ) = log p(X; Θ)</text>
+
+        <!-- Initial bound: ELBO(q^(t), Θ) -->
+        <!-- Touches ℓ(Θ) at Θ^(t) = 140 (y=170.3), apex at Θ^(t+1) = 228 (y=135.8) -->
+        <path d="M 80 233.8 C 148.1 143.4, 218.1 112.9, 290 153.3" fill="none" stroke="var(--muted)" stroke-width="1.8" />
+        <text x="82" y="250" font-family="'Lora', serif" font-size="11" fill="var(--muted)">L(q^(t), Θ)</text>
+
+        <!-- Subsequent bound: ELBO(q^(t+1), Θ) -->
+        <!-- Touches ℓ(Θ) at Θ^(t+1) = 228 (y=119.1), apex at x=310 (y=99.8) -->
+        <path d="M 155 185 C 215 118, 280 94, 350 115" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-dasharray="4,4" />
+        <text x="355" y="118" font-family="'Lora', serif" font-size="11" fill="var(--text)">L(q^(t+1), Θ)</text>
+
+        <!-- Guideline for Θ^(t) -->
+        <line x1="140" y1="270" x2="140" y2="170.3" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+        <text x="140" y="286" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Θ^(t)</text>
+        <circle cx="140" cy="170.3" r="4" fill="var(--text)" />
+        <text x="135" y="160" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="end">E-Step: D_KL = 0</text>
+
+        <!-- Guideline for Θ^(t+1) -->
+        <line x1="228" y1="270" x2="228" y2="119.1" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+        <text x="228" y="286" font-family="'Lora', serif" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">Θ^(t+1)</text>
+
+        <!-- Apex of Bound 1 at (228, 135.8) -->
+        <circle cx="228" cy="135.8" r="4" fill="var(--muted)" />
+        <!-- On curve point at (228, 119.1) -->
+        <circle cx="228" cy="119.1" r="4.5" fill="var(--accent)" />
+
+        <!-- M-Step Arrow along bound from (140, 170.3) to (228, 135.8) -->
+        <path d="M 148 164 C 175 145, 198 138, 220 137" fill="none" stroke="var(--text)" stroke-width="1.5" marker-end="url(#em-arrow)" />
+        <text x="180" y="132" font-family="'Lora', serif" font-size="10" font-weight="600" fill="var(--text)" text-anchor="middle">M-Step</text>
+
+        <!-- Vertical KL gap bracket at Θ^(t+1) -->
+        <line x1="236" y1="119.1" x2="236" y2="135.8" stroke="var(--accent)" stroke-width="1.5" />
+        <text x="242" y="130" font-family="'Lora', serif" font-size="10" fill="var(--muted)">D_KL</text>
+
+        <!-- Panel A footer note -->
+        <text x="235" y="318" font-family="'Lora', serif" font-size="11" font-style="italic" fill="var(--muted)" text-anchor="middle">Monotonicity: ℓ(Θ^(t+1)) ≥ L(q^(t), Θ^(t+1)) ≥ ℓ(Θ^(t))</text>
+
+        <!-- Vertical Divider between panels -->
+        <line x1="470" y1="30" x2="470" y2="320" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3" />
+
+        <!-- ==================== PANEL B: ITERATIVE ENGINE ==================== -->
+        <text x="675" y="22" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">(b) Alternating Coordinate Ascent Cycle</text>
+
+        <!-- E-Step Box -->
+        <g transform="translate(495, 45)">
+          <rect x="0" y="0" width="360" height="105" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+          <text x="180" y="26" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">E-Step (Expectation)</text>
+          <text x="180" y="47" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Fix parameters Θ^(t) • Optimize over distribution q</text>
+          <text x="180" y="68" font-family="'Lora', serif" font-size="12" font-weight="600" fill="var(--text)" text-anchor="middle">γᵢₖ = p(zᵢ = k | xᵢ; Θ^(t))</text>
+          <text x="180" y="89" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Closes KL divergence to 0 → Bound touches ℓ(Θ^(t))</text>
+        </g>
+
+        <!-- Downward Arrow from E to M -->
+        <line x1="675" y1="150" x2="675" y2="185" stroke="var(--text)" stroke-width="2" marker-end="url(#em-arrow)" />
+        <text x="682" y="171" font-family="'Lora', serif" font-size="10" font-weight="600" fill="var(--muted)" text-anchor="start">Posterior weights γᵢₖ</text>
+
+        <!-- M-Step Box -->
+        <g transform="translate(495, 190)">
+          <rect x="0" y="0" width="360" height="105" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+          <text x="180" y="26" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">M-Step (Maximization)</text>
+          <text x="180" y="47" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Fix responsibilities γᵢₖ • Maximize ELBO over Θ</text>
+          <text x="180" y="68" font-family="'Lora', serif" font-size="12" font-weight="600" fill="var(--text)" text-anchor="middle">Θ^(t+1) = argmax_Θ Q(Θ | Θ^(t))</text>
+          <text x="180" y="89" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Decoupled closed-form updates for (π, μ, Σ)</text>
+        </g>
+
+        <!-- Feedback Loop Arrow from M to E -->
+        <path d="M 495 242 C 460 242, 460 97, 490 97" fill="none" stroke="var(--text)" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#em-arrow)" />
+        <text x="445" y="170" font-family="'Lora', serif" font-size="10" font-weight="600" fill="var(--muted)" text-anchor="middle" transform="rotate(-90 445 170)">Updated Θ^(t+1)</text>
+
+        <!-- Convergence criterion -->
+        <text x="675" y="318" font-family="'Lora', serif" font-size="11" font-style="italic" fill="var(--muted)" text-anchor="middle">Iterate until ||Θ^(t+1) − Θ^(t)|| &lt; ε or Δℓ &lt; δ</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 5:</strong> The Expectation-Maximization coordinate ascent mechanism. <strong>(a) Geometric ELBO Ascent:</strong> The E-step aligns the surrogate lower bound $\mathcal{L}(q^{(t)}, \Theta)$ tangentially with the true log-likelihood $\ell(\Theta)$ at $\Theta^{(t)}$ ($D_{\text{KL}} = 0$). The M-step optimizes along this bound to its peak at $\Theta^{(t+1)}$, guaranteeing monotonic likelihood ascent. <strong>(b) Alternating Optimization Cycle:</strong> The algorithm alternates between computing posterior responsibilities and closed-form parameter updates until numerical convergence.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6 — A Complete By-Hand Solved Example (Pencil & Paper)-->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="solved-example">
+  <h2>A Complete By-Hand Solved Example (Pencil &amp; Paper)</h2>
+
+  <p>
+    Abstract formulas reveal the architecture of an algorithm, but true numerical intuition is cemented when you calculate an entire iteration step-by-step with a pencil and paper.
+  </p>
+
+  <p>
+    Let us execute <strong>one complete, rigorous iteration</strong> (Step 0 likelihood evaluation, E-step responsibility normalization, and M-step parameter updates) on a simple 1-D dataset.
+  </p>
+
+  <h3>Problem Setup &amp; Initial State</h3>
+  <p>
+    Consider a dataset containing just $N = 3$ scalar data points:
+  </p>
+
+  <div class="math-display">
+    $$X = \{x_1 = 1, \quad x_2 = 2, \quad x_3 = 5\}$$
+  </div>
+
+  <p>
+    We fit a $K = 2$ component Gaussian Mixture Model. Before seeing any data, we initialize our model parameters $\Theta^{(0)} = \{\pi_1, \pi_2, \mu_1, \mu_2, \sigma_1, \sigma_2\}$ to:
+  </p>
+
+  <ul>
+    <li><strong>Equal Mixing Proportions:</strong> $\pi_1 = 0.5, \quad \pi_2 = 0.5$</li>
+    <li><strong>Initial Cluster Means:</strong> $\mu_1 = 1.0, \quad \mu_2 = 5.0$</li>
+    <li><strong>Initial Standard Deviations:</strong> $\sigma_1 = 1.0, \quad \sigma_2 = 1.0$ (unit variance $\sigma_1^2 = \sigma_2^2 = 1.0$)</li>
+  </ul>
+
+  <p>
+    The standard normal probability density function for a scalar component with mean $\mu_k$ and standard deviation $\sigma_k = 1$ is:
+  </p>
+
+  <div class="math-display">
+    $$f_k(x) = \frac{1}{\sqrt{2\pi}} \exp\left( -\frac{1}{2}(x - \mu_k)^2 \right)$$
+  </div>
+
+  <p>
+    The prefactor constant is $c = \frac{1}{\sqrt{2\pi}} \approx 0.398942$.
+  </p>
+
+  <h3>Step 0: Evaluating Component Likelihoods $f_k(x_i)$</h3>
+  <p>
+    We evaluate the probability density of each data point under both Gaussian components:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Data Point $x_1 = 1$:</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+        f_1(1) &= c \cdot \exp\left( -\tfrac{1}{2}(1 - 1)^2 \right) = c \cdot e^0 = c \approx \mathbf{0.398942} \\[6pt]
+        f_2(1) &= c \cdot \exp\left( -\tfrac{1}{2}(1 - 5)^2 \right) = c \cdot e^{-8} \approx 0.398942 \times 0.000335 \approx \mathbf{0.000134}
+        \end{aligned}$$
+      </div>
+    </li>
+    <li>
+      <strong>Data Point $x_2 = 2$:</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+        f_1(2) &= c \cdot \exp\left( -\tfrac{1}{2}(2 - 1)^2 \right) = c \cdot e^{-0.5} \approx 0.398942 \times 0.606531 \approx \mathbf{0.241971} \\[6pt]
+        f_2(2) &= c \cdot \exp\left( -\tfrac{1}{2}(2 - 5)^2 \right) = c \cdot e^{-4.5} \approx 0.398942 \times 0.011109 \approx \mathbf{0.004432}
+        \end{aligned}$$
+      </div>
+    </li>
+    <li>
+      <strong>Data Point $x_3 = 5$:</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+        f_1(5) &= c \cdot \exp\left( -\tfrac{1}{2}(5 - 1)^2 \right) = c \cdot e^{-8} \approx \mathbf{0.000134} \\[6pt]
+        f_2(5) &= c \cdot \exp\left( -\tfrac{1}{2}(5 - 5)^2 \right) = c \cdot e^0 = c \approx \mathbf{0.398942}
+        \end{aligned}$$
+      </div>
+    </li>
+  </ol>
+
+  <h3>Step 1: The E-Step (Computing Posterior Responsibilities $\gamma_{ik}$)</h3>
+  <p>
+    Using Bayes' rule, we calculate the responsibility $\gamma_{ik} = p(z_i = k \mid x_i; \Theta)$ that component $k$ generated point $x_i$:
+  </p>
+
+  <div class="math-display">
+    $$\gamma_{ik} = \frac{\pi_k f_k(x_i)}{\sum_{j=1}^2 \pi_j f_j(x_i)}$$
+  </div>
+
+  <p>
+    Because $\pi_1 = \pi_2 = 0.5$, the prior weights cancel out, leaving the ratio of densities:
+  </p>
+
+  <ul>
+    <li>
+      <strong>For $x_1 = 1$:</strong>
+      Sum $S_1 = 0.5(0.398942) + 0.5(0.000134) = 0.199538$.
+      $$\begin{aligned}
+        \gamma_{11} &= \frac{0.199471}{0.199538} \approx \mathbf{0.999665} \\[6pt]
+        \gamma_{12} &= \frac{0.000067}{0.199538} \approx \mathbf{0.000335}
+      \end{aligned}$$
+    </li>
+    <li>
+      <strong>For $x_2 = 2$:</strong>
+      Sum $S_2 = 0.5(0.241971) + 0.5(0.004432) = 0.123201$.
+      $$\begin{aligned}
+        \gamma_{21} &= \frac{0.120985}{0.123201} \approx \mathbf{0.982014} \\[6pt]
+        \gamma_{22} &= \frac{0.002216}{0.123201} \approx \mathbf{0.017986}
+      \end{aligned}$$
+    </li>
+    <li>
+      <strong>For $x_3 = 5$:</strong>
+      Sum $S_3 = 0.5(0.000134) + 0.5(0.398942) = 0.199538$.
+      $$\begin{aligned}
+        \gamma_{31} &= \frac{0.000067}{0.199538} \approx \mathbf{0.000335} \\[6pt]
+        \gamma_{32} &= \frac{0.199471}{0.199538} \approx \mathbf{0.999665}
+      \end{aligned}$$
+    </li>
+  </ul>
+
+  <table style="width:100%; margin: 2rem 0; border-collapse: collapse; font-size: 0.95rem;">
+    <thead>
+      <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+        <th style="padding: 10px;">Data Index ($i$)</th>
+        <th style="padding: 10px;">Observation ($x_i$)</th>
+        <th style="padding: 10px;">Responsibility $\gamma_{i1}$ (Cluster 1)</th>
+        <th style="padding: 10px;">Responsibility $\gamma_{i2}$ (Cluster 2)</th>
+        <th style="padding: 10px;">Row Sum ($\sum_k \gamma_{ik}$)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;">$i = 1$</td>
+        <td style="padding: 10px;">$x_1 = 1.0$</td>
+        <td style="padding: 10px;">$0.999665$</td>
+        <td style="padding: 10px;">$0.000335$</td>
+        <td style="padding: 10px;">$1.000000$</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;">$i = 2$</td>
+        <td style="padding: 10px;">$x_2 = 2.0$</td>
+        <td style="padding: 10px;">$0.982014$</td>
+        <td style="padding: 10px;">$0.017986$</td>
+        <td style="padding: 10px;">$1.000000$</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px;">$i = 3$</td>
+        <td style="padding: 10px;">$x_3 = 5.0$</td>
+        <td style="padding: 10px;">$0.000335$</td>
+        <td style="padding: 10px;">$0.999665$</td>
+        <td style="padding: 10px;">$1.000000$</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Step 2: The M-Step (Closed-Form Parameter Updates)</h3>
+  <p>
+    With responsibilities fixed, we recalculate our parameters using the analytical MLE formulas derived earlier.
+  </p>
+
+  <h4>1. Effective Cluster Sample Sizes ($N_k$)</h4>
+  <div class="math-display">
+    $$\begin{aligned}
+    N_1 &= \sum_{i=1}^3 \gamma_{i1} = 0.999665 + 0.982014 + 0.000335 = \mathbf{1.982014} \\[6pt]
+    N_2 &= \sum_{i=1}^3 \gamma_{i2} = 0.000335 + 0.017986 + 0.999665 = \mathbf{1.017986}
+    \end{aligned}$$
+  </div>
+  <p>
+    Notice that $N_1 + N_2 = 1.982014 + 1.017986 = 3.0 = N$, confirming that total statistical mass is strictly conserved.
+  </p>
+
+  <h4>2. Updated Mixing Proportions ($\pi_k^{\text{new}}$)</h4>
+  <div class="math-display">
+    $$\begin{aligned}
+    \pi_1^{\text{new}} &= \frac{N_1}{N} = \frac{1.982014}{3} \approx \mathbf{0.660671} \quad (66.1\%) \\[6pt]
+    \pi_2^{\text{new}} &= \frac{N_2}{N} = \frac{1.017986}{3} \approx \mathbf{0.339329} \quad (33.9\%)
+    \end{aligned}$$
+  </div>
+
+  <h4>3. Updated Cluster Means ($\mu_k^{\text{new}}$)</h4>
+  <p>
+    For Cluster 1:
+  </p>
+  <div class="math-display">
+    $$\begin{aligned}
+    \mu_1^{\text{new}} &= \frac{\sum_{i=1}^3 \gamma_{i1} x_i}{N_1} \\[6pt]
+    &= \frac{0.999665(1) + 0.982014(2) + 0.000335(5)}{1.982014} \\[6pt]
+    &= \frac{0.999665 + 1.964028 + 0.001675}{1.982014} = \frac{2.965368}{1.982014} \approx \mathbf{1.496139}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    For Cluster 2:
+  </p>
+  <div class="math-display">
+    $$\begin{aligned}
+    \mu_2^{\text{new}} &= \frac{\sum_{i=1}^3 \gamma_{i2} x_i}{N_2} \\[6pt]
+    &= \frac{0.000335(1) + 0.017986(2) + 0.999665(5)}{1.017986} \\[6pt]
+    &= \frac{0.000335 + 0.035972 + 4.998325}{1.017986} = \frac{5.034632}{1.017986} \approx \mathbf{4.945677}
+    \end{aligned}$$
+  </div>
+
+  <h4>4. Updated Variances and Standard Deviations ($\sigma_k^{2\,\text{new}}$)</h4>
+  <p>
+    For Cluster 1 ($\mu_1^{\text{new}} \approx 1.496139$):
+  </p>
+  <div class="math-display">
+    $$\begin{aligned}
+    i=1: \quad &0.999665 \times (1 - 1.496139)^2 = 0.999665 \times 0.246154 \approx 0.246072 \\[4pt]
+    i=2: \quad &0.982014 \times (2 - 1.496139)^2 = 0.982014 \times 0.253876 \approx 0.249310 \\[4pt]
+    i=3: \quad &0.000335 \times (5 - 1.496139)^2 = 0.000335 \times 12.277041 \approx 0.004113 \\[6pt]
+    \sigma_1^{2\,\text{new}} &= \frac{0.246072 + 0.249310 + 0.004113}{1.982014} = \frac{0.499495}{1.982014} \approx \mathbf{0.252014} \\[6pt]
+    \sigma_1^{\text{new}} &= \sqrt{0.252014} \approx \mathbf{0.502010}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    For Cluster 2 ($\mu_2^{\text{new}} \approx 4.945677$):
+  </p>
+  <div class="math-display">
+    $$\begin{aligned}
+    i=1: \quad &0.000335 \times (1 - 4.945677)^2 = 0.000335 \times 15.568366 \approx 0.005215 \\[4pt]
+    i=2: \quad &0.017986 \times (2 - 4.945677)^2 = 0.017986 \times 8.677013 \approx 0.156065 \\[4pt]
+    i=3: \quad &0.999665 \times (5 - 4.945677)^2 = 0.999665 \times 0.002951 \approx 0.002950 \\[6pt]
+    \sigma_2^{2\,\text{new}} &= \frac{0.005215 + 0.156065 + 0.002950}{1.017986} = \frac{0.164230}{1.017986} \approx \mathbf{0.161328} \\[6pt]
+    \sigma_2^{\text{new}} &= \sqrt{0.161328} \approx \mathbf{0.401657}
+    \end{aligned}$$
+  </div>
+
+  <h3>What Just Happened Geometrically?</h3>
+  <p>
+    Examine the leap taken in a single iteration:
+  </p>
+  <ul>
+    <li>
+      <strong>Mean Adaptation:</strong> Mean $\mu_1$ moved from $1.0$ to $\approx 1.496$, shifting halfway between $x_1 = 1$ and $x_2 = 2$ (the points it owns). Mean $\mu_2$ shifted minutely from $5.0$ to $\approx 4.946$, reflecting the tiny gravitational pull of $x_2$.
+    </li>
+    <li>
+      <strong>Mixing Weight Recalibration:</strong> $\pi_1$ expanded from $0.50$ to $0.661$ ($2$ out of $3$ data points belong to it), while $\pi_2$ dropped to $0.339$ ($1$ out of $3$ points).
+    </li>
+    <li>
+      <strong>Variance Contraction:</strong> Both standard deviations collapsed from the broad initial guess of $\sigma = 1.0$ down to $\sigma_1 \approx 0.50$ and $\sigma_2 \approx 0.40$, tightly hugging the dense clusters.
+    </li>
+  </ul>
+  <p>
+    Without specifying a learning rate, without numerical instability, and without gradient overshoot, the model made an enormous leap toward the optimal clustering in a single closed-form step.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7 — EM vs. Gradient Descent & The Modern VAE Bridge   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="em-vs-gradient-descent">
+  <h2>EM vs. Gradient Descent &amp; The Bridge to Variational Autoencoders</h2>
+
+  <p>
+    A natural question arises: <em>Why did we construct this entire mathematical apparatus of latent variables, Jensen's inequality, and alternating auxiliary bounds when we already possess universal optimization workhorses like Gradient Descent?</em>
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p>
+        <em>Can we not simply differentiate the marginal log-likelihood directly with backpropagation? Where does direct gradient ascent fail, where does EM triumph, and when does EM itself finally break down?</em>
+      </p>
+    </div>
+  </div>
+
+  <h3>The Direct Gradient of Marginal Log-Likelihood</h3>
+  <p>
+    Recall our marginal log-likelihood objective:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \ell(\Theta) &= \sum_{i=1}^N \log p(x_i; \Theta) \\[8pt]
+      &= \sum_{i=1}^N \log \left( \sum_z p(x_i, z; \Theta) \right)
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Applying the chain rule to differentiate with respect to any parameter $\Theta$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+    \nabla_\Theta \ell(\Theta) &= \sum_{i=1}^N \frac{1}{\sum_{z'} p(x_i, z'; \Theta)} \sum_z \nabla_\Theta p(x_i, z; \Theta) \\[8pt]
+    &= \sum_{i=1}^N \sum_z \underbrace{\frac{p(x_i, z; \Theta)}{p(x_i; \Theta)}}_{p(z \mid x_i; \Theta)} \frac{\nabla_\Theta p(x_i, z; \Theta)}{p(x_i, z; \Theta)} \\[8pt]
+    &= \sum_{i=1}^N \sum_z p(z \mid x_i; \Theta) \, \nabla_\Theta \log p(x_i, z; \Theta)
+    \end{aligned}$$
+  </div>
+
+  <p>
+    This gradient reveals a profound insight: <strong>the gradient of the marginal log-likelihood is the expected score of the complete-data log-likelihood under the posterior distribution $p(z \mid x_i; \Theta)$</strong>!
+  </p>
+
+  <p>
+    Furthermore, if we evaluate the gradient of our surrogate $Q$-function at the current parameter estimate $\Theta = \Theta^{(t)}$:
+  </p>
+
+  <div class="math-display">
+    $$\left. \nabla_\Theta Q(\Theta \mid \Theta^{(t)}) \right|_{\Theta = \Theta^{(t)}} = \left. \nabla_\Theta \ell(\Theta) \right|_{\Theta = \Theta^{(t)}}$$
+  </div>
+
+  <p>
+    The surrogate $Q$-function has the <em>exact same tangent slope</em> as the true marginal log-likelihood at the current operating point!
+  </p>
+
+  <h3>Why EM is Vastly Superior for Classical Mixture Models</h3>
+  <p>
+    If their gradients point in the same direction, why not just run gradient ascent $\Theta^{(t+1)} = \Theta^{(t)} + \eta \nabla_\Theta \ell(\Theta)$?
+  </p>
+
+  <ol>
+    <li>
+      <strong>Complex Manifold Constraints:</strong> GMM parameters are subject to rigid geometric constraints: mixing weights must lie on the probability simplex ($\sum_k \pi_k = 1, \pi_k \ge 0$), and covariance matrices must remain symmetric positive-definite ($\Sigma_k \succ 0$). Gradient descent requires constrained projection steps or reparameterizations (such as softmax transformations for $\pi_k$ and Cholesky factors $\Sigma = L L^T$), which frequently destabilize optimization near boundary singularities. In contrast, EM's analytical M-step automatically satisfies every single constraint by construction.
+    </li>
+    <li>
+      <strong>No Learning Rate Tuning ($\eta$):</strong> Gradient descent requires meticulous tuning of step sizes, decay schedules, and momentum. A learning rate that is too large causes variances to collapse to zero ($\sigma_k^2 \to 0$), driving the Gaussian density toward a Dirac delta singularity where likelihood explodes to $+\infty$. A learning rate that is too small crawls hopelessly across flat saddle regions. EM requires zero learning rates: every M-step makes an optimal, closed-form jump to the unconstrained peak of the surrogate.
+    </li>
+    <li>
+      <strong>Natural Curvature Preconditioning:</strong> Standard gradient descent follows the steepest direction in arbitrary Euclidean coordinates. The M-step of EM implicitly preconditions the gradient by the inverse Fisher Information Matrix, performing what is mathematically equivalent to <em>natural gradient ascent</em> on Riemannian manifold geometry.
+    </li>
+    <li>
+      <strong>Strict Monotonicity Guarantee:</strong> By the ELBO inequality, every iteration of EM is mathematically guaranteed never to decrease the likelihood: $\ell(\Theta^{(t+1)}) \ge \ell(\Theta^{(t)})$. Gradient descent can overshoot and degrade the objective.
+    </li>
+  </ol>
+
+  <table style="width:100%; margin: 2.5rem 0; border-collapse: collapse; font-size: 0.95rem;">
+    <thead>
+      <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+        <th style="padding: 10px;">Dimension</th>
+        <th style="padding: 10px;">Expectation-Maximization (EM)</th>
+        <th style="padding: 10px;">Gradient Descent (GD / Adam)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Objective Handling</strong></td>
+        <td style="padding: 10px;">Maximizes surrogate lower bound (ELBO), decoupling the $\log \sum$ coupling.</td>
+        <td style="padding: 10px;">Differentiates directly through the coupled $\log \sum$ marginal likelihood.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Step Computation</strong></td>
+        <td style="padding: 10px;">Closed-form analytical equations for each parameter block; zero hyperparameter tuning.</td>
+        <td style="padding: 10px;">Requires learning rate $\eta$, momentum schedules, and gradient clipping.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Convergence Guarantee</strong></td>
+        <td style="padding: 10px;">Strictly monotonic: $\ell(\Theta^{(t+1)}) \ge \ell(\Theta^{(t)})$ at every single step.</td>
+        <td style="padding: 10px;">Non-monotonic; susceptible to oscillations, overshooting, and divergence.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Per-Iteration Speed</strong></td>
+        <td style="padding: 10px;">Heavier computation per step, but converges to high accuracy in very few iterations.</td>
+        <td style="padding: 10px;">Very fast per-step matrix multiplies, but requires hundreds or thousands of steps.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Constraint Enforcement</strong></td>
+        <td style="padding: 10px;">Automatic: $\sum \pi_k = 1$ and $\Sigma_k \succ 0$ are mathematically guaranteed.</td>
+        <td style="padding: 10px;">Requires softmax, Cholesky reparameterizations, or projected Riemannian gradients.</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px;"><strong>Scope of Applicability</strong></td>
+        <td style="padding: 10px;">Strictly limited to models where posterior $p(z \mid x)$ and M-step are analytically tractable.</td>
+        <td style="padding: 10px;">Universal: operates on any differentiable loss function and arbitrary architectures.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>When EM Breaks Down: The Intractable Posterior</h3>
+  <p>
+    If EM is so elegant, why does modern deep learning rely almost exclusively on gradient descent?
+  </p>
+
+  <p>
+    Because classical EM depends on an Achilles' heel: <strong>the exact posterior $p(z \mid x; \Theta)$ must be computable in closed form during the E-step</strong>.
+  </p>
+
+  <p>
+    In a Gaussian Mixture Model, the latent space is discrete with only $K$ possible states ($z \in \{1, \dots, K\}$). Computing the marginal evidence requires summing over only $K$ terms:
+  </p>
+
+  <div class="math-display">
+    $$p(x) = \sum_{k=1}^K \pi_k \mathcal{N}(x; \mu_k, \Sigma_k)$$
+  </div>
+
+  <p>
+    Now suppose our latent representation is continuous and multi-dimensional: $z \in \mathbb{R}^{d_z}$ (e.g. a 128-dimensional latent vector representing the semantics of an image), and the likelihood $p_\theta(x \mid z)$ is generated by passing $z$ through a deep non-linear neural network (a "Decoder").
+  </p>
+
+  <p>
+    To compute the posterior $p(z \mid x)$, Bayes' rule forces us to evaluate the integral across the continuous latent space:
+  </p>
+
+  <div class="math-display">
+    $$p_\theta(z \mid x) = \frac{p_\theta(x \mid z) p(z)}{\int_{\mathbb{R}^{d_z}} p_\theta(x \mid z') p(z') \, dz'}$$
+  </div>
+
+  <p>
+    Because $p_\theta(x \mid z)$ is parameterized by non-linear neural activations, this integral is <strong>analytically intractable</strong>! There is no closed-form solution. We cannot calculate $p(z \mid x)$, meaning the exact E-step cannot be executed. Classical Expectation-Maximization collapses completely.
+  </p>
+
+  <h3>The Modern Bridge: Variational Autoencoders (VAEs)</h3>
+  <p>
+    How did modern machine learning solve this dilemma? By uniting EM's Variational ELBO with deep neural networks through <strong>Variational Autoencoders (Kingma &amp; Welling, 2013)</strong>.
+  </p>
+
+  <p>
+    Instead of calculating the intractable exact posterior $p_\theta(z \mid x)$ in an analytical E-step, VAE introduces a second neural network—the <strong>Inference Network or Encoder</strong> $q_\phi(z \mid x)$, parameterized by weights $\phi$:
+  </p>
+
+  <div class="math-display">
+    $$q_\phi(z \mid x) = \mathcal{N}\Big(z; \, \mu_\phi(x), \, \operatorname{diag}(\sigma_\phi^2(x))\Big)$$
+  </div>
+
+  <p>
+    Recall our exact variational decomposition from Section 4:
+  </p>
+
+  <div class="math-display">
+    $$\log p_\theta(x) = \operatorname{ELBO}(\theta, \phi; x) + D_{\text{KL}}\Big( q_\phi(z \mid x) \;\parallel\; p_\theta(z \mid x) \Big)$$
+  </div>
+
+  <p>
+    Expanding the ELBO reveals the celebrated two-part loss function of the VAE:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \operatorname{ELBO}(\theta, \phi; x) &= \underbrace{\mathbb{E}_{q_\phi(z \mid x)}\big[ \log p_\theta(x \mid z) \big]}_{\text{Reconstruction Quality (Decoder)}} \\[10pt]
+      &\quad - \underbrace{D_{\text{KL}}\Big( q_\phi(z \mid x) \;\parallel\; p(z) \Big)}_{\text{Latent Regularization to Prior (Encoder)}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Notice the direct conceptual lineage:
+  </p>
+
+  <ul>
+    <li>
+      <strong>The VAE Encoder ($q_\phi$) is an Amortized E-Step:</strong> Instead of recalculating responsibilities from scratch for every single data point at every iteration, the encoder network learns a functional mapping that outputs the approximate posterior parameters $\mu_\phi(x)$ and $\sigma_\phi(x)$ in a single forward pass.
+    </li>
+    <li>
+      <strong>The VAE Decoder ($p_\theta$) is a Continuous M-Step:</strong> The decoder reconstructs data samples from latent vectors, driving up the expected log-likelihood.
+    </li>
+    <li>
+      <strong>The Reparameterization Trick Bypasses the Integral:</strong> To propagate gradients through stochastic sampling, VAE reparameterizes $z$ as a deterministic function with external Gaussian noise:
+      <div class="math-display">
+        $$z = \mu_\phi(x) + \sigma_\phi(x) \odot \epsilon, \qquad \epsilon \sim \mathcal{N}(0, I)$$
+      </div>
+      This enables standard backpropagation to compute $\nabla_\phi \operatorname{ELBO}$ and $\nabla_\theta \operatorname{ELBO}$ simultaneously using stochastic gradient ascent.
+    </li>
+  </ul>
+
+  <div class="math-box">
+    <div class="math-box-label">The Evolutionary Arc</div>
+    <div class="math-box-body">
+      <p>
+        <strong>Expectation-Maximization is the analytical ancestor of the Variational Autoencoder.</strong>
+      </p>
+      <p>
+        Where classical EM executes exact coordinate ascent on the ELBO using closed-form algebra for linear exponential families, the VAE executes stochastic gradient ascent on the ELBO using neural networks and the reparameterization trick for continuous, highly non-linear manifolds.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8 — Connecting the Dots: The Grand Synthesis          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots: The Grand Synthesis</h2>
+
+  <p>
+    We have traversed the complete arc of unsupervised learning: from deterministic spatial projections to latent probabilistic mixtures and modern deep variational architectures.
+  </p>
+
+  <p>
+    Now, look back across our entire journey. How does the probabilistic EM algorithm connect back to the geometric algorithms we studied earlier?
+  </p>
+
+  <h3>How GMM and EM Naturally Generalize $K$-Means</h3>
+  <p>
+    Consider what happens to the Expectation-Maximization algorithm under two specific physical constraints:
+  </p>
+
+  <ol>
+    <li>All components share equal, isotropic variance: $\sigma_k^2 = \sigma^2$ for all $k$.</li>
+    <li>We send the variance to zero: $\sigma^2 \to 0$.</li>
+  </ol>
+
+  <p>
+    Look at the posterior responsibilities computed during the E-step:
+  </p>
+
+  <div class="math-display">
+    $$\gamma_{ik} = \frac{\pi_k \exp\left( -\frac{\|x_i - \mu_k\|^2}{2\sigma^2} \right)}{\sum_{\ell=1}^K \pi_\ell \exp\left( -\frac{\|x_i - \mu_\ell\|^2}{2\sigma^2} \right)}$$
+  </div>
+
+  <p>
+    As $\sigma^2 \to 0$, the exponential term with the <em>smallest</em> Euclidean distance $\|x_i - \mu_k\|^2$ dominates exponentially over all others. The responsibilities become binary step functions:
+  </p>
+
+  <div class="math-display">
+    $$\lim_{\sigma^2 \to 0} \gamma_{ik} = \begin{cases} 1 & \text{if } k = \arg\min_\ell \|x_i - \mu_\ell\|^2 \\ 0 & \text{otherwise} \end{cases}$$
+  </div>
+
+  <p>
+    This is <strong>identically the hard Voronoi nearest-centroid assignment of Lloyd's $K$-means algorithm</strong>!
+  </p>
+
+  <p>
+    And what does the M-step do with binary responsibilities $\gamma_{ik} \in \{0, 1\}$? It computes the unweighted sample average of all points assigned to cluster $k$: $\mu_k = \frac{1}{|C_k|}\sum_{i \in C_k} x_i$, which is <strong>identically the centroid update of Lloyd's algorithm</strong>!
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Fundamental Unification</div>
+    <div class="math-box-body">
+      <p>
+        <strong>$K$-Means is the zero-variance limit of the Gaussian Mixture Model trained via Expectation-Maximization.</strong>
+      </p>
+      <p>
+        Where $K$-means cuts space into rigid, hard Voronoi hyperplanes, GMM endows every point with smooth, probabilistic posterior responsibilities, capturing cluster uncertainty, varying cluster scales, and elliptical orientations.
+      </p>
+    </div>
+  </div>
+
+  <table style="width:100%; margin: 2.5rem 0; border-collapse: collapse; font-size: 0.95rem;">
+    <thead>
+      <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+        <th style="padding: 10px;">Method</th>
+        <th style="padding: 10px;">Paradigm</th>
+        <th style="padding: 10px;">Mathematical Core</th>
+        <th style="padding: 10px;">Key Guarantee / Property</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Linear PCA</strong></td>
+        <td style="padding: 10px;">Geometric / Deterministic</td>
+        <td style="padding: 10px;">Covariance Eigendecomposition</td>
+        <td style="padding: 10px;">Optimal linear projection preserving maximum variance.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Kernel PCA</strong></td>
+        <td style="padding: 10px;">Geometric / RKHS</td>
+        <td style="padding: 10px;">Gram Matrix Eigendecomposition</td>
+        <td style="padding: 10px;">Non-linear manifold unfolding via Mercer kernels.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>$K$-Means (Lloyd's)</strong></td>
+        <td style="padding: 10px;">Geometric / Discrete</td>
+        <td style="padding: 10px;">Hard Voronoi Cell Partitioning</td>
+        <td style="padding: 10px;">Alternating descent minimizing squared Euclidean distortion.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Maximum Likelihood (MLE)</strong></td>
+        <td style="padding: 10px;">Probabilistic / Frequentist</td>
+        <td style="padding: 10px;">$\arg\max_\theta \sum \log f(x_i; \theta)$</td>
+        <td style="padding: 10px;">Achieves Cramér-Rao Lower Bound (MVUE) asymptotically.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>MAP &amp; Bayesian Conjugacy</strong></td>
+        <td style="padding: 10px;">Probabilistic / Bayesian</td>
+        <td style="padding: 10px;">Posterior Mode $P(X|\theta)P(\theta)$</td>
+        <td style="padding: 10px;">Incorporates prior beliefs; beats MVUE via Bias-Variance tradeoff.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>GMM via EM Algorithm</strong></td>
+        <td style="padding: 10px;">Probabilistic / Latent Variable</td>
+        <td style="padding: 10px;">Analytical Coordinate Ascent on ELBO</td>
+        <td style="padding: 10px;">Soft clustering with uncertainty; reduces to $K$-means as $\sigma^2 \to 0$.</td>
+      </tr>
+      <tr>
+        <td style="padding: 10px;"><strong>Variational Autoencoders (VAEs)</strong></td>
+        <td style="padding: 10px;">Deep Generative / Amortized</td>
+        <td style="padding: 10px;">Stochastic Gradient Ascent on ELBO</td>
+        <td style="padding: 10px;">Scales EM principle to continuous, high-dimensional non-linear manifolds.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    From pure geometry to probabilistic inference and deep generative models, every tool in unsupervised learning answers the exact same underlying question: <em>how do we uncover the latent structure of our world without labels?</em>
+  </p>
+  <p>
+    By recognizing that geometry is simply probability in the zero-variance limit, and that modern deep generative networks are simply amortized, gradient-based realizations of the classical Expectation-Maximization bound, we unite linear algebra, statistics, optimization, and deep learning into a single, majestic tapestry.
+  </p>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
