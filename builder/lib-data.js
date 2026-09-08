@@ -1090,7 +1090,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "PCA, principal component analysis, variance conservation, orthogonal projection, covariance matrix, eigendecomposition, spectral theorem, representation learning, Foundations of Machine Learning",
     "status": "draft",
-    "readingTime": 21
+    "readingTime": 20
   },
   {
     "article_id": "843b5cad",

@@ -121,7 +121,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="21">
+  <meta name="reading_time" content="20">
     <meta property="og:title" content="Principal Component Analysis (PCA)">
     <meta property="og:description" content="How eigendecomposition unlocks Linear Principal Component Analysis (PCA) — deriving variance conservation, orthogonal decompositions, and Rayleigh quotients.">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-principal-component-analysis-pca.png">
@@ -260,73 +260,92 @@
     </li>
     <li>
       <strong>The Principal Axis (<em>2D → 1D</em>):</strong>
-      Inside that slant plane, composite size and price still climb together. Click <strong>"Principal Axis (2D → 1D)"</strong> to collapse the points along the single diagonal direction of maximum spread ($w_1$).
+      Inside that slant plane, composite size and price still climb together. Click <strong>"Principal Axis (2D → 1D)"</strong> to collapse the points along the single diagonal direction of maximum spread.
     </li>
   </ol>
 
   <p>
-    Because the relationship between these features is linear, eliminating redundancy is equivalent to finding new coordinate axes where the linear correlation between distinct coordinates drops completely to zero.
-  </p>
-
-  <p>
-    This brings us to the guiding question of Principal Component Analysis:
+    Our original coordinate axes (Area, Bedrooms, Price) were chosen arbitrarily by our measurement instruments, not by the data itself. If we want to simplify our data without arbitrarily throwing away features, we face an intuitive question:
   </p>
 
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
-      <p><em>Can we change our coordinate axes so that the new features are completely uncorrelated with each other?</em></p>
+      <p><em>Can we find a new coordinate axis that aligns directly with the natural spread of the data, rather than our arbitrary measurement tools?</em></p>
     </div>
   </div>
+</section>
 
-  <h3>Changing the Axes to Remove Correlation</h3>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Geometric First Principles                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="geometric-principles">
+  <h2>Geometric First Principles</h2>
+
   <p>
-    Our original coordinate axes (Area, Bedrooms, Price) were chosen arbitrarily by our measurement instruments, not by the data itself.
+    Let us construct PCA from the ground up. We are given a dataset of $n$ observations $\{x_1, x_2, \dots, x_n\}$, where each data point $x_i \in \mathbb{R}^d$ is a column vector of $d$ features.
+  </p>
+
+  <h3>Centering the Data Cloud</h3>
+  <p>
+    Before searching for directions of variance, we must eliminate arbitrary coordinate offsets. We calculate the sample mean vector:
+  </p>
+
+  <div class="math-display">
+    $$\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$$
+  </div>
+
+  <p>
+    and center every observation by shifting the center of mass to the origin:
+  </p>
+
+  <div class="math-display">
+    $$x_i \leftarrow x_i - \bar{x}$$
+  </div>
+
+  <p>
+    From this point onward, our dataset satisfies $\sum_{i=1}^n x_i = \mathbf{0}$. With the mean centered at the origin, any candidate axis passing through the origin represents a genuine axis of variation, and the squared Euclidean length $\|x_i\|^2$ represents the pure variance of data point $x_i$ from the dataset's center of mass.
+  </p>
+
+  <h3>Projecting onto a Direction</h3>
+  <p>
+    Suppose we test a candidate direction defined by a unit vector $w \in \mathbb{R}^d$ (with $\|w\| = 1$). How do we mathematically describe what happens when an observation $x_i$ is compressed onto the 1D line spanned by $w$?
   </p>
 
   <p>
-    Instead of measuring homes along these three correlated directions, what if we change our axes to align directly with the natural shape of the data cloud?
+    Orthogonally projecting $x_i$ onto $w$ splits the point into two distinct pieces:
   </p>
 
   <ul>
     <li>
-      <strong>First New Axis ($w_1$):</strong> Points directly along the longest stretch of the data cloud. This single direction captures the dominant trend where area, bedrooms, and price all increase together—capturing the <strong>maximum possible variance</strong> of the data.
+      The <strong>scalar coordinate</strong> along the axis (the length of the projection shadow):
+      <div class="math-display">
+        $$z_i = w^T x_i = \sum_{j=1}^d w_j x_{ij}$$
+      </div>
     </li>
     <li>
-      <strong>Second New Axis ($w_2$):</strong> Points perpendicular (<strong>orthogonal</strong>) to the first, capturing the next widest spread of the data.
+      The <strong>vector projection</strong> (the reconstructed point lying on the axis line):
+      <div class="math-display">
+        $$\hat{x}_i = (w^T x_i)w$$
+      </div>
     </li>
     <li>
-      <strong>Third New Axis ($w_3$):</strong> Points perpendicular to both, capturing the tiny remaining thickness of the cloud.
+      The <strong>reconstruction error vector</strong> (the residual perpendicular to the axis that gets discarded):
+      <div class="math-display">
+        $$e_i = x_i - (w^T x_i)w$$
+      </div>
     </li>
   </ul>
 
   <p>
-    Notice what this change of axes accomplishes:
-  </p>
-
-  <ol>
-    <li>
-      <strong>Zero Linear Redundancy:</strong> Because the new axes align directly with the natural directions of variation, the new coordinates have <strong>zero correlation</strong> with each other ($\text{Cov}(z_i, z_j) = 0$ for $i \neq j$). All linear redundancy between the features is completely eliminated.
-    </li>
-    <li>
-      <strong>Safe Dimensionality Reduction:</strong> Because the data cloud has almost no thickness along the third axis, its variance there is practically zero. We can safely drop the third axis and describe every home using just two (or even one) new coordinate, with almost zero loss of information!
-    </li>
-  </ol>
-
-  <h3>From New Axes to Projections</h3>
-  <p>
-    How do we mathematically calculate an observation's coordinate along one of these new candidate axes?
-  </p>
-
-  <p>
-    If a new axis is defined by a unit direction vector $w \in \mathbb{R}^d$ (with $\|w\| = 1$), the coordinate of any data point $x$ along that axis is given by the dot product:
+    Notice that the original point decomposes cleanly and exactly into two orthogonal components:
   </p>
 
   <div class="math-display">
-    $$z = w^T x = w_1 x_1 + w_2 x_2 + \dots + w_d x_d$$
+    $$x_i = \underbrace{(w^T x_i)w}_{\text{preserved projection}} \;+\; \underbrace{e_i}_{\text{discarded error}}$$
   </div>
 
   <p>
-    Geometrically, computing $w^T x$ is the <strong>orthogonal projection</strong> of point $x$ onto the line spanned by $w$.
+    Interact with Figure 2 below to see this orthogonal projection in action. Click <em>"Bring in Axis w"</em> to introduce the candidate direction, <em>"Project onto w (3D → 1D)"</em> to watch the data points slide along orthogonal drop lines onto the axis, or <em>"Inspect Observation xᵢ (Zoom)"</em> (or click any data point directly) to zoom into the perpendicular decomposition right triangle in 3D.
   </p>
 
   <figure class="diagram-figure">
@@ -404,7 +423,6 @@
 
           <g id="fig2-lbl-group-xi">
             <text id="fig2-inspect-lbl-xi-sym" font-family="'Lora', serif" font-size="22" font-style="italic" font-weight="normal" fill="var(--text)" text-anchor="middle">x<tspan dy="5" font-size="14">i</tspan></text>
-            <text id="fig2-inspect-lbl-point" font-family="'Lora', serif" font-size="15" font-weight="normal" fill="var(--text)" text-anchor="start">Data point <tspan font-style="italic">x</tspan><tspan dy="4" font-size="11" font-style="italic">i</tspan></text>
           </g>
 
           <g id="fig2-lbl-group-err">
@@ -448,109 +466,64 @@
     </figcaption>
   </figure>
 
-  <p>
-    This defines the core idea of <strong>Principal Component Analysis (PCA)</strong>: find a new set of orthogonal coordinate axes, ordered so that each axis captures the maximum possible remaining variance while ensuring all new features are completely uncorrelated.
-  </p>
-
-  <h3>The Mental Model</h3>
-  <p>
-    Because orthogonal projection preserves total squared distance (by the Pythagorean theorem), <strong>maximizing the variance you preserve along your chosen axes is mathematically identical to minimizing the reconstruction error you discard</strong>.
-  </p>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!--  Geometric First Principles                             -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section id="geometric-principles">
-  <h2>Geometric First Principles</h2>
-
-  <p>
-    Let us construct PCA from the ground up. We are given a dataset of $n$ observations $\{x_1, x_2, \dots, x_n\}$, where each data point $x_i \in \mathbb{R}^d$ is a column vector of $d$ features.
-  </p>
-
-  <h3>Centering the Data Cloud</h3>
-  <p>
-    Before searching for directions of variance, we must eliminate arbitrary coordinate offsets. We calculate the sample mean vector:
-  </p>
-
-  <div class="math-display">
-    $$\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$$
-  </div>
-
-  <p>
-    and center every observation by shifting the center of mass to the origin: $x_i \leftarrow x_i - \bar{x}$.
-  </p>
-
-  <p>
-    From this point onward, our dataset satisfies $\sum_{i=1}^n x_i = \mathbf{0}$. With the mean centered at the origin, the squared Euclidean length $\|x_i\|^2$ represents the pure variance of data point $x_i$ from the center of the dataset.
-  </p>
-
-  <h3>Projecting onto a Direction</h3>
-  <p>
-    Suppose we want to compress every $d$-dimensional vector down to a single scalar along a candidate unit direction vector $w \in \mathbb{R}^d$ (with $\|w\| = 1$).
-  </p>
-
-  <p>
-    What happens when data point $x_i$ is projected onto the line spanned by $w$?
-  </p>
-
-  <ul>
-    <li>The <strong>scalar coordinate</strong> (length of the shadow) is the dot product: $x_i^T w$.</li>
-    <li>The <strong>vector projection</strong> (the reconstructed point on the line) is: $(x_i^T w)w$.</li>
-    <li>The <strong>error vector</strong> (the piece perpendicular to $w$ that gets discarded) is: $e_i = x_i - (x_i^T w)w$.</li>
-  </ul>
-
-  <p>
-    Notice that the original point decomposes cleanly into two orthogonal components:
-  </p>
-
-  <div class="math-display">
-    $$x_i = \underbrace{(x_i^T w)w}_{\text{preserved signal}} \;+\; \underbrace{\left(x_i - (x_i^T w)w\right)}_{\text{discarded error } e_i}$$
-  </div>
-
-  <p>
-    As visualized in Figure 2 (toggle <em>"Inspect Observation $x_i$"</em> to view the decomposition in 3D), the vector projection $(x_i^T w)w$ and the error vector $e_i$ form the perpendicular legs of a right triangle whose hypotenuse is the observation vector $x_i$.
-  </p>
-
   <h3>The Pythagorean Conservation Law</h3>
   <p>
-    Because the projection vector $(x_i^T w)w$ and the error vector $e_i$ are perpendicular by construction, the Pythagorean theorem holds exactly:
+    Because the projection vector $(w^T x_i)w$ lies along $w$ and the error vector $e_i$ is perpendicular to $w$ (since $w^T e_i = w^T(x_i - (w^T x_i)w) = w^T x_i - (w^T x_i)(w^T w) = 0$), they form the perpendicular legs of a right triangle whose hypotenuse is $x_i$.
+  </p>
+
+  <p>
+    By the Pythagorean theorem, the squared lengths satisfy:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \|x_i\|^2 &= \|(x_i^T w)w\|^2 + \|x_i - (x_i^T w)w\|^2 \\[6pt]
-      &= (x_i^T w)^2 + \|e_i\|^2
+      \|x_i\|^2 &= \|(w^T x_i)w\|^2 + \|e_i\|^2 \\[6pt]
+      &= (w^T x_i)^2 \|w\|^2 + \|e_i\|^2 \\[6pt]
+      &= (w^T x_i)^2 + \|e_i\|^2
     \end{aligned}$$
   </div>
 
   <p>
-    Summing this equation across all $n$ data points and dividing by $n$:
+    Summing this equation across all $n$ observations and dividing by $n$:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \underbrace{\frac{1}{n} \sum_{i=1}^n \|x_i\|^2}_{\text{Total Variance (Constant)}} &= \underbrace{\frac{1}{n} \sum_{i=1}^n (x_i^T w)^2}_{\text{Preserved Projection Variance}} + \underbrace{\frac{1}{n} \sum_{i=1}^n \|e_i\|^2}_{\text{Mean Squared Reconstruction Error}}
+      \underbrace{\frac{1}{n} \sum_{i=1}^n \|x_i\|^2}_{\text{Total Variance (Constant)}} &= \underbrace{\frac{1}{n} \sum_{i=1}^n (w^T x_i)^2}_{\text{Preserved Projection Variance}} + \underbrace{\frac{1}{n} \sum_{i=1}^n \|e_i\|^2}_{\text{Mean Squared Error}}
     \end{aligned}$$
   </div>
 
   <p>
-    Look closely at what this equation reveals: the left-hand side is the total sum of squared distances of all data points from the origin—a constant value that depends only on the dataset itself, completely independent of our choice of $w$.
+    Look closely at what this algebraic identity reveals: the left-hand side is the total sum of squared distances from the origin to all data points—a fixed geometric constant determined solely by the dataset itself, completely independent of which direction $w$ we choose.
   </p>
 
   <p>
-    Because the sum is fixed, <strong>any increase in preserved variance forces an identical decrease in reconstruction error</strong>:
+    Because their sum is fixed, every bit of variance preserved along $w$ directly subtracts from the error discarded perpendicular to $w$. We have arrived at the foundational duality of dimensionality reduction:
   </p>
 
   <div class="math-box">
     <div class="math-box-label">The Equivalence Theorem of PCA</div>
     <div class="math-box-body">
       <div class="math-display">
-        $$\max_{\|w\|=1} \text{Var}(\text{Projections}) \;\iff\; \min_{\|w\|=1} \text{Reconstruction Error}$$
+        $$\max_{\|w\|=1} \frac{1}{n}\sum_{i=1}^n (w^T x_i)^2 \;\iff\; \min_{\|w\|=1} \frac{1}{n}\sum_{i=1}^n \|x_i - (w^T x_i)w\|^2$$
       </div>
       <p>
-        Maximizing the preserved projection variance is mathematically identical to minimizing the mean squared reconstruction error.
+        Maximizing the preserved projection variance along a unit direction $w$ is mathematically identical to minimizing the mean squared reconstruction error discarded perpendicular to $w$.
       </p>
+    </div>
+  </div>
+
+  <p>
+    This equivalence establishes why PCA works from two completely different perspectives: whether your goal is to <em>maximize the information you keep</em> or <em>minimize the distortion you introduce</em>, the optimal direction $w$ is identical.
+  </p>
+
+  <p>
+    This brings us to the core computational challenge:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>How do we mathematically calculate the optimal unit vector $w$ that maximizes this preserved variance?</em></p>
     </div>
   </div>
 </section>
@@ -1771,7 +1744,6 @@
     const fig2InspectLblW = document.getElementById("fig2-inspect-lbl-w");
     const fig2InspectLblWMag = document.getElementById("fig2-inspect-lbl-w-mag");
     const fig2InspectLblXiSym = document.getElementById("fig2-inspect-lbl-xi-sym");
-    const fig2InspectLblPoint = document.getElementById("fig2-inspect-lbl-point");
     const fig2InspectLblProjSym = document.getElementById("fig2-inspect-lbl-proj-sym");
     const fig2InspectLblProjDesc = document.getElementById("fig2-inspect-lbl-proj-desc");
     const fig2InspectLblErrSym = document.getElementById("fig2-inspect-lbl-err-sym");
@@ -2325,10 +2297,7 @@
             fig2InspectLblXiSym.setAttribute("x", lblHypX.toFixed(1));
             fig2InspectLblXiSym.setAttribute("y", lblHypY.toFixed(1));
           }
-          if (fig2InspectLblPoint) {
-            fig2InspectLblPoint.setAttribute("x", (pXi.u + 12).toFixed(1));
-            fig2InspectLblPoint.setAttribute("y", (pXi.v - 12).toFixed(1));
-          }
+
 
           // 4. Reconstruction Error Vector Label (to the right of the drop line)
           const midErrY = (pProj.v + pXi.v) * 0.5;
