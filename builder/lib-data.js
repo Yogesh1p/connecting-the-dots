@@ -1078,7 +1078,7 @@ window.rawPages = [
     "bookSlug": "mathematics",
     "bookOrder": 999,
     "title": "Principal Component Analysis (PCA)",
-    "description": "How eigendecomposition unlocks Linear Principal Component Analysis (PCA) — deriving variance conservation, orthogonal decompositions, and Rayleigh quotients.",
+    "description": "From arbitrary measurement coordinates to the data's natural axes: discovering how geometric projection, Pythagorean variance conservation, and constrained optimization inevitably reveal the eigendecomposition of the covariance matrix.",
     "date": "2026-08-16",
     "section": "Foundations of Machine Learning",
     "chapter": "Unsupervised Learning",
