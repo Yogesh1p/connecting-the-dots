@@ -55,6 +55,41 @@
     line-height: 1.5;
     max-width: 90%;
   }
+  .pca-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin: 1.2rem 0 0.5rem;
+    width: 100%;
+  }
+  .pca-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    transition: all 0.2s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .pca-btn:hover {
+    background: var(--highlight);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pca-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
 </style>
 
 <script>
@@ -86,7 +121,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="15">
+  <meta name="reading_time" content="21">
     <meta property="og:title" content="Principal Component Analysis (PCA)">
     <meta property="og:description" content="How eigendecomposition unlocks Linear Principal Component Analysis (PCA) — deriving variance conservation, orthogonal decompositions, and Rayleigh quotients.">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-principal-component-analysis-pca.png">
@@ -114,44 +149,313 @@
 
   <h3>The Dimensionality Dilemma</h3>
   <p>
-    In our study of the Spectral Theorem, we uncovered a profound geometric truth: every symmetric matrix possesses a complete set of mutually perpendicular eigenvectors that decouple space into independent scaling axes. When you view a matrix through its eigenvectors, there is no cross-talk, no skewing, and no distortion—only pure, independent scaling along orthogonal directions.
+    Suppose we collect data with multiple features. For instance, in a real estate dataset, each home might record its <strong>living area</strong>, <strong>number of bedrooms</strong>, and <strong>sale price</strong>.
   </p>
 
   <p>
-    Now, let us turn this powerful machinery toward the messiness of real-world data.
+    In real-world data, features are rarely independent. If a home's living area increases, its number of bedrooms is bound to increase; if the bedroom count rises, the square footage naturally expands with it. Treating them as separate measurements creates an illusion of having two independent pieces of information—when in truth, <strong>dependency means duplicate information</strong>.
   </p>
 
   <p>
-    Suppose you collect measurements from a complex system: thousands of gene expressions, high-resolution camera pixels, financial market indicators, or sensor feeds from an aircraft. Each data point arrives as a vector in an intimidating $d$-dimensional space $\mathbb{R}^d$.
+    Whenever features depend on each other—whether that dependency is linear, cubic, or a complex polynomial curve—our dataset contains redundancy. Our intention is to find a representation of the data where features are independent, eliminating redundant information.
   </p>
 
   <p>
-    However, real physical phenomena rarely use all $d$ dimensions independently. Features correlate heavily, sensors record overlapping echoes of the same underlying cause, and most directions in the space contain little more than random background noise.
+    To see how this redundancy reveals itself geometrically, imagine plotting this dataset in a 3D coordinate space: living area along the $x$-axis, bedrooms along the $y$-axis, and price along the $z$-axis (Figure 1). What does the data cloud look like?
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig1-3d-svg" viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg" style="cursor: grab; user-select: none; touch-action: none; width: 100%; max-width: 680px; height: auto;">
+        <defs>
+          <marker id="fig1-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="fig1-arrow-trend" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="fig1-arrow-comp" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- Floor Grid Plane (Area x Bedrooms) -->
+        <g id="fig1-grid-floor"></g>
+
+        <!-- Slant 2D Plane (semi-transparent shaded sheet) -->
+        <g id="fig1-plane-group" style="display: none;">
+          <polygon id="fig1-slant-polygon" fill="var(--highlight)" fill-opacity="0.45" stroke="var(--box-label-bg)" stroke-width="2" stroke-dasharray="6,4" />
+          <line id="fig1-axis-composite" stroke="var(--accent)" stroke-width="3" marker-end="url(#fig1-arrow-comp)" />
+          <text id="fig1-lbl-composite" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">Composite Size Axis</text>
+        </g>
+
+        <!-- Coordinate Axes -->
+        <g id="fig1-axes">
+          <line id="fig1-axis-x" stroke="var(--text)" stroke-width="2" marker-end="url(#fig1-arrow)" />
+          <line id="fig1-axis-y" stroke="var(--text)" stroke-width="2" marker-end="url(#fig1-arrow)" />
+          <line id="fig1-axis-z" stroke="var(--text)" stroke-width="2" marker-end="url(#fig1-arrow)" />
+        </g>
+
+        <!-- Drop lines from points to floor -->
+        <g id="fig1-droplines"></g>
+
+        <!-- Floor shadows -->
+        <g id="fig1-shadows"></g>
+
+        <!-- Trend Line (Dominant variation direction w1) -->
+        <g id="fig1-trend-group" style="display: none;">
+          <line id="fig1-trend-line" stroke="var(--box-label-bg)" stroke-width="3.5" marker-end="url(#fig1-arrow-trend)" />
+          <text id="fig1-trend-label" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)">Principal Axis w₁</text>
+        </g>
+
+        <!-- Data Points (Cigar cloud) -->
+        <g id="fig1-points"></g>
+
+        <!-- Axis Labels & Annotations -->
+        <g id="fig1-labels">
+          <text id="fig1-lbl-origin" font-family="'Lora', serif" font-size="14" fill="var(--muted)">0</text>
+          <text id="fig1-lbl-x" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)">Living Area (x)</text>
+          <text id="fig1-lbl-y" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)">Bedrooms (y)</text>
+          <text id="fig1-lbl-z" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)">Sale Price (z)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="pca-controls">
+      <button type="button" class="pca-btn active" id="fig1-btn-cloud">
+        <span>3D Cloud</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig1-btn-area">
+        <span>Area POV</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig1-btn-beds">
+        <span>Bedrooms POV</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig1-btn-plane">
+        <span>Slant Plane (3D → 2D)</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig1-btn-line">
+        <span>Principal Axis (2D → 1D)</span>
+      </button>
+    </div>
+
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> Interactive 3D visualization of housing data redundancy and dimensionality reduction. Compare vantage points (<em>"Area POV"</em> vs. <em>"Bedrooms POV"</em>) to see that both views repeat the same information. Click <em>"Slant Plane (3D → 2D)"</em> to flatten points onto the composite plane, or <em>"Principal Axis (2D → 1D)"</em> to collapse onto $w_1$. Drag anytime to rotate in 3D.
+    </figcaption>
+  </figure>
+
+  <h3>Visualizing Redundancy Through the Controls</h3>
+  <p>
+    As the 3D plot illustrates, the points do not fill the 3D space uniformly like a random gas. Because all three features increase together, the points cluster into an elongated, tilted cloud. Use the buttons above to witness how redundancy unfolds geometrically:
+  </p>
+
+  <ol>
+    <li>
+      <strong>The Duplicate Vantage Point (<em>Area POV</em> vs. <em>Bedrooms POV</em>):</strong>
+      Click <strong>"Area POV"</strong> to view the dataset along Living Area vs. Price, then click <strong>"Bedrooms POV"</strong> to rotate 90° around the vertical price axis. Notice how the scatter plot looks virtually identical from both angles. Because area and bedrooms move in lockstep, changing your vantage point provides no new perspective. Both features tell the exact same story about home size.
+    </li>
+    <li>
+      <strong>The Slant Plane (<em>3D → 2D</em>):</strong>
+      Since Area and Bedrooms duplicate each other, we can replace them with a single <strong>composite axis</strong> on the floor that blends both measurements. Together with sale price, this defines a <strong>slant 2D plane</strong> slicing through the cloud. Click <strong>"Slant Plane (3D → 2D)"</strong> to watch each point slide along a perpendicular drop line directly onto this plane. Because the cloud was already nearly flat, dropping the perpendicular direction discards virtually zero information!
+    </li>
+    <li>
+      <strong>The Principal Axis (<em>2D → 1D</em>):</strong>
+      Inside that slant plane, composite size and price still climb together. Click <strong>"Principal Axis (2D → 1D)"</strong> to collapse the points along the single diagonal direction of maximum spread ($w_1$).
+    </li>
+  </ol>
+
+  <p>
+    Because the relationship between these features is linear, eliminating redundancy is equivalent to finding new coordinate axes where the linear correlation between distinct coordinates drops completely to zero.
   </p>
 
   <p>
-    This brings us to the fundamental question of <strong>dimensionality reduction</strong>:
+    This brings us to the guiding question of Principal Component Analysis:
   </p>
 
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
-      <p><em>Can we rotate our perspective to discover the few, true orthogonal directions along which the data actually varies—and discard the rest without throwing away the underlying signal?</em></p>
+      <p><em>Can we change our coordinate axes so that the new features are completely uncorrelated with each other?</em></p>
     </div>
+  </div>
+
+  <h3>Changing the Axes to Remove Correlation</h3>
+  <p>
+    Our original coordinate axes (Area, Bedrooms, Price) were chosen arbitrarily by our measurement instruments, not by the data itself.
+  </p>
+
+  <p>
+    Instead of measuring homes along these three correlated directions, what if we change our axes to align directly with the natural shape of the data cloud?
+  </p>
+
+  <ul>
+    <li>
+      <strong>First New Axis ($w_1$):</strong> Points directly along the longest stretch of the data cloud. This single direction captures the dominant trend where area, bedrooms, and price all increase together—capturing the <strong>maximum possible variance</strong> of the data.
+    </li>
+    <li>
+      <strong>Second New Axis ($w_2$):</strong> Points perpendicular (<strong>orthogonal</strong>) to the first, capturing the next widest spread of the data.
+    </li>
+    <li>
+      <strong>Third New Axis ($w_3$):</strong> Points perpendicular to both, capturing the tiny remaining thickness of the cloud.
+    </li>
+  </ul>
+
+  <p>
+    Notice what this change of axes accomplishes:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Zero Linear Redundancy:</strong> Because the new axes align directly with the natural directions of variation, the new coordinates have <strong>zero correlation</strong> with each other ($\text{Cov}(z_i, z_j) = 0$ for $i \neq j$). All linear redundancy between the features is completely eliminated.
+    </li>
+    <li>
+      <strong>Safe Dimensionality Reduction:</strong> Because the data cloud has almost no thickness along the third axis, its variance there is practically zero. We can safely drop the third axis and describe every home using just two (or even one) new coordinate, with almost zero loss of information!
+    </li>
+  </ol>
+
+  <h3>From New Axes to Projections</h3>
+  <p>
+    How do we mathematically calculate an observation's coordinate along one of these new candidate axes?
+  </p>
+
+  <p>
+    If a new axis is defined by a unit direction vector $w \in \mathbb{R}^d$ (with $\|w\| = 1$), the coordinate of any data point $x$ along that axis is given by the dot product:
+  </p>
+
+  <div class="math-display">
+    $$z = w^T x = w_1 x_1 + w_2 x_2 + \dots + w_d x_d$$
   </div>
 
   <p>
-    This is the exact purpose of <strong>Principal Component Analysis (PCA)</strong>.
+    Geometrically, computing $w^T x$ is the <strong>orthogonal projection</strong> of point $x$ onto the line spanned by $w$.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig2-3d-svg" viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg" style="cursor: grab; user-select: none; touch-action: none; width: 100%; max-width: 680px; height: auto;">
+        <defs>
+          <marker id="fig2-arrow-text" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="fig2-arrow-axis" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="fig2-arrow-xi" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
+          </marker>
+          <marker id="fig2-arrow-proj" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="fig2-arrow-err" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--dark)" />
+          </marker>
+        </defs>
+
+        <!-- Floor Grid Plane (centered around origin) -->
+        <g id="fig2-grid-floor"></g>
+
+        <!-- 3D Centered Coordinate Axes (x1, x2, x3) -->
+        <g id="fig2-axes">
+          <line id="fig2-axis-x" stroke="var(--text)" stroke-width="1.8" marker-end="url(#fig2-arrow-text)" />
+          <line id="fig2-axis-y" stroke="var(--text)" stroke-width="1.8" marker-end="url(#fig2-arrow-text)" />
+          <line id="fig2-axis-z" stroke="var(--text)" stroke-width="1.8" marker-end="url(#fig2-arrow-text)" />
+        </g>
+
+        <!-- Candidate Axis Line w & Unit Vector -->
+        <g id="fig2-axis-group" style="opacity: 0; transition: opacity 0.3s ease;">
+          <line id="fig2-axis-line" stroke="var(--text)" stroke-opacity="0.5" stroke-width="2.2" stroke-dasharray="6,4" />
+          <line id="fig2-axis-vec" stroke="var(--text)" stroke-width="3.5" marker-end="url(#fig2-arrow-text)" />
+          <text id="fig2-lbl-w" font-family="'Lora', serif" font-size="22" font-style="italic" fill="var(--text)">w</text>
+          <text id="fig2-lbl-w-mag" font-family="'Lora', serif" font-size="13" fill="var(--muted)">(‖w‖ = 1)</text>
+        </g>
+
+        <!-- Perpendicular Projection Drop Lines from points to axis w -->
+        <g id="fig2-drop-group"></g>
+
+        <!-- 3D Housing Data Points -->
+        <g id="fig2-points-group"></g>
+
+        <!-- Inspection Overlay for single observation x_i -->
+        <g id="fig2-inspect-group" style="display: none;">
+          <!-- Target Point Highlight Halo -->
+          <circle id="fig2-inspect-halo" r="9" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3,3" opacity="0.85" />
+
+          <!-- Vectors of the Orthogonal Decomposition Triangle -->
+          <line id="fig2-inspect-vec-xi" stroke="var(--accent)" stroke-width="4.5" marker-end="url(#fig2-arrow-xi)" />
+          <line id="fig2-inspect-vec-proj" stroke="var(--box-label-bg)" stroke-width="5.5" marker-end="url(#fig2-arrow-proj)" />
+          <line id="fig2-inspect-vec-err" stroke="var(--dark)" stroke-width="3.5" stroke-dasharray="5,4" marker-end="url(#fig2-arrow-err)" />
+          
+          <!-- Clean Open Right-Angle Polyline Indicator -->
+          <polyline id="fig2-inspect-right-angle" fill="none" stroke="var(--muted)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="miter" />
+
+          <!-- Origin Indicator -->
+          <circle id="fig2-inspect-origin-dot" r="4.5" fill="var(--text)" />
+          <text id="fig2-inspect-origin-lbl" font-family="'Lora', serif" font-size="16" font-weight="normal" fill="var(--text)" text-anchor="end">0</text>
+
+          <!-- Candidate Axis Vector w and (||w|| = 1) along Axis Line -->
+          <line id="fig2-inspect-axis-vec" stroke="var(--text)" stroke-width="2.2" marker-end="url(#fig2-arrow-text)" />
+          <text id="fig2-inspect-lbl-w" font-family="'Lora', serif" font-size="20" font-style="italic" font-weight="normal" fill="var(--text)">w</text>
+          <text id="fig2-inspect-lbl-w-mag" font-family="'Lora', serif" font-size="13" font-weight="normal" fill="var(--muted)">(‖w‖ = 1)</text>
+
+          <!-- Mathematical Decomposition Labels in Distinct Quadrants -->
+          <g id="fig2-lbl-group-proj">
+            <text id="fig2-inspect-lbl-proj-sym" font-family="'Lora', serif" font-size="22" font-style="italic" font-weight="normal" fill="var(--text)" text-anchor="middle">(x<tspan dy="4" font-size="14">i</tspan><tspan dy="-10" font-size="13" font-style="normal">T</tspan><tspan dy="6">w)w</tspan></text>
+            <text id="fig2-inspect-lbl-proj-desc" font-family="'Lora', serif" font-size="14" font-weight="normal" fill="var(--muted)" text-anchor="middle">Preserved Projection</text>
+          </g>
+
+          <g id="fig2-lbl-group-xi">
+            <text id="fig2-inspect-lbl-xi-sym" font-family="'Lora', serif" font-size="22" font-style="italic" font-weight="normal" fill="var(--text)" text-anchor="middle">x<tspan dy="5" font-size="14">i</tspan></text>
+            <text id="fig2-inspect-lbl-point" font-family="'Lora', serif" font-size="15" font-weight="normal" fill="var(--text)" text-anchor="start">Data point <tspan font-style="italic">x</tspan><tspan dy="4" font-size="11" font-style="italic">i</tspan></text>
+          </g>
+
+          <g id="fig2-lbl-group-err">
+            <text id="fig2-inspect-lbl-err-sym" font-family="'Lora', serif" font-size="20" font-style="italic" font-weight="normal" fill="var(--text)" text-anchor="start">e<tspan dy="4" font-size="13">i</tspan><tspan dy="-4"> = x</tspan><tspan dy="4" font-size="13">i</tspan><tspan dy="-4"> − (x</tspan><tspan dy="4" font-size="13">i</tspan><tspan dy="-10" font-size="12" font-style="normal">T</tspan><tspan dy="6">w)w</tspan></text>
+            <text id="fig2-inspect-lbl-err-desc" font-family="'Lora', serif" font-size="14" font-weight="normal" fill="var(--muted)" text-anchor="start">Reconstruction Error</text>
+          </g>
+        </g>
+
+        <!-- Coordinate Frame Labels -->
+        <g id="fig2-labels">
+          <text id="fig2-lbl-origin" font-family="'Lora', serif" font-size="13" fill="var(--muted)">0</text>
+          <text id="fig2-lbl-x" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₁ (Area)</text>
+          <text id="fig2-lbl-y" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₂ (Beds)</text>
+          <text id="fig2-lbl-z" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">x₃ (Price)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="pca-controls">
+      <button type="button" class="pca-btn active" id="fig2-btn-cloud">
+        <span>3D Data Cloud</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig2-btn-axis">
+        <span>Bring in Axis w</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig2-btn-project">
+        <span>Project onto w (3D → 1D)</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig2-btn-inspect">
+        <span>Inspect Observation xᵢ (Zoom)</span>
+      </button>
+    </div>
+
+    <!-- Live Mathematical Readout when Zooming into an Observation -->
+    <div id="fig2-inspect-readout" style="display: none; margin-top: 0.9rem; padding: 0.65rem 1.1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; color: var(--text); line-height: 1.5; width: 100%; max-width: 680px; text-align: center;">
+      <span id="fig2-readout-text"></span>
+    </div>
+
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> Interactive 3D projection of the housing dataset onto candidate axis $w$. The candidate unit direction vector $w$ ($\|w\| = 1$) defines a 1D subspace through the centered data cloud. Orthogonally projecting observation $x_i$ computes its 1D scalar coordinate $z_i = w^T x_i$ and discards perpendicular error $e_i$. Click <em>"Bring in Axis w"</em> to introduce the direction, <em>"Project onto w (3D → 1D)"</em> to animate the data points sliding onto $w$ along orthogonal drop lines, or <em>"Inspect Observation xᵢ (Zoom)"</em> (or click any point directly) to zoom into the orthogonal decomposition right triangle. Drag anytime to rotate in 3D.
+    </figcaption>
+  </figure>
+
+  <p>
+    This defines the core idea of <strong>Principal Component Analysis (PCA)</strong>: find a new set of orthogonal coordinate axes, ordered so that each axis captures the maximum possible remaining variance while ensuring all new features are completely uncorrelated.
   </p>
 
   <h3>The Mental Model</h3>
-  <div class="math-box">
-    <div class="math-box-label">The Core Intuition of PCA</div>
-    <div class="math-box-body">
-      <p>
-        PCA rotates your coordinate axes to align perfectly with the directions of greatest spread. Because total variance is conserved under orthogonal projection, <strong>maximizing the variance you preserve is mathematically identical to minimizing the information you lose</strong>.
-      </p>
-    </div>
-  </div>
+  <p>
+    Because orthogonal projection preserves total squared distance (by the Pythagorean theorem), <strong>maximizing the variance you preserve along your chosen axes is mathematically identical to minimizing the reconstruction error you discard</strong>.
+  </p>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -204,60 +508,9 @@
     $$x_i = \underbrace{(x_i^T w)w}_{\text{preserved signal}} \;+\; \underbrace{\left(x_i - (x_i^T w)w\right)}_{\text{discarded error } e_i}$$
   </div>
 
-  <figure class="diagram-figure">
-    <div class="svg-container">
-      <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker id="marker-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
-          </marker>
-          <marker id="marker-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
-          </marker>
-          <marker id="marker-arrow-p" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
-          </marker>
-          <marker id="marker-arrow-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dark)" />
-          </marker>
-        </defs>
-        
-        <!-- Axis line w -->
-        <line x1="30" y1="452" x2="780" y2="103" stroke="var(--border)" stroke-width="2" stroke-dasharray="6,6"/>
-        
-        <!-- Right angle symbol -->
-        <polygon points="462,251 442.1,260.3 432.8,240.4 452.7,231.1" fill="none" stroke="var(--muted)" stroke-width="2"/>
-        
-        <!-- Origin -->
-        <circle cx="100" cy="420" r="5" fill="var(--text)"/>
-        <text x="75" y="445" font-family="'Lora', serif" font-size="22" fill="var(--text)">0</text>
-        
-        <!-- Candidate direction w -->
-        <line x1="100" y1="420" x2="720" y2="131" stroke="var(--text)" stroke-width="2.5" marker-end="url(#marker-arrow-text)"/>
-        <text x="735" y="135" font-family="'Lora', serif" font-size="28" font-style="italic" fill="var(--text)">w</text>
-        <text x="735" y="160" font-family="'Lora', serif" font-size="14" fill="var(--muted)">(‖w‖ = 1)</text>
-
-        <!-- Preserved Projection vector (x_i^T w)w -->
-        <line x1="100" y1="420" x2="462" y2="251" stroke="var(--box-label-bg)" stroke-width="6.5" marker-end="url(#marker-arrow-p)"/>
-        <text x="280" y="365" font-family="'Lora', serif" font-size="24" font-style="italic" fill="var(--box-label-bg)" text-anchor="middle" transform="rotate(-25, 280, 365) translate(0, 26)">(x<tspan dy="4" font-size="16">i</tspan><tspan dy="-4">ᵀ</tspan>w)w</text>
-        <text x="280" y="395" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--box-label-bg)" text-anchor="middle" transform="rotate(-25, 280, 395) translate(0, 26)">Preserved Projection</text>
-
-        <!-- Data vector x_i -->
-        <line x1="100" y1="420" x2="382" y2="79" stroke="var(--accent)" stroke-width="5" marker-end="url(#marker-arrow-accent)"/>
-        <circle cx="382" cy="79" r="5" fill="var(--accent)"/>
-        <text x="210" y="245" font-family="'Lora', serif" font-size="28" font-style="italic" fill="var(--accent)">x<tspan dy="5" font-size="19">i</tspan></text>
-        <text x="395" y="75" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--accent)">Data point x<tspan dy="4" font-size="13">i</tspan></text>
-
-        <!-- Reconstruction error vector e_i -->
-        <line x1="462" y1="251" x2="382" y2="79" stroke="var(--dark)" stroke-width="3.5" stroke-dasharray="6,6" marker-end="url(#marker-arrow-dark)"/>
-        <text x="460" y="150" font-family="'Lora', serif" font-size="24" font-style="italic" fill="var(--dark)">e<tspan dy="4" font-size="16">i</tspan><tspan dy="-4"> = x</tspan><tspan dy="4" font-size="16">i</tspan><tspan dy="-4"> - (x</tspan><tspan dy="4" font-size="16">i</tspan><tspan dy="-4">ᵀ</tspan>w)w</text>
-        <text x="460" y="180" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--muted)">Reconstruction Error</text>
-      </svg>
-    </div>
-    <figcaption class="figure-caption">
-      <strong>Figure 1:</strong> Orthogonal decomposition of data point $x_i$ along candidate direction $w$. The total squared length $\|x_i\|^2$ splits into the preserved projection $(x_i^T w)^2$ and the perpendicular reconstruction error $\|e_i\|^2$.
-    </figcaption>
-  </figure>
+  <p>
+    As visualized in Figure 2 (toggle <em>"Inspect Observation $x_i$"</em> to view the decomposition in 3D), the vector projection $(x_i^T w)w$ and the error vector $e_i$ form the perpendicular legs of a right triangle whose hypotenuse is the observation vector $x_i$.
+  </p>
 
   <h3>The Pythagorean Conservation Law</h3>
   <p>
@@ -265,7 +518,10 @@
   </p>
 
   <div class="math-display">
-    $$\|x_i\|^2 = \|(x_i^T w)w\|^2 + \|x_i - (x_i^T w)w\|^2 = (x_i^T w)^2 + \|x_i - (x_i^T w)w\|^2$$
+    $$\begin{aligned}
+      \|x_i\|^2 &= \|(x_i^T w)w\|^2 + \|x_i - (x_i^T w)w\|^2 \\[6pt]
+      &= (x_i^T w)^2 + \|e_i\|^2
+    \end{aligned}$$
   </div>
 
   <p>
@@ -273,7 +529,9 @@
   </p>
 
   <div class="math-display">
-    $$\underbrace{\frac{1}{n} \sum_{i=1}^n \|x_i\|^2}_{\text{Total Variance of Dataset (Constant)}} = \underbrace{\frac{1}{n} \sum_{i=1}^n (x_i^T w)^2}_{\text{Preserved Projection Variance}} + \underbrace{\frac{1}{n} \sum_{i=1}^n \|x_i - (x_i^T w)w\|^2}_{\text{Mean Squared Reconstruction Error}}$$
+    $$\begin{aligned}
+      \underbrace{\frac{1}{n} \sum_{i=1}^n \|x_i\|^2}_{\text{Total Variance (Constant)}} &= \underbrace{\frac{1}{n} \sum_{i=1}^n (x_i^T w)^2}_{\text{Preserved Projection Variance}} + \underbrace{\frac{1}{n} \sum_{i=1}^n \|e_i\|^2}_{\text{Mean Squared Reconstruction Error}}
+    \end{aligned}$$
   </div>
 
   <p>
@@ -308,7 +566,10 @@
   </p>
 
   <div class="math-display">
-    $$(x_i^T w)^2 = (w^T x_i)(x_i^T w) = w^T (x_i x_i^T) w$$
+    $$\begin{aligned}
+      (x_i^T w)^2 &= (w^T x_i)(x_i^T w) \\[6pt]
+      &= w^T (x_i x_i^T) w
+    \end{aligned}$$
   </div>
 
   <p>
@@ -316,19 +577,50 @@
   </p>
 
   <div class="math-display">
-    $$\frac{1}{n} \sum_{i=1}^n (x_i^T w)^2 = w^T \left( \frac{1}{n} \sum_{i=1}^n x_i x_i^T \right) w = w^T C w$$
+    $$\begin{aligned}
+      \frac{1}{n} \sum_{i=1}^n (x_i^T w)^2 &= w^T \left( \frac{1}{n} \sum_{i=1}^n x_i x_i^T \right) w \\[6pt]
+      &= w^T C w
+    \end{aligned}$$
   </div>
 
   <p>
-    where $C \in \mathbb{R}^{d \times d}$ is the <strong>sample covariance matrix</strong>:
+    Look at the matrix operator that has just emerged naturally between our projection vectors:
   </p>
 
   <div class="math-display">
-    $$C = \frac{1}{n} \sum_{i=1}^n x_i x_i^T = \frac{1}{n} X X^T$$
+    $$\begin{aligned}
+      C &= \frac{1}{n} \sum_{i=1}^n x_i x_i^T \\[6pt]
+        &= \frac{1}{n} X X^T
+    \end{aligned}$$
   </div>
 
   <p>
-    Here, $X = [x_1, x_2, \dots, x_n] \in \mathbb{R}^{d \times n}$ is the data matrix whose columns are the centered data vectors. Because $C$ is a sum of symmetric rank-1 outer products $x_i x_i^T$, $C$ is symmetric ($C = C^T$) and positive semidefinite ($w^T C w \geq 0$).
+    This is the <strong>sample covariance matrix</strong> $C \in \mathbb{R}^{d \times d}$, where $X = [x_1, x_2, \dots, x_n] \in \mathbb{R}^{d \times n}$ is the data matrix whose columns are the centered observations.
+  </p>
+
+  <h3>Why the Covariance Matrix Matters</h3>
+  <p>
+    Notice what just happened. Our raw data matrix $X \in \mathbb{R}^{d \times n}$ was rectangular. Because it is not square and has no symmetry, we could not directly compute eigenvectors or apply the Spectral Theorem to $X$.
+  </p>
+
+  <p>
+    Yet the variance formula naturally produced $C = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$. This matrix has three essential properties:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Square ($d \times d$):</strong> No matter how many samples $n$ we collected, $C$ maps the $d$ feature dimensions directly onto themselves.
+    </li>
+    <li>
+      <strong>Symmetric:</strong> Transposing gives $(X X^T)^T = X X^T$, so $C^T = C$.
+    </li>
+    <li>
+      <strong>Positive semidefinite:</strong> For any vector $w$, $w^T C w = \frac{1}{n} \|X^T w\|^2 \ge 0$. Variance in any direction is never negative.
+    </li>
+  </ul>
+
+  <p>
+    Because $C$ is symmetric and positive semidefinite, the <strong>Spectral Theorem</strong> applies directly. It guarantees that $C$ has a complete orthonormal basis of eigenvectors with non-negative real eigenvalues—the exact orthogonal directions of variance we need.
   </p>
 
   <h3>Maximizing the First Principal Component</h3>
@@ -353,7 +645,11 @@
   </p>
 
   <div class="math-display">
-    $$w^T C w = w^T (\lambda w) = \lambda (w^T w) = \lambda$$
+    $$\begin{aligned}
+      w^T C w &= w^T (\lambda w) \\[6pt]
+      &= \lambda (w^T w) \\[6pt]
+      &= \lambda
+    \end{aligned}$$
   </div>
 
   <p>
@@ -382,7 +678,11 @@
   </p>
 
   <div class="math-display">
-    $$w_1^T C w_2 = \lambda (w_1^T w_2) + \mu (w_1^T w_1) = 0 + \mu(1) = \mu$$
+    $$\begin{aligned}
+      w_1^T C w_2 &= \lambda (w_1^T w_2) + \mu (w_1^T w_1) \\[6pt]
+      &= 0 + \mu(1) \\[6pt]
+      &= \mu
+    \end{aligned}$$
   </div>
 
   <p>
@@ -390,7 +690,12 @@
   </p>
 
   <div class="math-display">
-    $$w_1^T C w_2 = (C w_1)^T w_2 = (\lambda_1 w_1)^T w_2 = \lambda_1 (w_1^T w_2) = 0$$
+    $$\begin{aligned}
+      w_1^T C w_2 &= (C w_1)^T w_2 \\[6pt]
+      &= (\lambda_1 w_1)^T w_2 \\[6pt]
+      &= \lambda_1 (w_1^T w_2) \\[6pt]
+      &= 0
+    \end{aligned}$$
   </div>
 
   <p>
@@ -581,17 +886,12 @@
   <h2>The Matrix View: Orthogonal Coordinate Rotation</h2>
 
   <p>
-    We have derived PCA component-by-component using Lagrange multipliers. Now, let us step back and look at the entire operation through the unifying lens of matrix algebra.
+    We have derived PCA component-by-component using Lagrange multipliers. Now, let us look at the entire operation through matrix algebra.
   </p>
 
-  <div class="math-box">
-    <div class="math-box-label">The Geometric Essence of PCA</div>
-    <div class="math-box-body">
-      <p>
-        <strong>You are not changing or distorting the data cloud. You are simply rotating the coordinate system until the axes line up with the natural directions in which the data varies.</strong>
-      </p>
-    </div>
-  </div>
+  <p>
+    Geometrically, we are not changing or distorting the data cloud. We are simply rotating the coordinate system until the axes line up with the natural directions in which the data varies.
+  </p>
 
   <h3>Assembling the Rotation Matrix</h3>
   <p>
@@ -650,11 +950,11 @@
           <marker id="rot-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
           </marker>
-          <marker id="rot-arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2b6cb0" />
+          <marker id="rot-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
           </marker>
-          <marker id="rot-arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2f855a" />
+          <marker id="rot-arrow-box" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
           </marker>
         </defs>
 
@@ -669,14 +969,14 @@
           <text x="150" y="38" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">x₂</text>
 
           <!-- Tilted Ellipse -->
-          <ellipse cx="150" cy="180" rx="95" ry="40" transform="rotate(-35, 150, 180)" fill="rgba(212, 140, 112, 0.15)" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6,4" />
+          <ellipse cx="150" cy="180" rx="95" ry="40" transform="rotate(-35, 150, 180)" fill="var(--highlight)" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6,4" />
 
           <!-- Principal Component Vectors -->
-          <line x1="150" y1="180" x2="225" y2="128" stroke="#2b6cb0" stroke-width="3.5" marker-end="url(#rot-arrow-blue)" />
-          <text x="238" y="122" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="#2b6cb0">v₁</text>
+          <line x1="150" y1="180" x2="225" y2="128" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#rot-arrow-accent)" />
+          <text x="238" y="122" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">v₁</text>
           
-          <line x1="150" y1="180" x2="112" y2="125" stroke="#2f855a" stroke-width="3.5" marker-end="url(#rot-arrow-green)" />
-          <text x="98" y="120" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="#2f855a">v₂</text>
+          <line x1="150" y1="180" x2="112" y2="125" stroke="var(--box-label-bg)" stroke-width="3.5" marker-end="url(#rot-arrow-box)" />
+          <text x="98" y="120" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">v₂</text>
 
           <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Correlated: C has non-zero off-diagonals</text>
         </g>
@@ -693,20 +993,20 @@
           <text x="150" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">PCA Coordinates (Z = XV)</text>
           
           <!-- PCA Axes aligned with frame -->
-          <line x1="20" y1="180" x2="280" y2="180" stroke="#2b6cb0" stroke-width="2.5" />
-          <text x="295" y="185" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="#2b6cb0">z₁</text>
-          <line x1="150" y1="290" x2="150" y2="45" stroke="#2f855a" stroke-width="2.5" />
-          <text x="150" y="38" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="#2f855a" text-anchor="middle">z₂</text>
+          <line x1="20" y1="180" x2="280" y2="180" stroke="var(--accent)" stroke-width="2.5" />
+          <text x="295" y="185" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)">z₁</text>
+          <line x1="150" y1="290" x2="150" y2="45" stroke="var(--box-label-bg)" stroke-width="2.5" />
+          <text x="150" y="38" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">z₂</text>
 
           <!-- Upright Ellipse -->
-          <ellipse cx="150" cy="180" rx="95" ry="40" fill="rgba(43, 108, 176, 0.15)" stroke="#2b6cb0" stroke-width="2.5" />
+          <ellipse cx="150" cy="180" rx="95" ry="40" fill="var(--highlight)" stroke="var(--accent)" stroke-width="2.5" />
 
           <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Uncorrelated: Cov(Z) = Λ (Diagonal)</text>
         </g>
       </svg>
     </div>
     <figcaption class="figure-caption">
-      <strong>Figure 2:</strong> PCA as an orthogonal coordinate rotation. Multiplying $Z = XV$ rotates the coordinate axes until they align with the natural eigenvectors of the data cloud, completely eliminating off-diagonal correlations.
+      <strong>Figure 3:</strong> PCA as an orthogonal coordinate rotation. Multiplying $Z = XV$ rotates the coordinate axes until they align with the natural eigenvectors of the data cloud, completely eliminating off-diagonal correlations.
     </figcaption>
   </figure>
 
@@ -751,6 +1051,122 @@
     </div>
   </div>
 
+  <h3>The SVD View: Factoring the Data Matrix Directly</h3>
+  <p>
+    Up to this point, we constructed PCA by first forming the covariance matrix $C = \frac{1}{n} X^T X$ and finding its eigenvectors. But there is an even more direct, purely matrix-algebraic way to view PCA: through the <strong>Singular Value Decomposition (SVD)</strong> of the centered data matrix itself.
+  </p>
+
+  <p>
+    Any centered data matrix $X \in \mathbb{R}^{n \times d}$ can be factored directly as:
+  </p>
+
+  <div class="math-display">
+    $$X = U \Sigma V^T$$
+  </div>
+
+  <p>
+    where $U \in \mathbb{R}^{n \times n}$ and $V \in \mathbb{R}^{d \times d}$ have orthonormal columns, and $\Sigma \in \mathbb{R}^{n \times d}$ contains the singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$ along its main diagonal.
+  </p>
+
+  <p>
+    Substitute this factorization directly into the sample covariance matrix:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      C &= \frac{1}{n} X^T X \\[6pt]
+      &= \frac{1}{n} (U \Sigma V^T)^T (U \Sigma V^T) \\[6pt]
+      &= \frac{1}{n} V \Sigma^T (U^T U) \Sigma V^T \\[6pt]
+      &= V \left( \frac{\Sigma^T \Sigma}{n} \right) V^T
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Because $U^T U = I_n$ and $\frac{\Sigma^T \Sigma}{n}$ is a diagonal matrix, this is the exact eigendecomposition $C = V \Lambda V^T$. This reveals the direct relationship between singular values and covariance eigenvalues:
+  </p>
+
+  <div class="math-display">
+    $$\lambda_i = \frac{\sigma_i^2}{n}$$
+  </div>
+
+  <p>
+    The right singular vectors $v_i$ (the columns of $V$) are <em>identically</em> the principal component directions. The transformed coordinates $Z = XV$ follow immediately from the SVD:
+  </p>
+
+  <div class="math-display">
+    $$Z = X V = (U \Sigma V^T) V = U \Sigma$$
+  </div>
+
+  <p>
+    The $i$-th column of $Z$ is simply $\sigma_i u_i$. The singular value $\sigma_i$ scales the column, while the left singular vector $u_i \in \mathbb{R}^n$ contains the normalized coordinates of all $n$ samples along the $i$-th principal axis.
+  </p>
+
+  <h3>PCA as a Sum of Rank-One Matrices</h3>
+  <p>
+    Every matrix product can be expanded as a sum of outer products. Writing $X = U \Sigma V^T$ term-by-term decomposes the entire dataset into a sum of rank-one matrices:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X &= \sum_{i=1}^r \sigma_i u_i v_i^T \\[6pt]
+      &= \sigma_1 u_1 v_1^T + \sigma_2 u_2 v_2^T + \dots + \sigma_r u_r v_r^T
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Each term $\sigma_i u_i v_i^T$ is an independent, rank-one piece of the data:
+  </p>
+
+  <ul>
+    <li>$v_i \in \mathbb{R}^d$ is the feature pattern (the direction in feature space).</li>
+    <li>$u_i \in \mathbb{R}^n$ is the sample profile (how much each observation exhibits that pattern).</li>
+    <li>$\sigma_i$ is the amplitude, measuring the total spread carried by this component.</li>
+  </ul>
+
+  <p>
+    When we keep only the top $k$ principal components, our low-rank reconstruction is simply the truncated sum:
+  </p>
+
+  <div class="math-display">
+    $$X_k = \sum_{i=1}^k \sigma_i u_i v_i^T$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Eckart–Young–Mirsky Theorem</div>
+    <div class="math-box-body">
+      <p>
+        For any rank $k < r$, the truncated SVD matrix $X_k$ is the <strong>globally optimal rank-$k$ approximation</strong> to $X$. It minimizes the total squared reconstruction error over all possible rank-$k$ matrices $B$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \min_{\operatorname{rank}(B) \le k} \|X - B\|_F^2 &= \|X - X_k\|_F^2 \\[6pt]
+          &= \sum_{i=k+1}^d \sigma_i^2 \\[6pt]
+          &= n \sum_{i=k+1}^d \lambda_i
+        \end{aligned}$$
+      </div>
+      <p>
+        The total reconstruction error across the entire matrix is exactly $n$ times the sum of the discarded eigenvalues.
+      </p>
+    </div>
+  </div>
+
+  <h3>Why Software Computes PCA via SVD</h3>
+  <p>
+    In practice, scientific computing libraries almost never form the covariance matrix $C = \frac{1}{n} X^T X$ to compute PCA. Instead, they compute the SVD of $X$ directly.
+  </p>
+
+  <p>
+    The reason is numerical stability. Forming the product $X^T X$ squares the condition number:
+  </p>
+
+  <div class="math-display">
+    $$\kappa(X^T X) = (\kappa(X))^2$$
+  </div>
+
+  <p>
+    If $X$ has a condition number of $10^4$, $X^T X$ has a condition number of $10^8$. This squaring doubles the sensitivity to roundoff errors and can cause small singular values (minor variance components) to be rounded to zero. Computing the SVD directly on $X$ completely avoids this matrix multiplication, producing far more accurate eigenvectors and eigenvalues.
+  </p>
+
   <h3>Two Matrix Conventions: Columns vs Rows</h3>
   <p>
     In machine learning and linear algebra literature, you will encounter two matrix conventions. Both describe the exact same mathematics:
@@ -793,51 +1209,26 @@
 <!--  Where This Leads: Two Natural Questions                -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="where-this-leads">
-  <h2>Where This Leads: Two Natural Questions</h2>
+  <h2>Where This Leads</h2>
 
   <p>
-    We now have the complete mathematical foundation of Principal Component Analysis: rotate the coordinate axes to line up with the largest spread, and you preserve the maximum possible information while discarding noise.
+    Standard PCA provides an optimal linear compression, but real datasets present two immediate challenges:
   </p>
 
-  <p>
-    Yet, when applying this directly to real-world machine learning problems, two practical questions immediately arise:
-  </p>
-
-  <h3>What if you have far more features than data points?</h3>
-  <p>
-    Imagine you are working with photos in a facial recognition system. You have $500$ photographs, and each photo is $100 \times 100$ pixels. That means each individual photo is described by $10{,}000$ numbers ($d = 10{,}000$).
-  </p>
-
-  <p>
-    If you follow the formula we just derived, you have to build a covariance matrix of size $10{,}000 \times 10{,}000$. That is a grid of $100\text{ million}$ numbers, and computing its eigenvectors can bring a computer to a halt.
-  </p>
-
-  <p>
-    <strong>Here is the intuitive realization:</strong> with only $500$ photos, how many independent directions can your data actually vary in? At most $500$! The other $9{,}500$ directions contain zero data and zero variance.
-  </p>
-
-  <p>
-    Is it possible to flip the calculations around so we only work with a small $500 \times 500$ grid of photo-to-photo comparisons, instead of a gigantic $10{,}000 \times 10{,}000$ pixel grid?
-  </p>
-
-  <p>
-    Yes. In the next lesson, <strong><a href="../02.high-dimensional-pca/">PCA for High-Dimensional Data</a></strong>, we explore how to invert this bottleneck and compute exact principal components in a fraction of the time.
-  </p>
-
-  <h3>What if the pattern is curved, not straight?</h3>
-  <p>
-    PCA is strictly a linear tool: it searches for straight lines and flat planes of greatest spread.
-  </p>
-
-  <p>
-    However, real data often lies along curved structures—such as concentric circles, horseshoes, or spirals. If you shine a light and cast a straight shadow of a circular ring onto a 1D line, points on opposite sides of the circle collapse and overlap in the middle. The structure is lost because a straight line cannot capture a curved shape.
-  </p>
+  <ol>
+    <li>
+      <strong>High Dimensions ($d \gg n$):</strong> When features greatly outnumber samples (such as $10{,}000$ pixels across $500$ photos), the $d \times d$ covariance matrix is massive and rank-deficient. Because $n$ samples span at most $n$ dimensions, we can invert the problem to an $n \times n$ matrix of sample comparisons to compute the exact same principal components far more efficiently.
+    </li>
+    <li>
+      <strong>Non-Linear Patterns:</strong> PCA only finds flat hyperplanes of spread. When data lies along curved structures—such as concentric rings—linear projection collapses the inner and outer circles on top of each other, destroying the cluster structure entirely (Figure 4).
+    </li>
+  </ol>
 
   <figure class="diagram-figure">
     <div class="svg-container">
-      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
+      <svg id="fig4-svg" viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
         <defs>
-          <marker id="fig3-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <marker id="fig4-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
           </marker>
         </defs>
@@ -846,51 +1237,60 @@
         <g transform="translate(30, 20)">
           <text x="170" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Original 2D Concentric Data</text>
           
-          <!-- Outer Circle Guide -->
-          <circle cx="170" cy="170" r="105" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
-          <!-- Inner Circle Guide -->
-          <circle cx="170" cy="170" r="45" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+          <!-- Outer Circle Guide (Dark) -->
+          <circle cx="170" cy="170" r="105" fill="none" stroke="var(--dark)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.45" />
+          <!-- Inner Circle Guide (Accent) -->
+          <circle cx="170" cy="170" r="45" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />
 
           <!-- Candidate Linear Projection Axis w -->
           <line x1="20" y1="170" x2="320" y2="170" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6,4" />
           <text x="330" y="175" font-family="'Lora', serif" font-size="15" fill="var(--muted)">w</text>
 
-          <!-- Outer Ring Points (Blue) -->
-          <circle cx="275" cy="170" r="5" fill="#2b6cb0" />
-          <circle cx="261" cy="222" r="5" fill="#2b6cb0" />
-          <circle cx="222" cy="261" r="5" fill="#2b6cb0" />
-          <circle cx="170" cy="275" r="5" fill="#2b6cb0" />
-          <circle cx="118" cy="261" r="5" fill="#2b6cb0" />
-          <circle cx="79" cy="222" r="5" fill="#2b6cb0" />
-          <circle cx="65" cy="170" r="5" fill="#2b6cb0" />
-          <circle cx="79" cy="118" r="5" fill="#2b6cb0" />
-          <circle cx="118" cy="79" r="5" fill="#2b6cb0" />
-          <circle cx="170" cy="65" r="5" fill="#2b6cb0" />
-          <circle cx="222" cy="79" r="5" fill="#2b6cb0" />
-          <circle cx="261" cy="118" r="5" fill="#2b6cb0" />
+          <!-- Drop Lines for Left Points (dynamically updated) -->
+          <g id="fig4-drop-group"></g>
 
-          <!-- Inner Ring Points (Orange) -->
-          <circle cx="215" cy="170" r="5" fill="var(--accent)" />
-          <circle cx="202" cy="202" r="5" fill="var(--accent)" />
-          <circle cx="170" cy="215" r="5" fill="var(--accent)" />
-          <circle cx="138" cy="202" r="5" fill="var(--accent)" />
-          <circle cx="125" cy="170" r="5" fill="var(--accent)" />
-          <circle cx="138" cy="138" r="5" fill="var(--accent)" />
-          <circle cx="170" cy="125" r="5" fill="var(--accent)" />
-          <circle cx="202" cy="138" r="5" fill="var(--accent)" />
+          <!-- Outer Ring Points (Dark: deep charcoal in light mode, cream in dark mode) -->
+          <g id="fig4-outer-group">
+            <circle cx="275" cy="170" r="5" fill="var(--dark)" data-orig-x="275" data-orig-y="170" />
+            <circle cx="261" cy="222" r="5" fill="var(--dark)" data-orig-x="261" data-orig-y="222" />
+            <circle cx="222" cy="261" r="5" fill="var(--dark)" data-orig-x="222" data-orig-y="261" />
+            <circle cx="170" cy="275" r="5" fill="var(--dark)" data-orig-x="170" data-orig-y="275" />
+            <circle cx="118" cy="261" r="5" fill="var(--dark)" data-orig-x="118" data-orig-y="261" />
+            <circle cx="79" cy="222" r="5" fill="var(--dark)" data-orig-x="79" data-orig-y="222" />
+            <circle cx="65" cy="170" r="5" fill="var(--dark)" data-orig-x="65" data-orig-y="170" />
+            <circle cx="79" cy="118" r="5" fill="var(--dark)" data-orig-x="79" data-orig-y="118" />
+            <circle cx="118" cy="79" r="5" fill="var(--dark)" data-orig-x="118" data-orig-y="79" />
+            <circle cx="170" cy="65" r="5" fill="var(--dark)" data-orig-x="170" data-orig-y="65" />
+            <circle cx="222" cy="79" r="5" fill="var(--dark)" data-orig-x="222" data-orig-y="79" />
+            <circle cx="261" cy="118" r="5" fill="var(--dark)" data-orig-x="261" data-orig-y="118" />
+          </g>
 
-          <!-- Projection Drop Lines (Sample) -->
-          <line x1="170" y1="65" x2="170" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
-          <line x1="170" y1="275" x2="170" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
-          <line x1="118" y1="79" x2="118" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
-          <line x1="222" y1="79" x2="222" y2="170" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3,3" opacity="0.6" />
+          <!-- Inner Ring Points (Accent: warm terracotta) -->
+          <g id="fig4-inner-group">
+            <circle cx="215" cy="170" r="5" fill="var(--accent)" data-orig-x="215" data-orig-y="170" />
+            <circle cx="202" cy="202" r="5" fill="var(--accent)" data-orig-x="202" data-orig-y="202" />
+            <circle cx="170" cy="215" r="5" fill="var(--accent)" data-orig-x="170" data-orig-y="215" />
+            <circle cx="138" cy="202" r="5" fill="var(--accent)" data-orig-x="138" data-orig-y="202" />
+            <circle cx="125" cy="170" r="5" fill="var(--accent)" data-orig-x="125" data-orig-y="170" />
+            <circle cx="138" cy="138" r="5" fill="var(--accent)" data-orig-x="138" data-orig-y="138" />
+            <circle cx="170" cy="125" r="5" fill="var(--accent)" data-orig-x="170" data-orig-y="125" />
+            <circle cx="202" cy="138" r="5" fill="var(--accent)" data-orig-x="202" data-orig-y="138" />
+          </g>
 
-          <text x="170" y="310" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Separable in 2D (Concentric Manifolds)</text>
+          <!-- Distinction Legend -->
+          <g transform="translate(68, 305)">
+            <circle cx="0" cy="0" r="4.5" fill="var(--accent)" />
+            <text x="12" y="4" font-family="'Lora', serif" font-size="12" fill="var(--text)">Inner Ring</text>
+            <circle cx="105" cy="0" r="4.5" fill="var(--dark)" />
+            <text x="117" y="4" font-family="'Lora', serif" font-size="12" fill="var(--text)">Outer Ring</text>
+          </g>
+
+          <text x="170" y="332" font-family="'Lora', serif" font-size="12.5" fill="var(--muted)" text-anchor="middle">Separable in 2D (Concentric Manifolds)</text>
         </g>
 
         <!-- Center Arrow -->
         <g transform="translate(395, 150)">
-          <line x1="0" y1="20" x2="50" y2="20" stroke="var(--text)" stroke-width="2.5" marker-end="url(#fig3-arrow-text)" />
+          <line x1="0" y1="20" x2="50" y2="20" stroke="var(--text)" stroke-width="2.5" marker-end="url(#fig4-arrow-text)" />
           <text x="25" y="0" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">Linear 1D</text>
           <text x="25" y="45" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Projection</text>
         </g>
@@ -907,15 +1307,16 @@
           <line x1="170" y1="160" x2="170" y2="180" stroke="var(--muted)" stroke-width="1.5" />
           <text x="170" y="198" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">0</text>
 
-          <!-- Projected Points (Inner and Outer Collapsed) -->
-          <circle cx="65" cy="170" r="5" fill="#2b6cb0" />
-          <circle cx="79" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
-          <circle cx="118" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
-          <circle cx="170" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
-          <circle cx="222" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
-          <circle cx="261" cy="170" r="5" fill="#2b6cb0" opacity="0.8" />
-          <circle cx="275" cy="170" r="5" fill="#2b6cb0" />
+          <!-- Projected Points (Outer: Dark) -->
+          <circle cx="65" cy="170" r="5" fill="var(--dark)" />
+          <circle cx="79" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="118" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="170" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="222" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="261" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="275" cy="170" r="5" fill="var(--dark)" />
 
+          <!-- Projected Points (Inner: Accent) -->
           <circle cx="125" cy="170" r="5" fill="var(--accent)" />
           <circle cx="138" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
           <circle cx="170" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
@@ -923,24 +1324,25 @@
           <circle cx="215" cy="170" r="5" fill="var(--accent)" />
 
           <!-- Failure Callout Bracket / Highlight -->
-          <rect x="110" y="125" width="120" height="30" rx="6" fill="rgba(212, 140, 112, 0.18)" stroke="var(--accent)" stroke-width="1.5" />
-          <text x="170" y="145" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--accent)" text-anchor="middle">Heavy Overlap</text>
+          <rect id="fig4-overlap-box" x="110" y="125" width="120" height="30" rx="6" fill="var(--highlight)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="170" y="145" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="middle">Heavy Overlap</text>
 
-          <text x="170" y="310" font-family="'Lora', serif" font-size="13" fill="#e53e3e" font-weight="bold" text-anchor="middle">Linear PCA collapses and destroys the concentric pattern</text>
+          <text x="170" y="310" font-family="'Lora', serif" font-size="13" fill="var(--text)" font-weight="bold" text-anchor="middle">Linear PCA collapses and destroys the concentric pattern</text>
         </g>
       </svg>
     </div>
+    <div class="pca-controls" style="margin-top: 0.8rem;">
+      <button type="button" class="pca-btn" id="fig4-anim-btn">
+        <span id="fig4-anim-text">Project Concentric Points (2D → 1D)</span>
+      </button>
+    </div>
     <figcaption class="figure-caption">
-      <strong>Figure 3:</strong> The limitation of linear projections on non-linear data. Projecting concentric rings onto any 1D straight line collapses both rings together in the middle, destroying the ring structure and entangling the clusters.
+      <strong>Figure 4:</strong> The limitation of linear projections on non-linear data. Projecting concentric rings onto any 1D straight line collapses both rings together in the middle, destroying the ring structure and entangling the clusters. Click <em>"Project Concentric Points (2D → 1D)"</em> to animate the 2D rings flattening onto $w$.
     </figcaption>
   </figure>
 
   <p>
-    How can we adapt PCA to discover and preserve curved patterns?
-  </p>
-
-  <p>
-    In <strong><a href="../03.kernel-pca/">Kernel PCA</a></strong>, we explore a geometric idea: by mapping data into higher dimensions where curved relationships untangle into straight lines, PCA can easily separate and compress complex non-linear shapes.
+    Overcoming this non-linear breakdown leads to <strong>Kernel PCA</strong>: lifting data into a higher-dimensional feature space where curved manifolds straighten out into flat hyperplanes.
   </p>
 </section>
 
@@ -951,5 +1353,1142 @@
         </div>
     </main>
 
+    <script>
+(() => {
+  document.addEventListener("DOMContentLoaded", () => {
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    // ══════════════════════════════════════════════════════════════
+    // FIGURE 1: Interactive 3D Real Estate Scatter Plot & Animations
+    // ══════════════════════════════════════════════════════════════
+    const fig1Svg = document.getElementById("fig1-3d-svg");
+    const fig1GridFloor = document.getElementById("fig1-grid-floor");
+    const fig1PlaneGroup = document.getElementById("fig1-plane-group");
+    const fig1SlantPolygon = document.getElementById("fig1-slant-polygon");
+    const fig1AxisComposite = document.getElementById("fig1-axis-composite");
+    const fig1LblComposite = document.getElementById("fig1-lbl-composite");
+
+    const fig1AxisX = document.getElementById("fig1-axis-x");
+    const fig1AxisY = document.getElementById("fig1-axis-y");
+    const fig1AxisZ = document.getElementById("fig1-axis-z");
+    const fig1Droplines = document.getElementById("fig1-droplines");
+    const fig1Shadows = document.getElementById("fig1-shadows");
+    const fig1PointsGroup = document.getElementById("fig1-points");
+    const fig1TrendGroup = document.getElementById("fig1-trend-group");
+    const fig1TrendLine = document.getElementById("fig1-trend-line");
+    const fig1TrendLabel = document.getElementById("fig1-trend-label");
+    const fig1LblOrigin = document.getElementById("fig1-lbl-origin");
+    const fig1LblX = document.getElementById("fig1-lbl-x");
+    const fig1LblY = document.getElementById("fig1-lbl-y");
+    const fig1LblZ = document.getElementById("fig1-lbl-z");
+
+    const fig1BtnCloud = document.getElementById("fig1-btn-cloud");
+    const fig1BtnArea = document.getElementById("fig1-btn-area");
+    const fig1BtnBeds = document.getElementById("fig1-btn-beds");
+    const fig1BtnPlane = document.getElementById("fig1-btn-plane");
+    const fig1BtnLine = document.getElementById("fig1-btn-line");
+    const fig1Buttons = [fig1BtnCloud, fig1BtnArea, fig1BtnBeds, fig1BtnPlane, fig1BtnLine].filter(Boolean);
+
+    // 36 Housing Data points (Living Area, Bedrooms, Price)
+    const fig1RawPoints = [
+      {x:15,y:15,z:24.3},{x:23.4,y:16,z:23.6},{x:56.7,y:32.2,z:22.1},{x:59.7,y:45.9,z:32.1},
+      {x:46.5,y:39.5,z:36.2},{x:65.4,y:55.5,z:46.9},{x:62.5,y:46.5,z:46.7},{x:86,y:54.8,z:48.2},
+      {x:82,y:63.2,z:63.7},{x:98.6,y:83.9,z:75.8},{x:82.2,y:69.6,z:67},{x:114.8,y:92.7,z:79.8},
+      {x:108.6,y:75.7,z:96.7},{x:111.7,y:91.2,z:100.2},{x:138.4,y:91.6,z:102.8},{x:134.8,y:119.4,z:117},
+      {x:149,y:97.2,z:125.3},{x:161.3,y:127.3,z:110.2},{x:151.8,y:132.5,z:114.1},{x:168.6,y:125,z:119.7},
+      {x:158,y:147.5,z:139.4},{x:168.1,y:152.4,z:125.7},{x:179,y:152.2,z:151},{x:171,y:159.5,z:138},
+      {x:192.1,y:156.7,z:159.1},{x:188.7,y:156.4,z:166.8},{x:208.7,y:170.9,z:173.5},{x:198.5,y:182.9,z:161.9},
+      {x:206.2,y:174.8,z:174.3},{x:245.8,y:189.2,z:193.4},{x:229.7,y:178.5,z:201.5},{x:239.9,y:185.2,z:181.3},
+      {x:256.7,y:191.8,z:205.1},{x:260.1,y:210.9,z:195.6},{x:264.5,y:194.9,z:195.1},{x:283.8,y:216.4,z:216.2}
+    ];
+
+    // Precalculate target points on Slant Plane and 1D Line
+    const fig1Alpha = Math.atan2(240, 300);
+    const fig1SinA = Math.sin(fig1Alpha), fig1CosA = Math.cos(fig1Alpha);
+    const fig1V1 = [300, 240, 240];
+    const fig1Len1 = Math.hypot(...fig1V1);
+    const fig1U1 = fig1V1.map((c) => c / fig1Len1);
+
+    const fig1ProcessedPoints = fig1RawPoints.map((p) => {
+      const dx = p.x - 150, dy = p.y - 120, dz = p.z - 120;
+      // Perpendicular to floor direction (-sinA, cosA, 0)
+      const dPerp = dx * (-fig1SinA) + dy * fig1CosA;
+      const pPlane = { x: p.x - dPerp * (-fig1SinA), y: p.y - dPerp * fig1CosA, z: p.z };
+      // Projection on line w1
+      const s = dx * fig1U1[0] + dy * fig1U1[1] + dz * fig1U1[2];
+      const pLine = { x: 150 + s * fig1U1[0], y: 120 + s * fig1U1[1], z: 120 + s * fig1U1[2] };
+      return { pOrig: p, pPlane, pLine };
+    });
+
+    let fig1Yaw = -0.55, fig1TargetYaw = -0.55;
+    let fig1Pitch = 0.35, fig1TargetPitch = 0.35;
+    let fig1PlaneT = 0, fig1TargetPlaneT = 0;
+    let fig1LineT = 0, fig1TargetLineT = 0;
+
+    let fig1IsDragging = false;
+    let fig1StartX = 0, fig1StartY = 0;
+    let fig1StartYaw = 0, fig1StartPitch = 0;
+
+    const fig1Cx = 380, fig1Cy = 240, fig1D = 850;
+    const fig1Px = 150, fig1Py = 120, fig1Pz = 120;
+
+    function projectFig1(x, y, z, yaw, pitch) {
+      const rx = x - fig1Px, ry = y - fig1Py, rz = z - fig1Pz;
+      const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+      const x1 = rx * cosY - ry * sinY;
+      const y1 = rx * sinY + ry * cosY;
+      const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+      const depth = y1 * cosP + rz * sinP;
+      const screenY = -y1 * sinP + rz * cosP;
+      const scale = fig1D / (fig1D + depth);
+      return {
+        u: fig1Cx + x1 * scale,
+        v: fig1Cy - screenY * scale,
+        depth: depth,
+        scale: scale
+      };
+    }
+
+    // Floor grid lines
+    const fig1FloorLines = [];
+    if (fig1GridFloor) {
+      [0, 60, 120, 180, 240].forEach((yVal) => {
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("stroke", "var(--border)");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("stroke-dasharray", "3,3");
+        line.setAttribute("opacity", "0.6");
+        fig1GridFloor.appendChild(line);
+        fig1FloorLines.push({ el: line, x1: 0, y1: yVal, z1: 0, x2: 300, y2: yVal, z2: 0 });
+      });
+      [0, 75, 150, 225, 300].forEach((xVal) => {
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("stroke", "var(--border)");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("stroke-dasharray", "3,3");
+        line.setAttribute("opacity", "0.6");
+        fig1GridFloor.appendChild(line);
+        fig1FloorLines.push({ el: line, x1: xVal, y1: 0, z1: 0, x2: xVal, y2: 240, z2: 0 });
+      });
+    }
+
+    // Points, drop lines, shadows
+    const fig1PointElements = [];
+    if (fig1PointsGroup && fig1Droplines && fig1Shadows) {
+      fig1ProcessedPoints.forEach((ptData) => {
+        const drop = document.createElementNS(svgNS, "line");
+        drop.setAttribute("stroke", "var(--border)");
+        drop.setAttribute("stroke-width", "1");
+        drop.setAttribute("stroke-dasharray", "2,2");
+        drop.setAttribute("opacity", "0.55");
+        fig1Droplines.appendChild(drop);
+
+        const shadow = document.createElementNS(svgNS, "circle");
+        shadow.setAttribute("r", "2.5");
+        shadow.setAttribute("fill", "var(--muted)");
+        shadow.setAttribute("opacity", "0.35");
+        fig1Shadows.appendChild(shadow);
+
+        const circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("r", "5");
+        circle.setAttribute("fill", "var(--accent)");
+        circle.setAttribute("stroke", "var(--bg)");
+        circle.setAttribute("stroke-width", "1.5");
+        fig1PointsGroup.appendChild(circle);
+
+        fig1PointElements.push({ data: ptData, drop, shadow, circle, depth: 0 });
+      });
+    }
+
+    function renderFig1() {
+      if (!fig1Svg) return;
+
+      // 1. Grid
+      fig1FloorLines.forEach((fl) => {
+        const p1 = projectFig1(fl.x1, fl.y1, fl.z1, fig1Yaw, fig1Pitch);
+        const p2 = projectFig1(fl.x2, fl.y2, fl.z2, fig1Yaw, fig1Pitch);
+        fl.el.setAttribute("x1", p1.u);
+        fl.el.setAttribute("y1", p1.v);
+        fl.el.setAttribute("x2", p2.u);
+        fl.el.setAttribute("y2", p2.v);
+      });
+
+      // 2. Axes
+      const p0 = projectFig1(0, 0, 0, fig1Yaw, fig1Pitch);
+      const pX = projectFig1(320, 0, 0, fig1Yaw, fig1Pitch);
+      const pY = projectFig1(0, 260, 0, fig1Yaw, fig1Pitch);
+      const pZ = projectFig1(0, 0, 260, fig1Yaw, fig1Pitch);
+
+      if (fig1AxisX) {
+        fig1AxisX.setAttribute("x1", p0.u); fig1AxisX.setAttribute("y1", p0.v);
+        fig1AxisX.setAttribute("x2", pX.u); fig1AxisX.setAttribute("y2", pX.v);
+      }
+      if (fig1AxisY) {
+        fig1AxisY.setAttribute("x1", p0.u); fig1AxisY.setAttribute("y1", p0.v);
+        fig1AxisY.setAttribute("x2", pY.u); fig1AxisY.setAttribute("y2", pY.v);
+      }
+      if (fig1AxisZ) {
+        fig1AxisZ.setAttribute("x1", p0.u); fig1AxisZ.setAttribute("y1", p0.v);
+        fig1AxisZ.setAttribute("x2", pZ.u); fig1AxisZ.setAttribute("y2", pZ.v);
+      }
+
+      // 3. Dynamic Labels
+      if (fig1LblOrigin) {
+        fig1LblOrigin.setAttribute("x", p0.u - 12);
+        fig1LblOrigin.setAttribute("y", p0.v + 14);
+      }
+      if (fig1LblX) {
+        const dx = pX.u - p0.u, dy = pX.v - p0.v;
+        const len = Math.hypot(dx, dy) || 1;
+        fig1LblX.setAttribute("x", pX.u + (dx / len) * 16);
+        fig1LblX.setAttribute("y", pX.v + (dy / len) * 16 + 5);
+        fig1LblX.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+      }
+      if (fig1LblY) {
+        const dx = pY.u - p0.u, dy = pY.v - p0.v;
+        const len = Math.hypot(dx, dy) || 1;
+        fig1LblY.setAttribute("x", pY.u + (dx / len) * 16);
+        fig1LblY.setAttribute("y", pY.v + (dy / len) * 16 + 5);
+        fig1LblY.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+      }
+      if (fig1LblZ) {
+        fig1LblZ.setAttribute("x", pZ.u);
+        fig1LblZ.setAttribute("y", pZ.v - 14);
+        fig1LblZ.setAttribute("text-anchor", "middle");
+      }
+
+      // 4. Slant 2D Plane
+      if (fig1PlaneGroup && fig1SlantPolygon) {
+        if (fig1PlaneT > 0.01) {
+          fig1PlaneGroup.style.display = "inline";
+          fig1PlaneGroup.setAttribute("opacity", fig1PlaneT.toFixed(2));
+          const c1 = projectFig1(0, 0, 0, fig1Yaw, fig1Pitch);
+          const c2 = projectFig1(300, 240, 0, fig1Yaw, fig1Pitch);
+          const c3 = projectFig1(300, 240, 240, fig1Yaw, fig1Pitch);
+          const c4 = projectFig1(0, 0, 240, fig1Yaw, fig1Pitch);
+          fig1SlantPolygon.setAttribute("points", `${c1.u.toFixed(1)},${c1.v.toFixed(1)} ${c2.u.toFixed(1)},${c2.v.toFixed(1)} ${c3.u.toFixed(1)},${c3.v.toFixed(1)} ${c4.u.toFixed(1)},${c4.v.toFixed(1)}`);
+
+          if (fig1AxisComposite) {
+            const cTip = projectFig1(315, 252, 0, fig1Yaw, fig1Pitch);
+            fig1AxisComposite.setAttribute("x1", c1.u); fig1AxisComposite.setAttribute("y1", c1.v);
+            fig1AxisComposite.setAttribute("x2", cTip.u); fig1AxisComposite.setAttribute("y2", cTip.v);
+          }
+          if (fig1LblComposite) {
+            const cTip = projectFig1(315, 252, 0, fig1Yaw, fig1Pitch);
+            const dx = cTip.u - c1.u, dy = cTip.v - c1.v;
+            const len = Math.hypot(dx, dy) || 1;
+            fig1LblComposite.setAttribute("x", cTip.u + (dx / len) * 16);
+            fig1LblComposite.setAttribute("y", cTip.v + (dy / len) * 16 + 4);
+            fig1LblComposite.setAttribute("text-anchor", dx > 5 ? "start" : "end");
+          }
+        } else {
+          fig1PlaneGroup.style.display = "none";
+        }
+      }
+
+      // 5. Trend Line (w1)
+      if (fig1TrendLine && fig1TrendGroup) {
+        if (fig1LineT > 0.01) {
+          fig1TrendGroup.style.display = "inline";
+          fig1TrendGroup.setAttribute("opacity", fig1LineT.toFixed(2));
+          const pt1 = projectFig1(10, 8, 8, fig1Yaw, fig1Pitch);
+          const pt2 = projectFig1(290, 232, 232, fig1Yaw, fig1Pitch);
+          fig1TrendLine.setAttribute("x1", pt1.u); fig1TrendLine.setAttribute("y1", pt1.v);
+          fig1TrendLine.setAttribute("x2", pt2.u); fig1TrendLine.setAttribute("y2", pt2.v);
+          if (fig1TrendLabel) {
+            const dx = pt2.u - pt1.u, dy = pt2.v - pt1.v;
+            const len = Math.hypot(dx, dy) || 1;
+            fig1TrendLabel.setAttribute("x", pt2.u + (dx / len) * 16);
+            fig1TrendLabel.setAttribute("y", pt2.v + (dy / len) * 16 + 4);
+            fig1TrendLabel.setAttribute("text-anchor", dx > 5 ? "start" : "end");
+          }
+        } else {
+          fig1TrendGroup.style.display = "none";
+        }
+      }
+
+      // 6. Points & Shadows with dual interpolation (3D -> Plane -> Line)
+      fig1PointElements.forEach((item) => {
+        const pOrig = item.data.pOrig;
+        const pPlane = item.data.pPlane;
+        const pLine = item.data.pLine;
+
+        // Step 1: Interpolate 3D to 2D plane
+        const cur2DX = (1 - fig1PlaneT) * pOrig.x + fig1PlaneT * pPlane.x;
+        const cur2DY = (1 - fig1PlaneT) * pOrig.y + fig1PlaneT * pPlane.y;
+        const cur2DZ = (1 - fig1PlaneT) * pOrig.z + fig1PlaneT * pPlane.z;
+
+        // Step 2: Interpolate 2D plane to 1D line
+        const curX = (1 - fig1LineT) * cur2DX + fig1LineT * pLine.x;
+        const curY = (1 - fig1LineT) * cur2DY + fig1LineT * pLine.y;
+        const curZ = (1 - fig1LineT) * cur2DZ + fig1LineT * pLine.z;
+
+        const p3d = projectFig1(curX, curY, curZ, fig1Yaw, fig1Pitch);
+        const pFloor = projectFig1(curX, curY, 0, fig1Yaw, fig1Pitch);
+
+        item.drop.setAttribute("x1", p3d.u);
+        item.drop.setAttribute("y1", p3d.v);
+        item.drop.setAttribute("x2", pFloor.u);
+        item.drop.setAttribute("y2", pFloor.v);
+
+        item.shadow.setAttribute("cx", pFloor.u);
+        item.shadow.setAttribute("cy", pFloor.v);
+        item.shadow.setAttribute("r", Math.max(1.5, 2.5 * pFloor.scale));
+
+        item.circle.setAttribute("cx", p3d.u);
+        item.circle.setAttribute("cy", p3d.v);
+        item.circle.setAttribute("r", Math.max(3.5, 5 * p3d.scale));
+        item.circle.setAttribute("opacity", Math.min(1, Math.max(0.65, 0.85 * p3d.scale)));
+        item.depth = p3d.depth;
+      });
+
+      // Depth sort points: draw furthest first
+      fig1PointElements.slice().sort((a, b) => a.depth - b.depth).forEach((item) => {
+        fig1PointsGroup.appendChild(item.circle);
+      });
+    }
+
+    // Drag Interaction on SVG
+    if (fig1Svg) {
+      fig1Svg.addEventListener("pointerdown", (e) => {
+        fig1IsDragging = true;
+        fig1Svg.style.cursor = "grabbing";
+        fig1StartX = e.clientX;
+        fig1StartY = e.clientY;
+        fig1StartYaw = fig1Yaw;
+        fig1StartPitch = fig1Pitch;
+        try { fig1Svg.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+
+      fig1Svg.addEventListener("pointermove", (e) => {
+        if (!fig1IsDragging) return;
+        const dx = e.clientX - fig1StartX;
+        const dy = e.clientY - fig1StartY;
+        fig1Yaw = fig1StartYaw + dx * 0.007;
+        fig1Pitch = Math.max(-0.25, Math.min(1.15, fig1StartPitch + dy * 0.007));
+        fig1TargetYaw = fig1Yaw;
+        fig1TargetPitch = fig1Pitch;
+        renderFig1();
+      });
+
+      const endFig1Drag = (e) => {
+        if (!fig1IsDragging) return;
+        fig1IsDragging = false;
+        fig1Svg.style.cursor = "grab";
+        try { fig1Svg.releasePointerCapture(e.pointerId); } catch (_) {}
+      };
+
+      fig1Svg.addEventListener("pointerup", endFig1Drag);
+      fig1Svg.addEventListener("pointercancel", endFig1Drag);
+    }
+
+    // Button Controls
+    function setFig1Active(btn) {
+      fig1Buttons.forEach((b) => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+    }
+
+    if (fig1BtnCloud) {
+      fig1BtnCloud.addEventListener("click", () => {
+        setFig1Active(fig1BtnCloud);
+        fig1TargetYaw = -0.55;
+        fig1TargetPitch = 0.35;
+        fig1TargetPlaneT = 0;
+        fig1TargetLineT = 0;
+      });
+    }
+
+    if (fig1BtnArea) {
+      fig1BtnArea.addEventListener("click", () => {
+        setFig1Active(fig1BtnArea);
+        fig1TargetYaw = 0;
+        fig1TargetPitch = 0;
+        fig1TargetPlaneT = 0;
+        fig1TargetLineT = 0;
+      });
+    }
+
+    if (fig1BtnBeds) {
+      fig1BtnBeds.addEventListener("click", () => {
+        setFig1Active(fig1BtnBeds);
+        fig1TargetYaw = -Math.PI / 2;
+        fig1TargetPitch = 0;
+        fig1TargetPlaneT = 0;
+        fig1TargetLineT = 0;
+      });
+    }
+
+    if (fig1BtnPlane) {
+      fig1BtnPlane.addEventListener("click", () => {
+        setFig1Active(fig1BtnPlane);
+        fig1TargetYaw = -0.55;
+        fig1TargetPitch = 0.35;
+        fig1TargetPlaneT = 1;
+        fig1TargetLineT = 0;
+      });
+    }
+
+    if (fig1BtnLine) {
+      fig1BtnLine.addEventListener("click", () => {
+        setFig1Active(fig1BtnLine);
+        fig1TargetYaw = -0.55;
+        fig1TargetPitch = 0.35;
+        fig1TargetPlaneT = 1;
+        fig1TargetLineT = 1;
+      });
+    }
+
+    // Initial render
+    renderFig1();
+
+    // ══════════════════════════════════════════════════════════════
+    // FIGURE 2: Interactive 3D Projection onto Axis w
+    // ══════════════════════════════════════════════════════════════
+    const fig2Svg = document.getElementById("fig2-3d-svg");
+    const fig2GridFloor = document.getElementById("fig2-grid-floor");
+    const fig2AxisX = document.getElementById("fig2-axis-x");
+    const fig2AxisY = document.getElementById("fig2-axis-y");
+    const fig2AxisZ = document.getElementById("fig2-axis-z");
+
+    const fig2AxisGroup = document.getElementById("fig2-axis-group");
+    const fig2AxisLine = document.getElementById("fig2-axis-line");
+    const fig2AxisVec = document.getElementById("fig2-axis-vec");
+    const fig2LblW = document.getElementById("fig2-lbl-w");
+    const fig2LblWMag = document.getElementById("fig2-lbl-w-mag");
+
+    const fig2DropGroup = document.getElementById("fig2-drop-group");
+    const fig2PointsGroup = document.getElementById("fig2-points-group");
+
+    const fig2InspectGroup = document.getElementById("fig2-inspect-group");
+    const fig2InspectVecXi = document.getElementById("fig2-inspect-vec-xi");
+    const fig2InspectVecProj = document.getElementById("fig2-inspect-vec-proj");
+    const fig2InspectVecErr = document.getElementById("fig2-inspect-vec-err");
+    const fig2InspectHalo = document.getElementById("fig2-inspect-halo");
+    const fig2InspectRightAngle = document.getElementById("fig2-inspect-right-angle");
+    const fig2InspectOriginDot = document.getElementById("fig2-inspect-origin-dot");
+    const fig2InspectOriginLbl = document.getElementById("fig2-inspect-origin-lbl");
+    const fig2InspectAxisVec = document.getElementById("fig2-inspect-axis-vec");
+    const fig2InspectLblW = document.getElementById("fig2-inspect-lbl-w");
+    const fig2InspectLblWMag = document.getElementById("fig2-inspect-lbl-w-mag");
+    const fig2InspectLblXiSym = document.getElementById("fig2-inspect-lbl-xi-sym");
+    const fig2InspectLblPoint = document.getElementById("fig2-inspect-lbl-point");
+    const fig2InspectLblProjSym = document.getElementById("fig2-inspect-lbl-proj-sym");
+    const fig2InspectLblProjDesc = document.getElementById("fig2-inspect-lbl-proj-desc");
+    const fig2InspectLblErrSym = document.getElementById("fig2-inspect-lbl-err-sym");
+    const fig2InspectLblErrDesc = document.getElementById("fig2-inspect-lbl-err-desc");
+    const fig2ReadoutEl = document.getElementById("fig2-inspect-readout");
+    const fig2ReadoutText = document.getElementById("fig2-readout-text");
+
+    const fig2LblOrigin = document.getElementById("fig2-lbl-origin");
+    const fig2LblX = document.getElementById("fig2-lbl-x");
+    const fig2LblY = document.getElementById("fig2-lbl-y");
+    const fig2LblZ = document.getElementById("fig2-lbl-z");
+
+    const fig2BtnCloud = document.getElementById("fig2-btn-cloud");
+    const fig2BtnAxis = document.getElementById("fig2-btn-axis");
+    const fig2BtnProject = document.getElementById("fig2-btn-project");
+    const fig2BtnInspect = document.getElementById("fig2-btn-inspect");
+    const fig2Buttons = [fig2BtnCloud, fig2BtnAxis, fig2BtnProject, fig2BtnInspect].filter(Boolean);
+
+    let fig2Yaw = -0.55, fig2TargetYaw = -0.55;
+    let fig2Pitch = 0.35, fig2TargetPitch = 0.35;
+    let fig2Zoom = 1.0, fig2TargetZoom = 1.0;
+    let fig2FocusX = 150, fig2TargetFocusX = 150;
+    let fig2FocusY = 120, fig2TargetFocusY = 120;
+    let fig2FocusZ = 120, fig2TargetFocusZ = 120;
+    let fig2AxisT = 0, fig2TargetAxisT = 0;
+    let fig2ProjT = 0, fig2TargetProjT = 0;
+    let fig2InspectT = 0, fig2TargetInspectT = 0;
+
+    let fig2IsDragging = false;
+    let fig2StartX = 0, fig2StartY = 0;
+    let fig2StartYaw = 0, fig2StartPitch = 0;
+
+    const fig2Cx = 380, fig2Cy = 240, fig2D = 850;
+
+    function projectFig2(x, y, z, yaw, pitch) {
+      const rx = x - fig2FocusX, ry = y - fig2FocusY, rz = z - fig2FocusZ;
+      const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+      const x1 = rx * cosY - ry * sinY;
+      const y1 = rx * sinY + ry * cosY;
+      const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+      const depth = y1 * cosP + rz * sinP;
+      const screenY = -y1 * sinP + rz * cosP;
+      const scale = (fig2D * fig2Zoom) / (fig2D + depth);
+      return {
+        u: fig2Cx + x1 * scale,
+        v: fig2Cy - screenY * scale,
+        depth: depth,
+        scale: scale
+      };
+    }
+
+    // Floor grid
+    const fig2FloorLines = [];
+    if (fig2GridFloor) {
+      [0, 60, 120, 180, 240].forEach((yVal) => {
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("stroke", "var(--border)");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("stroke-dasharray", "3,3");
+        line.setAttribute("opacity", "0.4");
+        fig2GridFloor.appendChild(line);
+        fig2FloorLines.push({ el: line, x1: 0, y1: yVal, z1: 0, x2: 300, y2: yVal, z2: 0 });
+      });
+      [0, 75, 150, 225, 300].forEach((xVal) => {
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("stroke", "var(--border)");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("stroke-dasharray", "3,3");
+        line.setAttribute("opacity", "0.4");
+        fig2GridFloor.appendChild(line);
+        fig2FloorLines.push({ el: line, x1: xVal, y1: 0, z1: 0, x2: xVal, y2: 240, z2: 0 });
+      });
+    }
+
+    // Data points & orthogonal drop lines
+    const fig2PointElements = [];
+    if (fig2PointsGroup && fig2DropGroup) {
+      fig1RawPoints.forEach((p, idx) => {
+        const dx = p.x - 150, dy = p.y - 120, dz = p.z - 120;
+        const s = dx * fig1U1[0] + dy * fig1U1[1] + dz * fig1U1[2];
+        const q = {
+          x: 150 + s * fig1U1[0],
+          y: 120 + s * fig1U1[1],
+          z: 120 + s * fig1U1[2]
+        };
+
+        const drop = document.createElementNS(svgNS, "line");
+        drop.setAttribute("stroke", "var(--border)");
+        drop.setAttribute("stroke-width", "1.2");
+        drop.setAttribute("stroke-dasharray", "3,3");
+        drop.setAttribute("opacity", "0");
+        fig2DropGroup.appendChild(drop);
+
+        const circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("r", "4.8");
+        circle.setAttribute("fill", "var(--accent)");
+        circle.setAttribute("stroke", "var(--bg)");
+        circle.setAttribute("stroke-width", "1.5");
+        circle.style.cursor = "pointer";
+        fig2PointsGroup.appendChild(circle);
+
+        circle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          triggerInspect(idx);
+        });
+
+        fig2PointElements.push({ p, q, s, drop, circle, idx, depth: 0 });
+      });
+    }
+
+    // Drag to rotate in 3D
+    if (fig2Svg) {
+      fig2Svg.addEventListener("pointerdown", (e) => {
+        fig2IsDragging = true;
+        fig2Svg.style.cursor = "grabbing";
+        fig2StartX = e.clientX;
+        fig2StartY = e.clientY;
+        fig2StartYaw = fig2TargetYaw;
+        fig2StartPitch = fig2TargetPitch;
+        fig2Svg.setPointerCapture(e.pointerId);
+      });
+
+      fig2Svg.addEventListener("pointermove", (e) => {
+        if (!fig2IsDragging) return;
+        const dx = e.clientX - fig2StartX;
+        const dy = e.clientY - fig2StartY;
+        fig2TargetYaw = fig2StartYaw + dx * 0.008;
+        fig2TargetPitch = Math.max(-0.6, Math.min(1.1, fig2StartPitch + dy * 0.008));
+      });
+
+      const stopFig2Drag = (e) => {
+        if (fig2IsDragging) {
+          fig2IsDragging = false;
+          fig2Svg.style.cursor = "grab";
+          try { fig2Svg.releasePointerCapture(e.pointerId); } catch (_) {}
+        }
+      };
+      fig2Svg.addEventListener("pointerup", stopFig2Drag);
+      fig2Svg.addEventListener("pointercancel", stopFig2Drag);
+    }
+
+    function setFig2Active(btn) {
+      fig2Buttons.forEach((b) => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+    }
+
+    // Inspect point computation
+    let fig2InspectIdx = 23;
+    let fig2InspectPt, fig2InspQ, fig2InspErr, fig2InspErrLen, fig2InspErrU, fig2InspS;
+
+    function updateFig2Inspect(idx) {
+      fig2InspectIdx = idx;
+      fig2InspectPt = fig1RawPoints[idx];
+      const dx = fig2InspectPt.x - 150;
+      const dy = fig2InspectPt.y - 120;
+      const dz = fig2InspectPt.z - 120;
+      fig2InspS = dx * fig1U1[0] + dy * fig1U1[1] + dz * fig1U1[2];
+      fig2InspQ = {
+        x: 150 + fig2InspS * fig1U1[0],
+        y: 120 + fig2InspS * fig1U1[1],
+        z: 120 + fig2InspS * fig1U1[2]
+      };
+      fig2InspErr = {
+        x: fig2InspectPt.x - fig2InspQ.x,
+        y: fig2InspectPt.y - fig2InspQ.y,
+        z: fig2InspectPt.z - fig2InspQ.z
+      };
+      fig2InspErrLen = Math.hypot(fig2InspErr.x, fig2InspErr.y, fig2InspErr.z);
+      fig2InspErrU = [
+        fig2InspErr.x / (fig2InspErrLen || 1),
+        fig2InspErr.y / (fig2InspErrLen || 1),
+        fig2InspErr.z / (fig2InspErrLen || 1)
+      ];
+
+      if (fig2ReadoutText) {
+        const projSq = (fig2InspS * fig2InspS).toFixed(1);
+        const errSq = (fig2InspErrLen * fig2InspErrLen).toFixed(1);
+        const totSq = (dx * dx + dy * dy + dz * dz).toFixed(1);
+        const readoutText = `Observation x<sub>${idx + 1}</sub>: Preserved Signal ‖(x<sub>${idx + 1}</sub>ᵀw)w‖² = ${projSq} + Discarded Error ‖e<sub>${idx + 1}</sub>‖² = ${errSq} = Total Variance ‖x<sub>${idx + 1}</sub>‖² = ${totSq}`;
+        fig2ReadoutText.innerHTML = readoutText;
+      }
+    }
+    updateFig2Inspect(23);
+
+    function triggerInspect(idx) {
+      updateFig2Inspect(idx);
+      setFig2Active(fig2BtnInspect);
+      // Focus camera directly on the centroid of the orthogonal decomposition triangle
+      fig2TargetFocusX = (150 + fig2InspectPt.x + fig2InspQ.x) / 3;
+      fig2TargetFocusY = (120 + fig2InspectPt.y + fig2InspQ.y) / 3;
+      fig2TargetFocusZ = (120 + fig2InspectPt.z + fig2InspQ.z) / 3;
+      fig2TargetZoom = 4.0;
+      fig2TargetYaw = -0.55;
+      fig2TargetPitch = 0.90;
+      fig2TargetAxisT = 1;
+      fig2TargetProjT = 0;
+      fig2TargetInspectT = 1;
+    }
+
+    function resetFig2Camera() {
+      fig2TargetZoom = 1.0;
+      fig2TargetFocusX = 150;
+      fig2TargetFocusY = 120;
+      fig2TargetFocusZ = 120;
+      fig2TargetYaw = -0.55;
+      fig2TargetPitch = 0.35;
+      fig2TargetInspectT = 0;
+    }
+
+    if (fig2BtnCloud) {
+      fig2BtnCloud.addEventListener("click", () => {
+        setFig2Active(fig2BtnCloud);
+        fig2TargetZoom = 1.0;
+        fig2TargetFocusX = 150;
+        fig2TargetFocusY = 120;
+        fig2TargetFocusZ = 120;
+        fig2TargetYaw = -0.55;
+        fig2TargetPitch = 0.35;
+        fig2TargetInspectT = 0;
+        fig2TargetAxisT = 0;
+        fig2TargetProjT = 0;
+      });
+    }
+
+    if (fig2BtnAxis) {
+      fig2BtnAxis.addEventListener("click", () => {
+        setFig2Active(fig2BtnAxis);
+        fig2TargetZoom = 1.6;
+        fig2TargetFocusX = 150;
+        fig2TargetFocusY = 120;
+        fig2TargetFocusZ = 120;
+        fig2TargetYaw = -0.55;
+        fig2TargetPitch = 0.35;
+        fig2TargetInspectT = 0;
+        fig2TargetAxisT = 1;
+        fig2TargetProjT = 0;
+      });
+    }
+
+    if (fig2BtnProject) {
+      fig2BtnProject.addEventListener("click", () => {
+        setFig2Active(fig2BtnProject);
+        fig2TargetZoom = 1.6;
+        fig2TargetFocusX = 150;
+        fig2TargetFocusY = 120;
+        fig2TargetFocusZ = 120;
+        fig2TargetYaw = -0.55;
+        fig2TargetPitch = 0.35;
+        fig2TargetInspectT = 0;
+        fig2TargetAxisT = 1;
+        fig2TargetProjT = 1;
+      });
+    }
+
+    if (fig2BtnInspect) {
+      fig2BtnInspect.addEventListener("click", () => {
+        triggerInspect(fig2InspectIdx);
+      });
+    }
+
+    function renderFig2() {
+      if (!fig2Svg) return;
+
+      // 0. Update Readout visibility
+      if (fig2ReadoutEl) {
+        fig2ReadoutEl.style.display = fig2InspectT > 0.4 ? "block" : "none";
+      }
+
+      // 1. Grid
+      fig2FloorLines.forEach((fl) => {
+        const p1 = projectFig2(fl.x1, fl.y1, fl.z1, fig2Yaw, fig2Pitch);
+        const p2 = projectFig2(fl.x2, fl.y2, fl.z2, fig2Yaw, fig2Pitch);
+        fl.el.setAttribute("x1", p1.u);
+        fl.el.setAttribute("y1", p1.v);
+        fl.el.setAttribute("x2", p2.u);
+        fl.el.setAttribute("y2", p2.v);
+        // Dim grid when zoomed in
+        fl.el.setAttribute("opacity", (0.4 * (1 - fig2InspectT * 0.75)).toFixed(2));
+      });
+
+      // 2. Coordinate axes through origin (150, 120, 120)
+      const pO = projectFig2(150, 120, 120, fig2Yaw, fig2Pitch);
+      const pX = projectFig2(270, 120, 120, fig2Yaw, fig2Pitch);
+      const pY = projectFig2(150, 230, 120, fig2Yaw, fig2Pitch);
+      const pZ = projectFig2(150, 120, 225, fig2Yaw, fig2Pitch);
+
+      const axesOp = (1 - fig2InspectT * 0.75).toFixed(3);
+      if (fig2AxisX && fig2AxisY && fig2AxisZ) {
+        fig2AxisX.setAttribute("x1", pO.u);
+        fig2AxisX.setAttribute("y1", pO.v);
+        fig2AxisX.setAttribute("x2", pX.u);
+        fig2AxisX.setAttribute("y2", pX.v);
+        fig2AxisX.setAttribute("opacity", axesOp);
+
+        fig2AxisY.setAttribute("x1", pO.u);
+        fig2AxisY.setAttribute("y1", pO.v);
+        fig2AxisY.setAttribute("x2", pY.u);
+        fig2AxisY.setAttribute("y2", pY.v);
+        fig2AxisY.setAttribute("opacity", axesOp);
+
+        fig2AxisZ.setAttribute("x1", pO.u);
+        fig2AxisZ.setAttribute("y1", pO.v);
+        fig2AxisZ.setAttribute("x2", pZ.u);
+        fig2AxisZ.setAttribute("y2", pZ.v);
+        fig2AxisZ.setAttribute("opacity", axesOp);
+      }
+
+      if (fig2LblOrigin) {
+        fig2LblOrigin.setAttribute("x", pO.u - 14);
+        fig2LblOrigin.setAttribute("y", pO.v + 14);
+        fig2LblOrigin.setAttribute("opacity", axesOp);
+      }
+      if (fig2LblX) {
+        fig2LblX.setAttribute("x", pX.u + 8);
+        fig2LblX.setAttribute("y", pX.v + 4);
+        fig2LblX.setAttribute("opacity", axesOp);
+      }
+      if (fig2LblY) {
+        fig2LblY.setAttribute("x", pY.u + 6);
+        fig2LblY.setAttribute("y", pY.v + 12);
+        fig2LblY.setAttribute("opacity", axesOp);
+      }
+      if (fig2LblZ) {
+        fig2LblZ.setAttribute("x", pZ.u);
+        fig2LblZ.setAttribute("y", pZ.v - 10);
+        fig2LblZ.setAttribute("opacity", axesOp);
+      }
+
+      // 3. Axis w
+      if (fig2AxisGroup) {
+        fig2AxisGroup.style.opacity = fig2AxisT.toFixed(3);
+        const wNeg = projectFig2(
+          150 - 280 * fig1U1[0],
+          120 - 280 * fig1U1[1],
+          120 - 280 * fig1U1[2],
+          fig2Yaw,
+          fig2Pitch
+        );
+        const wPos = projectFig2(
+          150 + 280 * fig1U1[0],
+          120 + 280 * fig1U1[1],
+          120 + 280 * fig1U1[2],
+          fig2Yaw,
+          fig2Pitch
+        );
+        const wTip = projectFig2(
+          150 + 95 * fig1U1[0],
+          120 + 95 * fig1U1[1],
+          120 + 95 * fig1U1[2],
+          fig2Yaw,
+          fig2Pitch
+        );
+
+        if (fig2AxisLine) {
+          fig2AxisLine.setAttribute("x1", wNeg.u);
+          fig2AxisLine.setAttribute("y1", wNeg.v);
+          fig2AxisLine.setAttribute("x2", wPos.u);
+          fig2AxisLine.setAttribute("y2", wPos.v);
+        }
+        // Fade out unit vector arrow w during inspect so it doesn't overlap with projection vector
+        const unitVecOp = (1 - fig2InspectT).toFixed(3);
+        if (fig2AxisVec) {
+          fig2AxisVec.setAttribute("x1", pO.u);
+          fig2AxisVec.setAttribute("y1", pO.v);
+          fig2AxisVec.setAttribute("x2", wTip.u);
+          fig2AxisVec.setAttribute("y2", wTip.v);
+          fig2AxisVec.setAttribute("opacity", unitVecOp);
+        }
+        if (fig2LblW) {
+          fig2LblW.setAttribute("x", wTip.u + 10);
+          fig2LblW.setAttribute("y", wTip.v - 6);
+          fig2LblW.setAttribute("opacity", unitVecOp);
+        }
+        if (fig2LblWMag) {
+          fig2LblWMag.setAttribute("x", wTip.u + 10);
+          fig2LblWMag.setAttribute("y", wTip.v + 14);
+          fig2LblWMag.setAttribute("opacity", unitVecOp);
+        }
+      }
+
+      // 4. Points & Orthogonal Drop Lines
+      fig2PointElements.forEach((item) => {
+        const curX = item.p.x + fig2ProjT * (item.q.x - item.p.x);
+        const curY = item.p.y + fig2ProjT * (item.q.y - item.p.y);
+        const curZ = item.p.z + fig2ProjT * (item.q.z - item.p.z);
+
+        const pCur = projectFig2(curX, curY, curZ, fig2Yaw, fig2Pitch);
+        item.depth = pCur.depth;
+
+        item.circle.setAttribute("cx", pCur.u);
+        item.circle.setAttribute("cy", pCur.v);
+
+        // Dim other points during zoomed inspection
+        const isTarget = item.idx === fig2InspectIdx;
+        const ptOpacity = fig2InspectT > 0.05
+          ? (isTarget ? "1" : (1 - fig2InspectT * 0.82).toFixed(3))
+          : "1";
+        item.circle.setAttribute("opacity", ptOpacity);
+        if (isTarget && fig2InspectT > 0.05) {
+          item.circle.setAttribute("r", (4.8 + fig2InspectT * 2.2).toString());
+        } else {
+          item.circle.setAttribute("r", "4.8");
+        }
+
+        // Drop line from original p to footprint q
+        if (fig2AxisT > 0.01) {
+          const pOrig = projectFig2(item.p.x, item.p.y, item.p.z, fig2Yaw, fig2Pitch);
+          const pFoot = projectFig2(item.q.x, item.q.y, item.q.z, fig2Yaw, fig2Pitch);
+          item.drop.setAttribute("x1", pOrig.u);
+          item.drop.setAttribute("y1", pOrig.v);
+          item.drop.setAttribute("x2", pFoot.u);
+          item.drop.setAttribute("y2", pFoot.v);
+          const dropOp = (fig2AxisT * (0.2 + 0.45 * fig2ProjT)).toFixed(3);
+          item.drop.setAttribute("opacity", fig2InspectT > 0.05 && !isTarget ? "0.08" : dropOp);
+        } else {
+          item.drop.setAttribute("opacity", "0");
+        }
+      });
+
+      // 5. Inspect Observation Mode (Zoomed Right Triangle)
+      if (fig2InspectGroup) {
+        if (fig2InspectT > 0.01) {
+          fig2InspectGroup.style.display = "inline";
+          fig2InspectGroup.style.opacity = fig2InspectT.toFixed(3);
+
+          const pXi = projectFig2(fig2InspectPt.x, fig2InspectPt.y, fig2InspectPt.z, fig2Yaw, fig2Pitch);
+          const pProj = projectFig2(fig2InspQ.x, fig2InspQ.y, fig2InspQ.z, fig2Yaw, fig2Pitch);
+
+          // Point halo
+          if (fig2InspectHalo) {
+            fig2InspectHalo.setAttribute("cx", pXi.u);
+            fig2InspectHalo.setAttribute("cy", pXi.v);
+            fig2InspectHalo.setAttribute("r", (9 + fig2InspectT * 3).toFixed(1));
+          }
+
+          // Vector x_i
+          if (fig2InspectVecXi) {
+            fig2InspectVecXi.setAttribute("x1", pO.u);
+            fig2InspectVecXi.setAttribute("y1", pO.v);
+            fig2InspectVecXi.setAttribute("x2", pXi.u);
+            fig2InspectVecXi.setAttribute("y2", pXi.v);
+          }
+
+          // Preserved projection vector (w^T x_i)w
+          if (fig2InspectVecProj) {
+            fig2InspectVecProj.setAttribute("x1", pO.u);
+            fig2InspectVecProj.setAttribute("y1", pO.v);
+            fig2InspectVecProj.setAttribute("x2", pProj.u);
+            fig2InspectVecProj.setAttribute("y2", pProj.v);
+          }
+
+          // Error vector e_i
+          if (fig2InspectVecErr) {
+            fig2InspectVecErr.setAttribute("x1", pProj.u);
+            fig2InspectVecErr.setAttribute("y1", pProj.v);
+            fig2InspectVecErr.setAttribute("x2", pXi.u);
+            fig2InspectVecErr.setAttribute("y2", pXi.v);
+          }
+
+          // Clean open right-angle polyline corner (calculated directly from the two screen vectors meeting at pProj)
+          if (fig2InspectRightAngle) {
+            const dx1 = pO.u - pProj.u, dy1 = pO.v - pProj.v;
+            const len1 = Math.hypot(dx1, dy1) || 1;
+            const u1x = dx1 / len1, u1y = dy1 / len1;
+
+            const dx2 = pXi.u - pProj.u, dy2 = pXi.v - pProj.v;
+            const len2 = Math.hypot(dx2, dy2) || 1;
+            const u2x = dx2 / len2, u2y = dy2 / len2;
+
+            const S = 15;
+            const pt1x = pProj.u + S * u1x, pt1y = pProj.v + S * u1y;
+            const pt2x = pProj.u + S * u1x + S * u2x, pt2y = pProj.v + S * u1y + S * u2y;
+            const pt3x = pProj.u + S * u2x, pt3y = pProj.v + S * u2y;
+
+            fig2InspectRightAngle.setAttribute(
+              "points",
+              `${pt1x.toFixed(1)},${pt1y.toFixed(1)} ${pt2x.toFixed(1)},${pt2y.toFixed(1)} ${pt3x.toFixed(1)},${pt3y.toFixed(1)}`
+            );
+          }
+
+          // 0. Origin Dot and Label
+          if (fig2InspectOriginDot) {
+            fig2InspectOriginDot.setAttribute("cx", pO.u.toFixed(1));
+            fig2InspectOriginDot.setAttribute("cy", pO.v.toFixed(1));
+          }
+          if (fig2InspectOriginLbl) {
+            fig2InspectOriginLbl.setAttribute("x", (pO.u - 12).toFixed(1));
+            fig2InspectOriginLbl.setAttribute("y", (pO.v + 6).toFixed(1));
+          }
+
+          // 1. Candidate Axis Direction Arrow w and (||w|| = 1) along Axis Line
+          if (fig2InspectAxisVec) {
+            const axDx = pProj.u - pO.u;
+            const axDy = pProj.v - pO.v;
+            const axLen = Math.hypot(axDx, axDy) || 1;
+            const uAxX = axDx / axLen;
+            const uAxY = axDy / axLen;
+            const wStart = { x: pProj.u + uAxX * 24, y: pProj.v + uAxY * 24 };
+            const wEnd = { x: pProj.u + uAxX * 90, y: pProj.v + uAxY * 90 };
+            fig2InspectAxisVec.setAttribute("x1", wStart.x.toFixed(1));
+            fig2InspectAxisVec.setAttribute("y1", wStart.y.toFixed(1));
+            fig2InspectAxisVec.setAttribute("x2", wEnd.x.toFixed(1));
+            fig2InspectAxisVec.setAttribute("y2", wEnd.y.toFixed(1));
+
+            if (fig2InspectLblW) {
+              fig2InspectLblW.setAttribute("x", (wEnd.x + 8).toFixed(1));
+              fig2InspectLblW.setAttribute("y", (wEnd.y - 4).toFixed(1));
+            }
+            if (fig2InspectLblWMag) {
+              fig2InspectLblWMag.setAttribute("x", (wEnd.x + 8).toFixed(1));
+              fig2InspectLblWMag.setAttribute("y", (wEnd.y + 12).toFixed(1));
+            }
+          }
+
+          // 2. Preserved Projection Label (along OQ leg, shifted outward away from pXi)
+          const midProjX = (pO.u + pProj.u) * 0.5;
+          const midProjY = (pO.v + pProj.v) * 0.5;
+          const edgeProjDx = pProj.u - pO.u, edgeProjDy = pProj.v - pO.v;
+          const lenProj = Math.hypot(edgeProjDx, edgeProjDy) || 1;
+          let normProjX = -edgeProjDy / lenProj, normProjY = edgeProjDx / lenProj;
+          // Point away from pXi
+          if (normProjX * (pXi.u - midProjX) + normProjY * (pXi.v - midProjY) > 0) {
+            normProjX = -normProjX; normProjY = -normProjY;
+          }
+          const lblProjX = midProjX + normProjX * 32;
+          const lblProjY = midProjY + normProjY * 32;
+
+          if (fig2InspectLblProjSym) {
+            fig2InspectLblProjSym.setAttribute("x", lblProjX.toFixed(1));
+            fig2InspectLblProjSym.setAttribute("y", (lblProjY - 4).toFixed(1));
+          }
+          if (fig2InspectLblProjDesc) {
+            fig2InspectLblProjDesc.setAttribute("x", lblProjX.toFixed(1));
+            fig2InspectLblProjDesc.setAttribute("y", (lblProjY + 16).toFixed(1));
+          }
+
+          // 3. Observation Vector Leg & Data Point Label
+          const midHypX = (pO.u + pXi.u) * 0.5;
+          const midHypY = (pO.v + pXi.v) * 0.5;
+          const edgeHypDx = pXi.u - pO.u, edgeHypDy = pXi.v - pO.v;
+          const lenHyp = Math.hypot(edgeHypDx, edgeHypDy) || 1;
+          let normHypX = -edgeHypDy / lenHyp, normHypY = edgeHypDx / lenHyp;
+          // Point away from pProj
+          if (normHypX * (pProj.u - midHypX) + normHypY * (pProj.v - midHypY) > 0) {
+            normHypX = -normHypX; normHypY = -normHypY;
+          }
+          const lblHypX = midHypX + normHypX * 24;
+          const lblHypY = midHypY + normHypY * 24;
+
+          if (fig2InspectLblXiSym) {
+            fig2InspectLblXiSym.setAttribute("x", lblHypX.toFixed(1));
+            fig2InspectLblXiSym.setAttribute("y", lblHypY.toFixed(1));
+          }
+          if (fig2InspectLblPoint) {
+            fig2InspectLblPoint.setAttribute("x", (pXi.u + 12).toFixed(1));
+            fig2InspectLblPoint.setAttribute("y", (pXi.v - 12).toFixed(1));
+          }
+
+          // 4. Reconstruction Error Vector Label (to the right of the drop line)
+          const midErrY = (pProj.v + pXi.v) * 0.5;
+          const lblErrX = Math.max(pProj.u, pXi.u) + 20;
+          const lblErrY = midErrY;
+
+          if (fig2InspectLblErrSym) {
+            fig2InspectLblErrSym.setAttribute("x", lblErrX.toFixed(1));
+            fig2InspectLblErrSym.setAttribute("y", (lblErrY - 4).toFixed(1));
+          }
+          if (fig2InspectLblErrDesc) {
+            fig2InspectLblErrDesc.setAttribute("x", lblErrX.toFixed(1));
+            fig2InspectLblErrDesc.setAttribute("y", (lblErrY + 16).toFixed(1));
+          }
+        } else {
+          fig2InspectGroup.style.display = "none";
+        }
+      }
+    }
+
+    // Initial render for Figure 2
+    renderFig2();
+
+    // ══════════════════════════════════════════════════════════════
+    // FIGURE 4: Concentric Circles Non-Linear Projection Animation
+    // ══════════════════════════════════════════════════════════════
+    const fig4OuterGroup = document.getElementById("fig4-outer-group");
+    const fig4InnerGroup = document.getElementById("fig4-inner-group");
+    const fig4DropGroup = document.getElementById("fig4-drop-group");
+    const fig4AnimBtn = document.getElementById("fig4-anim-btn");
+    const fig4AnimText = document.getElementById("fig4-anim-text");
+    const fig4OverlapBox = document.getElementById("fig4-overlap-box");
+
+    let fig4T = 0;
+    let fig4TargetT = 0;
+    const fig4Circles = [];
+    const fig4Lines = [];
+
+    if (fig4OuterGroup && fig4InnerGroup && fig4DropGroup) {
+      const allCircs = [
+        ...fig4OuterGroup.querySelectorAll("circle"),
+        ...fig4InnerGroup.querySelectorAll("circle")
+      ];
+
+      allCircs.forEach((c) => {
+        const ox = parseFloat(c.getAttribute("data-orig-x"));
+        const oy = parseFloat(c.getAttribute("data-orig-y"));
+        fig4Circles.push({ el: c, ox, oy });
+
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", ox);
+        line.setAttribute("y1", oy);
+        line.setAttribute("x2", ox);
+        line.setAttribute("y2", 170);
+        line.setAttribute("stroke", "var(--muted)");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("stroke-dasharray", "3,3");
+        line.setAttribute("opacity", "0.4");
+        fig4DropGroup.appendChild(line);
+        fig4Lines.push(line);
+      });
+    }
+
+    if (fig4AnimBtn) {
+      fig4AnimBtn.addEventListener("click", () => {
+        fig4TargetT = fig4TargetT === 0 ? 1 : 0;
+        if (fig4TargetT === 1) {
+          fig4AnimBtn.classList.add("active");
+          fig4AnimText.textContent = "Restore 2D Concentric Rings";
+        } else {
+          fig4AnimBtn.classList.remove("active");
+          fig4AnimText.textContent = "Project Concentric Points (2D → 1D)";
+        }
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // MASTER ANIMATION LOOP
+    // ══════════════════════════════════════════════════════════════
+    function frame() {
+      // 0. Update Figure 1 (Camera & Multi-stage projections)
+      let fig1NeedsRender = false;
+      if (Math.abs(fig1TargetYaw - fig1Yaw) > 0.0005) {
+        fig1Yaw += (fig1TargetYaw - fig1Yaw) * 0.08;
+        fig1NeedsRender = true;
+      }
+      if (Math.abs(fig1TargetPitch - fig1Pitch) > 0.0005) {
+        fig1Pitch += (fig1TargetPitch - fig1Pitch) * 0.08;
+        fig1NeedsRender = true;
+      }
+      if (Math.abs(fig1TargetPlaneT - fig1PlaneT) > 0.0005) {
+        fig1PlaneT += (fig1TargetPlaneT - fig1PlaneT) * 0.08;
+        fig1NeedsRender = true;
+      }
+      if (Math.abs(fig1TargetLineT - fig1LineT) > 0.0005) {
+        fig1LineT += (fig1TargetLineT - fig1LineT) * 0.08;
+        fig1NeedsRender = true;
+      }
+      if (fig1NeedsRender) {
+        renderFig1();
+      }
+
+      // 1. Update Figure 2 (Camera, Zoom, Focus & 3D Projections)
+      let fig2NeedsRender = false;
+      if (Math.abs(fig2TargetYaw - fig2Yaw) > 0.0005) {
+        fig2Yaw += (fig2TargetYaw - fig2Yaw) * 0.08;
+        fig2NeedsRender = true;
+      }
+      if (Math.abs(fig2TargetPitch - fig2Pitch) > 0.0005) {
+        fig2Pitch += (fig2TargetPitch - fig2Pitch) * 0.08;
+        fig2NeedsRender = true;
+      }
+      if (Math.abs(fig2TargetZoom - fig2Zoom) > 0.001) {
+        fig2Zoom += (fig2TargetZoom - fig2Zoom) * 0.08;
+        fig2NeedsRender = true;
+      }
+      if (Math.abs(fig2TargetFocusX - fig2FocusX) > 0.01) {
+        fig2FocusX += (fig2TargetFocusX - fig2FocusX) * 0.08;
+        fig2FocusY += (fig2TargetFocusY - fig2FocusY) * 0.08;
+        fig2FocusZ += (fig2TargetFocusZ - fig2FocusZ) * 0.08;
+        fig2NeedsRender = true;
+      }
+      if (Math.abs(fig2TargetAxisT - fig2AxisT) > 0.0005) {
+        fig2AxisT += (fig2TargetAxisT - fig2AxisT) * 0.08;
+        fig2NeedsRender = true;
+      }
+      if (Math.abs(fig2TargetProjT - fig2ProjT) > 0.0005) {
+        fig2ProjT += (fig2TargetProjT - fig2ProjT) * 0.08;
+        fig2NeedsRender = true;
+      }
+      if (Math.abs(fig2TargetInspectT - fig2InspectT) > 0.0005) {
+        fig2InspectT += (fig2TargetInspectT - fig2InspectT) * 0.08;
+        fig2NeedsRender = true;
+      }
+      if (fig2NeedsRender) {
+        renderFig2();
+      }
+
+      // 2. Update Figure 4 (Concentric Circles)
+      if (Math.abs(fig4TargetT - fig4T) > 0.001) {
+        fig4T += (fig4TargetT - fig4T) * 0.08;
+        fig4Circles.forEach((c, i) => {
+          const curY = c.oy + fig4T * (170 - c.oy);
+          c.el.setAttribute("cy", curY);
+          if (fig4Lines[i]) {
+            fig4Lines[i].setAttribute("y1", curY);
+            fig4Lines[i].setAttribute("opacity", Math.max(0.15, 0.5 * (1 - fig4T * 0.6)));
+          }
+        });
+        if (fig4OverlapBox) {
+          fig4OverlapBox.setAttribute("stroke-width", fig4T > 0.6 ? (1.5 + fig4T * 1.5).toString() : "1.5");
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+  });
+})();
+</script>
 </body>
 </html>
