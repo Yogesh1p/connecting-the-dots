@@ -121,7 +121,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="20">
+  <meta name="reading_time" content="21">
     <meta property="og:title" content="Principal Component Analysis (PCA)">
     <meta property="og:description" content="From arbitrary measurement coordinates to the data's natural axes: discovering how geometric projection, Pythagorean variance conservation, and constrained optimization inevitably reveal the eigendecomposition of the covariance matrix.">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-principal-component-analysis-pca.png">
@@ -240,32 +240,29 @@
     </div>
 
     <figcaption class="figure-caption">
-      <strong>Figure 1:</strong> Interactive 3D visualization of housing data redundancy and dimensionality reduction. Compare vantage points (<em>"Area POV"</em> vs. <em>"Bedrooms POV"</em>) to see that both views repeat the same information. Click <em>"Slant Plane (3D → 2D)"</em> to flatten points onto the composite plane, or <em>"Principal Axis (2D → 1D)"</em> to collapse onto $w_1$. Drag anytime to rotate in 3D.
+      <strong>Figure 1:</strong> Interactive 3D visualization of housing data redundancy and dimensionality reduction. Compare vantage points (<em>"Area POV"</em> vs. <em>"Bedrooms POV"</em>) to see that both views repeat the same information. Click <em>"Slant Plane (3D → 2D)"</em> to flatten points onto the composite plane, or <em>"Principal Axis (2D → 1D)"</em> to collapse onto the principal axis. Drag anytime to rotate in 3D.
     </figcaption>
   </figure>
 
-  <h3>Visualizing Redundancy Through the Controls</h3>
+  <h3>Visualizing Redundancy</h3>
   <p>
-    As the 3D plot illustrates, the points do not fill the 3D space uniformly like a random gas. Because all three features increase together, the points cluster into an elongated, tilted cloud. Use the buttons above to witness how redundancy unfolds geometrically:
+    Because living area, bedrooms, and price increase together, the points do not fill the 3D space—they cluster into an elongated, nearly flat cloud:
   </p>
 
-  <ol>
+  <ul>
     <li>
-      <strong>The Duplicate Vantage Point (<em>Area POV</em> vs. <em>Bedrooms POV</em>):</strong>
-      Click <strong>"Area POV"</strong> to view the dataset along Living Area vs. Price, then click <strong>"Bedrooms POV"</strong> to rotate 90° around the vertical price axis. Notice how the scatter plot looks virtually identical from both angles. Because area and bedrooms move in lockstep, changing your vantage point provides no new perspective. Both features tell the exact same story about home size.
+      <strong>Area POV vs. Bedrooms POV:</strong> Both angles look virtually identical. Area and bedrooms move in lockstep, repeating the same story about house size.
     </li>
     <li>
-      <strong>The Slant Plane (<em>3D → 2D</em>):</strong>
-      Since Area and Bedrooms duplicate each other, we can replace them with a single <strong>composite axis</strong> on the floor that blends both measurements. Together with sale price, this defines a <strong>slant 2D plane</strong> slicing through the cloud. Click <strong>"Slant Plane (3D → 2D)"</strong> to watch each point slide along a perpendicular drop line directly onto this plane. Because the cloud was already nearly flat, dropping the perpendicular direction discards virtually zero information!
+      <strong>Slant Plane (3D → 2D):</strong> Because two features duplicate each other, flattening onto a 2D slant plane discards almost no information.
     </li>
     <li>
-      <strong>The Principal Axis (<em>2D → 1D</em>):</strong>
-      Inside that slant plane, composite size and price still climb together. Click <strong>"Principal Axis (2D → 1D)"</strong> to collapse the points along the single diagonal direction of maximum spread.
+      <strong>Principal Axis (2D → 1D):</strong> Within that plane, points still stretch along a single dominant diagonal of maximum spread.
     </li>
-  </ol>
+  </ul>
 
   <p>
-    Our original coordinate axes (Area, Bedrooms, Price) were chosen arbitrarily by our measurement instruments, not by the data itself. If we want to simplify our data without arbitrarily throwing away features, we face an intuitive question:
+    From both points of view, our original axes fail to give us what we want—they only repeat redundant information. This leaves us with an intuitive question:
   </p>
 
   <div class="math-box">
@@ -282,12 +279,20 @@
   <h2>Geometric First Principles</h2>
 
   <p>
-    Let us construct PCA from the ground up. We are given a dataset of $n$ observations $\{x_1, x_2, \dots, x_n\}$, where each data point $x_i \in \mathbb{R}^d$ is a column vector of $d$ features.
+    To find a natural coordinate axis, we must explore what "aligning with the data" actually requires. Let us unfold this concept step by step by asking three fundamental questions.
   </p>
 
-  <h3>Centering the Data Cloud</h3>
+  <h3>1. Where Should the New Axis Pass Through?</h3>
   <p>
-    Before searching for directions of variance, we must eliminate arbitrary coordinate offsets. We calculate the sample mean vector:
+    An axis is a straight line through space. But where should this line be anchored?
+  </p>
+
+  <p>
+    If we draw an axis through an arbitrary corner of space far away from the data, each home's coordinate along that line will mostly measure the massive distance from the origin to the neighborhood, rather than how homes differ from one another.
+  </p>
+
+  <p>
+    To measure pure internal variation, our coordinate system must be anchored at the physical balance point of the data—its <strong>center of mass</strong>. For a dataset of $n$ observations $\{x_1, x_2, \dots, x_n\} \subset \mathbb{R}^d$, we calculate the sample mean vector:
   </p>
 
   <div class="math-display">
@@ -295,7 +300,7 @@
   </div>
 
   <p>
-    and center every observation by shifting the center of mass to the origin:
+    and shift every observation so that the center of mass rests at the origin:
   </p>
 
   <div class="math-display">
@@ -303,16 +308,16 @@
   </div>
 
   <p>
-    From this point onward, our dataset satisfies $\sum_{i=1}^n x_i = \mathbf{0}$. With the mean centered at the origin, any candidate axis passing through the origin represents a genuine axis of variation, and the squared Euclidean length $\|x_i\|^2$ represents the pure variance of data point $x_i$ from the dataset's center of mass.
+    Now, the dataset satisfies $\sum_{i=1}^n x_i = \mathbf{0}$. With the origin placed at the heart of the cloud, any line passing through the origin is a candidate axis of variation, and the squared distance $\|x_i\|^2$ measures pure variance from the dataset's mean.
   </p>
 
-  <h3>Projecting onto a Direction</h3>
+  <h3>2. How Do We Measure Points Along a Candidate Axis?</h3>
   <p>
-    Suppose we test a candidate direction defined by a unit vector $w \in \mathbb{R}^d$ (with $\|w\| = 1$). How do we mathematically describe what happens when an observation $x_i$ is compressed onto the 1D line spanned by $w$?
+    Any candidate axis passing through the origin can be defined by a unit direction vector $w \in \mathbb{R}^d$ (with length $\|w\| = 1$).
   </p>
 
   <p>
-    Orthogonally projecting $x_i$ onto $w$ splits the point into two distinct pieces:
+    How does a 3D house get placed onto this 1D line? We shine a light perpendicular to the axis and observe where the point casts its shadow:
   </p>
 
   <ul>
@@ -323,13 +328,13 @@
       </div>
     </li>
     <li>
-      The <strong>vector projection</strong> (the reconstructed point lying on the axis line):
+      The <strong>reconstructed position</strong> in space (the shadow itself lying on the line spanned by $w$):
       <div class="math-display">
         $$\hat{x}_i = (w^T x_i)w$$
       </div>
     </li>
     <li>
-      The <strong>reconstruction error vector</strong> (the residual perpendicular to the axis that gets discarded):
+      The <strong>reconstruction error</strong> (the perpendicular gap between the original point and the axis):
       <div class="math-display">
         $$e_i = x_i - (w^T x_i)w$$
       </div>
@@ -337,7 +342,7 @@
   </ul>
 
   <p>
-    Notice that the original point decomposes cleanly and exactly into two orthogonal components:
+    Notice that the original point splits cleanly into two perpendicular pieces:
   </p>
 
   <div class="math-display">
@@ -466,13 +471,47 @@
     </figcaption>
   </figure>
 
-  <h3>The Pythagorean Conservation Law</h3>
+  <h3>3. What Does "Best Alignment" Actually Mean?</h3>
   <p>
-    Because the projection vector $(w^T x_i)w$ lies along $w$ and the error vector $e_i$ is perpendicular to $w$ (since $w^T e_i = w^T(x_i - (w^T x_i)w) = w^T x_i - (w^T x_i)(w^T w) = 0$), they form the perpendicular legs of a right triangle whose hypotenuse is $x_i$.
+    If we can rotate this candidate axis $w$ in any direction around the origin, how do we decide which direction aligns "best" with the natural shape of the data?
   </p>
 
   <p>
-    By the Pythagorean theorem, the squared lengths satisfy:
+    Two completely different, highly intuitive answers immediately come to mind:
+  </p>
+
+  <ol>
+    <li>
+      <strong>The Information View (Maximize Spread):</strong> We want the projected shadows along the axis to spread out as wide as possible. If all homes collapse into a tight cluster at the same point, we lose the ability to distinguish small homes from mansions. Therefore, the optimal axis should <strong>maximize the variance of the projected coordinates</strong>:
+      <div class="math-display">
+        $$\max_{\|w\|=1} \frac{1}{n} \sum_{i=1}^n (w^T x_i)^2$$
+      </div>
+    </li>
+    <li>
+      <strong>The Compression View (Minimize Loss):</strong> We want the axis to hug the data cloud as closely as possible, keeping the discarded perpendicular drop lines as short as possible. Therefore, the optimal axis should <strong>minimize the mean squared reconstruction error</strong>:
+      <div class="math-display">
+        $$\min_{\|w\|=1} \frac{1}{n} \sum_{i=1}^n \|x_i - (w^T x_i)w\|^2$$
+      </div>
+    </li>
+  </ol>
+
+  <p>
+    At first glance, this raises an apparent conflict:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Are these two goals in tension? Could a direction that spreads out the shadows also force some points further away from the axis?</em></p>
+    </div>
+  </div>
+
+  <h3>4. The Pythagorean Conservation Law</h3>
+  <p>
+    To resolve this question, examine the right triangle visualized in Figure 2. Because the projection vector $(w^T x_i)w$ lies directly along the axis and the error vector $e_i$ is perpendicular to it (since $w^T e_i = w^T(x_i - (w^T x_i)w) = w^T x_i - (w^T x_i)(w^T w) = 0$), they form the perpendicular legs of a right triangle whose hypotenuse is the observation vector $x_i$.
+  </p>
+
+  <p>
+    By the Pythagorean theorem, their squared lengths satisfy:
   </p>
 
   <div class="math-display">
@@ -494,11 +533,11 @@
   </div>
 
   <p>
-    Look closely at what this algebraic identity reveals: the left-hand side is the total sum of squared distances from the origin to all data points—a fixed geometric constant determined solely by the dataset itself, completely independent of which direction $w$ we choose.
+    This equation resolves our dilemma completely: the left-hand side is the total sum of squared distances from the origin to all data points—a <strong>fixed constant</strong> determined solely by the dataset itself, completely independent of our choice of $w$.
   </p>
 
   <p>
-    Because their sum is fixed, every bit of variance preserved along $w$ directly subtracts from the error discarded perpendicular to $w$. We have arrived at the foundational duality of dimensionality reduction:
+    Because their sum is locked in place, the two goals are not in tension at all. Every unit of variance preserved along the axis directly subtracts from the error discarded perpendicular to it. We have arrived at the foundational duality of dimensionality reduction:
   </p>
 
   <div class="math-box">
@@ -514,11 +553,7 @@
   </div>
 
   <p>
-    This equivalence establishes why PCA works from two completely different perspectives: whether your goal is to <em>maximize the information you keep</em> or <em>minimize the distortion you introduce</em>, the optimal direction $w$ is identical.
-  </p>
-
-  <p>
-    This brings us to the core computational challenge:
+    This brings us to the core computational challenge: now that we know what makes a direction optimal, how do we mathematically calculate the exact vector $w$ that achieves it?
   </p>
 
   <div class="math-box">
