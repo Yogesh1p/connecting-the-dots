@@ -121,7 +121,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="21">
+  <meta name="reading_time" content="24">
     <meta property="og:title" content="Principal Component Analysis (PCA)">
     <meta property="og:description" content="From arbitrary measurement coordinates to the data's natural axes: discovering how geometric projection, Pythagorean variance conservation, and constrained optimization inevitably reveal the eigendecomposition of the covariance matrix.">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-principal-component-analysis-pca.png">
@@ -149,19 +149,39 @@
 
   <h3>The Dimensionality Dilemma</h3>
   <p>
-    Suppose we collect data with multiple features. For instance, in a real estate dataset, each home might record its <strong>living area</strong>, <strong>number of bedrooms</strong>, and <strong>sale price</strong>.
+    In our introduction to representation learning, we discovered that once a candidate axis $w$ is chosen, the optimal proxy for any data point is its orthogonal projection $(w^T x)w$.
   </p>
 
   <p>
-    In real-world data, features are rarely independent. If a home's living area increases, its number of bedrooms is bound to increase; if the bedroom count rises, the square footage naturally expands with it. Treating them as separate measurements creates an illusion of having two independent pieces of information—when in truth, <strong>dependency means duplicate information</strong>.
+    Yet that discovery left us facing a central mystery: <em>who gives us the line?</em> And why would high-dimensional data points lie anywhere near a lower-dimensional line or plane in the first place?
   </p>
 
   <p>
-    Whenever features depend on each other—whether that dependency is linear, cubic, or a complex polynomial curve—our dataset contains redundancy. Our intention is to find a representation of the data where features are independent, eliminating redundant information.
+    The answer connects directly back to why compression is possible at all: <strong>compression is simply the removal of redundant information</strong>. If every feature we measured varied completely independently of every other, our data points would fill the entire multi-dimensional space, and reducing dimensions would destroy irreplaceable information.
   </p>
 
   <p>
-    To see how this redundancy reveals itself geometrically, imagine plotting this dataset in a 3D coordinate space: living area along the $x$-axis, bedrooms along the $y$-axis, and price along the $z$-axis (Figure 1). What does the data cloud look like?
+    In real-world data, however, measurements are rarely independent—they carry <strong>feature dependency</strong>.
+  </p>
+
+  <p>
+    Suppose we collect data on homes in a real estate market, recording three features for each property: <strong>living area</strong>, <strong>number of bedrooms</strong>, and <strong>sale price</strong>.
+  </p>
+
+  <p>
+    A home with large square footage almost always has more bedrooms; as living area and bedroom count expand, the market price naturally climbs alongside them. Treating them as three separate measurements creates an illusion of having three independent pieces of information—when in truth, <strong>feature dependency means duplicate information</strong>.
+  </p>
+
+  <p>
+    Whenever features depend on each other—whether that dependency is linear, quadratic, or a complex curve—the data points do not scatter randomly to fill the entire 3D volume. Instead, they collapse onto a lower-dimensional manifold: a flat sheet or an elongated cloud.
+  </p>
+
+  <p>
+    Our intention in <strong>Principal Component Analysis (PCA)</strong> is to discover a new coordinate system aligned directly with the data's natural spread, where transformed features become independent and redundant dimensions can be safely dropped.
+  </p>
+
+  <p>
+    To see how this redundancy reveals itself geometrically, imagine plotting this real estate dataset in 3D coordinate space: living area along the $x$-axis, bedrooms along the $y$-axis, and price along the $z$-axis (Figure 1). What does the data cloud look like?
   </p>
 
   <figure class="diagram-figure">
@@ -462,7 +482,7 @@
     </div>
 
     <!-- Live Mathematical Readout when Zooming into an Observation -->
-    <div id="fig2-inspect-readout" style="display: none; margin-top: 0.9rem; padding: 0.65rem 1.1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; color: var(--text); line-height: 1.5; width: 100%; max-width: 680px; text-align: center;">
+    <div id="fig2-inspect-readout" style="display: none; margin-top: 0.9rem; padding: 0.6rem 0; font-size: 0.92rem; color: var(--text); line-height: 1.5; width: 100%; max-width: 680px; text-align: center;">
       <span id="fig2-readout-text"></span>
     </div>
 
@@ -821,70 +841,177 @@
     This conservation law reveals that the total variance in the original coordinate system is completely preserved when we rotate our axes to the principal component coordinates—the sum of the variances along each eigenvector (eigenvalue) is exactly equal to the total variance of the raw features.
   </p>
 
-  <h3>Iterative Residue Decomposition</h3>
+  <h3>Iterative Residue Decomposition &amp; Deflation</h3>
   <p>
-    This allows us to view the dimensionality reduction process as an iterative decomposition of variance and residue. For instance, if we only project our data onto the first principal component $w_1$, the Pythagorean theorem yields:
+    This allows us to view dimensionality reduction as a greedy, iterative deflation of variance. When we project our data onto the first principal component $w_1$, the residual vector for observation $x_i$ is:
   </p>
 
   <div class="math-display">
-    $$\frac{1}{n} \sum_{i=1}^n \|x_i\|^2 = \frac{1}{n} \sum_{i=1}^n (x_i^T w_1)^2 + \frac{1}{n} \sum_{i=1}^n \|x_i - (x_i^T w_1) w_1\|^2$$
+    $$x_i^{(1)} = x_i - (w_1^T x_i)w_1$$
   </div>
 
   <p>
-    In words:
+    Crucially, this residue <strong>is not useless error—it contains structured information</strong> along the remaining directions! To extract the next most informative direction, we construct the residue covariance matrix:
   </p>
 
   <div class="math-display">
-    $$\text{Total Variance} = \text{variance along } w_1 + \text{mean squared residue along } w_1$$
+    $$C^{(1)} = \frac{1}{n} \sum_{i=1}^n x_i^{(1)} (x_i^{(1)})^T$$
   </div>
 
   <p>
-    Since the residue $x_i - (x_i^T w_1)w_1$ lives in the $(d-1)$-dimensional orthogonal complement of $w_1$, we can repeat this process and project the residue onto the second component $w_2$, stripping away another orthogonal variance layer:
+    and solve for the unit direction $w_2$ that maximizes $w^T C^{(1)} w$. Because $w_1^T x_i^{(1)} = w_1^T x_i - (w_1^T x_i)(w_1^T w_1) = 0$, every single residue vector has zero projection onto $w_1$. Consequently, the optimal direction $w_2$ is automatically <strong>orthogonal to $w_1$</strong>:
   </p>
 
   <div class="math-display">
-    $$\text{Mean squared residue along } w_1 = \text{variance along } w_2 + \text{mean squared residue along } w_2$$
+    $$w_1^T w_2 = 0$$
   </div>
 
   <p>
-    Continuing this process down to $d$ dimensions yields the complete decomposition:
+    Furthermore, because $w_1^T w_2 = 0$, projecting the residue onto $w_2$ simplifies cleanly:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-    \frac{1}{n} \sum_{i=1}^n \|x_i\|^2 &= \text{variance along } w_1 + \text{mean squared residue along } w_1 \\
-    &= \text{variance along } w_1 + \left(\text{variance along } w_2 + \text{mean squared residue along } w_2\right) \\
-    &= \dots \\
-    &= \sum_{k=1}^d \text{variance along } w_k \\
-    &= \sum_{k=1}^d \lambda_k
+      w_2^T x_i^{(1)} &= w_2^T \left( x_i - (w_1^T x_i)w_1 \right) \\[6pt]
+      &= w_2^T x_i - (w_1^T x_i)(w_2^T w_1) \\[6pt]
+      &= w_2^T x_i
     \end{aligned}$$
   </div>
 
-  <h3>What Does It Mean to "Explain X% of Variance"?</h3>
   <p>
-    When we compress our dataset by projecting it onto the first $m$ principal components ($m &lt; d$), we retain only the variance along those $m$ directions. The rest is discarded as reconstruction error. 
-  </p>
-  <p>
-    The fraction of the total dataset variance captured by these $m$ components is called the <strong>Explained Variance Ratio</strong>:
+    and the residue after round 2 becomes simply:
   </p>
 
   <div class="math-display">
-    $$\text{Explained Variance Ratio} = \frac{\sum_{k=1}^m \lambda_k}{\sum_{j=1}^d \lambda_j}$$
+    $$x_i^{(2)} = x_i - (w_1^T x_i)w_1 - (w_2^T x_i)w_2$$
   </div>
 
   <p>
-    When a scientist or algorithm states that, <em>"with this eigenface, we are explaining $X\%$ of the covariance/variance,"</em> it means that:
+    Continuing this deflation for $d$ rounds, the residues must collapse to exactly zero:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      x_i - \sum_{k=1}^d (w_k^T x_i)w_k &= \mathbf{0} \\[8pt]
+      x_i &= \sum_{k=1}^d (w_k^T x_i)w_k
+    \end{aligned}$$
+  </div>
+
+  <p>
+    because the $d$ orthonormal eigenvectors $\{w_1, \dots, w_d\}$ form a complete basis for $\mathbb{R}^d$. By the Pythagorean theorem, the total variance decomposes into the sum of the individual component variances:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \frac{1}{n} \sum_{i=1}^n \|x_i\|^2 &= \sum_{k=1}^d \frac{1}{n}\sum_{i=1}^n (w_k^T x_i)^2 \\[8pt]
+      &= \sum_{k=1}^d w_k^T C w_k \\[8pt]
+      &= \sum_{k=1}^d \lambda_k
+    \end{aligned}$$
+  </div>
+
+  <h3>Signal vs. Noise: The Scree Spectrum</h3>
+  <p>
+    In each round $k$, the variance captured along direction $w_k$ is precisely the eigenvalue $\lambda_k = w_k^T C w_k$. When we plot these eigenvalues in descending order:
+  </p>
+
+  <div class="math-display">
+    $$\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$$
+  </div>
+
+  <p>
+    a characteristic pattern appears across real datasets: the curve drops steeply over the first few components (representing the true <strong>signal</strong> of the underlying data manifold) and then flattens into an extended, low-variance floor (representing random measurement <strong>noise</strong>).
+  </p>
+
+  <h3>Concrete Compression Economics</h3>
+  <p>
+    What happens when data lives in an <em>approximately</em> low-dimensional subspace? If the trailing eigenvalues $\lambda_{K+1}, \dots, \lambda_d$ are negligibly small, we can truncate the expansion at $K \ll d$ components:
+  </p>
+
+  <div class="math-display">
+    $$x_i \approx \sum_{k=1}^K (w_k^T x_i)w_k$$
+  </div>
+
+  <p>
+    Let us evaluate the actual storage savings with concrete numbers:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Uncompressed Storage:</strong> Storing $n$ observations in $\mathbb{R}^d$ requires $n \times d$ floating-point numbers.
+    </li>
+    <li>
+      <strong>Compressed Storage:</strong> Storing the $K$ basis vectors $\{w_1, \dots, w_K\} \subset \mathbb{R}^d$ requires $K \times d$ numbers. Storing the $K$-dimensional coordinates $[w_1^T x_i, \dots, w_K^T x_i]^T$ for all $n$ points requires $n \times K$ numbers.
+    </li>
+  </ul>
+
+  <p>
+    Consider a realistic machine learning dataset with $n = 10{,}000$ samples and $d = 1{,}000$ feature measurements, compressed down to $K = 10$ principal components:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \text{Without Compression} &= n \times d \\[6pt]
+      &= 10{,}000 \times 1{,}000 \\[6pt]
+      &= 10{,}000{,}000 \text{ numbers } (10^7) \\[10pt]
+      \text{With Compression} &= (n \times K) + (K \times d) \\[6pt]
+      &= (10{,}000 \times 10) + (10 \times 1{,}000) \\[6pt]
+      &= 100{,}000 + 10{,}000 \\[6pt]
+      &= 110{,}000 \text{ numbers} \\[10pt]
+      \text{Compression Ratio} &= \frac{10{,}000{,}000}{110{,}000} \approx 90.9\times
+    \end{aligned}$$
+  </div>
+
+  <p>
+    We have reduced our storage footprint by <strong>over $90\times$</strong> while retaining virtually all of the essential geometric information!
+  </p>
+
+  <h3>What Does It Mean to "Explain X% of Variance"?</h3>
+  <p>
+    When we compress our dataset onto the first $K$ principal components ($K &lt; d$), the fraction of the total dataset variance captured is the <strong>Explained Variance Ratio</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\text{Explained Variance Ratio} = \frac{\sum_{k=1}^K \lambda_k}{\sum_{j=1}^d \lambda_j}$$
+  </div>
+
+  <p>
+    When an analysis states that the top components explain $95\%$ of the variance, it means:
+  </p>
+
+  <div class="math-display">
+    $$\frac{\sum_{k=1}^K \lambda_k}{\sum_{j=1}^d \lambda_j} \ge 0.95$$
+  </div>
+
+  <p>
+    Geometrically, $95\%$ of the total squared distance of the centered observations from their mean is preserved along the $K$-dimensional hyperplane spanned by $\{w_1, \dots, w_K\}$, while only $5\%$ lies in the discarded perpendicular residuals.
   </p>
 
   <div class="math-box">
-    <div class="math-box-body" style="text-align: center;">
-      $$\frac{\lambda_1}{\sum_{j=1}^d \lambda_j} = \frac{X}{100}$$
+    <div class="math-box-label">The Principal Component Analysis (PCA) Algorithm</div>
+    <div class="math-box-body">
+      <ol style="margin: 0.4rem 0; padding-left: 1.3rem; line-height: 1.8;">
+        <li>
+          <strong>Input:</strong> Unlabeled dataset $\mathcal{D} = \{x_1, x_2, \dots, x_n\} \subset \mathbb{R}^d$.
+        </li>
+        <li>
+          <strong>Preprocessing (Centering):</strong> Compute the sample mean $\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$ and center every observation:
+          $$x_i \leftarrow x_i - \bar{x}$$
+        </li>
+        <li>
+          <strong>Compute Covariance &amp; Eigendecomposition:</strong> Compute sample covariance matrix $C = \frac{1}{n} \sum_{i=1}^n x_i x_i^T = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$. Find its orthonormal eigenvectors $\{w_1, \dots, w_d\}$ and sorted eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$.
+        </li>
+        <li>
+          <strong>Select Dimensionality $K$ (Stopping Rule):</strong> Pick the smallest integer $K$ satisfying:
+          $$\frac{\sum_{k=1}^K \lambda_k}{\sum_{j=1}^d \lambda_j} \ge 0.95$$
+        </li>
+        <li>
+          <strong>Store Compressed Representation:</strong> For each observation $x_i$, store its $K$-dimensional coordinate vector:
+          $$z_i = \begin{bmatrix} w_1^T x_i \\[3pt] w_2^T x_i \\[3pt] \vdots \\[3pt] w_K^T x_i \end{bmatrix} \in \mathbb{R}^K$$
+          along with the $K$ basis direction vectors $\{w_1, w_2, \dots, w_K\} \subset \mathbb{R}^d$.
+        </li>
+      </ol>
     </div>
   </div>
-
-  <p>
-    Geometrically, it signifies that $X\%$ of the total squared distance of the centered data points from their mean is preserved along that single eigenvector axis, while the remaining $(100-X)\%$ of the spread lies in the perpendicular directions (residues) that we are choosing to discard.
-  </p>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -1437,23 +1564,23 @@
     let fig1StartX = 0, fig1StartY = 0;
     let fig1StartYaw = 0, fig1StartPitch = 0;
 
-    const fig1Cx = 380, fig1Cy = 240, fig1D = 850;
+    const fig1Cx = 380, fig1Cy = 240;
     const fig1Px = 150, fig1Py = 120, fig1Pz = 120;
+    const fig1Scale = 1.05;
 
     function projectFig1(x, y, z, yaw, pitch) {
-      const rx = x - fig1Px, ry = y - fig1Py, rz = z - fig1Pz;
+      const dx = x - fig1Px, dy = y - fig1Py, dz = z - fig1Pz;
       const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
-      const x1 = rx * cosY - ry * sinY;
-      const y1 = rx * sinY + ry * cosY;
+      const x1 = dx * cosY - dy * sinY;
+      const y1 = dx * sinY + dy * cosY;
       const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
-      const depth = y1 * cosP + rz * sinP;
-      const screenY = -y1 * sinP + rz * cosP;
-      const scale = fig1D / (fig1D + depth);
+      const depth = y1 * cosP - dz * sinP;
+      const screenY = y1 * sinP + dz * cosP;
       return {
-        u: fig1Cx + x1 * scale,
-        v: fig1Cy - screenY * scale,
+        u: fig1Cx + x1 * fig1Scale,
+        v: fig1Cy - screenY * fig1Scale,
         depth: depth,
-        scale: scale
+        scale: 1.0
       };
     }
 
@@ -1512,6 +1639,7 @@
       if (!fig1Svg) return;
 
       // 1. Grid
+      const gridOpacity = Math.min(0.55, Math.max(0, Math.sin(Math.max(0, fig1Pitch)) * 1.5));
       fig1FloorLines.forEach((fl) => {
         const p1 = projectFig1(fl.x1, fl.y1, fl.z1, fig1Yaw, fig1Pitch);
         const p2 = projectFig1(fl.x2, fl.y2, fl.z2, fig1Yaw, fig1Pitch);
@@ -1519,6 +1647,7 @@
         fl.el.setAttribute("y1", p1.v);
         fl.el.setAttribute("x2", p2.u);
         fl.el.setAttribute("y2", p2.v);
+        fl.el.setAttribute("opacity", gridOpacity.toFixed(2));
       });
 
       // 2. Axes
@@ -1527,37 +1656,52 @@
       const pY = projectFig1(0, 260, 0, fig1Yaw, fig1Pitch);
       const pZ = projectFig1(0, 0, 260, fig1Yaw, fig1Pitch);
 
+      const lenX = Math.hypot(pX.u - p0.u, pX.v - p0.v);
+      const lenY = Math.hypot(pY.u - p0.u, pY.v - p0.v);
+      const lenZ = Math.hypot(pZ.u - p0.u, pZ.v - p0.v);
+
       if (fig1AxisX) {
         fig1AxisX.setAttribute("x1", p0.u); fig1AxisX.setAttribute("y1", p0.v);
         fig1AxisX.setAttribute("x2", pX.u); fig1AxisX.setAttribute("y2", pX.v);
+        fig1AxisX.setAttribute("opacity", lenX < 8 ? "0" : "1");
       }
       if (fig1AxisY) {
         fig1AxisY.setAttribute("x1", p0.u); fig1AxisY.setAttribute("y1", p0.v);
         fig1AxisY.setAttribute("x2", pY.u); fig1AxisY.setAttribute("y2", pY.v);
+        fig1AxisY.setAttribute("opacity", lenY < 8 ? "0" : "1");
       }
       if (fig1AxisZ) {
         fig1AxisZ.setAttribute("x1", p0.u); fig1AxisZ.setAttribute("y1", p0.v);
         fig1AxisZ.setAttribute("x2", pZ.u); fig1AxisZ.setAttribute("y2", pZ.v);
+        fig1AxisZ.setAttribute("opacity", lenZ < 8 ? "0" : "1");
       }
 
       // 3. Dynamic Labels
       if (fig1LblOrigin) {
-        fig1LblOrigin.setAttribute("x", p0.u - 12);
+        fig1LblOrigin.setAttribute("x", p0.u - 14);
         fig1LblOrigin.setAttribute("y", p0.v + 14);
       }
       if (fig1LblX) {
-        const dx = pX.u - p0.u, dy = pX.v - p0.v;
-        const len = Math.hypot(dx, dy) || 1;
-        fig1LblX.setAttribute("x", pX.u + (dx / len) * 16);
-        fig1LblX.setAttribute("y", pX.v + (dy / len) * 16 + 5);
-        fig1LblX.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+        if (lenX >= 8) {
+          const dx = pX.u - p0.u, dy = pX.v - p0.v;
+          fig1LblX.setAttribute("x", pX.u + (dx / lenX) * 16);
+          fig1LblX.setAttribute("y", pX.v + (dy / lenX) * 16 + 5);
+          fig1LblX.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+          fig1LblX.setAttribute("opacity", "1");
+        } else {
+          fig1LblX.setAttribute("opacity", "0");
+        }
       }
       if (fig1LblY) {
-        const dx = pY.u - p0.u, dy = pY.v - p0.v;
-        const len = Math.hypot(dx, dy) || 1;
-        fig1LblY.setAttribute("x", pY.u + (dx / len) * 16);
-        fig1LblY.setAttribute("y", pY.v + (dy / len) * 16 + 5);
-        fig1LblY.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+        if (lenY >= 8) {
+          const dx = pY.u - p0.u, dy = pY.v - p0.v;
+          fig1LblY.setAttribute("x", pY.u + (dx / lenY) * 16);
+          fig1LblY.setAttribute("y", pY.v + (dy / lenY) * 16 + 5);
+          fig1LblY.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+          fig1LblY.setAttribute("opacity", "1");
+        } else {
+          fig1LblY.setAttribute("opacity", "0");
+        }
       }
       if (fig1LblZ) {
         fig1LblZ.setAttribute("x", pZ.u);
@@ -1639,14 +1783,16 @@
         item.drop.setAttribute("x2", pFloor.u);
         item.drop.setAttribute("y2", pFloor.v);
 
+        const shadowOp = Math.min(0.35, Math.max(0, Math.sin(Math.max(0, fig1Pitch)) * 1.0));
         item.shadow.setAttribute("cx", pFloor.u);
         item.shadow.setAttribute("cy", pFloor.v);
-        item.shadow.setAttribute("r", Math.max(1.5, 2.5 * pFloor.scale));
+        item.shadow.setAttribute("r", "2.5");
+        item.shadow.setAttribute("opacity", shadowOp.toFixed(2));
 
         item.circle.setAttribute("cx", p3d.u);
         item.circle.setAttribute("cy", p3d.v);
-        item.circle.setAttribute("r", Math.max(3.5, 5 * p3d.scale));
-        item.circle.setAttribute("opacity", Math.min(1, Math.max(0.65, 0.85 * p3d.scale)));
+        item.circle.setAttribute("r", "5");
+        item.circle.setAttribute("opacity", "0.85");
         item.depth = p3d.depth;
       });
 

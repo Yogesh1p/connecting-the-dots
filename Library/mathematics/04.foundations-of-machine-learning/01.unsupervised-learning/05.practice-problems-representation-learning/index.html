@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="cb00deb9">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="Practice Problems: Representation Learning">
+<meta name="description" content="Mastering continuous latent variables, principal component analysis, high-dimensional dual representations, and kernel PCA through guided, first-principles solutions to Christopher Bishop's PRML Chapter 12 exercises.">
+<meta name="keywords" content="PRML, Bishop, exercises, principal component analysis, maximum variance, minimum reconstruction error, high-dimensional PCA, kernel PCA, Gram matrix centering, practice problems">
+<meta name="status" content="draft">
+<meta name="date" content="2026-09-10">
+<meta name="author" content="Yogesh">
+
+<title>Practice Problems: Representation Learning</title>
+
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .problem-item {
+    margin: 3.5rem 0 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .problem-item:first-of-type {
+    margin-top: 2rem;
+    padding-top: 0;
+    border-top: none;
+  }
+  .problem-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.2rem;
+  }
+  .problem-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+  .problem-badge {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .question-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.4rem;
+    margin: 1.2rem 0 1.8rem;
+  }
+  .question-tag {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .question-canvas p {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  .question-canvas > :first-child {
+    margin-top: 0;
+  }
+  .question-canvas > :last-child {
+    margin-bottom: 0;
+  }
+  .question-canvas .math-display {
+    margin: 1rem 0;
+  }
+  .solution-heading {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 1.8rem 0 0.8rem;
+  }
+  .solution-step {
+    margin: 1.8rem 0;
+    padding-left: 1.2rem;
+    border-left: 2px solid var(--border);
+  }
+  .solution-step h4 {
+    margin: 0 0 0.6rem 0;
+    font-size: 1.05rem;
+    color: var(--dark);
+    font-family: 'Lora', serif;
+    font-weight: 600;
+  }
+  .takeaway {
+    margin-top: 1.6rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--accent);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="15">
+    <meta property="og:title" content="Practice Problems: Representation Learning">
+    <meta property="og:description" content="Mastering continuous latent variables, principal component analysis, high-dimensional dual representations, and kernel PCA through guided, first-principles solutions to Christopher Bishop's PRML Chapter 12 exercises.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-practice-problems-representation-learning.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Introduction                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="introduction">
+  <p>
+    True mastery of mathematical machine learning does not come from memorizing algorithmic steps—it comes from feeling the gears turn when algebra, geometry, and optimization collide.
+  </p>
+
+  <p>
+    In this practice laboratory, we pressure-test our understanding of representation learning across the classical theoretical challenges posed in Christopher Bishop's seminal text, <em>Pattern Recognition and Machine Learning</em> (PRML, Chapter 12).
+  </p>
+
+  <p>
+    Each problem is presented as a complete, guided walkthrough: first framing the core question and its physical intuition, and then unfolding the exact, step-by-step derivation without skipped algebra.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Category 1: Maximum Variance & Orthogonality            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="max-variance">
+  <h2>Category 1: Maximum Variance &amp; Orthogonality</h2>
+
+  <p>
+    In standard PCA, we seek directions in feature space that preserve the greatest spread of data. How does constrained calculus inevitably produce the eigenvalue equation, and why are subsequent principal axes guaranteed to decouple?
+  </p>
+
+  <!-- Problem 1 (Bishop 12.1) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 1: The Stationarity Condition &amp; Maximum Projected Variance</h3>
+      <span class="problem-badge">PRML Exercise 12.1</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Consider a dataset of $N$ observations $\{x_1, \dots, x_N\} \subset \mathbb{R}^D$ with sample mean $\bar{x} = \frac{1}{N}\sum_{n=1}^N x_n$ and sample covariance matrix:
+      </p>
+      <div class="math-display">
+        $$S = \frac{1}{N} \sum_{n=1}^N (x_n - \bar{x})(x_n - \bar{x})^T$$
+      </div>
+      <p>
+        We wish to project each centered point onto a single unit direction $u_1 \in \mathbb{R}^D$ with $u_1^T u_1 = 1$. Prove that the direction maximizing the projected variance is an eigenvector of $S$ corresponding to the largest eigenvalue.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Objective Formulation &amp; Constrained Lagrangian</h4>
+      <p>
+        The scalar coordinate of observation $x_n$ along direction $u_1$ is $u_1^T x_n$. The sample variance of these projected coordinates is:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \frac{1}{N} \sum_{n=1}^N \left( u_1^T x_n - u_1^T \bar{x} \right)^2 &= \frac{1}{N} \sum_{n=1}^N \left( u_1^T (x_n - \bar{x}) \right)^2 \\[6pt]
+          &= \frac{1}{N} \sum_{n=1}^N u_1^T (x_n - \bar{x})(x_n - \bar{x})^T u_1 \\[6pt]
+          &= u_1^T \left( \frac{1}{N} \sum_{n=1}^N (x_n - \bar{x})(x_n - \bar{x})^T \right) u_1 \\[6pt]
+          &= u_1^T S u_1
+        \end{aligned}$$
+      </div>
+      <p>
+        Without constraint, $u_1^T S u_1$ can be made arbitrarily large simply by scaling $\|u_1\| \to \infty$. To find a pure direction, we impose the normalization constraint $u_1^T u_1 = 1$ using a Lagrange multiplier $\lambda_1$:
+      </p>
+      <div class="math-display">
+        $$\mathcal{L}(u_1, \lambda_1) = u_1^T S u_1 - \lambda_1 (u_1^T u_1 - 1)$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Stationarity Condition</h4>
+      <p>
+        Taking the vector gradient with respect to $u_1$ and setting it to zero:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \nabla_{u_1} \mathcal{L} &= \nabla_{u_1} \left( u_1^T S u_1 \right) - \lambda_1 \nabla_{u_1} \left( u_1^T u_1 \right) \\[6pt]
+          &= 2 S u_1 - 2 \lambda_1 u_1 \\[6pt]
+          &= \mathbf{0}
+        \end{aligned}$$
+      </div>
+      <p>
+        Dividing by $2$ reveals the fundamental eigenvalue equation of linear algebra:
+      </p>
+      <div class="math-display">
+        $$S u_1 = \lambda_1 u_1$$
+      </div>
+      <p>
+        Hence, every stationary point of the variance objective is an <strong>eigenvector</strong> of the covariance matrix $S$, and the Lagrange multiplier $\lambda_1$ is its associated <strong>eigenvalue</strong>.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Global Maximization</h4>
+      <p>
+        To determine which eigenvector maximizes the variance, multiply the eigenvalue equation on the left by $u_1^T$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u_1^T S u_1 &= u_1^T (\lambda_1 u_1) \\[6pt]
+          &= \lambda_1 (u_1^T u_1) \\[6pt]
+          &= \lambda_1
+        \end{aligned}$$
+      </div>
+      <p>
+        The projected variance along direction $u_1$ is <em>identically equal</em> to the eigenvalue $\lambda_1$. Therefore, to maximize variance, we must choose the eigenvector corresponding to the <strong>maximum eigenvalue</strong>:
+      </p>
+      <div class="math-display">
+        $$\lambda_1 = \lambda_{\max}(S)$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> Projected variance is the Rayleigh quotient $u^T S u / u^T u$. Constrained optimization does not merely find a heuristic direction—it mathematically isolates the principal eigenvector of the covariance matrix.
+    </div>
+  </div>
+
+  <!-- Problem 2 (Bishop 12.2) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2: Successive Orthogonal Subspaces via Lagrange Multipliers</h3>
+      <span class="problem-badge">PRML Exercise 12.2</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Once the first principal component $u_1$ is chosen, we seek a second unit direction $u_2$ ($u_2^T u_2 = 1$) that maximizes projected variance $u_2^T S u_2$ while being strictly <strong>orthogonal</strong> to the first ($u_2^T u_1 = 0$). Prove that $u_2$ is an eigenvector of $S$ corresponding to the second-largest eigenvalue.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Two-Constraint Lagrangian</h4>
+      <p>
+        We construct the Lagrangian incorporating both the unit-norm constraint ($u_2^T u_2 = 1$) and the mutual orthogonality constraint ($u_2^T u_1 = 0$):
+      </p>
+      <div class="math-display">
+        $$\mathcal{L}(u_2, \lambda_2, \eta) = u_2^T S u_2 - \lambda_2 (u_2^T u_2 - 1) - 2\eta (u_2^T u_1)$$
+      </div>
+      <p>
+        where $\lambda_2$ and $\eta$ are scalar Lagrange multipliers (the factor of $2$ is introduced for algebraic convenience).
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Stationarity Condition</h4>
+      <p>
+        Differentiating with respect to $u_2$ and equating to the zero vector:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \nabla_{u_2} \mathcal{L} &= 2 S u_2 - 2 \lambda_2 u_2 - 2 \eta u_1 \\[6pt]
+          &= \mathbf{0}
+        \end{aligned}$$
+      </div>
+      <p>
+        Dividing by $2$:
+      </p>
+      <div class="math-display">
+        $$S u_2 = \lambda_2 u_2 + \eta u_1$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Proving the Cross-Multiplier Vanishes ($\eta = 0$)</h4>
+      <p>
+        To determine the value of $\eta$, multiply this equation on the left by $u_1^T$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u_1^T S u_2 &= \lambda_2 (u_1^T u_2) + \eta (u_1^T u_1) \\[6pt]
+          &= \lambda_2 (0) + \eta (1) \\[6pt]
+          &= \eta
+        \end{aligned}$$
+      </div>
+      <p>
+        Now consider the left-hand side $u_1^T S u_2$. Because the sample covariance matrix $S$ is symmetric ($S = S^T$), and because $u_1$ is an eigenvector of $S$ with $S u_1 = \lambda_1 u_1$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u_1^T S u_2 &= (S^T u_1)^T u_2 \\[6pt]
+          &= (S u_1)^T u_2 \\[6pt]
+          &= (\lambda_1 u_1)^T u_2 \\[6pt]
+          &= \lambda_1 (u_1^T u_2) \\[6pt]
+          &= \lambda_1 (0) \\[6pt]
+          &= 0
+        \end{aligned}$$
+      </div>
+      <p>
+        Comparing both expressions reveals that the cross-constraint multiplier is identically zero:
+      </p>
+      <div class="math-display">
+        $$\eta = 0$$
+      </div>
+      <p>
+        Substituting $\eta = 0$ back into our stationarity condition reduces it directly to:
+      </p>
+      <div class="math-display">
+        $$S u_2 = \lambda_2 u_2$$
+      </div>
+      <p>
+        Thus, $u_2$ is also an eigenvector of $S$. Because $u_2^T S u_2 = \lambda_2$, and the largest eigenvalue $\lambda_1$ was already captured by $u_1$, maximizing variance subject to orthogonality selects the eigenvector associated with the <strong>second-largest eigenvalue</strong> $\lambda_2$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> The symmetry of the covariance matrix ($S = S^T$) is what decouples the Lagrangian constraints ($\eta = 0$). Orthogonality in data space automatically preserves orthogonality in covariance space ($u_1^T S u_2 = 0$).
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Category 2: Minimum Reconstruction Error Formulation    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="min-error">
+  <h2>Category 2: Minimum Reconstruction Error &amp; Duality</h2>
+
+  <p>
+    An alternative view of PCA asks not about maximizing variance, but about minimizing the information lost during compression. Bishop formalizes this by projecting onto a general affine subspace.
+  </p>
+
+  <!-- Problem 3 (Bishop 12.3) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 3: Optimal Scalar Coordinates &amp; Centering Bias</h3>
+      <span class="problem-badge">PRML Exercise 12.3</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Let $\{u_1, \dots, u_D\}$ be an orthonormal basis of $\mathbb{R}^D$ satisfying $u_i^T u_j = \delta_{ij}$. We approximate each data point $x_n \in \mathbb{R}^D$ using an $M$-dimensional linear subspace ($M &lt; D$) with an affine bias:
+      </p>
+      <div class="math-display">
+        $$\tilde{x}_n = \sum_{i=1}^M z_{ni} u_i + \sum_{i=M+1}^D b_i u_i$$
+      </div>
+      <p>
+        where $z_{ni}$ are sample-specific coordinates and $b_i$ are constant bias parameters shared across all data points. Show that minimizing the distortion measure:
+      </p>
+      <div class="math-display">
+        $$J = \frac{1}{N} \sum_{n=1}^N \|x_n - \tilde{x}_n\|^2$$
+      </div>
+      <p>
+        leads to the optimal choices $z_{nj} = x_n^T u_j$ for $j \in \{1, \dots, M\}$ and $b_j = \bar{x}^T u_j$ for $j \in \{M+1, \dots, D\}$.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Basis Expansion of the Original Observation</h4>
+      <p>
+        Because $\{u_1, \dots, u_D\}$ forms a complete orthonormal basis for $\mathbb{R}^D$, any vector $x_n$ can be expanded exactly without approximation:
+      </p>
+      <div class="math-display">
+        $$x_n = \sum_{i=1}^D (x_n^T u_i) u_i = \sum_{i=1}^M (x_n^T u_i) u_i + \sum_{i=M+1}^D (x_n^T u_i) u_i$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Expressing the Error Vector</h4>
+      <p>
+        Subtracting the approximation $\tilde{x}_n$ from $x_n$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          x_n - \tilde{x}_n &= \left( \sum_{i=1}^M (x_n^T u_i) u_i + \sum_{i=M+1}^D (x_n^T u_i) u_i \right) - \left( \sum_{i=1}^M z_{ni} u_i + \sum_{i=M+1}^D b_i u_i \right) \\[8pt]
+          &= \sum_{i=1}^M (x_n^T u_i - z_{ni}) u_i + \sum_{i=M+1}^D (x_n^T u_i - b_i) u_i
+        \end{aligned}$$
+      </div>
+      <p>
+        Because the vectors $u_i$ are mutually orthonormal ($u_i^T u_j = \delta_{ij}$), all cross terms vanish when computing the squared Euclidean norm:
+      </p>
+      <div class="math-display">
+        $$\|x_n - \tilde{x}_n\|^2 = \sum_{i=1}^M (x_n^T u_i - z_{ni})^2 + \sum_{i=M+1}^D (x_n^T u_i - b_i)^2$$
+      </div>
+      <p>
+        Summing across all $N$ data points gives the total distortion:
+      </p>
+      <div class="math-display">
+        $$J = \frac{1}{N} \sum_{n=1}^N \sum_{i=1}^M (x_n^T u_i - z_{ni})^2 + \frac{1}{N} \sum_{n=1}^N \sum_{i=M+1}^D (x_n^T u_i - b_i)^2$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Solving for the Optimal Coordinates $z_{nj}$</h4>
+      <p>
+        Differentiating $J$ with respect to a specific coordinate $z_{nj}$ (for $j \le M$):
+      </p>
+      <div class="math-display">
+        $$\frac{\partial J}{\partial z_{nj}} = -\frac{2}{N} (x_n^T u_j - z_{nj}) = 0$$
+      </div>
+      <p>
+        Solving immediately yields:
+      </p>
+      <div class="math-display">
+        $$z_{nj} = x_n^T u_j \qquad (j = 1, \dots, M)$$
+      </div>
+      <p>
+        The optimal coordinate along any preserved basis vector is simply the <strong>orthogonal projection</strong> of the data point onto that vector.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>4. Solving for the Optimal Bias $b_j$</h4>
+      <p>
+        Differentiating $J$ with respect to a specific bias parameter $b_j$ (for $j &gt; M$):
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \frac{\partial J}{\partial b_j} &= -\frac{2}{N} \sum_{n=1}^N (x_n^T u_j - b_j) \\[6pt]
+          &= -\frac{2}{N} \sum_{n=1}^N x_n^T u_j + \frac{2}{N} (N b_j) \\[6pt]
+          &= -2 \left( \frac{1}{N}\sum_{n=1}^N x_n \right)^T u_j + 2 b_j \\[6pt]
+          &= -2 (\bar{x}^T u_j) + 2 b_j \\[6pt]
+          &= 0
+        \end{aligned}$$
+      </div>
+      <p>
+        Solving for $b_j$:
+      </p>
+      <div class="math-display">
+        $$b_j = \bar{x}^T u_j \qquad (j = M+1, \dots, D)$$
+      </div>
+      <p>
+        The optimal bias coordinate along discarded dimensions is the projection of the <strong>sample mean vector</strong> $\bar{x}$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> We did not assume orthogonal projection or mean centering. Both emerged mathematically as the unique global minimizers of the squared reconstruction error.
+    </div>
+  </div>
+
+  <!-- Problem 4 (Bishop 12.4) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4: Expressing Reconstruction Error as Residual Covariance</h3>
+      <span class="problem-badge">PRML Exercise 12.4</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Substitute the optimal values $z_{nj} = x_n^T u_j$ and $b_j = \bar{x}^T u_j$ back into the distortion objective $J$. Prove that the total reconstruction error reduces to:
+      </p>
+      <div class="math-display">
+        $$J = \sum_{i=M+1}^D u_i^T S u_i$$
+      </div>
+      <p>
+        where $S$ is the sample covariance matrix of the dataset.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Substitution into the Error Difference</h4>
+      <p>
+        Substitute $z_{ni} = x_n^T u_i$ and $b_i = \bar{x}^T u_i$ into our expansion of the difference vector $x_n - \tilde{x}_n$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          x_n - \tilde{x}_n &= \sum_{i=1}^M \underbrace{(x_n^T u_i - x_n^T u_i)}_{= 0} u_i + \sum_{i=M+1}^D (x_n^T u_i - \bar{x}^T u_i) u_i \\[8pt]
+          &= \sum_{i=M+1}^D ((x_n - \bar{x})^T u_i) u_i
+        \end{aligned}$$
+      </div>
+      <p>
+        The error lies <em>entirely</em> within the discarded subspace spanned by $\{u_{M+1}, \dots, u_D\}$, measuring how far the centered observation $x_n - \bar{x}$ extends outside the $M$-dimensional hyperplane.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Algebraic Expansion into Covariance Forms</h4>
+      <p>
+        Taking the squared norm of $x_n - \tilde{x}_n$ (using orthonormality $u_i^T u_j = \delta_{ij}$):
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \|x_n - \tilde{x}_n\|^2 &= \sum_{i=M+1}^D \left( (x_n - \bar{x})^T u_i \right)^2 \\[6pt]
+          &= \sum_{i=M+1}^D u_i^T (x_n - \bar{x})(x_n - \bar{x})^T u_i
+        \end{aligned}$$
+      </div>
+      <p>
+        Summing over all $N$ data points and dividing by $N$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          J &= \frac{1}{N} \sum_{n=1}^N \sum_{i=M+1}^D u_i^T (x_n - \bar{x})(x_n - \bar{x})^T u_i \\[8pt]
+          &= \sum_{i=M+1}^D u_i^T \left( \frac{1}{N} \sum_{n=1}^N (x_n - \bar{x})(x_n - \bar{x})^T \right) u_i \\[8pt]
+          &= \sum_{i=M+1}^D u_i^T S u_i
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> Total reconstruction error is the sum of the sample variances along the <em>discarded</em> basis directions.
+    </div>
+  </div>
+
+  <!-- Problem 5 (Bishop 12.5) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 5: Subspace Selection &amp; Eigenvalue Minimization</h3>
+      <span class="problem-badge">PRML Exercise 12.5</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Minimize the total reconstruction error $J = \sum_{i=M+1}^D u_i^T S u_i$ subject to the orthonormal constraint $u_i^T u_j = \delta_{ij}$. Prove that the optimal basis vectors $\{u_1, \dots, u_M\}$ span the subspace corresponding to the $M$ <strong>largest</strong> eigenvalues of $S$.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Constrained Minimization of the Discarded Variance</h4>
+      <p>
+        To minimize $J = \sum_{i=M+1}^D u_i^T S u_i$ subject to $u_i^T u_i = 1$ and mutual orthogonality, we formulate the Lagrangian:
+      </p>
+      <div class="math-display">
+        $$\mathcal{L} = \sum_{i=M+1}^D u_i^T S u_i - \sum_{i=M+1}^D \lambda_i (u_i^T u_i - 1) - \sum_{i=M+1}^D \sum_{j \ne i} \eta_{ij} u_i^T u_j$$
+      </div>
+      <p>
+        As proven in Problem 2, the symmetry of $S$ ensures that all cross-multipliers $\eta_{ij}$ vanish at the optimum. Taking gradients with respect to each discarded vector $u_i$ ($i &gt; M$):
+      </p>
+      <div class="math-display">
+        $$\nabla_{u_i} \mathcal{L} = 2 S u_i - 2 \lambda_i u_i = \mathbf{0} \quad\Longrightarrow\quad S u_i = \lambda_i u_i$$
+      </div>
+      <p>
+        Therefore, each discarded direction $u_i$ must be an eigenvector of $S$ with variance $u_i^T S u_i = \lambda_i$. The minimum reconstruction error is:
+      </p>
+      <div class="math-display">
+        $$J = \sum_{i=M+1}^D \lambda_i$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Total Variance Conservation &amp; The Duality Equivalence</h4>
+      <p>
+        Because $\{u_1, \dots, u_D\}$ forms a complete orthonormal basis for $\mathbb{R}^D$, the sum of all $D$ eigenvalues equals the trace of the covariance matrix:
+      </p>
+      <div class="math-display">
+        $$\operatorname{Tr}(S) = \sum_{i=1}^D \lambda_i = \underbrace{\sum_{i=1}^M \lambda_i}_{\text{Preserved Variance}} + \underbrace{\sum_{i=M+1}^D \lambda_i}_{\text{Reconstruction Error } J}$$
+      </div>
+      <p>
+        Because $\operatorname{Tr}(S)$ is a fixed constant determined entirely by the dataset:
+      </p>
+      <div class="math-display">
+        $$\min \sum_{i=M+1}^D \lambda_i \quad\iff\quad \max \sum_{i=1}^M \lambda_i$$
+      </div>
+      <p>
+        To minimize the discarded sum $\sum_{i=M+1}^D \lambda_i$, we must select the $D - M$ <strong>smallest</strong> eigenvalues of $S$. Consequently, the $M$ vectors $\{u_1, \dots, u_M\}$ spanning our preserved representation must correspond to the $M$ <strong>largest eigenvalues</strong>.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> The maximum variance formulation (Category 1) and minimum error formulation (Category 2) are two perspectives of the same Pythagorean truth: total variance is constant, so minimizing error and maximizing preserved variance are mathematically identical.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Category 3: High-Dimensional PCA ($D \gg N$)           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="high-dimensional">
+  <h2>Category 3: High-Dimensional Dual PCA ($D \gg N$)</h2>
+
+  <p>
+    When the dimensionality of feature space dwarfs the number of collected samples (such as $D = 100{,}000$ pixels across $N = 500$ images), standard PCA becomes computationally intractable. Bishop Exercise 12.6 derives the exact dual inversion that makes high-dimensional PCA possible.
+  </p>
+
+  <!-- Problem 6 (Bishop 12.6) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6: The Sample Gram Inversion &amp; Dual Normalization</h3>
+      <span class="problem-badge">PRML Exercise 12.6</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Let $X \in \mathbb{R}^{N \times D}$ be the centered data matrix whose $n$-th row is $(x_n - \bar{x})^T$. The $D \times D$ sample covariance matrix is $S = \frac{1}{N} X^T X$. When $D \gg N$, finding the eigenvectors of $S$ directly is prohibitive ($\mathcal{O}(D^3)$).
+      </p>
+      <p>
+        Consider instead the $N \times N$ sample Gram matrix:
+      </p>
+      <div class="math-display">
+        $$K = \frac{1}{N} X X^T \in \mathbb{R}^{N \times N}$$
+      </div>
+      <p>
+        Prove that if $v_i \in \mathbb{R}^N$ is an eigenvector of $K$ with eigenvalue $\lambda_i &gt; 0$, then:
+      </p>
+      <div class="math-display">
+        $$u_i = \frac{1}{\sqrt{N \lambda_i}} X^T v_i$$
+      </div>
+      <p>
+        is a normalized unit eigenvector of $S$ with the exact same eigenvalue $\lambda_i$.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Propagating the Eigendecomposition across Matrix Multiplications</h4>
+      <p>
+        Let $v_i$ be an eigenvector of the $N \times N$ matrix $\frac{1}{N} X X^T$ with eigenvalue $\lambda_i$:
+      </p>
+      <div class="math-display">
+        $$\left( \frac{1}{N} X X^T \right) v_i = \lambda_i v_i$$
+      </div>
+      <p>
+        Multiply both sides of this equation on the left by the transpose data matrix $X^T \in \mathbb{R}^{D \times N}$:
+      </p>
+      <div class="math-display">
+        $$X^T \left( \frac{1}{N} X X^T v_i \right) = X^T (\lambda_i v_i)$$
+      </div>
+      <p>
+        Using matrix associativity, regroup the product on the left-hand side:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \left( \frac{1}{N} X^T X \right) (X^T v_i) &= \lambda_i (X^T v_i) \\[8pt]
+          S (X^T v_i) &= \lambda_i (X^T v_i)
+        \end{aligned}$$
+      </div>
+      <p>
+        This proves that the $D$-dimensional vector $X^T v_i$ is an <strong>eigenvector of $S$</strong> with the exact same eigenvalue $\lambda_i$!
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Computing the Normalization Constant</h4>
+      <p>
+        While $X^T v_i$ points in the correct direction, eigenvectors in feature space must have unit length ($\|u_i\| = 1$). Let $u_i = \alpha_i X^T v_i$. We compute the squared norm of $X^T v_i$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \|X^T v_i\|^2 &= (X^T v_i)^T (X^T v_i) \\[6pt]
+          &= v_i^T (X X^T) v_i \\[6pt]
+          &= v_i^T \left( N \cdot \frac{1}{N} X X^T v_i \right) \\[6pt]
+          &= v_i^T (N \lambda_i v_i) \\[6pt]
+          &= N \lambda_i (v_i^T v_i)
+        \end{aligned}$$
+      </div>
+      <p>
+        Since $v_i$ is a normalized eigenvector of $K$ ($v_i^T v_i = 1$):
+      </p>
+      <div class="math-display">
+        $$\|X^T v_i\|^2 = N \lambda_i \quad\Longrightarrow\quad \|X^T v_i\| = \sqrt{N \lambda_i}$$
+      </div>
+      <p>
+        Dividing by this magnitude yields the unit-length principal component:
+      </p>
+      <div class="math-display">
+        $$u_i = \frac{1}{\sqrt{N \lambda_i}} X^T v_i$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> $N$ data points in $\mathbb{R}^{D}$ span at most an $(N-1)$-dimensional affine hyperplane. The remaining $D - N$ orthogonal dimensions contain zero variance. By solving the $N \times N$ Gram problem, we reduce computational complexity from $\mathcal{O}(D^3)$ to $\mathcal{O}(N^3)$.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Category 4: Non-Linear Manifolds & Kernel PCA          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="kernel-pca">
+  <h2>Category 4: Non-Linear Manifolds &amp; Kernel PCA</h2>
+
+  <p>
+    When data lies on non-linear manifolds, linear hyperplanes fail. Kernel PCA maps inputs $x \in \mathbb{R}^D$ into a potentially infinite-dimensional Hilbert space $\mathcal{F}$ via $\Phi(x)$. But how do we center data points in a space whose coordinates we cannot evaluate?
+  </p>
+
+  <!-- Problem 7 (Bishop 12.16) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 7: Exact Centering of the Gram Matrix in Feature Space</h3>
+      <span class="problem-badge">PRML Exercise 12.16</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Let $\Phi(x)$ map inputs to feature space $\mathcal{F}$ with kernel $k(x, x') = \Phi(x)^T \Phi(x')$, and let $K \in \mathbb{R}^{N \times N}$ have elements $K_{nm} = k(x_n, x_m)$. Centered feature vectors are defined by:
+      </p>
+      <div class="math-display">
+        $$\tilde{\Phi}(x_n) = \Phi(x_n) - \frac{1}{N} \sum_{m=1}^N \Phi(x_m)$$
+      </div>
+      <p>
+        Prove that the centered Gram matrix $\tilde{K}_{nm} = \tilde{\Phi}(x_n)^T \tilde{\Phi}(x_m)$ can be computed strictly from the uncentered kernel matrix $K$ via:
+      </p>
+      <div class="math-display">
+        $$\tilde{K} = K - \mathbf{1}_N K - K \mathbf{1}_N + \mathbf{1}_N K \mathbf{1}_N$$
+      </div>
+      <p>
+        where $\mathbf{1}_N \in \mathbb{R}^{N \times N}$ is the matrix with all entries equal to $1/N$.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Entry-by-Entry Inner Product Expansion</h4>
+      <p>
+        We expand the inner product $\tilde{K}_{nm} = \tilde{\Phi}(x_n)^T \tilde{\Phi}(x_m)$ directly:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \tilde{K}_{nm} &= \left( \Phi(x_n) - \frac{1}{N} \sum_{l=1}^N \Phi(x_l) \right)^T \left( \Phi(x_m) - \frac{1}{N} \sum_{j=1}^N \Phi(x_j) \right) \\[8pt]
+          &= \Phi(x_n)^T \Phi(x_m) - \frac{1}{N} \sum_{j=1}^N \Phi(x_n)^T \Phi(x_j) - \frac{1}{N} \sum_{l=1}^N \Phi(x_l)^T \Phi(x_m) + \frac{1}{N^2} \sum_{l=1}^N \sum_{j=1}^N \Phi(x_l)^T \Phi(x_j)
+        \end{aligned}$$
+      </div>
+      <p>
+        Replacing every inner product $\Phi(a)^T \Phi(b)$ with its kernel evaluation $K_{ab} = k(x_a, x_b)$:
+      </p>
+      <div class="math-display">
+        $$\tilde{K}_{nm} = K_{nm} - \frac{1}{N} \sum_{j=1}^N K_{nj} - \frac{1}{N} \sum_{l=1}^N K_{lm} + \frac{1}{N^2} \sum_{l=1}^N \sum_{j=1}^N K_{lj}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Matrix Form Representation</h4>
+      <p>
+        Examine the three correction sums in terms of the uniform matrix $\mathbf{1}_N$ where $(\mathbf{1}_N)_{ij} = \frac{1}{N}$:
+      </p>
+      <ul>
+        <li>
+          The $n$-th row average:
+          $$\frac{1}{N} \sum_{j=1}^N K_{nj} = (K \mathbf{1}_N)_{nm}$$
+        </li>
+        <li>
+          The $m$-th column average:
+          $$\frac{1}{N} \sum_{l=1}^N K_{lm} = (\mathbf{1}_N K)_{nm}$$
+        </li>
+        <li>
+          The grand average of all matrix entries:
+          $$\frac{1}{N^2} \sum_{l=1}^N \sum_{j=1}^N K_{lj} = (\mathbf{1}_N K \mathbf{1}_N)_{nm}$$
+        </li>
+      </ul>
+      <p>
+        Substituting these identifications yields the classic compact matrix equation:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \tilde{K} &= K - \mathbf{1}_N K - K \mathbf{1}_N + \mathbf{1}_N K \mathbf{1}_N \\[6pt]
+          &= (I_N - \mathbf{1}_N) K (I_N - \mathbf{1}_N)
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> Centering in feature space requires zero explicit coordinate calculations. The projection matrix $H = I_N - \mathbf{1}_N$ centers the Gram matrix symmetrically from both sides.
+    </div>
+  </div>
+
+  <!-- Problem 8 (Bishop 12.17) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8: Non-Linear Out-of-Sample Projections</h3>
+      <span class="problem-badge">PRML Exercise 12.17</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Let $v_k$ be the $k$-th eigenvector of the centered covariance operator in feature space. Prove that the projection of an arbitrary new test point $x$ onto $v_k$:
+      </p>
+      <div class="math-display">
+        $$y_k(x) = v_k^T \tilde{\Phi}(x)$$
+      </div>
+      <p>
+        can be computed entirely using kernel evaluations between the test point and the training observations.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Representer Expansion of the Feature Eigenvector</h4>
+      <p>
+        By the Representer Theorem, any eigenvector $v_k$ in feature space must lie in the span of the centered training observations $\{\tilde{\Phi}(x_1), \dots, \tilde{\Phi}(x_N)\}$:
+      </p>
+      <div class="math-display">
+        $$v_k = \sum_{n=1}^N a_{kn} \tilde{\Phi}(x_n)$$
+      </div>
+      <p>
+        where $a_k = [a_{k1}, \dots, a_{kN}]^T$ is the eigenvector of the centered Gram matrix $\tilde{K} a_k = \lambda_k a_k$, normalized such that $\lambda_k a_k^T a_k = 1$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Evaluating the Test Projection</h4>
+      <p>
+        The non-linear projection of a test vector $x$ onto component $v_k$ is:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          y_k(x) &= v_k^T \tilde{\Phi}(x) \\[6pt]
+          &= \left( \sum_{n=1}^N a_{kn} \tilde{\Phi}(x_n) \right)^T \tilde{\Phi}(x) \\[6pt]
+          &= \sum_{n=1}^N a_{kn} \left( \tilde{\Phi}(x_n)^T \tilde{\Phi}(x) \right)
+        \end{aligned}$$
+      </div>
+      <p>
+        Now expand the centered inner product $\tilde{k}(x_n, x) = \tilde{\Phi}(x_n)^T \tilde{\Phi}(x)$ using the training mean:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \tilde{k}(x_n, x) &= \left( \Phi(x_n) - \frac{1}{N}\sum_{l=1}^N \Phi(x_l) \right)^T \left( \Phi(x) - \frac{1}{N}\sum_{m=1}^N \Phi(x_m) \right) \\[8pt]
+          &= k(x_n, x) - \frac{1}{N}\sum_{m=1}^N k(x_n, x_m) - \frac{1}{N}\sum_{l=1}^N k(x_l, x) + \frac{1}{N^2}\sum_{l=1}^N \sum_{m=1}^N k(x_l, x_m)
+        \end{aligned}$$
+      </div>
+      <p>
+        Substituting this back into our projection equation:
+      </p>
+      <div class="math-display">
+        $$y_k(x) = \sum_{n=1}^N a_{kn} \tilde{k}(x_n, x)$$
+      </div>
+      <p>
+        Every single term in this equation involves only evaluations of the scalar kernel function $k(\cdot, \cdot)$ between the test point $x$ and the training set.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Key Takeaway:</strong> Even though the feature space $\mathcal{F}$ may be infinite-dimensional (as with the Gaussian RBF kernel), projecting a new test point onto a non-linear principal component requires nothing more than $N$ scalar kernel evaluations.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Connecting the Dots: Synthesis                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots</h2>
+
+  <p>
+    Across these eight problems from Christopher Bishop's PRML, we have seen that every formulation of representation learning—whether framed through spread, loss, sample duality, or non-linear manifolds—converges onto the exact same spectral foundation:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Unified Spectral Synthesis of Representation Learning</div>
+    <div class="math-box-body">
+      <table style="width:100%; border-collapse: collapse; font-size: 0.95em;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 8px;">Perspective</th>
+            <th style="padding: 8px;">Mathematical Core</th>
+            <th style="padding: 8px;">Why It Works</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px;"><strong>Maximum Variance</strong> (PRML 12.1–12.2)</td>
+            <td style="padding: 8px;">$\max u^T S u \text{ s.t. } u^T u = 1$</td>
+            <td style="padding: 8px;">Stationarity requires $S u = \lambda u$; variance equals the eigenvalue $\lambda$.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px;"><strong>Minimum Distortion</strong> (PRML 12.3–12.5)</td>
+            <td style="padding: 8px;">$\min \sum \|x_n - \tilde{x}_n\|^2$</td>
+            <td style="padding: 8px;">Pythagorean invariance ($\text{Tr}(S) = \text{const}$) forces min error to match max variance.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px;"><strong>High-Dimensional Dual</strong> (PRML 12.6)</td>
+            <td style="padding: 8px;">$\frac{1}{N} X X^T v = \lambda v \implies u \propto X^T v$</td>
+            <td style="padding: 8px;">$N$ samples span at most $N$ dimensions; solving $N \times N$ replaces $D \times D$.</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px;"><strong>Non-Linear Kernel PCA</strong> (PRML 12.16–12.17)</td>
+            <td style="padding: 8px;">$\tilde{K} = (I - \mathbf{1}) K (I - \mathbf{1})$</td>
+            <td style="padding: 8px;">Implicit feature coordinates cancel out, allowing non-linear projections via inner products.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p>
+    By mastering these exercises, we transition from observing machine learning as a collection of black-box algorithms to understanding it as an interconnected branch of applied linear algebra and geometry.
+  </p>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

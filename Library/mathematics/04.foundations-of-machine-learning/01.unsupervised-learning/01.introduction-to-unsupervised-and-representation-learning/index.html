@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="82e94368">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="Introduction to Unsupervised and Representation Learning">
+<meta name="description" content="Discovering the foundational philosophy of representation learning: Gregory Chaitin's compression principle, the pop quiz on collinear data, why real data breaks lossless compression, and deriving orthogonal projection from least-squares calculus.">
+<meta name="keywords" content="unsupervised learning, representation learning, compression is comprehension, orthogonal projection, lossy compression, dimensionality reduction, Foundations of Machine Learning, IITM FML">
+<meta name="status" content="draft">
+<meta name="date" content="2026-09-09">
+<meta name="author" content="Yogesh">
+
+<title>Introduction to Unsupervised and Representation Learning</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 720px;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .svg-container svg {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <meta name="reading_time" content="10">
+    <meta property="og:title" content="Introduction to Unsupervised and Representation Learning">
+    <meta property="og:description" content="Discovering the foundational philosophy of representation learning: Gregory Chaitin's compression principle, the pop quiz on collinear data, why real data breaks lossless compression, and deriving orthogonal projection from least-squares calculus.">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-introduction-to-unsupervised-and-representation-learning.png">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  The Unsupervised Setting                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="unsupervised-setting">
+  <h2>The Unsupervised Setting: What Does It Mean to Learn?</h2>
+
+  <p>
+    When we train a supervised model, every observation comes paired with an explicit label $y$ telling the algorithm exactly what to predict. The target output defines what is important and what can be ignored.
+  </p>
+
+  <p>
+    In <strong>unsupervised learning</strong>, all supervision is stripped away. We receive no labels, no target answers, and no external guidance. We are handed only a raw collection of observations:
+  </p>
+
+  <div class="math-display">
+    $$\mathcal{D} = \{x_1, x_2, \dots, x_n\}, \quad x_i \in \mathbb{R}^d$$
+  </div>
+
+  <p>
+    Each observation $x_i$ is a vector of $d$ numerical measurements. For example, in a medical study, an observation might be a vector in $\mathbb{R}^3$ listing a person's height, weight, and age:
+  </p>
+
+  <div class="math-display">
+    $$x_i = \begin{bmatrix} 180 \text{ cm} \\[4pt] 75 \text{ kg} \\[4pt] 37 \text{ yrs} \end{bmatrix} \in \mathbb{R}^3$$
+  </div>
+
+  <p>
+    The goal of unsupervised learning is stated simply: <em>given a set of unlabeled data points, "understand" something "useful" about them</em>.
+  </p>
+
+  <p>
+    At first glance, this sounds tantalizingly vague. What does it actually mean to "understand" an unlabeled cloud of numbers? What makes a mathematical description "useful"?
+  </p>
+
+  <h3>Chaitin's Principle: "Comprehension is Compression"</h3>
+  <p>
+    The mathematician and algorithmic information theorist Gregory Chaitin formulated a profound answer to this question:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p style="font-size: 1.15em; margin: 0.2rem 0;"><em>"Comprehension is compression."</em></p>
+      <p style="margin: 0.3rem 0 0; color: var(--muted); font-size: 0.9em;">— Gregory Chaitin</p>
+    </div>
+  </div>
+
+  <p>
+    To truly understand a dataset means discovering underlying rules, constraints, and shared structure that allow you to describe the data using <strong>far fewer numbers</strong> than the raw catalog. If you merely memorize all $n \times d$ numbers in a table, you have understood nothing—you have only stored a look-up table.
+  </p>
+
+  <p>
+    Learning is therefore fundamentally about <strong>information redundancy reduction</strong>: stripping away repeated or unnecessary coordinates so that only the essential degrees of freedom remain. The core challenge of representation learning can be stated as a concrete computational problem:
+  </p>
+
+  <p>
+    Learning <em>is</em> the discovery of a compact, structured representation. The core problem of representation learning can therefore be framed as a concrete computational challenge:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \textbf{Input:} &\quad \text{Dataset } \mathcal{D} = \{x_1, x_2, \dots, x_n\}, \quad x_i \in \mathbb{R}^d \\[6pt]
+      \textbf{Output:} &\quad \text{A compressed representation of the dataset}
+    \end{aligned}$$
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Pop Quiz: Lossless Compression on a Line               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="collinear-pop-quiz">
+  <h2>Pop Quiz: Lossless Compression on a Line</h2>
+
+  <p>
+    Before dealing with high dimensions, let us ground this compression principle in a tangible 2D example. Suppose we observe $n = 4$ data points in $\mathbb{R}^2$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      x_1 &= \begin{bmatrix} -5 \\[3pt] 2.5 \end{bmatrix}, \quad
+      x_2 = \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} \\[8pt]
+      x_3 &= \begin{bmatrix} 4 \\[3pt] -2 \end{bmatrix}, \quad
+      x_4 = \begin{bmatrix} 5 \\[3pt] -2.5 \end{bmatrix}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    <strong>Question:</strong> How many numbers are needed to store this dataset?
+  </p>
+
+  <p>
+    Naively, each point requires $d = 2$ coordinates, so storing all 4 points directly requires:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \text{Naive Storage} &= n \times d \\[6pt]
+      &= 4 \times 2 \\[6pt]
+      &= 8 \text{ numbers}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Now look at the coordinates closely:
+  </p>
+
+  <div class="math-display">
+    $$\frac{2.5}{-5} = \frac{1}{-2} = \frac{-2}{4} = \frac{-2.5}{5} = -0.5$$
+  </div>
+
+  <p>
+    Every single observation lies on the exact same straight line passing through the origin: $x_2 = -0.5 x_1$ (Figure 1, Panel A).
+  </p>
+
+  <p>
+    Because all 4 points share this geometric constraint, we do not need to store 2 arbitrary coordinates for each observation. Instead, we can choose a single <strong>representative direction vector</strong> along the line:
+  </p>
+
+  <div class="math-display">
+    $$w = \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} \in \mathbb{R}^2$$
+  </div>
+
+  <p>
+    (Notice that $w$ can be any non-zero point along the line, such as a normalized unit vector). Once this single representative direction $w$ is fixed, every data point $x_i$ is completely determined by a single scalar <strong>coefficient</strong> $c_i$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      x_1 &= 2.5 \cdot w = 2.5 \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} = \begin{bmatrix} -5 \\[3pt] 2.5 \end{bmatrix} \\[8pt]
+      x_2 &= 1.0 \cdot w = 1.0 \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} = \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} \\[8pt]
+      x_3 &= -2.0 \cdot w = -2.0 \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} = \begin{bmatrix} 4 \\[3pt] -2 \end{bmatrix} \\[8pt]
+      x_4 &= -2.5 \cdot w = -2.5 \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} = \begin{bmatrix} 5 \\[3pt] -2.5 \end{bmatrix}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Now tally the numbers needed to store this representation:
+  </p>
+
+  <ul>
+    <li>$1$ representative direction vector $w \in \mathbb{R}^2 \implies 2 \text{ numbers}$</li>
+    <li>$4$ scalar coefficients $\{c_1, c_2, c_3, c_4\} \implies 4 \text{ numbers}$</li>
+    <li><strong>Total storage:</strong> $2 + 4 = 6 \text{ numbers}$ (compared to $8$ naively)</li>
+  </ul>
+
+  <p>
+    Using this compressed representation, we can <strong>exactly reconstruct</strong> the entire dataset without losing a single decimal point: $x_i = c_i w$. Because the data truly lived on a 1D line inside 2D space, discovering this geometric structure enabled <strong>exact, lossless compression</strong>.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  The Breakdown of Lossless Compression                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="breakdown-of-lossless">
+  <h2>The Breakdown of Lossless Compression</h2>
+
+  <p>
+    Now suppose our dataset acquires just one more observation—a point that does not fall on the line:
+  </p>
+
+  <div class="math-display">
+    $$x_5 = \begin{bmatrix} 2 \\[3pt] 5 \end{bmatrix}$$
+  </div>
+
+  <p>
+    What happens if we demand <em>exact</em> reconstruction for arbitrary points in 2D space?
+  </p>
+
+  <p>
+    To represent any arbitrary 2D vector without error, a single line is no longer sufficient. We need 2 linearly independent basis vectors (e.g., standard basis vectors $e_1 = [1, 0]^T$ and $e_2 = [0, 1]^T$), plus 2 coordinates for every data point:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \text{Storage for Exact Recovery} &= (\text{basis representatives}) + (\text{coefficients}) \\[6pt]
+      &= (2 \times d) + (n \times d) \\[6pt]
+      &= 4 + 2n \text{ numbers}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Look at that tally: $4 + 2n > 2n$. In attempting exact reconstruction, we are storing <strong>more numbers than the raw dataset itself</strong>!
+  </p>
+
+  <p>
+    This exposes an inevitable reality: in real-world data, noise, measurement discrepancies, and complex factors guarantee that points <em>never</em> fall perfectly on an exact lower-dimensional line or hyperplane. If we demand lossless precision, dimensionality reduction is impossible.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If lossless compression fails on real data, what if we accept a small, controlled amount of error in exchange for massive compression? Let us try lossy compression!</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Where Should the Proxy Be Chosen?                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="proxy-selection">
+  <h2>Where Should the Proxy Be Chosen?</h2>
+
+  <p>
+    In lossy compression, we represent each observation $x \in \mathbb{R}^d$ not by its exact coordinates, but by an approximate <strong>proxy</strong> $\hat{x}$ constrained to lie on a shared candidate line defined by direction vector $w = [w_1, w_2]^T$ (Figure 1, Panel B).
+  </p>
+
+  <p>
+    Any point on this line is simply a scalar multiple of $w$:
+  </p>
+
+  <div class="math-display">
+    $$\hat{x} = C w = \begin{bmatrix} C w_1 \\[3pt] C w_2 \end{bmatrix}$$
+  </div>
+
+  <p>
+    From a <em>compression</em> point of view, every point on the line is equally cheap—storing any scalar $C$ costs exactly 1 number. But from a <em>reconstruction</em> point of view, they are not equal at all! We want the proxy $\hat{x}$ that sits as close to the true observation $x$ as possible.
+  </p>
+
+  <p>
+    The gap between the true observation $x = [x_1, x_2]^T$ and its proxy $\hat{x}$ is the <strong>error vector</strong>:
+  </p>
+
+  <div class="math-display">
+    $$e = x - \hat{x} = \begin{bmatrix} x_1 - C w_1 \\[3pt] x_2 - C w_2 \end{bmatrix}$$
+  </div>
+
+  <p>
+    To make the proxy as accurate as possible, we choose $C$ to minimize the squared length of this error vector:
+  </p>
+
+  <div class="math-display">
+    $$\min_C \|x - C w\|^2 = \min_C \left[ (x_1 - C w_1)^2 + (x_2 - C w_2)^2 \right]$$
+  </div>
+
+  <p>
+    Let us differentiate this objective with respect to $C$ and set it to zero:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \frac{d}{dC} \|x - C w\|^2 &= \frac{d}{dC} \left[ (C w_1 - x_1)^2 + (C w_2 - x_2)^2 \right] \\[8pt]
+      &= 2(C w_1 - x_1)w_1 + 2(C w_2 - x_2)w_2 \\[8pt]
+      &= 2C(w_1^2 + w_2^2) - 2(w_1 x_1 + w_2 x_2)
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Setting the derivative equal to zero:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      2C(w_1^2 + w_2^2) - 2(w_1 x_1 + w_2 x_2) &= 0 \\[8pt]
+      C(w_1^2 + w_2^2) &= w_1 x_1 + w_2 x_2 \\[8pt]
+      C &= \frac{w_1 x_1 + w_2 x_2}{w_1^2 + w_2^2} \\[8pt]
+      &= \frac{w^T x}{\|w\|^2}
+    \end{aligned}$$
+  </div>
+
+  <h3>Testing the Arithmetic: Scale Invariance</h3>
+  <p>
+    Let us test this formula on our off-line observation $x = [2, 5]^T$:
+  </p>
+
+  <p>
+    Suppose we pick the candidate direction $w = [1, 1]^T$. Evaluating the formula:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      C &= \frac{w_1 x_1 + w_2 x_2}{w_1^2 + w_2^2} = \frac{1(2) + 1(5)}{1^2 + 1^2} = \frac{7}{2} = 3.5 \\[8pt]
+      \text{Proxy } \hat{x} &= C w = 3.5 \begin{bmatrix} 1 \\[3pt] 1 \end{bmatrix} = \begin{bmatrix} 3.5 \\[3pt] 3.5 \end{bmatrix}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Now, what if someone else chose a representative vector pointing in the same direction, but 10 times longer: $w' = [10, 10]^T$?
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      C' &= \frac{10(2) + 10(5)}{10^2 + 10^2} = \frac{70}{200} = 0.35 \\[8pt]
+      \text{Proxy } \hat{x}' &= C' w' = 0.35 \begin{bmatrix} 10 \\[3pt] 10 \end{bmatrix} = \begin{bmatrix} 3.5 \\[3pt] 3.5 \end{bmatrix}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Notice this fundamental property: <strong>the scalar coefficient $C$ changes inversely with the length of $w$, but the physical position of the proxy $\hat{x}$ does not change at all.</strong>
+  </p>
+
+  <p>
+    To eliminate this scaling ambiguity, we can always standardize our representative $w$ to be a <strong>unit vector</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\|w\|^2 = w_1^2 + w_2^2 = w^T w = 1$$
+  </div>
+
+  <p>
+    For any unit representative $w$, the denominator vanishes completely:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      C &= w_1 x_1 + w_2 x_2 = w^T x \\[6pt]
+      \text{Proxy } \hat{x} &= (w^T x)w
+    \end{aligned}$$
+  </div>
+
+  <p>
+    This proves that the optimal proxy under squared reconstruction error is precisely the <strong>orthogonal projection</strong> of $x$ onto direction $w$!
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig-popquiz-svg" viewBox="0 0 580 760" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 580px; height: auto;">
+        <defs>
+          <marker id="pq-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="pq-arrow-w" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- ================= TOP: Panel A = Collinear Data ================= -->
+        <g id="panel-a">
+          <text x="290" y="28" font-family="'Lora', serif" font-size="17" font-weight="600" fill="var(--text)" text-anchor="middle">Panel A: Collinear Data (Lossless Compression)</text>
+          <text x="290" y="48" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">All 4 points lie on x₂ = −0.5x₁ → 6 numbers vs. 8</text>
+
+          <!-- Coordinate Axes for Panel A (Origin at 290, 200) -->
+          <line x1="50" y1="200" x2="530" y2="200" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
+          <line x1="290" y1="320" x2="290" y2="65" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
+          <text x="530" y="218" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₁</text>
+          <text x="278" y="78" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₂</text>
+          <text x="278" y="216" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="end">0</text>
+
+          <!-- Subspace Line: x2 = -0.5 x1 -->
+          <line x1="60" y1="85" x2="510" y2="310" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5,4" />
+
+          <!-- Basis / Direction vector w = [-2, 1]^T -->
+          <line x1="290" y1="200" x2="210" y2="160" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#pq-arrow-w)" />
+          <text x="230" y="145" font-family="'Lora', serif" font-size="15" font-style="italic" font-weight="600" fill="var(--text)">w = [−2, 1]ᵀ</text>
+
+          <!-- Data point x1 (Labels placed safely above the line) -->
+          <circle cx="90" cy="100" r="5" fill="var(--accent)" />
+          <text x="90" y="70" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">x₁ [−5, 2.5]</text>
+          <text x="90" y="86" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">(c₁ = 2.5)</text>
+
+          <!-- Data point x2 -->
+          <circle cx="210" cy="160" r="5" fill="var(--accent)" />
+          <text x="180" y="180" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">x₂ [−2, 1]</text>
+
+          <!-- Data point x3 (Labels placed safely above the line) -->
+          <circle cx="450" cy="280" r="5" fill="var(--accent)" />
+          <text x="450" y="252" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">x₃ [4, −2]</text>
+          <text x="450" y="268" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">(c₃ = −2.0)</text>
+
+          <!-- Data point x4 -->
+          <circle cx="490" cy="300" r="5" fill="var(--accent)" />
+          <text x="505" y="305" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="start">x₄ [5, −2.5]</text>
+
+          <!-- Storage note -->
+          <text x="290" y="340" font-family="'Lora', serif" font-size="12.5" font-weight="600" fill="var(--text)" text-anchor="middle">Storage: 2 (vector w) + 4 (scalars) = 6 numbers</text>
+        </g>
+
+        <!-- Horizontal Divider Line -->
+        <line x1="40" y1="380" x2="540" y2="380" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4" />
+
+        <!-- ================= BOTTOM: Panel B = Off-Line Point & Proxy Selection ================= -->
+        <g id="panel-b" transform="translate(0, 400)">
+          <text x="290" y="26" font-family="'Lora', serif" font-size="17" font-weight="600" fill="var(--text)" text-anchor="middle">Panel B: Off-Line Point &amp; Proxy Selection</text>
+          <text x="290" y="48" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Minimizing error ‖x − Cw‖² yields orthogonal projection</text>
+
+          <!-- Coordinate Axes for Panel B (Origin at 190, 275) -->
+          <line x1="140" y1="275" x2="520" y2="275" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
+          <line x1="190" y1="315" x2="190" y2="75" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
+          <text x="520" y="292" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₁</text>
+          <text x="178" y="85" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₂</text>
+          <text x="178" y="290" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="end">0</text>
+
+          <!-- Candidate line w = [1, 1]^T -->
+          <line x1="160" y1="305" x2="336" y2="129" stroke="var(--box-label-bg)" stroke-width="2.5" />
+          <text x="342" y="126" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="start">Line w = [1, 1]ᵀ</text>
+
+          <!-- Basis / Direction vector w = [1, 1]^T -->
+          <line x1="190" y1="275" x2="216" y2="249" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#pq-arrow-w)" />
+          <text x="226" y="262" font-family="'Lora', serif" font-size="14" font-style="italic" font-weight="600" fill="var(--text)">w = [1, 1]ᵀ</text>
+
+          <!-- Suboptimal proxies -->
+          <line x1="242" y1="145" x2="236.8" y2="228.2" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,3" />
+          <circle cx="236.8" cy="228.2" r="4" fill="var(--muted)" />
+          <text x="175" y="232" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="end">Suboptimal Proxy (C = 1.8)</text>
+
+          <line x1="242" y1="145" x2="320" y2="145" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,3" />
+          <circle cx="320" cy="145" r="4" fill="var(--muted)" />
+          <text x="332" y="149" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="start">Suboptimal (C = 5.0)</text>
+
+          <!-- Optimal orthogonal projection drop line -->
+          <line x1="242" y1="145" x2="281" y2="184" stroke="var(--dark)" stroke-width="2.8" stroke-dasharray="5,4" />
+          <path d="M 275 178 L 269 184 L 275 190" fill="none" stroke="var(--muted)" stroke-width="1.8" />
+
+          <!-- Data Point Dot x = [2, 5] -->
+          <circle cx="242" cy="145" r="6" fill="var(--accent)" />
+          <text x="242" y="128" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="middle">Data Point x = [2, 5]ᵀ</text>
+
+          <!-- Optimal Proxy Dot \hat{x} = [3.5, 3.5] -->
+          <circle cx="281" cy="184" r="6" fill="var(--box-label-bg)" />
+          <text x="295" y="186" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">Optimal Proxy x̂ = [3.5, 3.5]ᵀ</text>
+          <text x="295" y="202" font-family="'Lora', serif" font-size="12" fill="var(--muted)">(C = 3.5, Minimum Error)</text>
+
+          <!-- Bottom annotation -->
+          <text x="290" y="340" font-family="'Lora', serif" font-size="12.5" font-weight="600" fill="var(--text)" text-anchor="middle">Perpendicular Gap ⊥ Line w: Zero Redundancy</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> The geometric foundations of representation learning and compression. <strong>Panel A:</strong> When four 2D data points fall on a single line $x_2 = -0.5x_1$, fixing 1 representative direction vector $w$ allows exact lossless reconstruction using only 4 scalar coefficients (storing 6 numbers instead of 8). <strong>Panel B:</strong> When an observation $x = [2, 5]^T$ falls off the line, exact lossless recovery requires $4 + 2n > 2n$ numbers. Embracing lossy compression, the optimal proxy $\hat{x} = C w$ minimizing squared error is uniquely achieved when the error vector $e = x - C w$ drops perpendicularly onto the line ($C = 3.5$, $\hat{x} = [3.5, 3.5]^T$).
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Compression Economics in High Dimensions               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="compression-economics">
+  <h2>Compression Economics: Scaling to High Dimensions</h2>
+
+  <p>
+    What happens when our data does not live in 2D, but in hundreds or thousands of dimensions ($d \gg 2$)?
+  </p>
+
+  <p>
+    If the data points approximately cluster near a $K$-dimensional subspace (where $K \ll d$), we do not need to store all $d$ coordinates for each sample. Instead, we can approximate each observation by a linear combination of $K$ shared basis vectors $\{w_1, w_2, \dots, w_K\} \subset \mathbb{R}^d$:
+  </p>
+
+  <div class="math-display">
+    $$x_i \approx \sum_{k=1}^K (w_k^T x_i)w_k$$
+  </div>
+
+  <p>
+    Let us evaluate the storage economics:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Uncompressed Storage:</strong> Storing $n$ observations with $d$ features requires $n \times d$ floating-point numbers.
+    </li>
+    <li>
+      <strong>Compressed Storage:</strong> Storing the $K$ shared basis vectors $\{w_1, \dots, w_K\} \subset \mathbb{R}^d$ requires $K \times d$ numbers. Storing the $K$ scalar coordinates $[w_1^T x_i, \dots, w_K^T x_i]^T$ for all $n$ points requires $n \times K$ numbers.
+    </li>
+  </ul>
+
+  <p>
+    Consider a typical dataset with $n = 10{,}000$ samples and $d = 1{,}000$ feature measurements, compressed down to $K = 10$ components:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \text{Without Compression} &= n \times d \\[6pt]
+      &= 10{,}000 \times 1{,}000 \\[6pt]
+      &= 10{,}000{,}000 \text{ numbers } (10^7, \text{or 1 crore}) \\[10pt]
+      \text{With Compression} &= (n \times K) + (K \times d) \\[6pt]
+      &= (10{,}000 \times 10) + (10 \times 1{,}000) \\[6pt]
+      &= 100{,}000 + 10{,}000 \\[6pt]
+      &= 110{,}000 \text{ numbers} \\[10pt]
+      \text{Compression Ratio} &= \frac{10{,}000{,}000}{110{,}000} \approx 90.9\times
+    \end{aligned}$$
+  </div>
+
+  <p>
+    This is an astronomical reduction: <strong>$10$ million numbers collapse down to $110{,}000$ numbers</strong>, delivering over a $90\times$ compression ratio while capturing the essential geometry of the data.
+  </p>
+
+  <h3>The Pivotal Mystery: Who Gives Us the Line?</h3>
+  <p>
+    We have established that if a candidate line $w$ is given, the optimal proxy for any data point is its orthogonal projection $(w^T x)w$.
+  </p>
+
+  <p>
+    This brings us directly to the foundational question that drives dimensionality reduction:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Given a line and a point, we now know how to calculate its optimal proxy. But who gives us the line? How do we find the single best direction $w$ through an entire cloud of data points?</em></p>
+    </div>
+  </div>
+
+  <p>
+    Answering this question requires formulating an objective over the entire dataset, shifting the origin to the data's center of mass, and solving a constrained optimization problem that inevitably reveals the eigenvectors of the covariance matrix. This discovery is the heart of <strong>Principal Component Analysis (PCA)</strong>.
+  </p>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

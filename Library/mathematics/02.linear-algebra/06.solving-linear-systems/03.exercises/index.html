@@ -1,0 +1,2548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="article_id" content="e4a71b29">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Linear Algebra">
+<meta name="chapter" content="Solving Linear Systems">
+<meta name="title" content="Exercises: Solving Linear Systems & Subspaces">
+<meta name="description" content="A comprehensive masterclass through 22 fundamental linear algebra problems spanning elimination mechanics, matrix factorizations, LU decomposition, inverses, solvability conditions, and complete solutions.">
+<meta name="keywords" content="linear algebra, exercises, homework 1, assignment 2, elimination, LU factorization, inverses, nullspace, complete solution, Gauss-Jordan, special solutions">
+<meta name="status" content="draft">
+<meta name="date" content="2026-04-12">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="46">
+
+<meta property="og:title" content="Exercises: Solving Linear Systems & Subspaces">
+<meta property="og:description" content="A comprehensive masterclass through 22 fundamental linear algebra problems spanning elimination mechanics, matrix factorizations, LU decomposition, inverses, solvability conditions, and complete solutions.">
+<meta property="og:url" content="https://yogesh1p.github.io/connecting-the-dots/Library/mathematics/02.linear-algebra/06.solving-linear-systems/03.exercises/">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-exercises-solving-linear-systems-and-subspaces.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<meta name="chapterOrder" content="3">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .problem-item {
+    margin: 3.5rem 0 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .problem-item:first-of-type {
+    margin-top: 2rem;
+    padding-top: 0;
+    border-top: none;
+  }
+  .problem-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.2rem;
+  }
+  .problem-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: var(--text);
+  }
+  .problem-badge {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .question-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.4rem;
+    margin: 1.2rem 0 1.8rem;
+  }
+  .question-tag {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .question-canvas p {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  .question-canvas > :first-child {
+    margin-top: 0;
+  }
+  .question-canvas > :last-child {
+    margin-bottom: 0;
+  }
+  .question-canvas .math-display {
+    margin: 1rem 0;
+  }
+  .solution-heading {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 1.8rem 0 0.8rem;
+  }
+  .solution-step {
+    margin: 1.8rem 0;
+    padding-left: 1.2rem;
+    border-left: 2px solid var(--border);
+  }
+  .solution-step h4 {
+    margin: 0 0 0.6rem 0;
+    font-size: 1.05rem;
+    color: var(--dark);
+    font-family: 'Lora', serif;
+    font-weight: 600;
+  }
+  .takeaway {
+    margin-top: 1.6rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .figure-caption {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 0.8rem;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <meta property="og:type" content="article">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<section id="introduction">
+  <p>
+    The transition from memorizing formulas to developing genuine mathematical instinct occurs when abstract theorems meet concrete, non-trivial calculations. Systems of linear equations appear deceptively straightforward on the surface, yet they encode the entire geometric architecture of multidimensional space: intersecting hyperplanes, rotational shears performed by elementary row operations, directional annihilations by singular projections, and affine hyperplanes displaced parallel to the kernel of an operator.
+  </p>
+
+  <p>
+    This laboratory walks step-by-step through twenty-two core problems drawn directly from the classical curriculum of Gilbert Strang's <em>Linear Algebra and Its Applications</em> (Homework 1 and Assignment 2). We will explore how elementary operations crystallize into matrix factorizations, witness why elimination occasionally breaks down, inspect how rank dictates consistency, and observe how the conservation of dimensions governs every solvable system.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>How do row operations transform geometric boundaries without shifting the solution, and what algebraic invariants survive when matrices fail to invert?</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  PART I: Elimination, Factorizations, and Inverses     -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="part-1-elimination-and-factorization">
+  <h2>Part I: Elimination Mechanics, Matrix Factorizations, and Inverses</h2>
+
+  <p>
+    Before exploring abstract vector spaces, we master the computational engine that powers modern linear algebra: Gaussian elimination, the algebraic structure of elementary elimination matrices, triangular factorizations ($LU$ and $UL$), and Gauss-Jordan inversion.
+  </p>
+
+  <!-- Problem 1 (Strang 1.2-5) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 1: Hyperplane Intersections in Four Dimensions</h3>
+      <span class="problem-badge">Strang §1.2, Exercise 5</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Describe the intersection of the three planes in four-dimensional space $\mathbb{R}^4$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u + v + w + z &= 6 \\[6pt]
+          u + w + z &= 4 \\[6pt]
+          u + w &= 2
+        \end{aligned}$$
+      </div>
+      <p>
+        Is the intersection a line, a point, or the empty set? What is the intersection if a fourth plane $u = -1$ is included? Finally, find a fourth equation that leaves us with no solution.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Sequential Elimination of Variables</h4>
+      <p>
+        We have three equations in four unknowns ($u, v, w, z$). Each equation represents a three-dimensional hyperplane inside $\mathbb{R}^4$. Subtracting the second equation directly from the first reveals the exact value of $v$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          (u + v + w + z) - (u + w + z) &= 6 - 4 \\[6pt]
+          v &= 2
+        \end{aligned}$$
+      </div>
+      <p>
+        Next, subtracting the third equation from the second resolves $z$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          (u + w + z) - (u + w) &= 4 - 2 \\[6pt]
+          z &= 2
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Parametrizing the Free Direction</h4>
+      <p>
+        Substituting $v = 2$ and $z = 2$ back into the third equation leaves:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u + w &= 2 \\[6pt]
+          w &= 2 - u
+        \end{aligned}$$
+      </div>
+      <p>
+        The variable $u$ is unconstrained; it acts as a free parameter. Writing the solution vector in parametric form:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \begin{bmatrix} u \\ v \\ w \\ z \end{bmatrix} &= \begin{bmatrix} u \\ 2 \\ 2 - u \\ 2 \end{bmatrix} \\[8pt]
+          &= \begin{bmatrix} 0 \\ 2 \\ 2 \\ 2 \end{bmatrix} + u \begin{bmatrix} 1 \\ 0 \\ -1 \\ 0 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Because the solution set possesses exactly one free parameter, the intersection of these three hyperplanes is a <strong>one-dimensional line</strong> in $\mathbb{R}^4$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Adding a Fourth Plane</h4>
+      <p>
+        If we now introduce the fourth constraint $u = -1$, the free parameter is locked into place:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u &= -1 \\[6pt]
+          w &= 2 - (-1) = 3
+        \end{aligned}$$
+      </div>
+      <p>
+        With $v = 2$ and $z = 2$, the four planes intersect at a single unique <strong>point</strong>:
+      </p>
+      <div class="math-display">
+        $$(u, v, w, z) = (-1, 2, 3, 2)$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>4. Constructing an Inconsistent Fourth Equation</h4>
+      <p>
+        To produce a system with <strong>no solution</strong>, we introduce an equation that directly contradicts the existing invariants. Since the original system demands that $u + w = 2$, any parallel plane such as:
+      </p>
+      <div class="math-display">
+        $$u + w = 5$$
+      </div>
+      <p>
+        creates the immediate contradiction $2 = 5$, rendering the four-plane intersection strictly empty ($\emptyset$).
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> In an $n$-dimensional space, each independent linear constraint cuts the dimension of the solution set by 1. Three independent equations in $\mathbb{R}^4$ yield a $4 - 3 = 1$ dimensional line. A fourth independent, consistent equation reduces it to a $4 - 4 = 0$ dimensional point, while a parallel contradictory constraint yields no intersection.
+    </div>
+  </div>
+
+  <!-- Problem 2 (Strang 1.3-13) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2: Elimination and Back-Substitution on a 3x3 System</h3>
+      <span class="problem-badge">Strang §1.3, Exercise 13</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Apply Gaussian elimination and back-substitution to solve the $3 \times 3$ system:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          2x - 3y &= 3 \\[6pt]
+          4x - 5y + z &= 7 \\[6pt]
+          2x - y - 3z &= 5
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Augmented Matrix Formulation</h4>
+      <p>
+        We assemble the system into an augmented matrix $[A \mid b]$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          2 & -3 & 0 & 3 \\
+          4 & -5 & 1 & 7 \\
+          2 & -1 & -3 & 5
+        \end{array}\right]$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Column 1 Elimination</h4>
+      <p>
+        Our first pivot is $a_{11} = 2$. We eliminate the entries beneath it using row multipliers $l_{21}$ and $l_{31}$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          l_{21} &= \frac{4}{2} = 2 \\[8pt]
+          l_{31} &= \frac{2}{2} = 1
+        \end{aligned}$$
+      </div>
+      <p>
+        Row operations: $R_2 \to R_2 - 2R_1$ and $R_3 \to R_3 - 1R_1$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_2 &\to \begin{bmatrix} 4 - 2(2) & -5 - 2(-3) & 1 - 2(0) & \mid & 7 - 2(3) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 0 & 1 & 1 & \mid & 1 \end{bmatrix} \\[8pt]
+          R_3 &\to \begin{bmatrix} 2 - 1(2) & -1 - 1(-3) & -3 - 1(0) & \mid & 5 - 1(3) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 0 & 2 & -3 & \mid & 2 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        The partially triangular system is:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          2 & -3 & 0 & 3 \\
+          0 & 1 & 1 & 1 \\
+          0 & 2 & -3 & 2
+        \end{array}\right]$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Column 2 Elimination</h4>
+      <p>
+        The second pivot is $a_{22} = 1$. We eliminate the entry below it using multiplier $l_{32}$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          l_{32} &= \frac{2}{1} = 2 \\[8pt]
+          R_3 &\to R_3 - 2R_2 \\[6pt]
+          &= \begin{bmatrix} 0 & 2 - 2(1) & -3 - 2(1) & \mid & 2 - 2(1) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 0 & 0 & -5 & \mid & 0 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        We have achieved the upper triangular system $Ux = c$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          2x - 3y &= 3 \\[6pt]
+          y + z &= 1 \\[6pt]
+          -5z &= 0
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>4. Back-Substitution</h4>
+      <p>
+        Solving backwards from the bottom equation:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          -5z &= 0 \implies z = 0 \\[6pt]
+          y + (0) &= 1 \implies y = 1 \\[6pt]
+          2x - 3(1) &= 3 \implies 2x = 6 \implies x = 3
+        \end{aligned}$$
+      </div>
+      <p>
+        The unique solution coordinate is $(x, y, z) = (3, 1, 0)$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Elimination systematically untangles coupled equations into an upper triangular structure where dependencies flow in only one direction, allowing back-substitution to isolate unknowns in reverse order without matrix inversion.
+    </div>
+  </div>
+
+  <!-- Problem 3 (Strang 1.3-23) with SVG Diagram -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 3: The Geometry of Elimination in Two Dimensions</h3>
+      <span class="problem-badge">Strang §1.3, Exercise 23</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Solve by elimination:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          x - y &= 0 \\[6pt]
+          3x + 6y &= 18
+        \end{aligned}$$
+      </div>
+      <p>
+        Draw a graph representing each equation as a straight line and show that the lines intersect at the solution. Add the line that arises directly after forward elimination. What do you observe geometrically?
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Algebraic Elimination</h4>
+      <p>
+        The pivot in row 1 is $a_{11} = 1$. The multiplier to clear the $x$-term in equation 2 is $l_{21} = 3 / 1 = 3$. Subtracting 3 times equation 1 from equation 2 yields:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          (3x + 6y) - 3(x - y) &= 18 - 3(0) \\[6pt]
+          9y &= 18 \\[6pt]
+          y &= 2
+        \end{aligned}$$
+      </div>
+      <p>
+        Back-substituting into equation 1 ($x - y = 0$) immediately reveals $x = 2$. The solution point is $(2, 2)$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Geometric Representation: Rotating Constraint Lines</h4>
+      <p>
+        Let us trace each line in Cartesian coordinates:
+      </p>
+      <ul>
+        <li><strong>Equation 1:</strong> $y = x$, passing through $(0,0)$ and $(2,2)$.</li>
+        <li><strong>Equation 2:</strong> $y = 3 - \frac{1}{2}x$, passing through $(0,3)$, $(2,2)$, and $(6,0)$.</li>
+        <li><strong>Eliminated Equation:</strong> $y = 2$, a purely horizontal line.</li>
+      </ul>
+
+      <!-- Seamless SVG Diagram (Figure 1) -->
+      <div style="width: 100%; max-width: 600px; margin: 2rem auto; text-align: center;">
+        <svg viewBox="0 0 500 380" width="100%" height="auto" style="overflow: visible; display: block; margin: 0 auto;">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--muted)"/>
+            </marker>
+          </defs>
+
+          <!-- Grid Lines -->
+          <line x1="60" y1="50" x2="460" y2="50" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="60" y1="120" x2="460" y2="120" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="60" y1="190" x2="460" y2="190" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="60" y1="260" x2="460" y2="260" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+
+          <line x1="130" y1="50" x2="130" y2="330" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="200" y1="50" x2="200" y2="330" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="270" y1="50" x2="270" y2="330" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="340" y1="50" x2="340" y2="330" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="410" y1="50" x2="410" y2="330" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+
+          <!-- Coordinate Axes -->
+          <line x1="50" y1="330" x2="470" y2="330" stroke="var(--muted)" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="60" y1="340" x2="60" y2="40" stroke="var(--muted)" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <text x="475" y="335" fill="var(--text)" font-family="Lora, serif" font-size="16">x</text>
+          <text x="55" y="30" fill="var(--text)" font-family="Lora, serif" font-size="16">y</text>
+
+          <!-- Axis Tick Labels -->
+          <text x="200" y="350" fill="var(--muted)" font-family="Lora, serif" font-size="14" text-anchor="middle">2</text>
+          <text x="340" y="350" fill="var(--muted)" font-family="Lora, serif" font-size="14" text-anchor="middle">4</text>
+          <text x="410" y="350" fill="var(--muted)" font-family="Lora, serif" font-size="14" text-anchor="middle">5</text>
+          <text x="45" y="195" fill="var(--muted)" font-family="Lora, serif" font-size="14" text-anchor="end">2</text>
+          <text x="45" y="125" fill="var(--muted)" font-family="Lora, serif" font-size="14" text-anchor="end">3</text>
+
+          <!-- Line 1: x - y = 0 -> y = x. Passes (60, 330) and (200, 190) and (340, 50) -->
+          <line x1="60" y1="330" x2="340" y2="50" stroke="var(--dark)" stroke-width="2.5"/>
+          <text x="315" y="40" fill="var(--text)" font-family="Lora, serif" font-size="15" font-weight="600">x - y = 0</text>
+
+          <!-- Line 2: 3x + 6y = 18 -> y = 3 - 0.5x. Passes (60, 120), (200, 190), (410, 295), (480, 330) -->
+          <line x1="60" y1="120" x2="480" y2="330" stroke="var(--muted)" stroke-width="2.5" stroke-dasharray="6 3"/>
+          <text x="390" y="275" fill="var(--text)" font-family="Lora, serif" font-size="15" font-weight="600">3x + 6y = 18</text>
+
+          <!-- Line 3: y = 2 (Eliminated row) -> Horizontal at y=190 -->
+          <line x1="60" y1="190" x2="460" y2="190" stroke="var(--accent)" stroke-width="3"/>
+          <text x="400" y="175" fill="var(--text)" font-family="Lora, serif" font-size="15" font-weight="600">9y = 18 (y = 2)</text>
+
+          <!-- Intersection Point (2, 2) -> (200, 190) -->
+          <circle cx="200" cy="190" r="6" fill="var(--box-label-bg)"/>
+          <circle cx="200" cy="190" r="10" fill="none" stroke="var(--box-label-bg)" stroke-width="2" opacity="0.6"/>
+          <text x="215" y="180" fill="var(--text)" font-family="Lora, serif" font-size="16" font-weight="bold">(2, 2)</text>
+        </svg>
+        <div class="figure-caption">
+          <strong>Figure 1:</strong> Geometric effect of forward elimination in the row picture. Subtracting a multiple of equation 1 from equation 2 rotates the constraint line into the horizontal line $y = 2$ while preserving the intersection point $(2, 2)$ invariant.
+        </div>
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Observation:</strong> Elimination does not move the solution! Any linear combination of two lines produces another straight line that is guaranteed to pass through the <em>exact same point of intersection</em>. Forward elimination strategically chooses the combination that zeros out the $x$-coefficient, rotating the second constraint line until it becomes perfectly horizontal ($y = 2$).
+    </div>
+  </div>
+
+  <!-- Problem 4 (Strang 1.3-27) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4: Forward Elimination to Upper Triangular Form</h3>
+      <span class="problem-badge">Strang §1.3, Exercise 27</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        For the system:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u + v + w &= 2 \\[6pt]
+          u + 3v + 3w &= 0 \\[6pt]
+          u + 3v + 5w &= 2
+        \end{aligned}$$
+      </div>
+      <p>
+        What is the triangular system after forward elimination, and what is the complete solution?
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Elimination on the Augmented System</h4>
+      <p>
+        We begin with the augmented matrix $[A \mid b]$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          1 & 1 & 1 & 2 \\
+          1 & 3 & 3 & 0 \\
+          1 & 3 & 5 & 2
+        \end{array}\right]$$
+      </div>
+      <p>
+        Pivot 1 is $a_{11} = 1$. Multipliers for column 1 are $l_{21} = 1 / 1 = 1$ and $l_{31} = 1 / 1 = 1$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_2 &\to R_2 - 1R_1 = \begin{bmatrix} 0 & 2 & 2 & \mid & -2 \end{bmatrix} \\[6pt]
+          R_3 &\to R_3 - 1R_1 = \begin{bmatrix} 0 & 2 & 4 & \mid & 0 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Pivot 2 is $a_{22} = 2$. Multiplier for column 2 is $l_{32} = 2 / 2 = 1$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_3 &\to R_3 - 1R_2 = \begin{bmatrix} 0 & 0 & 2 & \mid & 2 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. The Resulting Triangular System and Back-Substitution</h4>
+      <p>
+        Forward elimination yields the upper triangular system $Ux = c$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u + v + w &= 2 \\[6pt]
+          2v + 2w &= -2 \\[6pt]
+          2w &= 2
+        \end{aligned}$$
+      </div>
+      <p>
+        Pivots sit proudly along the diagonal: $d_1 = 1$, $d_2 = 2$, and $d_3 = 2$. Back-substituting:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          2w &= 2 \implies w = 1 \\[6pt]
+          2v + 2(1) &= -2 \implies 2v = -4 \implies v = -2 \\[6pt]
+          u + (-2) + 1 &= 2 \implies u - 1 = 2 \implies u = 3
+        \end{aligned}$$
+      </div>
+      <p>
+        The unique solution is $(u, v, w) = (3, -2, 1)$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Forward elimination creates the upper triangular matrix $U$ using only row subtractions below the diagonal. The pivots ($1, 2, 2$) are non-zero, proving that $A$ is non-singular and the system has an unambiguous unique solution.
+    </div>
+  </div>
+
+  <!-- Problem 5 (Strang 1.3-28) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 5: Zero Pivots, Row Exchanges, and Breakdown Thresholds</h3>
+      <span class="problem-badge">Strang §1.3, Exercise 28</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Apply elimination to the system:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u + v + w &= -2 \\[6pt]
+          3u + 3v - w &= 6 \\[6pt]
+          u - v + w &= -1
+        \end{aligned}$$
+      </div>
+      <p>
+        When a zero arises in a pivot position, exchange that equation for the one below it and proceed to solve. What coefficient of $v$ in the third equation would make it impossible to proceed and force elimination to break down completely?
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Encountering a Zero in the Pivot Position</h4>
+      <p>
+        We write the augmented matrix and apply column 1 elimination using pivot $a_{11} = 1$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          1 & 1 & 1 & -2 \\
+          3 & 3 & -1 & 6 \\
+          1 & -1 & 1 & -1
+        \end{array}\right]$$
+      </div>
+      <p>
+        Subtracting $3R_1$ from $R_2$, and subtracting $1R_1$ from $R_3$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_2 &\to R_2 - 3R_1 = \begin{bmatrix} 0 & 0 & -4 & \mid & 12 \end{bmatrix} \\[6pt]
+          R_3 &\to R_3 - 1R_1 = \begin{bmatrix} 0 & -2 & 0 & \mid & 1 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Entry $(2,2)$ is $0$! We cannot divide by zero to compute a multiplier for row 3. A temporary breakdown has occurred.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Rescuing the System via Row Exchange</h4>
+      <p>
+        Because row 3 contains a non-zero entry ($-2$) in column 2, we rescue elimination by swapping rows $R_2 \leftrightarrow R_3$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          1 & 1 & 1 & -2 \\
+          0 & -2 & 0 & 1 \\
+          0 & 0 & -4 & 12
+        \end{array}\right]$$
+      </div>
+      <p>
+        The system is now immediately upper triangular! The pivots are $1$, $-2$, and $-4$. Back-substituting:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          -4w &= 12 \implies w = -3 \\[6pt]
+          -2v &= 1 \implies v = -\frac{1}{2} \\[6pt]
+          u + \left(-\frac{1}{2}\right) + (-3) &= -2 \implies u - \frac{7}{2} = -2 \implies u = \frac{3}{2}
+        \end{aligned}$$
+      </div>
+      <p>
+        The solution coordinate is $(u, v, w) = \left(\frac{3}{2}, -\frac{1}{2}, -3\right)$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. The Critical Breakdown Coefficient</h4>
+      <p>
+        Now suppose the coefficient of $v$ in equation 3 was an unknown parameter $c$, so row 3 begins as $\begin{bmatrix} 1 & c & 1 & \mid & -1 \end{bmatrix}$. After subtracting row 1:
+      </p>
+      <div class="math-display">
+        $$R_3 \to R_3 - 1R_1 = \begin{bmatrix} 0 & c - 1 & 0 & \mid & 1 \end{bmatrix}$$
+      </div>
+      <p>
+        If $c - 1 = 0$, which occurs when:
+      </p>
+      <div class="math-display">
+        $$c = 1$$
+      </div>
+      <p>
+        then entry $(3,2)$ is also zero! Column 2 would contain exclusively zeros below row 1. Swapping $R_2 \leftrightarrow R_3$ would simply exchange one zero for another. No non-zero pivot could ever be found, and elimination would break down completely.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> A zero pivot is a <em>temporary</em> failure if a non-zero entry exists below it (requiring a row permutation matrix $P$). It becomes a <em>permanent</em> breakdown (singularity) if every candidate below it is also zero.
+    </div>
+  </div>
+
+  <!-- Problem 6 (Strang 1.4-28) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6: Elementary Elimination Matrices for Tridiagonal Systems</h3>
+      <span class="problem-badge">Strang §1.4, Exercise 28</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        The classical second-difference matrix $A$ appears frequently in numerical differential equations:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix}
+          2 & -1 & 0 & 0 \\
+          -1 & 2 & -1 & 0 \\
+          0 & -1 & 2 & -1 \\
+          0 & 0 & -1 & 2
+        \end{bmatrix}$$
+      </div>
+      <p>
+        Determine the explicit elementary elimination matrices $E_{21}$, $E_{32}$, and $E_{43}$ that reduce $A$ to upper triangular form $U$.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Eliminating Entry $(2,1)$ via $E_{21}$</h4>
+      <p>
+        The initial pivot is $d_1 = a_{11} = 2$. To eliminate $a_{21} = -1$, the multiplier is:
+      </p>
+      <div class="math-display">
+        $$l_{21} = \frac{-1}{2} = -\frac{1}{2}$$
+      </div>
+      <p>
+        The row operation is $R_2 \to R_2 - \left(-\frac{1}{2}\right) R_1 = R_2 + \frac{1}{2} R_1$. The elementary matrix $E_{21}$ places $-l_{21} = \frac{1}{2}$ at row 2, column 1:
+      </p>
+      <div class="math-display">
+        $$E_{21} = \begin{bmatrix}
+          1 & 0 & 0 & 0 \\
+          1/2 & 1 & 0 & 0 \\
+          0 & 0 & 1 & 0 \\
+          0 & 0 & 0 & 1
+        \end{bmatrix}$$
+      </div>
+      <p>
+        The new second row becomes $\begin{bmatrix} 0 & 2 - \frac{1}{2} & -1 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 3/2 & -1 & 0 \end{bmatrix}$, establishing the second pivot $d_2 = 3/2$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Eliminating Entry $(3,2)$ via $E_{32}$</h4>
+      <p>
+        With pivot $d_2 = 3/2$, to eliminate $a_{32} = -1$, the multiplier is:
+      </p>
+      <div class="math-display">
+        $$l_{32} = \frac{-1}{3/2} = -\frac{2}{3}$$
+      </div>
+      <p>
+        The row operation is $R_3 \to R_3 + \frac{2}{3} R_2$, corresponding to:
+      </p>
+      <div class="math-display">
+        $$E_{32} = \begin{bmatrix}
+          1 & 0 & 0 & 0 \\
+          0 & 1 & 0 & 0 \\
+          0 & 2/3 & 1 & 0 \\
+          0 & 0 & 0 & 1
+        \end{bmatrix}$$
+      </div>
+      <p>
+        The new third row becomes $\begin{bmatrix} 0 & 0 & 2 - \frac{2}{3} & -1 \end{bmatrix} = \begin{bmatrix} 0 & 0 & 4/3 & -1 \end{bmatrix}$, establishing the third pivot $d_3 = 4/3$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Eliminating Entry $(4,3)$ via $E_{43}$</h4>
+      <p>
+        With pivot $d_3 = 4/3$, to eliminate $a_{43} = -1$, the multiplier is:
+      </p>
+      <div class="math-display">
+        $$l_{43} = \frac{-1}{4/3} = -\frac{3}{4}$$
+      </div>
+      <p>
+        The elementary matrix is:
+      </p>
+      <div class="math-display">
+        $$E_{43} = \begin{bmatrix}
+          1 & 0 & 0 & 0 \\
+          0 & 1 & 0 & 0 \\
+          0 & 0 & 1 & 0 \\
+          0 & 0 & 3/4 & 1
+        \end{bmatrix}$$
+      </div>
+      <p>
+        The fourth pivot is $d_4 = 2 - \frac{3}{4} = \frac{5}{4}$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Pattern:</strong> The sequence of pivots follows the elegant harmonic progression $d_k = \frac{k+1}{k}$ ($2, 3/2, 4/3, 5/4$). The multipliers are $l_{k, k-1} = -\frac{k-1}{k}$. Each elementary matrix $E_{ij}$ modifies only row $i$ by subtracting $l_{ij}$ times row $j$.
+    </div>
+  </div>
+
+  <!-- Problem 7 (Strang 1.4-33) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 7: Non-Commutativity of Elementary Matrix Operations</h3>
+      <span class="problem-badge">Strang §1.4, Exercise 33</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        If the matrix $E$ adds row 1 to row 2, and the matrix $F$ adds row 2 to row 1, does $EF$ equal $FE$? Provide the algebraic proof and explain the geometric reason why matrix multiplication order matters.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Explicit Matrix Construction</h4>
+      <p>
+        In a 2-dimensional space, the elementary matrices are:
+      </p>
+      <div class="math-display">
+        $$E = \begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix}, \qquad F = \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Computing Both Matrix Products</h4>
+      <p>
+        Multiplying in the order $EF$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          EF &= \begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \\[8pt]
+          &= \begin{bmatrix} 1(1) + 0(0) & 1(1) + 0(1) \\ 1(1) + 1(0) & 1(1) + 1(1) \end{bmatrix} \\[8pt]
+          &= \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Multiplying in the reverse order $FE$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          FE &= \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 1 & 1 \end{bmatrix} \\[8pt]
+          &= \begin{bmatrix} 1(1) + 1(1) & 1(0) + 1(1) \\ 0(1) + 1(1) & 0(0) + 1(1) \end{bmatrix} \\[8pt]
+          &= \begin{bmatrix} 2 & 1 \\ 1 & 1 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Comparing the two resulting matrices:
+      </p>
+      <div class="math-display">
+        $$EF \neq FE$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. The Operational Feedback Mechanism</h4>
+      <p>
+        Matrix operations execute from right to left on operand vectors:
+      </p>
+      <ul>
+        <li>In $EF$: $F$ acts first, creating a new row 1 ($R_1 + R_2$). Then $E$ adds this <em>already modified</em> row 1 into row 2, resulting in entry $(2,2)$ accumulating $1 + 1 = 2$.</li>
+        <li>In $FE$: $E$ acts first, creating a new row 2 ($R_1 + R_2$). Then $F$ adds this <em>already modified</em> row 2 into row 1, resulting in entry $(1,1)$ accumulating $1 + 1 = 2$.</li>
+      </ul>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Elementary row shears do not commute when one shear alters the very coordinate baseline that the subsequent shear relies upon. Order is physically and algebraically irreversible.
+    </div>
+  </div>
+
+  <!-- Problem 8 (Strang 1.4-53) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8: The Projection Matrix onto the Coordinate Axis</h3>
+      <span class="problem-badge">Strang §1.4, Exercise 53</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        What $2 \times 2$ matrix $P$ projects an arbitrary vector $\begin{bmatrix} x \\ y \end{bmatrix}$ onto the $x$-axis to produce $\begin{bmatrix} x \\ 0 \end{bmatrix}$? What are its algebraic properties regarding invertibility and repeated application?
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Constructing the Matrix Column by Column</h4>
+      <p>
+        A linear transformation is completely determined by its effect on the standard basis vectors:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          P \begin{bmatrix} 1 \\ 0 \end{bmatrix} &= \begin{bmatrix} 1 \\ 0 \end{bmatrix} \quad \implies \quad \text{Column 1} = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \\[8pt]
+          P \begin{bmatrix} 0 \\ 1 \end{bmatrix} &= \begin{bmatrix} 0 \\ 0 \end{bmatrix} \quad \implies \quad \text{Column 2} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Assembling the columns yields:
+      </p>
+      <div class="math-display">
+        $$P = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Essential Algebraic Properties</h4>
+      <p>
+        Two fundamental algebraic properties define every projection matrix:
+      </p>
+      <ul>
+        <li>
+          <strong>Idempotence ($P^2 = P$):</strong> Once a point has been projected onto the $x$-axis, projecting it a second time leaves it unchanged:
+          <div class="math-display">
+            $$P^2 = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 0 \end{bmatrix} = P$$
+          </div>
+        </li>
+        <li>
+          <strong>Singularity ($\det(P) = 0$):</strong> The determinant is $1(0) - 0(0) = 0$. The projection matrix is non-invertible because all information along the $y$-axis has been mapped to zero. Any point $(x, y)$ collapses onto $(x, 0)$, meaning infinitely many original vectors share the exact same projection.
+        </li>
+      </ul>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Projections act as information loss operators. The nullspace of $P$ is the $y$-axis ($\operatorname{dim} = 1$), and its column space is the $x$-axis ($\operatorname{dim} = 1$). Conservation of dimensions holds: $1 + 1 = 2$.
+    </div>
+  </div>
+
+  <!-- Problem 9 (Strang 1.5-7) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 9: The LU Factorization and Solving Ax = b</h3>
+      <span class="problem-badge">Strang §1.5, Exercise 7</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Factor $A$ into $LU$, and write down the upper triangular system $Ux = c$ for:
+      </p>
+      <div class="math-display">
+        $$Ax = \begin{bmatrix}
+          2 & 3 & 3 \\
+          0 & 5 & 7 \\
+          6 & 9 & 8
+        \end{bmatrix}
+        \begin{bmatrix} u \\ v \\ w \end{bmatrix}
+        = \begin{bmatrix} 2 \\ 2 \\ 5 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Finding Multipliers and Constructing $U$</h4>
+      <p>
+        We perform Gaussian elimination on $A$:
+      </p>
+      <ul>
+        <li>Entry $(2,1)$ is already $0$, so multiplier $l_{21} = 0$.</li>
+        <li>To eliminate $a_{31} = 6$ with pivot $a_{11} = 2$, multiplier $l_{31} = 6 / 2 = 3$.</li>
+      </ul>
+      <p>
+        Row operation $R_3 \to R_3 - 3R_1$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_3 &\to \begin{bmatrix} 6 - 3(2) & 9 - 3(3) & 8 - 3(3) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 0 & 0 & -1 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Notice that entry $(3,2)$ became $0$ automatically! Multiplier $l_{32} = 0 / 5 = 0$. Elimination is complete, yielding:
+      </p>
+      <div class="math-display">
+        $$U = \begin{bmatrix}
+          2 & 3 & 3 \\
+          0 & 5 & 7 \\
+          0 & 0 & -1
+        \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Assembling Lower Triangular $L$</h4>
+      <p>
+        The matrix $L$ stores $1$s on the diagonal and the recorded multipliers $l_{ij}$ in the lower positions:
+      </p>
+      <div class="math-display">
+        $$L = \begin{bmatrix}
+          1 & 0 & 0 \\
+          l_{21} & 1 & 0 \\
+          l_{31} & l_{32} & 1
+        \end{bmatrix}
+        = \begin{bmatrix}
+          1 & 0 & 0 \\
+          0 & 1 & 0 \\
+          3 & 0 & 1
+        \end{bmatrix}$$
+      </div>
+      <p>
+        Verifying the product $LU = A$:
+      </p>
+      <div class="math-display">
+        $$\begin{bmatrix}
+          1 & 0 & 0 \\
+          0 & 1 & 0 \\
+          3 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+          2 & 3 & 3 \\
+          0 & 5 & 7 \\
+          0 & 0 & -1
+        \end{bmatrix}
+        = \begin{bmatrix}
+          2 & 3 & 3 \\
+          0 & 5 & 7 \\
+          6 & 9 & 9 - 1
+        \end{bmatrix}
+        = A$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Forward Solve: $Lc = b$</h4>
+      <p>
+        Instead of modifying $b$ simultaneously during elimination, we solve the lower triangular system $Lc = b$:
+      </p>
+      <div class="math-display">
+        $$\begin{bmatrix}
+          1 & 0 & 0 \\
+          0 & 1 & 0 \\
+          3 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix} c_1 \\ c_2 \\ c_3 \end{bmatrix}
+        = \begin{bmatrix} 2 \\ 2 \\ 5 \end{bmatrix}$$
+      </div>
+      <p>
+        Solving from top to bottom (forward substitution):
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          c_1 &= 2 \\[6pt]
+          c_2 &= 2 \\[6pt]
+          3c_1 + c_3 = 5 &\implies 3(2) + c_3 = 5 \implies c_3 = -1
+        \end{aligned}$$
+      </div>
+      <p>
+        Thus $c = \begin{bmatrix} 2 \\ 2 \\ -1 \end{bmatrix}$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>4. Backward Solve: $Ux = c$</h4>
+      <p>
+        We formulate the upper triangular system $Ux = c$:
+      </p>
+      <div class="math-display">
+        $$\begin{bmatrix}
+          2 & 3 & 3 \\
+          0 & 5 & 7 \\
+          0 & 0 & -1
+        \end{bmatrix}
+        \begin{bmatrix} u \\ v \\ w \end{bmatrix}
+        = \begin{bmatrix} 2 \\ 2 \\ -1 \end{bmatrix}$$
+      </div>
+      <p>
+        Solving backwards:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          -w &= -1 \implies w = 1 \\[6pt]
+          5v + 7(1) &= 2 \implies 5v = -5 \implies v = -1 \\[6pt]
+          2u + 3(-1) + 3(1) &= 2 \implies 2u = 2 \implies u = 1
+        \end{aligned}$$
+      </div>
+      <p>
+        Solution vector: $(u, v, w) = (1, -1, 1)$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Factoring $A = LU$ decouples the $O(n^3)$ cost of elimination from the right-hand side $b$. Once $L$ and $U$ are stored, solving for any new right-hand vector requires only two $O(n^2)$ triangular sweeps ($Lc = b$ followed by $Ux = c$).
+    </div>
+  </div>
+
+  <!-- Problem 10 (Strang 1.5-15) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 10: Factoring A into UL (Upper Times Lower)</h3>
+      <span class="problem-badge">Strang §1.5, Exercise 15</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Standard elimination factors a matrix into $A = LU$. How could you factor an invertible matrix $A$ into $UL$ (the product of an upper triangular matrix times a lower triangular matrix)?
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>Method 1: Reverse Gaussian Elimination (Bottom-Up)</h4>
+      <p>
+        Standard $LU$ factorization eliminates from the top-left corner downwards. To construct $UL$, we reverse the direction of elimination entirely:
+      </p>
+      <ol>
+        <li>Start at the bottom-right corner $a_{nn}$ and treat it as the initial pivot.</li>
+        <li>Clear all entries <em>above</em> the pivot in column $n$ using elementary row operations of the form $R_i \to R_i - m_{ij} R_j$ with $i < j$.</li>
+        <li>These row operations are represented by <strong>upper triangular elementary matrices</strong> $U_k$.</li>
+        <li>Proceeding upwards and leftwards systematically reduces $A$ to a lower triangular matrix $L$:
+          <div class="math-display">
+            $$U_k \dots U_2 U_1 A = L$$
+          </div>
+        </li>
+        <li>Multiplying by the inverses of the elimination matrices yields:
+          <div class="math-display">
+            $$A = (U_k \dots U_1)^{-1} L = U L$$
+          </div>
+          where $U$ is upper triangular and $L$ is lower triangular.
+        </li>
+      </ol>
+    </div>
+
+    <div class="solution-step">
+      <h4>Method 2: Transposition Duality via Standard LU</h4>
+      <p>
+        We can bypass reverse elimination entirely by exploiting matrix transposition:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          A^T &= L_1 U_1 \quad \text{(standard $LU$ factorization of $A^T$)}
+        \end{aligned}$$
+      </div>
+      <p>
+        Transposing both sides of this identity:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          A &= (A^T)^T \\[6pt]
+          &= (L_1 U_1)^T \\[6pt]
+          &= U_1^T L_1^T
+        \end{aligned}$$
+      </div>
+      <p>
+        Because the transpose of an upper triangular matrix is lower triangular and vice versa:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          U &\equiv U_1^T \quad (\text{upper triangular}) \\[6pt]
+          L &\equiv L_1^T \quad (\text{lower triangular})
+        \end{aligned}$$
+      </div>
+      <p>
+        Thus $A = UL$ is produced directly from the standard $LU$ decomposition of its transpose.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Transposition acts as a mirror that inverts matrix triangularity: $(LU)^T = U^T L^T = \text{Upper} \times \text{Lower}$.
+    </div>
+  </div>
+
+  <!-- Problem 11 (Strang 1.5-11) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 11: Solvability and Singularity Classification</h3>
+      <span class="problem-badge">Strang §1.5, Exercise 11</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Determine whether the following three systems are singular or non-singular, and classify whether they have no solution, exactly one solution, or infinitely many solutions:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{System 1: } & \begin{cases} v - w = 2 \\ u - v - w = 2 \\ u - w = 2 \end{cases} \\[10pt]
+          \text{System 2: } & \begin{cases} v - w = 0 \\ u - v = 0 \\ u - w = 0 \end{cases} \\[10pt]
+          \text{System 3: } & \begin{cases} v + w = 1 \\ u + v = 1 \\ u + w = 1 \end{cases}
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. System 1 Analysis</h4>
+      <p>
+        The coefficient matrix is $A_1 = \begin{bmatrix} 0 & 1 & -1 \\ 1 & -1 & -1 \\ 1 & 0 & -1 \end{bmatrix}$. Swapping rows $R_1 \leftrightarrow R_2$ and subtracting $R_1$ from $R_3$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          1 & -1 & -1 & 2 \\
+          0 & 1 & -1 & 2 \\
+          1 & 0 & -1 & 2
+        \end{array}\right]
+        \xrightarrow{R_3 \to R_3 - R_1}
+        \left[\begin{array}{ccc|c}
+          1 & -1 & -1 & 2 \\
+          0 & 1 & -1 & 2 \\
+          0 & 1 & 0 & 0
+        \end{array}\right]
+        \xrightarrow{R_3 \to R_3 - R_2}
+        \left[\begin{array}{ccc|c}
+          1 & -1 & -1 & 2 \\
+          0 & 1 & -1 & 2 \\
+          0 & 0 & 1 & -2
+        \end{array}\right]$$
+      </div>
+      <p>
+        Three non-zero pivots exist ($1, 1, 1$). The matrix is <strong>non-singular</strong>. Back-substituting yields $w = -2$, $v = 0$, $u = 0$. Exactly <strong>one unique solution</strong> $(0, 0, -2)$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. System 2 Analysis</h4>
+      <p>
+        Examining the equations directly:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{Eq 1: } & v - w = 0 \\[6pt]
+          \text{Eq 2: } & u - v = 0 \\[6pt]
+          \text{Sum: } & (u - v) + (v - w) = u - w = 0
+        \end{aligned}$$
+      </div>
+      <p>
+        The third equation is exactly the sum of the first two! Row 3 is linearly dependent on rows 1 and 2, which forces $\det(A_2) = 0$. The matrix is <strong>singular</strong>. Because the system is homogeneous ($b = 0$), it is consistent and possesses a free variable. It has <strong>infinitely many solutions</strong> along the ray $u = v = w$ (parameterized as $c(1, 1, 1)^T$).
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. System 3 Analysis</h4>
+      <p>
+        Summing all three equations:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          (v + w) + (u + v) + (u + w) &= 1 + 1 + 1 \\[6pt]
+          2u + 2v + 2w &= 3 \\[6pt]
+          u + v + w &= \frac{3}{2}
+        \end{aligned}$$
+      </div>
+      <p>
+        Subtracting each original equation from this master sum:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          u &= (u + v + w) - (v + w) = \frac{3}{2} - 1 = \frac{1}{2} \\[6pt]
+          w &= (u + v + w) - (u + v) = \frac{3}{2} - 1 = \frac{1}{2} \\[6pt]
+          v &= (u + v + w) - (u + w) = \frac{3}{2} - 1 = \frac{1}{2}
+        \end{aligned}$$
+      </div>
+      <p>
+        The matrix is <strong>non-singular</strong> ($\det(A_3) = -2 \neq 0$), yielding exactly <strong>one unique solution</strong> $\left(\frac{1}{2}, \frac{1}{2}, \frac{1}{2}\right)$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> A square system is non-singular if and only if its rows are linearly independent. Singular systems split into two fates depending on $b$: complete inconsistency ($0$ solutions) or infinite redundancy ($\infty$ solutions along the nullspace).
+    </div>
+  </div>
+
+  <!-- Problem 12 (Strang 1.5-18) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 12: Solving Pre-Factored Triangular Systems</h3>
+      <span class="problem-badge">Strang §1.5, Exercise 18</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Solve the linear system $LUx = b$ as two triangular systems:
+      </p>
+      <div class="math-display">
+        $$LUx =
+        \begin{bmatrix}
+          1 & 0 & 0 \\
+          1 & 1 & 0 \\
+          1 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+          2 & 4 & 4 \\
+          0 & 1 & 2 \\
+          0 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix} u \\ v \\ w \end{bmatrix}
+        = \begin{bmatrix} 2 \\ 0 \\ 2 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Stage 1: Forward Substitution ($Lc = b$)</h4>
+      <p>
+        We define the intermediate vector $c \equiv Ux$ and solve $Lc = b$:
+      </p>
+      <div class="math-display">
+        $$\begin{bmatrix}
+          1 & 0 & 0 \\
+          1 & 1 & 0 \\
+          1 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix} c_1 \\ c_2 \\ c_3 \end{bmatrix}
+        = \begin{bmatrix} 2 \\ 0 \\ 2 \end{bmatrix}$$
+      </div>
+      <p>
+        Solving sequentially from row 1 down:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          c_1 &= 2 \\[6pt]
+          c_1 + c_2 = 0 &\implies 2 + c_2 = 0 \implies c_2 = -2 \\[6pt]
+          c_1 + c_3 = 2 &\implies 2 + c_3 = 2 \implies c_3 = 0
+        \end{aligned}$$
+      </div>
+      <p>
+        Intermediate solution: $c = \begin{bmatrix} 2 \\ -2 \\ 0 \end{bmatrix}$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Stage 2: Back-Substitution ($Ux = c$)</h4>
+      <p>
+        Now we solve the upper triangular system $Ux = c$:
+      </p>
+      <div class="math-display">
+        $$\begin{bmatrix}
+          2 & 4 & 4 \\
+          0 & 1 & 2 \\
+          0 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix} u \\ v \\ w \end{bmatrix}
+        = \begin{bmatrix} 2 \\ -2 \\ 0 \end{bmatrix}$$
+      </div>
+      <p>
+        Solving upwards from row 3:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          w &= 0 \\[6pt]
+          v + 2(0) = -2 &\implies v = -2 \\[6pt]
+          2u + 4(-2) + 4(0) = 2 &\implies 2u - 8 = 2 \implies 2u = 10 \implies u = 5
+        \end{aligned}$$
+      </div>
+      <p>
+        Final solution vector: $(u, v, w) = (5, -2, 0)$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> We never explicitly reconstruct $A = LU$. Solving two triangular systems directly replaces the messy entangled problem with two clean, linear passes of back- and forward-substitution.
+    </div>
+  </div>
+
+  <!-- Problem 13 (Strang 1.6-10) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 13: Gauss-Jordan Inversion of a Tridiagonal Matrix</h3>
+      <span class="problem-badge">Strang §1.6, Exercise 10</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Use the Gauss-Jordan elimination algorithm to invert the symmetric tridiagonal matrix:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix}
+          2 & -1 & 0 \\
+          -1 & 2 & -1 \\
+          0 & -1 & 2
+        \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Setting up the Block Matrix $[A \mid I]$</h4>
+      <p>
+        We augment $A$ with the $3 \times 3$ identity matrix:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|ccc}
+          2 & -1 & 0 & 1 & 0 & 0 \\
+          -1 & 2 & -1 & 0 & 1 & 0 \\
+          0 & -1 & 2 & 0 & 0 & 1
+        \end{array}\right]$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Forward Elimination Phase</h4>
+      <p>
+        Pivot 1 is $a_{11} = 2$. Multiplier $l_{21} = -1/2$. Row operation $R_2 \to R_2 + \frac{1}{2} R_1$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|ccc}
+          2 & -1 & 0 & 1 & 0 & 0 \\
+          0 & 3/2 & -1 & 1/2 & 1 & 0 \\
+          0 & -1 & 2 & 0 & 0 & 1
+        \end{array}\right]$$
+      </div>
+      <p>
+        Pivot 2 is $a_{22} = 3/2$. Multiplier $l_{32} = \frac{-1}{3/2} = -2/3$. Row operation $R_3 \to R_3 + \frac{2}{3} R_2$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|ccc}
+          2 & -1 & 0 & 1 & 0 & 0 \\
+          0 & 3/2 & -1 & 1/2 & 1 & 0 \\
+          0 & 0 & 4/3 & 1/3 & 2/3 & 1
+        \end{array}\right]$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Backward Elimination Phase (Gauss-Jordan Upward)</h4>
+      <p>
+        We eliminate entries above the pivots. To clear entry $(2,3) = -1$ using pivot row 3, we add $\frac{3}{4} R_3$ to $R_2$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_2 &\to R_2 + \frac{3}{4} R_3 \\[6pt]
+          &= \begin{bmatrix} 0 & 3/2 & 0 & \mid & 1/2 + \frac{3}{4}(1/3) & 1 + \frac{3}{4}(2/3) & 0 + \frac{3}{4}(1) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 0 & 3/2 & 0 & \mid & 3/4 & 3/2 & 3/4 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Now eliminate entry $(1,2) = -1$ using row 2. Adding $\frac{2}{3} R_2$ to $R_1$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_1 &\to R_1 + \frac{2}{3} R_2 \\[6pt]
+          &= \begin{bmatrix} 2 & 0 & 0 & \mid & 1 + \frac{2}{3}(3/4) & 0 + \frac{2}{3}(3/2) & 0 + \frac{2}{3}(3/4) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 2 & 0 & 0 & \mid & 3/2 & 1 & 1/2 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>4. Normalizing Pivot Rows to Identity</h4>
+      <p>
+        Dividing each row by its respective diagonal pivot ($R_1 / 2$, $R_2 / (3/2)$, $R_3 / (4/3)$):
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|ccc}
+          1 & 0 & 0 & 3/4 & 1/2 & 1/4 \\
+          0 & 1 & 0 & 1/2 & 1 & 1/2 \\
+          0 & 0 & 1 & 1/4 & 1/2 & 3/4
+        \end{array}\right]$$
+      </div>
+      <p>
+        Factoring out $\frac{1}{4}$ reveals the symmetric inverse:
+      </p>
+      <div class="math-display">
+        $$A^{-1} = \frac{1}{4} \begin{bmatrix}
+          3 & 2 & 1 \\
+          2 & 4 & 2 \\
+          1 & 2 & 3
+        \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Gauss-Jordan solves $A x_i = e_i$ simultaneously for all standard basis vectors. While the original tridiagonal matrix $A$ is sparse, its inverse $A^{-1}$ is completely dense, representing the Green's function for the discrete second derivative.
+    </div>
+  </div>
+
+  <!-- Problem 14 (Strang 1.6-37) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 14: Inverting Tridiagonal Matrices with Positive Off-Diagonals</h3>
+      <span class="problem-badge">Strang §1.6, Exercise 37</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Eliminate above and below the pivots to reduce $[A \mid I]$ to $[I \mid A^{-1}]$ for:
+      </p>
+      <div class="math-display">
+        $$[A \mid I] = \left[\begin{array}{ccc|ccc}
+          2 & 1 & 0 & 1 & 0 & 0 \\
+          1 & 2 & 1 & 0 & 1 & 0 \\
+          0 & 1 & 2 & 0 & 0 & 1
+        \end{array}\right]$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Forward Elimination</h4>
+      <p>
+        Pivot 1 is $2$. Row operation $R_2 \to R_2 - \frac{1}{2} R_1$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|ccc}
+          2 & 1 & 0 & 1 & 0 & 0 \\
+          0 & 3/2 & 1 & -1/2 & 1 & 0 \\
+          0 & 1 & 2 & 0 & 0 & 1
+        \end{array}\right]$$
+      </div>
+      <p>
+        Pivot 2 is $3/2$. Row operation $R_3 \to R_3 - \frac{2}{3} R_2$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|ccc}
+          2 & 1 & 0 & 1 & 0 & 0 \\
+          0 & 3/2 & 1 & -1/2 & 1 & 0 \\
+          0 & 0 & 4/3 & 1/3 & -2/3 & 1
+        \end{array}\right]$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Backward Elimination Above Pivots</h4>
+      <p>
+        Subtract $\frac{3}{4} R_3$ from $R_2$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_2 &\to R_2 - \frac{3}{4} R_3 \\[6pt]
+          &= \begin{bmatrix} 0 & 3/2 & 0 & \mid & -1/2 - \frac{3}{4}(1/3) & 1 - \frac{3}{4}(-2/3) & 0 - \frac{3}{4}(1) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 0 & 3/2 & 0 & \mid & -3/4 & 3/2 & -3/4 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Subtract $\frac{2}{3} R_2$ from $R_1$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          R_1 &\to R_1 - \frac{2}{3} R_2 \\[6pt]
+          &= \begin{bmatrix} 2 & 0 & 0 & \mid & 1 - \frac{2}{3}(-3/4) & 0 - \frac{2}{3}(3/2) & 0 - \frac{2}{3}(-3/4) \end{bmatrix} \\[6pt]
+          &= \begin{bmatrix} 2 & 0 & 0 & \mid & 3/2 & -1 & 1/2 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Normalizing Diagonal Pivots</h4>
+      <p>
+        Scaling rows by their pivot reciprocals produces the identity on the left:
+      </p>
+      <div class="math-display">
+        $$A^{-1} = \frac{1}{4} \begin{bmatrix}
+          3 & -2 & 1 \\
+          -2 & 4 & -2 \\
+          1 & -2 & 3
+        \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Notice the alternating signs in $A^{-1}$. When off-diagonal elements in $A$ are positive ($+1$), the entries of the inverse alternate in sign like a checkerboard pattern. When off-diagonals are negative ($-1$, as in Problem 13), every single entry in $A^{-1}$ is strictly positive!
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  PART II: Solvability, Nullspaces, and Solutions      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="part-2-solvability-and-nullspaces">
+  <h2>Part II: Solvability Conditions, Nullspaces, and Complete Solutions</h2>
+
+  <p>
+    We now progress from square invertible matrices to rectangular systems $A_{m \times n} x = b$. Here, solutions may not exist, or they may form multi-dimensional affine subspaces. We explore the conditions required of $b$, the extraction of special solutions, the synthesis of matrices from nullspaces, and the fundamental conservation laws of dimension.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>When does $Ax = b$ admit a solution, and how does the geometry of the nullspace translate the particular solution into a flat hyperplanar subspace?</em></p>
+    </div>
+  </div>
+
+  <!-- Problem 15 (Strang 2.1-24 & 28) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 15: Conditions on b for Solvability of Ax = b</h3>
+      <span class="problem-badge">Strang §2.1, Exercises 24 &amp; 28</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Find the exact conditions on $b_1, b_2, b_3$ that make each of the following systems solvable:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{(a) } & \begin{bmatrix} 1 & 4 & 2 \\ 2 & 8 & 4 \\ -1 & -4 & -2 \end{bmatrix} \begin{bmatrix} u \\ v \\ w \end{bmatrix} = \begin{bmatrix} b_1 \\ b_2 \\ b_3 \end{bmatrix}
+          & \qquad
+          \text{(b) } & \begin{bmatrix} 1 & 4 \\ 2 & 9 \\ -1 & -4 \end{bmatrix} \begin{bmatrix} u \\ v \end{bmatrix} = \begin{bmatrix} b_1 \\ b_2 \\ b_3 \end{bmatrix} \\[12pt]
+          \text{(c) } & \begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} u \\ v \\ w \end{bmatrix} = \begin{bmatrix} b_1 \\ b_2 \\ b_3 \end{bmatrix}
+          & \qquad
+          \text{(d) } & \begin{bmatrix} 1 & 1 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 0 \end{bmatrix} \begin{bmatrix} u \\ v \\ w \end{bmatrix} = \begin{bmatrix} b_1 \\ b_2 \\ b_3 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>System (a): Rank 1 Matrix with Dependent Rows</h4>
+      <p>
+        Examining the rows of $A$: row 2 is $2 R_1$, and row 3 is $-R_1$. Applying elimination on $[A \mid b]$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          1 & 4 & 2 & b_1 \\
+          2 & 8 & 4 & b_2 \\
+          -1 & -4 & -2 & b_3
+        \end{array}\right]
+        \xrightarrow{\substack{R_2 \to R_2 - 2R_1 \\ R_3 \to R_3 + R_1}}
+        \left[\begin{array}{ccc|c}
+          1 & 4 & 2 & b_1 \\
+          0 & 0 & 0 & b_2 - 2b_1 \\
+          0 & 0 & 0 & b_3 + b_1
+        \end{array}\right]$$
+      </div>
+      <p>
+        The zero rows force consistency conditions on $b$:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          b_2 - 2b_1 &= 0 \implies b_2 = 2b_1 \\[6pt]
+          b_3 + b_1 &= 0 \implies b_3 = -b_1
+        \end{aligned}$$
+      </div>
+      <p>
+        Thus $b$ must be a scalar multiple of $(1, 2, -1)^T$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>System (b): Tall Matrix with Full Column Rank</h4>
+      <p>
+        The matrix is $3 \times 2$. Row 3 is $-R_1$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{cc|c}
+          1 & 4 & b_1 \\
+          2 & 9 & b_2 \\
+          -1 & -4 & b_3
+        \end{array}\right]
+        \xrightarrow{\substack{R_2 \to R_2 - 2R_1 \\ R_3 \to R_3 + R_1}}
+        \left[\begin{array}{cc|c}
+          1 & 4 & b_1 \\
+          0 & 1 & b_2 - 2b_1 \\
+          0 & 0 & b_3 + b_1
+        \end{array}\right]$$
+      </div>
+      <p>
+        Column 1 and Column 2 contain pivots. The single zero row requires:
+      </p>
+      <div class="math-display">
+        $$b_3 + b_1 = 0 \iff b_3 = -b_1$$
+      </div>
+      <p>
+        There is no constraint on $b_2$. Any $b$ lying in this 2D plane is solvable.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>System (c): Upper Triangular Invertible Matrix</h4>
+      <p>
+        The matrix is upper triangular with diagonal pivots $1, 1, 1$. Its rank is $r = 3 = m$. There are no rows of zeros. The system is solvable for <strong>all vectors $b \in \mathbb{R}^3$</strong> without restriction.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>System (d): Row of Zeros at the Bottom</h4>
+      <p>
+        Row 3 consists entirely of zeros: $0u + 0v + 0w = b_3$. For consistency, we require:
+      </p>
+      <div class="math-display">
+        $$b_3 = 0$$
+      </div>
+      <p>
+        Entries $b_1$ and $b_2$ may take any real values.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Fundamental Theorem of Solvability:</strong> $Ax = b$ is solvable if and only if $b$ belongs to the column space $C(A)$. Computationally, whenever elimination produces a row of zeros in the matrix, the corresponding combination of entries in $b$ must vanish.
+    </div>
+  </div>
+
+  <!-- Problem 16 (Strang 2.2-2) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 16: Echelon Form, Free Variables, and Special Solutions</h3>
+      <span class="problem-badge">Strang §2.2, Exercise 2</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Find the echelon form $U$, the free variables, and the special solutions for:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix}
+          0 & 1 & 0 & 3 \\
+          0 & 2 & 0 & 6
+        \end{bmatrix}, \qquad b = \begin{bmatrix} b_1 \\ b_2 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Echelon Reduction</h4>
+      <p>
+        Column 1 contains only zeros; no pivot exists in column 1. The first pivot appears in column 2, row 1 ($a_{12} = 1$). To clear the entry below it, we subtract $2 R_1$ from $R_2$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{cccc|c}
+          0 & 1 & 0 & 3 & b_1 \\
+          0 & 2 & 0 & 6 & b_2
+        \end{array}\right]
+        \xrightarrow{R_2 \to R_2 - 2R_1}
+        \left[\begin{array}{cccc|c}
+          0 & 1 & 0 & 3 & b_1 \\
+          0 & 0 & 0 & 0 & b_2 - 2b_1
+        \end{array}\right]$$
+      </div>
+      <p>
+        The echelon form is:
+      </p>
+      <div class="math-display">
+        $$U = \begin{bmatrix}
+          0 & 1 & 0 & 3 \\
+          0 & 0 & 0 & 0
+        \end{bmatrix}$$
+      </div>
+      <p>
+        Solvability condition: $b_2 - 2b_1 = 0 \implies b_2 = 2b_1$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Variable Classification</h4>
+      <p>
+        The rank of the matrix is $r = 1$:
+      </p>
+      <ul>
+        <li><strong>Pivot Variable:</strong> $x_2$ (column 2 has a pivot).</li>
+        <li><strong>Free Variables:</strong> $x_1, x_3, x_4$ (columns 1, 3, and 4 lack pivots).</li>
+      </ul>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Deriving the Three Special Solutions</h4>
+      <p>
+        The homogeneous equation $Ux = 0$ reads $x_2 + 3x_4 = 0 \implies x_2 = -3x_4$. Notice that $x_1$ and $x_3$ do not even appear in the equation. We assign unit values to each free variable in turn while setting the other free variables to zero:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{Set } x_1 = 1, x_3 = 0, x_4 = 0 &\implies x_2 = 0 \quad \implies \quad s_1 = \begin{bmatrix} 1 \\ 0 \\ 0 \\ 0 \end{bmatrix} \\[10pt]
+          \text{Set } x_1 = 0, x_3 = 1, x_4 = 0 &\implies x_2 = 0 \quad \implies \quad s_2 = \begin{bmatrix} 0 \\ 0 \\ 1 \\ 0 \end{bmatrix} \\[10pt]
+          \text{Set } x_1 = 0, x_3 = 0, x_4 = 1 &\implies x_2 = -3 \quad \implies \quad s_3 = \begin{bmatrix} 0 \\ -3 \\ 0 \\ 1 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        These three special solutions form an explicit basis for the nullspace $N(A)$, whose dimension is $n - r = 4 - 1 = 3$.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Each free variable independently gives birth to exactly one special solution. The collection of special solutions spans the complete nullspace $N(A)$.
+    </div>
+  </div>
+
+  <!-- Problem 17 (Strang 2.2-36) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 17: Complete Solutions (xp + xn) for Underdetermined Systems</h3>
+      <span class="problem-badge">Strang §2.2, Exercise 36</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Write the complete solutions in the form $x = x_p + x_n$ for the two systems:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{System I: } & \begin{cases}
+            x + 3y + 3z = 1 \\
+            2x + 6y + 9z = 5 \\
+            -x - 3y + 3z = 5
+          \end{cases} \\[12pt]
+          \text{System II: } & \begin{bmatrix}
+            1 & 3 & 1 & 2 \\
+            2 & 6 & 4 & 8 \\
+            0 & 0 & 2 & 4
+          \end{bmatrix}
+          \begin{bmatrix} x \\ y \\ z \\ t \end{bmatrix}
+          = \begin{bmatrix} 1 \\ 3 \\ 1 \end{bmatrix}
+        \end{aligned}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>System I: Three Unknowns, Rank 2</h4>
+      <p>
+        We perform row elimination on the augmented matrix:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          1 & 3 & 3 & 1 \\
+          2 & 6 & 9 & 5 \\
+          -1 & -3 & 3 & 5
+        \end{array}\right]
+        \xrightarrow{\substack{R_2 \to R_2 - 2R_1 \\ R_3 \to R_3 + R_1}}
+        \left[\begin{array}{ccc|c}
+          1 & 3 & 3 & 1 \\
+          0 & 0 & 3 & 3 \\
+          0 & 0 & 6 & 6
+        \end{array}\right]
+        \xrightarrow{R_3 \to R_3 - 2R_2}
+        \left[\begin{array}{ccc|c}
+          1 & 3 & 3 & 1 \\
+          0 & 0 & 3 & 3 \\
+          0 & 0 & 0 & 0
+        \end{array}\right]$$
+      </div>
+      <p>
+        The pivots sit in columns 1 ($x$) and 3 ($z$). The free variable is $y$ (column 2).
+      </p>
+      <ul>
+        <li>
+          <strong>Particular Solution ($x_p$):</strong> Set free variable $y = 0$.
+          <div class="math-display">
+            $$\begin{aligned}
+              3z &= 3 \implies z = 1 \\[6pt]
+              x + 3(0) + 3(1) &= 1 \implies x = -2
+            \end{aligned}$$
+          </div>
+          $$x_p = \begin{bmatrix} -2 \\ 0 \\ 1 \end{bmatrix}$$
+        </li>
+        <li>
+          <strong>Nullspace Special Solution ($x_n$):</strong> Set $y = 1$ in $Ux = 0$.
+          <div class="math-display">
+            $$\begin{aligned}
+              3z &= 0 \implies z = 0 \\[6pt]
+              x + 3(1) + 3(0) &= 0 \implies x = -3
+            \end{aligned}$$
+          </div>
+          $$s = \begin{bmatrix} -3 \\ 1 \\ 0 \end{bmatrix}$$
+        </li>
+      </ul>
+      <p>
+        Complete solution:
+      </p>
+      <div class="math-display">
+        $$x = x_p + x_n = \begin{bmatrix} -2 \\ 0 \\ 1 \end{bmatrix} + c \begin{bmatrix} -3 \\ 1 \\ 0 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>System II: Four Unknowns, Rank 2</h4>
+      <p>
+        We perform elimination on the augmented $3 \times 4$ system:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{cccc|c}
+          1 & 3 & 1 & 2 & 1 \\
+          2 & 6 & 4 & 8 & 3 \\
+          0 & 0 & 2 & 4 & 1
+        \end{array}\right]
+        \xrightarrow{R_2 \to R_2 - 2R_1}
+        \left[\begin{array}{cccc|c}
+          1 & 3 & 1 & 2 & 1 \\
+          0 & 0 & 2 & 4 & 1 \\
+          0 & 0 & 2 & 4 & 1
+        \end{array}\right]
+        \xrightarrow{R_3 \to R_3 - R_2}
+        \left[\begin{array}{cccc|c}
+          1 & 3 & 1 & 2 & 1 \\
+          0 & 0 & 2 & 4 & 1 \\
+          0 & 0 & 0 & 0 & 0
+        \end{array}\right]$$
+      </div>
+      <p>
+        Pivots sit in columns 1 ($x$) and 3 ($z$). Free variables are $y$ and $t$.
+      </p>
+      <ul>
+        <li>
+          <strong>Particular Solution ($x_p$):</strong> Set $y = 0$ and $t = 0$.
+          <div class="math-display">
+            $$\begin{aligned}
+              2z = 1 &\implies z = \frac{1}{2} \\[6pt]
+              x + 3(0) + \frac{1}{2} + 2(0) = 1 &\implies x = \frac{1}{2}
+            \end{aligned}$$
+          </div>
+          $$x_p = \begin{bmatrix} 1/2 \\ 0 \\ 1/2 \\ 0 \end{bmatrix}$$
+        </li>
+        <li>
+          <strong>Special Solution 1 ($s_1$):</strong> Set $y = 1, t = 0$ in $Ux = 0$.
+          <div class="math-display">
+            $$\begin{aligned}
+              2z = 0 &\implies z = 0 \\[6pt]
+              x + 3(1) + 0 + 0 = 0 &\implies x = -3
+            \end{aligned}$$
+          </div>
+          $$s_1 = \begin{bmatrix} -3 \\ 1 \\ 0 \\ 0 \end{bmatrix}$$
+        </li>
+        <li>
+          <strong>Special Solution 2 ($s_2$):</strong> Set $y = 0, t = 1$ in $Ux = 0$.
+          <div class="math-display">
+            $$\begin{aligned}
+              2z + 4(1) = 0 &\implies z = -2 \\[6pt]
+              x + 3(0) + (-2) + 2(1) = 0 &\implies x = 0
+            \end{aligned}$$
+          </div>
+          $$s_2 = \begin{bmatrix} 0 \\ 0 \\ -2 \\ 1 \end{bmatrix}$$
+        </li>
+      </ul>
+      <p>
+        Complete solution:
+      </p>
+      <div class="math-display">
+        $$x = \begin{bmatrix} 1/2 \\ 0 \\ 1/2 \\ 0 \end{bmatrix} + c_1 \begin{bmatrix} -3 \\ 1 \\ 0 \\ 0 \end{bmatrix} + c_2 \begin{bmatrix} 0 \\ 0 \\ -2 \\ 1 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> The complete solution $x = x_p + x_n$ represents an affine subspace: the linear subspace $N(A)$ shifted away from the origin by the particular solution vector $x_p$.
+    </div>
+  </div>
+
+  <!-- Problem 18 (Strang 2.2-45) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 18: Reduced Row Echelon Form (RREF) on Rectangular Systems</h3>
+      <span class="problem-badge">Strang §2.2, Exercise 45</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Apply Gauss-Jordan elimination to the homogeneous system $[U \mid 0]$ and the non-homogeneous system $[U \mid c]$ to reach the reduced row echelon forms $[R \mid 0]$ and $[R \mid d]$:
+      </p>
+      <div class="math-display">
+        $$[U \mid 0] = \begin{bmatrix} 1 & 2 & 3 & 0 \\ 0 & 0 & 4 & 0 \end{bmatrix}, \qquad [U \mid c] = \begin{bmatrix} 1 & 2 & 3 & 5 \\ 0 & 0 & 4 & 8 \end{bmatrix}$$
+      </div>
+      <p>
+        Solve them directly from the reduced echelon form to identify $x_n$ and $x_p$.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Reducing to RREF</h4>
+      <p>
+        Matrix $U$ has pivots in row 1, col 1 ($1$) and row 2, col 3 ($4$). To reach RREF, every pivot must equal $1$, and all entries above pivots must be zero. Dividing row 2 of $[U \mid c]$ by $4$:
+      </p>
+      <div class="math-display">
+        $$\left[\begin{array}{ccc|c}
+          1 & 2 & 3 & 5 \\
+          0 & 0 & 1 & 2
+        \end{array}\right]$$
+      </div>
+      <p>
+        Eliminating the $3$ above the second pivot via $R_1 \to R_1 - 3R_2$:
+      </p>
+      <div class="math-display">
+        $$[R \mid d] = \left[\begin{array}{ccc|c}
+          1 & 2 & 0 & 5 - 3(2) \\
+          0 & 0 & 1 & 2
+        \end{array}\right] = \left[\begin{array}{ccc|c}
+          1 & 2 & 0 & -1 \\
+          0 & 0 & 1 & 2
+        \end{array}\right]$$
+      </div>
+      <p>
+        For the homogeneous system $[U \mid 0]$, the right-hand column remains zero:
+      </p>
+      <div class="math-display">
+        $$[R \mid 0] = \left[\begin{array}{ccc|c}
+          1 & 2 & 0 & 0 \\
+          0 & 0 & 1 & 0
+        \end{array}\right]$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Reading Particular and Nullspace Solutions Directly</h4>
+      <p>
+        The free variable is $x_2$:
+      </p>
+      <ul>
+        <li>
+          <strong>Particular Solution:</strong> Setting free variable $x_2 = 0$ in $Rx = d$:
+          <div class="math-display">
+            $$\begin{aligned}
+              x_1 + 2(0) &= -1 \implies x_1 = -1 \\[6pt]
+              x_3 &= 2
+            \end{aligned}$$
+          </div>
+          $$x_p = \begin{bmatrix} -1 \\ 0 \\ 2 \end{bmatrix}$$
+          Notice that $x_p$ simply copies the entries of $d$ into the pivot positions!
+        </li>
+        <li>
+          <strong>Nullspace Vector:</strong> Setting $x_2 = 1$ in $Rx = 0$:
+          <div class="math-display">
+            $$\begin{aligned}
+              x_1 + 2(1) &= 0 \implies x_1 = -2 \\[6pt]
+              x_3 &= 0
+            \end{aligned}$$
+          </div>
+          $$x_n = c \begin{bmatrix} -2 \\ 1 \\ 0 \end{bmatrix}$$
+        </li>
+      </ul>
+    </div>
+
+    <div class="takeaway">
+      <strong>The Power of RREF:</strong> When a matrix is in RREF, elimination is so complete that the particular solution and the special solutions can be read off by inspection without writing down a single back-substitution equation.
+    </div>
+  </div>
+
+  <!-- Problem 19 (Strang 2.2-55) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 19: Inverse Reconstruction: Finding A from its Solution Set</h3>
+      <span class="problem-badge">Strang §2.2, Exercise 55</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        The complete solution to the linear system $Ax = \begin{bmatrix} 1 \\ 3 \end{bmatrix}$ is known to be:
+      </p>
+      <div class="math-display">
+        $$x = \begin{bmatrix} 1 \\ 0 \end{bmatrix} + c \begin{bmatrix} 0 \\ 1 \end{bmatrix}$$
+      </div>
+      <p>
+        Find the matrix $A$.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Dimensional Deductions</h4>
+      <p>
+        The solution vectors $x$ reside in $\mathbb{R}^2$, meaning $A$ has $n = 2$ columns. The output vector $b = \begin{bmatrix} 1 \\ 3 \end{bmatrix}$ resides in $\mathbb{R}^2$, meaning $A$ has $m = 2$ rows. Thus $A$ is a $2 \times 2$ matrix:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Extracting Columns from the Structure of the Solution</h4>
+      <p>
+        We separate the particular solution and the nullspace basis:
+      </p>
+      <ul>
+        <li>
+          <strong>Column 1:</strong> The particular solution is $x_p = \begin{bmatrix} 1 \\ 0 \end{bmatrix}$. Multiplying $A$ by this vector selects its first column:
+          <div class="math-display">
+            $$A x_p = A \begin{bmatrix} 1 \\ 0 \end{bmatrix} = \operatorname{col}_1(A) = \begin{bmatrix} 1 \\ 3 \end{bmatrix}$$
+          </div>
+        </li>
+        <li>
+          <strong>Column 2:</strong> The nullspace direction is $s = \begin{bmatrix} 0 \\ 1 \end{bmatrix}$. Since $s \in N(A)$, we have $As = 0$:
+          <div class="math-display">
+            $$A s = A \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \operatorname{col}_2(A) = \begin{bmatrix} 0 \\ 0 \end{bmatrix}$$
+          </div>
+        </li>
+      </ul>
+      <p>
+        Assembling the columns yields the unique matrix:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix} 1 & 0 \\ 3 & 0 \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> Linear algebra operates both forward (from matrix to solutions) and in reverse (from solutions to matrix). Multiplying a matrix by the standard basis vectors $e_1$ and $e_2$ extracts its columns directly.
+    </div>
+  </div>
+
+  <!-- Problem 20 (Strang 2.2-65, 66, 69) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 20: Matrix Synthesis &amp; Impossibility Proofs</h3>
+      <span class="problem-badge">Strang §2.2, Exercises 65, 66 &amp; 69</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Construct explicit matrices meeting the following subspace criteria, or prove why no such matrix can exist:
+      </p>
+      <ol type="a">
+        <li>A matrix whose nullspace consists of all linear combinations of $(2, 2, 1, 0)$ and $(3, 1, 0, 1)$.</li>
+        <li>A matrix whose column space contains $(1, 1, 1)$ and whose nullspace is the line of multiples of $(1, 1, 1, 1)$.</li>
+        <li>A matrix whose column space contains $(1, 1, 0)$ and $(0, 1, 1)$, and whose nullspace contains $(1, 0, 1)$ and $(0, 0, 1)$.</li>
+      </ol>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>Part (a): Nullspace Spanned by $(2,2,1,0)^T$ and $(3,1,0,1)^T$</h4>
+      <p>
+        The vectors have $4$ components, so $n = 4$. Notice that their free-variable entries (components 3 and 4) form the identity matrix $\begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$! This is the exact signature of special solutions generated by a reduced row echelon matrix in block form:
+      </p>
+      <div class="math-display">
+        $$R = \begin{bmatrix} I & F \end{bmatrix} \implies N = \begin{bmatrix} -F \\ I \end{bmatrix}$$
+      </div>
+      <p>
+        Here the special solutions are $s_1 = \begin{bmatrix} 2 \\ 2 \\ 1 \\ 0 \end{bmatrix}$ and $s_2 = \begin{bmatrix} 3 \\ 1 \\ 0 \\ 1 \end{bmatrix}$. Setting up $R s_1 = 0$ and $R s_2 = 0$:
+      </p>
+      <div class="math-display">
+        $$\begin{bmatrix}
+          1 & 0 & f_{11} & f_{12} \\
+          0 & 1 & f_{21} & f_{22}
+        \end{bmatrix}
+        \begin{bmatrix} 2 \\ 2 \\ 1 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+        \implies
+        \begin{aligned}
+          2 + f_{11} &= 0 \implies f_{11} = -2 \\[6pt]
+          2 + f_{21} &= 0 \implies f_{21} = -2
+        \end{aligned}$$
+      </div>
+      <div class="math-display">
+        $$\begin{bmatrix}
+          1 & 0 & -2 & f_{12} \\
+          0 & 1 & -2 & f_{22}
+        \end{bmatrix}
+        \begin{bmatrix} 3 \\ 1 \\ 0 \\ 1 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+        \implies
+        \begin{aligned}
+          3 + f_{12} &= 0 \implies f_{12} = -3 \\[6pt]
+          1 + f_{22} &= 0 \implies f_{22} = -1
+        \end{aligned}$$
+      </div>
+      <p>
+        Thus the desired matrix is:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix}
+          1 & 0 & -2 & -3 \\
+          0 & 1 & -2 & -1
+        \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>Part (b): Column Space Contains $(1,1,1)$ &amp; Nullspace is Line $(1,1,1,1)$</h4>
+      <p>
+        The nullspace is a 1D line in $\mathbb{R}^4$, so $n = 4$ and $\operatorname{dim} N(A) = 1$. The column space lives in $\mathbb{R}^3$, so $m = 3$. By the Rank-Nullity theorem:
+      </p>
+      <div class="math-display">
+        $$\operatorname{rank}(A) = n - \operatorname{dim} N(A) = 4 - 1 = 3$$
+      </div>
+      <p>
+        Since $m = 3$ and $\operatorname{rank}(A) = 3$, the column space is the entire space $\mathbb{R}^3$ (which naturally contains $(1,1,1)^T$).
+      </p>
+      <p>
+        The condition $A (1, 1, 1, 1)^T = 0$ means the sum of the four columns must equal the zero vector:
+      </p>
+      <div class="math-display">
+        $$\operatorname{col}_1 + \operatorname{col}_2 + \operatorname{col}_3 + \operatorname{col}_4 = 0 \implies \operatorname{col}_4 = -(\operatorname{col}_1 + \operatorname{col}_2 + \operatorname{col}_3)$$
+      </div>
+      <p>
+        Choosing the first three columns as the standard basis in $\mathbb{R}^3$:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix}
+          1 & 0 & 0 & -1 \\
+          0 & 1 & 0 & -1 \\
+          0 & 0 & 1 & -1
+        \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-step">
+      <h4>Part (c): The Impossibility Proof</h4>
+      <p>
+        Can a matrix have $C(A)$ containing $(1,1,0)^T$ and $(0,1,1)^T$, while $N(A)$ contains $(1,0,1)^T$ and $(0,0,1)^T$?
+      </p>
+      <p>
+        Let us test this hypothesis against the fundamental conservation laws of dimension:
+      </p>
+      <ol>
+        <li>The nullspace vectors reside in $\mathbb{R}^3$, which means the matrix must have $n = 3$ columns.</li>
+        <li>The two nullspace vectors $(1, 0, 1)^T$ and $(0, 0, 1)^T$ are clearly linearly independent, which implies:
+          <div class="math-display">
+            $$\operatorname{dim} N(A) \ge 2$$
+          </div>
+        </li>
+        <li>The two column space vectors $(1, 1, 0)^T$ and $(0, 1, 1)^T$ are also linearly independent, which implies:
+          <div class="math-display">
+            $$\operatorname{rank}(A) = \operatorname{dim} C(A) \ge 2$$
+          </div>
+        </li>
+        <li>Applying the Rank-Nullity Theorem:
+          <div class="math-display">
+            $$\operatorname{rank}(A) + \operatorname{dim} N(A) = n = 3$$
+          </div>
+        </li>
+      </ol>
+      <p>
+        However, summing our two geometric requirements reveals an impossible contradiction:
+      </p>
+      <div class="math-display">
+        $$\operatorname{rank}(A) + \operatorname{dim} N(A) \ge 2 + 2 = 4 > 3$$
+      </div>
+      <p>
+        The matrix would require at least 4 dimensions of freedom, but only possesses 3 columns. Therefore, <strong>no such matrix can possibly exist</strong>.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> The Rank-Nullity theorem is an unbreakable dimensional conservation law. An $m \times n$ matrix possesses only $n$ total degrees of freedom, which must be split strictly between the row space (rank) and the nullspace.
+    </div>
+  </div>
+
+  <!-- Problem 21 (Strang 2.4-11) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 21: Constructing Dual Subspace Complement Matrices</h3>
+      <span class="problem-badge">Strang §2.4, Exercise 11</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Let $V$ be the subspace of $\mathbb{R}^3$ spanned by the three vectors:
+      </p>
+      <div class="math-display">
+        $$v_1 = \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}, \qquad v_2 = \begin{bmatrix} 1 \\ 2 \\ 0 \end{bmatrix}, \qquad v_3 = \begin{bmatrix} 1 \\ 5 \\ 0 \end{bmatrix}$$
+      </div>
+      <p>
+        Find a matrix $A$ that has $V$ as its row space, and find a matrix $B$ that has $V$ as its nullspace.
+      </p>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Characterizing the Subspace $V$</h4>
+      <p>
+        Notice that every spanning vector has $z = 0$. The vectors $v_1$ and $v_2$ are linearly independent because no scalar satisfies $c \begin{bmatrix} 1 \\ 1 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \end{bmatrix}$. Vector $v_3$ is redundant:
+      </p>
+      <div class="math-display">
+        $$-3 \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} + 4 \begin{bmatrix} 1 \\ 2 \\ 0 \end{bmatrix} = \begin{bmatrix} 1 \\ 5 \\ 0 \end{bmatrix}$$
+      </div>
+      <p>
+        Therefore, $V$ is the 2-dimensional $xy$-plane in $\mathbb{R}^3$, defined algebraically by the constraint $z = 0$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Matrix $A$ with Row Space Equal to $V$</h4>
+      <p>
+        The row space of a matrix is the span of its rows. We can simply place the basis vectors of $V$ as the rows of $A$:
+      </p>
+      <div class="math-display">
+        $$A = \begin{bmatrix}
+          1 & 1 & 0 \\
+          1 & 2 & 0
+        \end{bmatrix}$$
+      </div>
+      <p>
+        The row space $C(A^T)$ is precisely the 2D plane $z = 0$.
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>3. Matrix $B$ with Nullspace Equal to $V$</h4>
+      <p>
+        We require $B x = 0$ for all $x = (x, y, z)^T \in V$. Since $V$ is characterized by $z = 0$, the condition $x \in V$ means $x$ and $y$ can be arbitrary while $z$ must be zero.
+      </p>
+      <p>
+        Because $\operatorname{dim} V = 2$ and $n = 3$, by Rank-Nullity the matrix $B$ must have rank $r = 3 - 2 = 1$. The nullspace condition requires:
+      </p>
+      <div class="math-display">
+        $$B \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} = 0 \implies \operatorname{col}_1(B) = 0, \qquad B \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} = 0 \implies \operatorname{col}_2(B) = 0$$
+      </div>
+      <p>
+        To ensure rank 1, the third column must be non-zero. The minimal matrix is the single row vector:
+      </p>
+      <div class="math-display">
+        $$B = \begin{bmatrix} 0 & 0 & 1 \end{bmatrix}$$
+      </div>
+      <p>
+        Indeed, $B \begin{bmatrix} x \\ y \\ z \end{bmatrix} = z = 0$, which is the exact equation defining $V$!
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>The Duality of Subspaces:</strong> A subspace can be described constructively by its basis (the row space of $A$) or implicitly by its orthogonal constraints (the nullspace of $B$).
+    </div>
+  </div>
+
+  <!-- Problem 22 (Strang 2.4-9) -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 22: One-Sided Inverses for Upper Triangular Matrices</h3>
+      <span class="problem-badge">Strang §2.4, Exercise 9</span>
+    </div>
+
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>
+        Find a left-inverse and/or right-inverse when they exist for the parameter-dependent matrix:
+      </p>
+      <div class="math-display">
+        $$T = \begin{bmatrix} a & b \\ 0 & a \end{bmatrix}$$
+      </div>
+    </div>
+
+    <div class="solution-heading">Solution Walkthrough</div>
+
+    <div class="solution-step">
+      <h4>1. Case 1: $a \neq 0$ (Invertible Case)</h4>
+      <p>
+        The determinant is $\det(T) = a(a) - 0(b) = a^2$. When $a \neq 0$, the determinant is non-zero, meaning $T$ is full rank ($r = 2 = m = n$).
+      </p>
+      <p>
+        For any square, full-rank matrix, the ordinary two-sided inverse exists. Using the standard formula for $2 \times 2$ inverses:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          T^{-1} &= \frac{1}{\det(T)} \begin{bmatrix} a & -b \\ 0 & a \end{bmatrix} \\[8pt]
+          &= \frac{1}{a^2} \begin{bmatrix} a & -b \\ 0 & a \end{bmatrix} \\[8pt]
+          &= \begin{bmatrix} 1/a & -b/a^2 \\ 0 & 1/a \end{bmatrix}
+        \end{aligned}$$
+      </div>
+      <p>
+        Verifying both left and right multiplication:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          T T^{-1} &= \begin{bmatrix} a & b \\ 0 & a \end{bmatrix} \begin{bmatrix} 1/a & -b/a^2 \\ 0 & 1/a \end{bmatrix} = \begin{bmatrix} 1 & -b/a + b/a \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I \\[8pt]
+          T^{-1} T &= \begin{bmatrix} 1/a & -b/a^2 \\ 0 & 1/a \end{bmatrix} \begin{bmatrix} a & b \\ 0 & a \end{bmatrix} = \begin{bmatrix} 1 & b/a - b/a \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix} = I
+        \end{aligned}$$
+      </div>
+      <p>
+        Thus when $a \neq 0$, both left and right inverses exist and they coincide ($T_L^{-1} = T_R^{-1} = T^{-1}$).
+      </p>
+    </div>
+
+    <div class="solution-step">
+      <h4>2. Case 2: $a = 0$ (Singular Nilpotent Case)</h4>
+      <p>
+        When $a = 0$, the matrix becomes $T = \begin{bmatrix} 0 & b \\ 0 & 0 \end{bmatrix}$. Notice that $T^2 = 0$.
+      </p>
+      <ul>
+        <li>
+          <strong>Testing for a Left-Inverse $L$:</strong> Suppose there exists $L = \begin{bmatrix} w & x \\ y & z \end{bmatrix}$ such that $LT = I$:
+          <div class="math-display">
+            $$LT = \begin{bmatrix} w & x \\ y & z \end{bmatrix} \begin{bmatrix} 0 & b \\ 0 & 0 \end{bmatrix} = \begin{bmatrix} 0 & wb \\ 0 & yb \end{bmatrix}$$
+          </div>
+          For this product to equal the identity matrix $\begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}$, the top-left entry would require $0 = 1$, which is impossible.
+        </li>
+        <li>
+          <strong>Testing for a Right-Inverse $R$:</strong> Suppose there exists $R = \begin{bmatrix} w & x \\ y & z \end{bmatrix}$ such that $TR = I$:
+          <div class="math-display">
+            $$TR = \begin{bmatrix} 0 & b \\ 0 & 0 \end{bmatrix} \begin{bmatrix} w & x \\ y & z \end{bmatrix} = \begin{bmatrix} by & bz \\ 0 & 0 \end{bmatrix}$$
+          </div>
+          For this product to equal the identity matrix, the bottom-right entry would require $0 = 1$, which is impossible.
+        </li>
+      </ul>
+      <p>
+        Consequently, when $a = 0$, <strong>neither a left-inverse nor a right-inverse exists</strong>.
+      </p>
+    </div>
+
+    <div class="takeaway">
+      <strong>Core Takeaway:</strong> For a square matrix, existence of a one-sided inverse guarantees two-sided invertibility. If a square matrix is singular ($r < n$), it can have neither a left-inverse nor a right-inverse. One-sided inverses exist strictly for rectangular matrices with full rank ($r = n < m$ for left-inverses, $r = m < n$ for right-inverses).
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Summary Table                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="comparative-summary">
+  <h2>Comparative Summary: The Hierarchy of Linear Systems</h2>
+
+  <p>
+    The twenty-two problems solved above expose the underlying topological structure of $Ax = b$. The table below synthesizes how rank, matrix shape, nullspace dimensions, and solvability conditions govern every system.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Master Classification Table</div>
+    <div class="math-box-body">
+      <table style="width:100%; border-collapse: collapse; text-align: left; font-size: 0.92rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 8px;">Structure</th>
+            <th style="padding: 10px 8px;">Rank ($r$)</th>
+            <th style="padding: 10px 8px;">Nullspace Dim</th>
+            <th style="padding: 10px 8px;">Solvability of $Ax = b$</th>
+            <th style="padding: 10px 8px;">Solution Geometry</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 8px;"><strong>Square Full Rank</strong> ($m = n$)</td>
+            <td style="padding: 10px 8px;">$r = m = n$</td>
+            <td style="padding: 10px 8px;">$0$</td>
+            <td style="padding: 10px 8px;">Solvable for all $b \in \mathbb{R}^m$</td>
+            <td style="padding: 10px 8px;">Unique point $x = A^{-1}b$</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 8px;"><strong>Tall Full Column Rank</strong> ($m > n$)</td>
+            <td style="padding: 10px 8px;">$r = n < m$</td>
+            <td style="padding: 10px 8px;">$0$</td>
+            <td style="padding: 10px 8px;">Solvable only if $b \in C(A)$ ($m-r$ zero rows)</td>
+            <td style="padding: 10px 8px;">$0$ or $1$ unique point (Left inverse exists)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 8px;"><strong>Wide Full Row Rank</strong> ($m < n$)</td>
+            <td style="padding: 10px 8px;">$r = m < n$</td>
+            <td style="padding: 10px 8px;">$n - r > 0$</td>
+            <td style="padding: 10px 8px;">Solvable for all $b \in \mathbb{R}^m$</td>
+            <td style="padding: 10px 8px;">Infinitely many ($x_p + \text{nullspace}$ plane)</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 8px;"><strong>Rank Deficient</strong> ($r < m, r < n$)</td>
+            <td style="padding: 10px 8px;">$r < \min(m,n)$</td>
+            <td style="padding: 10px 8px;">$n - r > 0$</td>
+            <td style="padding: 10px 8px;">Solvable only if $b \in C(A)$</td>
+            <td style="padding: 10px 8px;">$0$ or $\infty$ solutions</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Connecting the Dots                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots: The Unified Architecture</h2>
+
+  <p>
+    When we step back from the arithmetic of multipliers and pivots, a grand, unified structure emerges across linear algebra.
+  </p>
+
+  <p>
+    Gaussian elimination is not merely a trick for solving simultaneous equations; it is a matrix factorization engine. Every row operation $R_i \to R_i - l_{ij} R_j$ corresponds to multiplication on the left by an elementary matrix $E_{ij}$. Combining these operations reveals that elimination is the process of decomposing an entangled operator $A$ into lower and upper triangular factors:
+  </p>
+
+  <div class="math-display">
+    $$A = L U$$
+  </div>
+
+  <p>
+    The lower triangular matrix $L$ records the history of the multipliers, while the upper triangular matrix $U$ reveals the invariant pivots. When diagonal pivots are non-zero, the operator is invertible, and back-substitution or Gauss-Jordan reductions can reach the two-sided inverse $A^{-1}$.
+  </p>
+
+  <p>
+    When a pivot is missing and cannot be rescued by row exchanges, the matrix becomes singular. Here, the system transitions from unique points to the geometry of subspaces:
+  </p>
+
+  <div class="math-display">
+    $$\underbrace{\mathbb{R}^n}_{\text{Inputs}} = \underbrace{C(A^T)}_{\text{Row Space } (r)} \oplus \underbrace{N(A)}_{\text{Nullspace } (n - r)}$$
+  </div>
+
+  <p>
+    Every vector $x$ in input space decomposes into an orthogonal sum $x = x_{\text{row}} + x_n$. The matrix $A$ acts exclusively on the row space component while annihilating $x_n$. Consequently, the complete solution to $Ax = b$ is never an arbitrary scattering of points; it is a rigid, flat affine hyperplane:
+  </p>
+
+  <div class="math-display">
+    $$x_{\text{complete}} = x_p + x_n$$
+  </div>
+
+  <p>
+    The particular solution $x_p$ anchors the plane in space, while the nullspace $N(A)$ spans all directions along which $b$ remains completely undisturbed. From four-dimensional hyperplanes to discrete differential operators, the conservation of dimension $\operatorname{rank}(A) + \operatorname{dim} N(A) = n$ remains the unbreakable law uniting computation and geometry.
+  </p>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <div id="article-comments"></div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                injectGiscusComments('article-comments');
+            });
+        </script>
+    </main>
+
+</body>
+</html>
