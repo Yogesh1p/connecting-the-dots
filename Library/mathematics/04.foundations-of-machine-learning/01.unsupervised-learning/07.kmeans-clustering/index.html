@@ -85,7 +85,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="21">
+  <meta name="reading_time" content="25">
     <meta property="og:title" content="K-Means Clustering">
     <meta property="og:description" content="A first-principles guide to Lloyd's algorithm — Voronoi geometry, perpendicular bisector hyperplanes, finite convergence proof, k-means++ seeding guarantees, and model selection via penalized likelihood.">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-k-means-clustering.png">
@@ -177,7 +177,20 @@
   </div>
 
   <p>
-    This optimization problem presents a formidable mathematical bottleneck. It simultaneously couples <strong>discrete combinatorial variables</strong> ($z_i \in \{1, \dots, K\}$) with <strong>continuous geometric vectors</strong> ($\mu_k \in \mathbb{R}^d$). The space of all possible partitions consists of approximately $K^n / K!$ arrangements. Even for modest datasets (e.g., $n = 100, K = 4$), the number of possible partitions exceeds the number of atoms in the observable universe. In fact, globally minimizing this objective is known to be NP-hard even for $K=2$ in general dimensions, or for $d=2$ with arbitrary $K$.
+    This optimization problem presents a formidable mathematical bottleneck. It simultaneously couples <strong>discrete combinatorial variables</strong> ($z_i \in \{1, \dots, K\}$) with <strong>continuous geometric vectors</strong> ($\mu_k \in \mathbb{R}^d$).
+  </p>
+
+  <p>
+    Consider the sheer scale of the assignment space: each of the $n$ data points can independently choose any of the $K$ clusters, giving a total of $K^n$ possible assignments:
+  </p>
+
+  <ul>
+    <li>Even for a toy problem with just $n = 5$ points and $K = 3$ clusters, there are $3^5 = 243$ possible assignments.</li>
+    <li>For a small dataset of $n = 50$ points and $K = 4$ clusters, $4^{50} \approx 1.27 \times 10^{30}$ assignments—vastly exceeding the number of seconds since the Big Bang.</li>
+  </ul>
+
+  <p>
+    In fact, globally finding $\min_{\{z_1, \dots, z_n\}} \sum_{i=1}^n \|x_i - \mu_{z_i}\|^2$ is proven to be <strong>NP-hard</strong> even for $K = 2$ in general dimensions, or for $d = 2$ with arbitrary $K$. We cannot exhaustively check all partitions.
   </p>
 
   <p>
@@ -209,7 +222,7 @@
   </p>
 
   <div class="math-display">
-    $$\mu_k^* = \frac{1}{|C_k|} \sum_{i \in C_k} x_i$$
+    $$\mu_k^* = \frac{1}{|C_k|} \sum_{i \in C_k} x_i = \frac{\sum_{i=1}^n x_i \mathbf{1}(z_i = k)}{\sum_{i=1}^n \mathbf{1}(z_i = k)}$$
   </div>
 
   <p>
@@ -230,18 +243,19 @@
     <div class="math-box-body">
       <ol>
         <li>
-          <strong>Initialization:</strong> Choose $K$ initial centroid vectors $\mu_1^{(0)}, \mu_2^{(0)}, \dots, \mu_K^{(0)} \in \mathbb{R}^d$.
+          <strong>Initialization:</strong> Choose $K$ initial centroid vectors $\mu_1^{(0)}, \mu_2^{(0)}, \dots, \mu_K^{(0)} \in \mathbb{R}^d$ (or initial cluster indicators $z_1^{(0)}, \dots, z_n^{(0)} \in \{1, \dots, K\}$).
         </li>
         <li>
-          <strong>Assignment Step (Voronoi Partitioning):</strong> Holding centroids fixed, assign each point $x_i$ to its nearest prototype:
+          <strong>Mean Calculation Step:</strong> For each cluster $k \in \{1, \dots, K\}$, compute its center of mass:
+          $$\mu_k^{(t)} = \frac{\sum_{i=1}^n x_i \mathbf{1}(z_i^{(t)} = k)}{\sum_{i=1}^n \mathbf{1}(z_i^{(t)} = k)}$$
+        </li>
+        <li>
+          <strong>Reassignment Step:</strong> Assign each point to its closest centroid:
           $$z_i^{(t+1)} = \arg\min_{k \in \{1, \dots, K\}} \|x_i - \mu_k^{(t)}\|^2$$
+          <em>Rule: Reassignment happens only if a strictly better (strictly closer) cluster center is found. If a point is equidistant to its current center, it stays put.</em>
         </li>
         <li>
-          <strong>Centroid Update Step (Center of Mass):</strong> Holding assignments fixed, recompute each centroid as the arithmetic mean of its assigned points:
-          $$\mu_k^{(t+1)} = \frac{1}{|C_k^{(t+1)}|} \sum_{i \in C_k^{(t+1)}} x_i$$
-        </li>
-        <li>
-          <strong>Convergence Check:</strong> Repeat steps 2 and 3 until cluster assignments no longer change: $z^{(t+1)} = z^{(t)}$.
+          <strong>Convergence Check:</strong> Repeat steps 2 and 3 until no assignments change ($z^{(t+1)} = z^{(t)}$), meaning every point is assigned to its optimal centroid.
         </li>
       </ol>
     </div>
@@ -807,39 +821,195 @@
   <h2>Why Lloyd's Algorithm Must Converge</h2>
 
   <p>
-    Lloyd's algorithm is mathematically guaranteed to terminate in a finite number of iterations—it can never enter an infinite cycle or bounce between partitions indefinitely. The proof rests upon two foundational pillars:
+    Before deploying any iterative algorithm, four fundamental questions must be answered:
+  </p>
+
+  <ol>
+    <li><strong>Convergence:</strong> Is the algorithm guaranteed to terminate, or can it loop indefinitely?</li>
+    <li><strong>Initialization:</strong> How sensitive is the final partition to the starting seeds?</li>
+    <li><strong>Choice of $K$:</strong> How do we determine the true number of clusters in unlabeled data?</li>
+    <li><strong>Nature of Clusters:</strong> What geometric geometries can the algorithm successfully recover?</li>
+  </ol>
+
+  <p>
+    We address the first question here: <em>Can Lloyd's algorithm get caught in an infinite cycle, endlessly bouncing points between clusters without ever halting?</em>
+  </p>
+
+  <p>
+    The answer is <strong>no</strong>. Lloyd's algorithm is mathematically guaranteed to terminate in a finite number of steps. The proof proceeds in two elegant steps.
+  </p>
+
+  <h3>Step 1: The Reassignment Strict Inequality</h3>
+  <p>
+    Assume the algorithm has not yet converged at iteration $t$. This means at least one data point $x_i$ will change its cluster assignment at round $t+1$.
+  </p>
+
+  <p>
+    Recall the fundamental reassignment rule:
+  </p>
+
+  <div class="math-display">
+    $$z_i^{(t+1)} = \arg\min_{k \in \{1, \dots, K\}} \|x_i - \mu_k^{(t)}\|^2$$
+  </div>
+
+  <p>
+    A point changes cluster membership if and only if a <strong>strictly closer</strong> centroid is found. For every point that moves, $\|x_i - \mu_{z_i^{(t+1)}}^{(t)}\|^2 < \|x_i - \mu_{z_i^{(t)}}^{(t)}\|^2$. For points that stay put, their distance remains identical.
+  </p>
+
+  <p>
+    Summing across all $n$ observations yields a <strong>strict inequality</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\sum_{i=1}^n \|x_i - \mu_{z_i^{(t)}}^{(t)}\|^2 > \sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t)}\|^2$$
+  </div>
+
+  <p>
+    Look closely at both sides of this strict inequality:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Left Side $\left(\sum_{i=1}^n \|x_i - \mu_{z_i^{(t)}}^{(t)}\|^2\right)$</strong>: The total distance from every point to its <strong>current mean</strong> (its current cluster box).
+    </li>
+    <li>
+      <strong>Right Side $\left(\sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t)}\|^2\right)$</strong>: The total distance from every point to the <strong>mean of the cluster where it wants to be</strong> (its next cluster box).
+    </li>
+  </ul>
+
+  <p>
+    If this strict inequality does not hold, no point desires to move—every point is satisfied with its current center, and the algorithm has already converged.
+  </p>
+
+  <h3>Fact 1: Optimality of the Sample Mean</h3>
+  <p>
+    To analyze what happens when centroids update, we establish a foundational mathematical fact:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Fact 1: The Sample Mean Minimizes Squared Euclidean Distances</div>
+    <div class="math-box-body">
+      <p>
+        Let $\{x_1, \dots, x_\ell\} \subset \mathbb{R}^d$ be an arbitrary set of $\ell$ points. The vector $v^* \in \mathbb{R}^d$ that minimizes the sum of squared Euclidean distances to these points:
+      </p>
+      <div class="math-display">
+        $$v^* = \arg\min_{v \in \mathbb{R}^d} \sum_{i=1}^\ell \|x_i - v\|^2$$
+      </div>
+      <p>
+        is uniquely the arithmetic sample mean:
+      </p>
+      <div class="math-display">
+        $$v^* = \frac{1}{\ell}\sum_{i=1}^\ell x_i$$
+      </div>
+    </div>
+  </div>
+
+  <p>
+    The proof is immediate from calculus: expanding $\|x_i - v\|^2 = (x_i - v)^T (x_i - v)$ and setting the gradient with respect to $v$ to zero:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \nabla_v \left[ \sum_{i=1}^\ell \|x_i - v\|^2 \right] &= -2 \sum_{i=1}^\ell (x_i - v) = \mathbf{0} \\[8pt]
+      \sum_{i=1}^\ell v &= \sum_{i=1}^\ell x_i \quad\Longrightarrow\quad \ell v = \sum_{i=1}^\ell x_i \quad\Longrightarrow\quad v^* = \frac{1}{\ell}\sum_{i=1}^\ell x_i
+    \end{aligned}$$
+  </div>
+
+  <h3>Step 2: The Centroid Update Inequality</h3>
+  <p>
+    Now consider the second half of iteration $t+1$: recomputing the centroids.
+  </p>
+
+  <p>
+    For any cluster $k$, collect all points that chose cluster $k$ during the reassignment step:
+  </p>
+
+  <div class="math-display">
+    $$\{i : z_i^{(t+1)} = k\}$$
+  </div>
+
+  <p>
+    The old centroid $\mu_k^{(t)}$ was fixed from the previous round. But the new centroid $\mu_k^{(t+1)}$ is computed as the exact arithmetic mean of these points:
+  </p>
+
+  <div class="math-display">
+    $$\mu_k^{(t+1)} = \frac{\sum_{i=1}^n x_i \mathbf{1}(z_i^{(t+1)} = k)}{\sum_{i=1}^n \mathbf{1}(z_i^{(t+1)} = k)}$$
+  </div>
+
+  <p>
+    By <strong>Fact 1</strong>, the sample mean $\mu_k^{(t+1)}$ achieves the absolute lowest possible sum of squared distances for this point set over <em>any</em> vector in $\mathbb{R}^d$—including the old center $\mu_k^{(t)}$. Therefore, for every cluster $k$:
+  </p>
+
+  <div class="math-display">
+    $$\sum_{i : z_i^{(t+1)} = k} \|x_i - \mu_k^{(t)}\|^2 \;\ge\; \sum_{i : z_i^{(t+1)} = k} \|x_i - \mu_k^{(t+1)}\|^2$$
+  </div>
+
+  <p>
+    Summing this inequality over all $K$ clusters ($k = 1, \dots, K$):
+  </p>
+
+  <div class="math-display">
+    $$\sum_{k=1}^K \sum_{i : z_i^{(t+1)} = k} \|x_i - \mu_k^{(t)}\|^2 \;\ge\; \sum_{k=1}^K \sum_{i : z_i^{(t+1)} = k} \|x_i - \mu_k^{(t+1)}\|^2$$
+  </div>
+
+  <p>
+    Notice that every point $x_i$ belongs to exactly one cluster under $z^{(t+1)}$. The double summation collapses into a single sum over all $n$ data points:
+  </p>
+
+  <div class="math-display">
+    $$\sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t)}\|^2 \;\ge\; \sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t+1)}\|^2$$
+  </div>
+
+  <p>
+    In plain terms:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Distance to the mean of the cluster where each point wants to be $\;\ge\;$ Distance to their own newly updated mean after reassignment.</em></p>
+    </div>
+  </div>
+
+  <h3>Chaining the Two Inequalities: Strict Objective Descent</h3>
+  <p>
+    Now let us link Step 1 and Step 2 together:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \underbrace{\sum_{i=1}^n \|x_i - \mu_{z_i^{(t)}}^{(t)}\|^2}_{\text{Distance to current mean}} &>\; \underbrace{\sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t)}\|^2}_{\text{Distance to mean where points want to be}} \\[10pt]
+      &\ge\; \underbrace{\sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t+1)}\|^2}_{\text{Distance to updated mean after reassignment}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Because the first link is a strict inequality ($>$) and the second link is non-increasing ($\ge$), the overall transition across one complete iteration is strictly decreasing:
+  </p>
+
+  <div class="math-display">
+    $$\sum_{i=1}^n \|x_i - \mu_{z_i^{(t)}}^{(t)}\|^2 \;>\; \sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t+1)}\|^2$$
+  </div>
+
+  <p>
+    <strong>The performance metric (distortion objective) strictly reduces whenever any reassignment happens!</strong>
+  </p>
+
+  <h3>The Finite Partition Deduction</h3>
+  <p>
+    Why does strict objective reduction guarantee that Lloyd's algorithm must terminate?
   </p>
 
   <ol>
     <li>
-      <strong>Strict Monotonic Objective Reduction:</strong>
-      <p>
-        In the reassignment step, each point $x_i$ is greedily assigned to whichever centroid minimizes $\|x_i - \mu_k^{(t)}\|^2$. Therefore, the total sum of distances cannot increase:
-      </p>
-      <div class="math-display">
-        $$F(z^{(t+1)}, \mu^{(t)}) = \sum_{i=1}^n \|x_i - \mu_{z_i^{(t+1)}}^{(t)}\|^2 \le \sum_{i=1}^n \|x_i - \mu_{z_i^{(t)}}^{(t)}\|^2 = F(z^{(t)}, \mu^{(t)})$$
-      </div>
-      <p>
-        If any point changes its cluster membership, the objective function <em>strictly decreases</em>.
-      </p>
-      <p>
-        Next, in the centroid update step, each $\mu_k^{(t+1)}$ is set to the sample mean of cluster $k$. As derived earlier, the arithmetic mean is the unique global minimizer of $\sum_{i \in C_k} \|x_i - \mu\|^2$. Consequently:
-      </p>
-      <div class="math-display">
-        $$F(z^{(t+1)}, \mu^{(t+1)}) \le F(z^{(t+1)}, \mu^{(t)})$$
-      </div>
-      <p>
-        Combining both steps proves that across every complete iteration, the objective value strictly decreases whenever any assignment changes:
-      </p>
-      <div class="math-display">
-        $$F(z^{(t+1)}, \mu^{(t+1)}) < F(z^{(t)}, \mu^{(t)})$$
-      </div>
+      <strong>Partitions Cannot Repeat:</strong> Suppose the algorithm reached a partition $z^{(a)}$ at iteration $a$, and later visited the same partition $z^{(b)} = z^{(a)}$ at iteration $b > a$. Because the objective strictly decreases at every step with reassignment, the distortion at step $b$ would have to be strictly less than at step $a$:
+      $$F(z^{(b)}, \mu^{(b)}) < F(z^{(a)}, \mu^{(a)})$$
+      However, identical assignments produce identical centroids $\mu^{(b)} = \mu^{(a)}$, requiring $F(z^{(b)}, \mu^{(b)}) = F(z^{(a)}, \mu^{(a)})$. This creates a direct contradiction! Therefore, <strong>no partition $z \in \{1, \dots, K\}^n$ can ever be visited twice</strong>.
     </li>
     <li>
-      <strong>Finite State Space of Partitions:</strong>
-      <p>
-        There are $n$ data points and $K$ possible cluster labels. The total number of conceivable assignment vectors $z = (z_1, \dots, z_n)$ is at most $K^n$—a finite number.
-      </p>
+      <strong>Finite Partition Space:</strong> Each of the $n$ points can be assigned to one of $K$ clusters. The total number of conceivable partitions is finite (at most $K^n$).
+    </li>
+    <li>
+      <strong>Inevitable Termination:</strong> Since there are only finitely many partitions and the algorithm never revisits an earlier partition, the sequence of distinct partitions must eventually run out of states $\implies$ <strong>Lloyd's algorithm MUST converge in a finite number of steps!</strong>
     </li>
   </ol>
 
@@ -847,13 +1017,21 @@
     <div class="math-box-label">Theorem: Finite Convergence of Lloyd's Algorithm</div>
     <div class="math-box-body">
       <p>
-        Because the distortion objective $F(z, \mu)$ strictly decreases whenever assignments change, <strong>no partition $z \in \{1, \dots, K\}^n$ can ever be visited twice</strong>. Since the total number of partitions is finite ($K^n$), the algorithm cannot cycle indefinitely and must terminate after a finite number of iterations $\implies$ <strong>Convergence is mathematically guaranteed</strong>.
+        Because the distortion objective $F(z, \mu)$ strictly decreases whenever assignments change, partitions cannot repeat. Since the number of distinct partitions is finite ($K^n$), the algorithm cannot cycle indefinitely and must terminate after a finite number of iterations $\implies$ <strong>Convergence is mathematically guaranteed</strong>.
       </p>
     </div>
   </div>
 
   <p>
-    <strong>The Critical Caveat: Local Minima.</strong> Finite convergence guarantees that the algorithm will stop, but offers <em>zero guarantee</em> about the global quality of the final solution. The distortion landscape is highly non-convex with numerous local valleys. Depending entirely on the starting centroids, Lloyd's algorithm easily becomes trapped in poor local configurations where Voronoi boundaries split dense clusters in half.
+    <strong>The Critical Caveat: We Say Nothing About Solution Quality!</strong>
+  </p>
+
+  <p>
+    Notice what this mathematical proof does <em>not</em> say: <strong>it guarantees that the algorithm will stop, but says absolutely nothing about the quality or global optimality of the converged solution.</strong>
+  </p>
+
+  <p>
+    Because the distortion landscape is heavily non-convex with numerous local valleys, Lloyd's algorithm readily converges to suboptimal local minima—where Voronoi boundaries split dense clusters in half.
   </p>
 
   <div class="math-box">

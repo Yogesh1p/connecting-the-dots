@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="ffc54033">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="Kernel PCA">
+<meta name="description" content="Discovering non-linear dependencies and eliminating redundancy by implicitly mapping data into higher-dimensional feature spaces via the Kernel Trick.">
+<meta name="keywords" content="kernel pca, non-linear dimensionality reduction, rbf kernel, mercer theorem, centering in feature space, gram matrix, representation learning, Foundations of Machine Learning">
+<meta name="status" content="draft">
+<meta name="date" content="2026-09-02">
+<meta name="author" content="Yogesh">
+
+<title>Kernel PCA</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 740px;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .svg-container svg {
+    width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+  .pca-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin: 1.2rem 0 0.5rem;
+    width: 100%;
+  }
+  .pca-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    transition: all 0.2s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .pca-btn:hover {
+    background: var(--highlight);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pca-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+  .fig1-readout {
+    margin-top: 0.6rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.92rem;
+    color: var(--text);
+    line-height: 1.5;
+    width: 100%;
+    max-width: 680px;
+    text-align: center;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<meta name="reading_time" content="37">
+<meta property="og:title" content="Kernel PCA">
+<meta property="og:description" content="Discovering non-linear dependencies and eliminating redundancy by implicitly mapping data into higher-dimensional feature spaces via the Kernel Trick.">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-kernel-pca.png">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1 — The Quest to Eliminate Redundancy                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="redundancy-elimination">
+  <h2>The Quest to Eliminate Redundant Information</h2>
+
+  <p>
+    The entire foundation upon which we have built Principal Component Analysis is the pursuit of <strong>eliminating redundant information</strong>.
+  </p>
+
+  <p>
+    When you collect measurements from the real world—sensor readings, physical dimensions, pixel brightness, or financial indicators—the raw features are rarely independent. When one feature increases, another might consistently increase or decrease alongside it. There is an internal relation tying them together.
+  </p>
+
+  <p>
+    If two features mirror each other, recording both is wasteful. To compress the data without losing its essence, we want to transform our original coordinate system into a new set of features where <strong>every newly formed axis captures information that is completely independent from the others</strong>.
+  </p>
+
+  <p>
+    To find these independent axes, standard linear PCA relies on <strong>covariance—which is simply the algebraic measure of collinearity</strong>.
+  </p>
+
+  <p>
+    These are not two separate mechanisms; they are the geometric and algebraic faces of the exact same concept:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Collinearity is the geometric concept:</strong> Two vectors are collinear if they lie along the exact same straight line in sample space—one vector is simply a scalar multiple of the other ($v_2 = c \cdot v_1$).
+    </li>
+    <li>
+      <strong>Covariance is the algebraic tool:</strong> To quantify whether two centered feature vectors $x_j$ and $x_k$ are collinear, linear algebra computes their inner product across all $n$ samples:
+      <div class="math-display">
+        $$\text{Cov}(x_j, x_k) = \frac{1}{n} \langle x_j, x_k \rangle = \frac{1}{n} \|x_j\| \|x_k\| \cos \theta$$
+      </div>
+      Normalizing by their individual magnitudes yields the Pearson correlation, which is literally the <strong>cosine of the angle $\theta$ between the two feature vectors in sample space</strong>:
+      <div class="math-display">
+        $$\text{Corr}(x_j, x_k) = \cos \theta = \frac{\langle x_j, x_k \rangle}{\|x_j\| \|x_k\|}$$
+      </div>
+    </li>
+  </ul>
+
+  <p>
+    When two features are perfectly collinear, they point in the exact same (or exact opposite) direction ($\theta = 0^\circ$ or $180^\circ$), yielding $|\cos \theta| = 1$. When they are orthogonal in sample space ($\theta = 90^\circ$), $\cos \theta = 0$ and their covariance is identically zero.
+  </p>
+
+  <p>
+    Therefore, computing the sample covariance matrix $C = \frac{1}{n} X X^T$ and finding its eigenvectors is simply the process of <strong>rotating the coordinate axes until all off-diagonal collinearity is eliminated</strong>.
+  </p>
+
+  <details class="toggle">
+    <summary><strong>Deep Dive: Are Collinearity, Correlation, and Covariance the Same Thing?</strong></summary>
+    <div class="toggle-body">
+      <p>
+        It is very common in machine learning literature to see authors use <em>collinearity</em>, <em>correlation</em>, and <em>covariance</em> almost interchangeably, which can make them seem like competing or distinct mechanisms. In reality, they are simply <strong>three different perspectives on the exact same linear geometric phenomenon</strong>:
+      </p>
+      <div class="math-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Terminology</th>
+              <th>Perspective</th>
+              <th>What It Conveys</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Collinearity</strong></td>
+              <td><strong>Geometric State</strong></td>
+              <td>Do two centered feature vectors lie along the exact same straight line in sample space? ($v_2 = c \cdot v_1$, meaning angle $\theta = 0^\circ$ or $180^\circ$).</td>
+            </tr>
+            <tr>
+              <td><strong>Correlation</strong></td>
+              <td><strong>Normalized Metric</strong></td>
+              <td>The pure <strong>cosine of the angle</strong> between the vectors ($\cos \theta = \frac{\langle v_1, v_2 \rangle}{\|v_1\| \|v_2\|}$). It is dimensionless, bounded strictly between $-1$ and $+1$, and measures directional alignment independent of scale.</td>
+            </tr>
+            <tr>
+              <td><strong>Covariance</strong></td>
+              <td><strong>Unnormalized Metric</strong></td>
+              <td>The <strong>scaled inner product</strong> in sample space ($\frac{1}{n}\langle v_1, v_2 \rangle = \frac{1}{n}\|v_1\|\|v_2\|\cos\theta$). It measures collinearity weighted by the actual physical spread (variances) of each feature.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>The Key Takeaway:</strong> All three are strictly confined to <strong>straight-line relationships</strong>. None of them can detect whether one variable curves non-linearly into another ($Y = X^2$, $Y = \sin X$). When PCA diagonalizes the covariance matrix, it is doing nothing more than rotating the coordinate axes until all off-diagonal collinearity drops to zero.
+      </p>
+    </div>
+  </details>
+
+  <h3>The Breakdown: Redundancy Is Not Always Linear</h3>
+  <p>
+    In our exploration of <a href="../02.principal-component-analysis/index.html">linear Principal Component Analysis</a>, we discovered how geometric redundancy enables dimensional compression. When two features duplicate each other linearly—such as living area and number of bedrooms—their joint distribution on the $x$-$y$ floor plane collapses into a straight line. Linear PCA exploited this by constructing a single linear combination:
+  </p>
+
+  <div class="math-display">
+    $$\text{Composite Size} = a_1 x + a_2 y$$
+  </div>
+
+  <p>
+    This straight composite axis collapsed the two floor features into one without losing information, allowing 3D housing data to flatten seamlessly onto a 2D slant plane, and ultimately down to a 1D principal axis.
+  </p>
+
+  <p>
+    Now, consider a real estate market where we describe homes using three slightly different measurements:
+  </p>
+
+  <ul>
+    <li><strong>Width</strong> ($w$) along the $x$-axis</li>
+    <li><strong>Floor Area</strong> ($A$) along the $y$-axis</li>
+    <li><strong>Sale Price</strong> ($p$) along the $z$-axis</li>
+  </ul>
+
+  <p>
+    Consider square foundations where floor area is strictly determined by width:
+  </p>
+
+  <div class="math-display">
+    $$A = w^2$$
+  </div>
+
+  <p>
+    Under this geometric rule, width and area are <strong>completely, deterministically dependent</strong>. Storing both measurements is entirely redundant—there is only one underlying size variable ($w$). In physical reality, the dataset is strictly 1-dimensional.
+  </p>
+
+  <p>
+    Yet, notice what happens when we plot this dataset in 3D coordinate space (Figure 1). What does the data look like on the $x$-$y$ floor plane?
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig1-3d-svg" viewBox="0 0 820 480" xmlns="http://www.w3.org/2000/svg" style="cursor: grab; user-select: none; touch-action: none; width: 100%; max-width: 740px; height: auto;">
+        <defs>
+          <marker id="fig1-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="fig1-arrow-pca" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="fig1-arrow-comp" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- Floor Grid Plane (Width x Area) -->
+        <g id="fig1-grid-floor"></g>
+
+        <!-- Smooth Parabola Path on Floor (A = w^2) -->
+        <path id="fig1-floor-parabola" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="5,4" opacity="0.85" />
+
+        <!-- Linear PCA Floor Line Attempt (a1*w + a2*A) -->
+        <g id="fig1-floor-pca-group" style="display: none;">
+          <line id="fig1-floor-pca-line" stroke="var(--box-label-bg)" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#fig1-arrow-pca)" />
+          <text id="fig1-lbl-floor-pca" font-family="'Lora', serif" font-size="13" font-weight="600" fill="var(--text)">
+            <tspan id="fig1-lbl-floor-pca-t1" x="0" dy="0">Linear Floor Combination</tspan>
+            <tspan id="fig1-lbl-floor-pca-t2" x="0" dy="16">(a₁w + a₂A)</tspan>
+          </text>
+          <g id="fig1-floor-residuals"></g>
+        </g>
+
+        <!-- Slant 2D Plane Attempt in 3D (Vertical Wall standing on Floor Line) -->
+        <g id="fig1-plane-group" style="display: none;">
+          <polygon id="fig1-slant-polygon" fill="var(--highlight)" fill-opacity="0.35" stroke="var(--box-label-bg)" stroke-width="2" stroke-dasharray="6,4" />
+          <text id="fig1-lbl-slant-plane" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--text)">Linear PCA Flat Plane</text>
+          <g id="fig1-plane-residuals"></g>
+        </g>
+
+        <!-- Coordinate Axes -->
+        <g id="fig1-axes">
+          <line id="fig1-axis-x" stroke="var(--text)" stroke-width="2" marker-end="url(#fig1-arrow)" />
+          <line id="fig1-axis-y" stroke="var(--text)" stroke-width="2" marker-end="url(#fig1-arrow)" />
+          <line id="fig1-axis-z" stroke="var(--text)" stroke-width="2" marker-end="url(#fig1-arrow)" />
+        </g>
+
+        <!-- Vertical Drop lines from 3D points to floor -->
+        <g id="fig1-droplines"></g>
+
+        <!-- Floor shadows on the parabola -->
+        <g id="fig1-shadows"></g>
+
+        <!-- Data Points in 3D (Curved Ribbon) -->
+        <g id="fig1-points"></g>
+
+        <!-- Dynamic Labels & Annotations -->
+        <g id="fig1-labels">
+          <text id="fig1-lbl-origin" font-family="'Lora', serif" font-size="14" fill="var(--muted)">0</text>
+          <text id="fig1-lbl-x" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)">Width (w)</text>
+          <text id="fig1-lbl-y" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)">Area (A = w²)</text>
+          <text id="fig1-lbl-z" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)">Sale Price (p)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="pca-controls">
+      <button type="button" class="pca-btn active" id="fig1-btn-cloud">
+        <span>3D Cloud</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig1-btn-floor">
+        <span>Floor POV (Width × Area)</span>
+      </button>
+      <button type="button" class="pca-btn" id="fig1-btn-plane">
+        <span>Slant Plane Attempt (3D → 2D)</span>
+      </button>
+    </div>
+
+    <div class="fig1-readout" id="fig1-readout">
+      <span id="fig1-readout-text">Interactive 3D view: houses form a curved parabolic ribbon in 3D space. Drag anytime to rotate.</span>
+    </div>
+
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> Interactive 3D visualization of housing data with non-linear redundancy ($x = \text{Width } w$, $y = \text{Area } A = w^2$, $z = \text{Sale Price } p$). Click <em>"Floor POV (Width × Area)"</em> to look straight down at the $x$-$y$ floor: because the relationship is quadratic ($A = w^2$), no straight linear combination $a_1 w + a_2 A$ can serve as a principal component without massive residuals. Click <em>"Slant Plane Attempt (3D → 2D)"</em> to see the vertical flat plane perpendicular to the $x$-$y$ floor plane standing directly on that floor line: because the ribbon curves in 3D, it bows completely away from this flat vertical plane, leaving large horizontal residuals. Drag anytime to rotate in 3D.
+    </figcaption>
+  </figure>
+
+  <h3>The Breakdown: Why Linear Combinations Fail on Curves</h3>
+  <p>
+    Compare this directly with what happened in our linear PCA article (Figure 2):
+  </p>
+
+  <ul>
+    <li>
+      <strong>In Linear PCA (Area & Bedrooms):</strong> Because bedrooms scaled in direct linear proportion to living area, their floor shadow formed a straight line. Erecting a vertical plane perpendicular to the $x$-$y$ floor directly over that line captured almost all variance, collapsing the 3D data into a 2D slant plane with near-zero error.
+    </li>
+    <li>
+      <strong>In Kernel PCA (Width & Area):</strong> On the $x$-$y$ floor plane, area is the square of width ($A = w^2$). Every linear combination linear PCA can construct is a <strong>straight line</strong> on the floor:
+      <div class="math-display">
+        $$c = a_1 w + a_2 A$$
+      </div>
+      A straight line cannot bend. No choice of coefficients $(a_1, a_2)$ can follow a parabolic curve. As shown in the <em>Floor POV</em>, any straight line cuts across the curve, leaving large orthogonal residuals.
+    </li>
+    <li>
+      <strong>In 3D Space (Curved Ribbon vs. Perpendicular Plane):</strong> When linear PCA attempts to fit a 2D plane by combining the floor features, it erects a <strong>flat vertical plane perpendicular to the $x$-$y$ floor</strong> on top of the straight floor line. But because the true data follows a parabola on the floor, the 3D data points form a <strong>curved parabolic ribbon</strong>. The ribbon bows into and out of the vertical wall, leaving massive orthogonal residuals. A flat plane cannot bend, leaving linear PCA trapped with all 3 dimensions and failing to compress the 1-dimensional manifold.
+    </li>
+  </ul>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 880 490" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 820px; height: auto;">
+        <defs>
+          <marker id="fig2-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="fig2-arrow-pca-left" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--dark)" />
+          </marker>
+          <marker id="fig2-arrow-pca-dark" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--dark)" />
+          </marker>
+        </defs>
+
+        <!-- Center Divider -->
+        <line x1="440" y1="20" x2="440" y2="470" stroke="var(--border)" stroke-width="1.2" stroke-dasharray="5,5" opacity="0.6" />
+
+        <!-- ================= LEFT PANEL: LINEAR FLOOR PROJECTION ================= -->
+        <g id="fig2-panel-linear">
+          <!-- Headers -->
+          <text x="232" y="26" font-family="'Lora', serif" font-size="16" fill="var(--text)" text-anchor="middle">1. Linear Floor Projection</text>
+          <text x="232" y="46" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Living Area &amp; Bedrooms (Linear PCA)</text>
+
+          <!-- Axes (Clean, unnumbered) -->
+          <line x1="80" y1="365" x2="385" y2="365" stroke="var(--text)" stroke-width="2" marker-end="url(#fig2-arrow)" />
+          <text x="232" y="390" font-family="'Lora', serif" font-size="14" fill="var(--text)" text-anchor="middle">Living Area (x)</text>
+
+          <line x1="80" y1="365" x2="80" y2="72" stroke="var(--text)" stroke-width="2" marker-end="url(#fig2-arrow)" />
+          <text x="80" y="58" font-family="'Lora', serif" font-size="14" fill="var(--text)" text-anchor="middle">Bedrooms (y)</text>
+
+          <!-- Clean Legend in Upper-Left Void -->
+          <g id="fig2-legend-linear">
+            <line x1="95" y1="88" x2="122" y2="88" stroke="var(--dark)" stroke-width="2.5" />
+            <text x="130" y="92" font-family="'Lora', serif" font-size="12.5" fill="var(--text)">PC₁ Axis (c = a₁x + a₂y)</text>
+
+            <rect x="95" y="106" width="12" height="12" fill="var(--box-label-bg)" fill-opacity="0.25" stroke="var(--box-label-bg)" stroke-width="1" />
+            <text x="115" y="116" font-family="'Lora', serif" font-size="12" fill="var(--text)">Squared Errors rᵢ² (Tiny Noise)</text>
+          </g>
+
+          <!-- Principal Component Fit Line (Distinct Dark Line) -->
+          <line x1="99.3" y1="356.7" x2="360.8" y2="93.4" stroke="var(--dark)" stroke-width="2.5" marker-end="url(#fig2-arrow-pca-left)" />
+
+          <!-- Orthogonal Residual Drop Lines & Geometric Error Squares for ALL Points -->
+          <line x1="121.8" y1="336.8" x2="120.4" y2="335.4" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="120.4,335.4 121.8,336.8 123.1,335.4 121.8,334.1" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="142.3" y1="308.4" x2="144.8" y2="310.9" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="144.8,310.9 142.3,308.4 144.8,306.0 147.2,308.4" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="171.2" y1="288.4" x2="169.1" y2="286.4" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="169.1,286.4 171.2,288.4 173.2,286.4 171.1,284.4" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="191.8" y1="260.2" x2="193.5" y2="261.8" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="193.5,261.8 191.8,260.2 193.5,258.5 195.2,260.2" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="219.8" y1="239.2" x2="217.9" y2="237.3" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="217.9,237.3 219.8,239.2 221.6,237.3 219.7,235.4" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="239.7" y1="210.3" x2="242.2" y2="212.8" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="242.2,212.8 239.7,210.3 242.2,207.8 244.7,210.3" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="268.1" y1="189.7" x2="266.6" y2="188.3" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="266.6,188.3 268.1,189.7 269.6,188.2 268.1,186.7" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="289.4" y1="162.2" x2="290.9" y2="163.7" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="290.9,163.7 289.4,162.2 290.9,160.7 292.5,162.2" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="317.7" y1="141.6" x2="315.3" y2="139.2" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="315.3,139.2 317.7,141.6 320.2,139.2 317.7,136.7" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="338.6" y1="113.6" x2="339.7" y2="114.7" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="339.7,114.7 338.6,113.6 339.7,112.5 340.7,113.6" fill="var(--box-label-bg)" fill-opacity="0.22" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <!-- Data Points -->
+          <circle cx="121.8" cy="336.8" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="142.3" cy="308.4" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="171.2" cy="288.4" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="191.8" cy="260.2" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="219.8" cy="239.2" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="239.7" cy="210.3" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="268.1" cy="189.7" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="289.4" cy="162.2" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="317.7" cy="141.6" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="338.6" cy="113.6" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+
+          <!-- Comparative MSE Gauge -->
+          <g id="fig2-mse-linear" transform="translate(100, 412)">
+            <rect x="0" y="0" width="264" height="28" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1" />
+            <text x="132" y="18" font-family="'Lora', serif" font-size="12.5" fill="var(--text)" text-anchor="middle">MSE = 7.2  ·  ∑ rᵢ² = 72.1  (Low error)</text>
+          </g>
+
+          <!-- Bottom Summary (No tick mark, clean normal text) -->
+          <text x="232" y="458" font-family="'Lora', serif" font-size="12.5" fill="var(--muted)" text-anchor="middle">Straight line captures trend; residuals are negligible noise</text>
+        </g>
+
+        <!-- ================= RIGHT PANEL: NON-LINEAR FLOOR PROJECTION ================= -->
+        <g id="fig2-panel-nonlinear">
+          <!-- Headers -->
+          <text x="652" y="26" font-family="'Lora', serif" font-size="16" fill="var(--text)" text-anchor="middle">2. Non-Linear Floor Projection</text>
+          <text x="652" y="46" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Width &amp; Area = Width² (Kernel PCA)</text>
+
+          <!-- Axes (Clean, unnumbered) -->
+          <line x1="500" y1="365" x2="805" y2="365" stroke="var(--text)" stroke-width="2" marker-end="url(#fig2-arrow)" />
+          <text x="652" y="390" font-family="'Lora', serif" font-size="14" fill="var(--text)" text-anchor="middle">Width (w)</text>
+
+          <line x1="500" y1="365" x2="500" y2="72" stroke="var(--text)" stroke-width="2" marker-end="url(#fig2-arrow)" />
+          <text x="500" y="58" font-family="'Lora', serif" font-size="14" fill="var(--text)" text-anchor="middle">Area (A = w²)</text>
+
+          <!-- Clean Legend in Upper-Left Void -->
+          <g id="fig2-legend-nonlinear">
+            <!-- True manifold -->
+            <line x1="515" y1="88" x2="540" y2="88" stroke="var(--accent)" stroke-width="3" />
+            <text x="548" y="92" font-family="'Lora', serif" font-size="12.5" fill="var(--text)">True Manifold: A = w² (Curved)</text>
+
+            <!-- Linear PCA fit -->
+            <line x1="515" y1="108" x2="540" y2="108" stroke="var(--dark)" stroke-width="2.5" />
+            <text x="548" y="112" font-family="'Lora', serif" font-size="12.5" fill="var(--text)">Linear PCA Fit (Straight Line)</text>
+
+            <!-- Error Area & Squares -->
+            <rect x="515" y="126" width="16" height="12" rx="2" fill="var(--box-label-bg)" fill-opacity="0.25" stroke="var(--box-label-bg)" stroke-width="1" />
+            <text x="548" y="136" font-family="'Lora', serif" font-size="12" fill="var(--text)">Squared Errors rᵢ² (Massive Areas)</text>
+          </g>
+
+          <!-- Shaded Accumulated Error Chasm -->
+          <polygon points="530.0,350.0 554.4,348.1 578.9,341.2 603.3,328.6 627.8,309.7 652.2,284.1 676.7,251.6 701.1,211.9 725.6,164.8 750.0,110.0 767.2,125.1 552.5,369.7" fill="var(--box-label-bg)" fill-opacity="0.10" stroke="none" />
+
+          <!-- True Parabola Manifold Path (Prominent Warm Coral Curve) -->
+          <path d="M 530.0 350.0 L 554.4 348.1 L 578.9 341.2 L 603.3 328.6 L 627.8 309.7 L 652.2 284.1 L 676.7 251.6 L 701.1 211.9 L 725.6 164.8 L 750.0 110.0" fill="none" stroke="var(--accent)" stroke-width="3" />
+
+          <!-- Straight Linear PCA Fit Line (High-Contrast Dark Charcoal Line) -->
+          <line x1="532.7" y1="392.3" x2="787.0" y2="102.6" stroke="var(--dark)" stroke-width="2.5" marker-end="url(#fig2-arrow-pca-dark)" />
+
+          <!-- Orthogonal Residual Drop Lines & Geometric Error Squares for ALL Points -->
+          <line x1="530.0" y1="350.0" x2="552.5" y2="369.7" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="552.5,369.7 530.0,350.0 549.7,327.5 572.2,347.3" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="554.4" y1="348.1" x2="564.0" y2="356.5" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="564.0,356.5 554.4,348.1 562.9,338.5 572.5,346.9" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="578.9" y1="341.2" x2="578.1" y2="340.5" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="578.1,340.5 578.9,341.2 579.6,340.4 578.8,339.7" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="603.3" y1="328.6" x2="595.0" y2="321.3" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="595.0,321.3 603.3,328.6 610.7,320.3 602.3,312.9" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="627.8" y1="309.7" x2="615.0" y2="298.5" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="615.0,298.5 627.8,309.7 639.0,296.9 626.2,285.7" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="652.2" y1="284.1" x2="638.3" y2="271.9" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="638.3,271.9 652.2,284.1 664.4,270.2 650.5,258.0" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="676.7" y1="251.6" x2="665.1" y2="241.5" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="665.1,241.5 676.7,251.6 686.9,240.0 675.3,229.9" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="701.1" y1="211.9" x2="695.4" y2="206.9" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="695.4,206.9 701.1,211.9 706.1,206.2 700.4,201.2" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="725.6" y1="164.8" x2="729.4" y2="168.2" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="729.4,168.2 725.6,164.8 728.9,160.9 732.8,164.3" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <line x1="750.0" y1="110.0" x2="767.2" y2="125.1" stroke="var(--box-label-bg)" stroke-width="1.5" />
+          <polygon points="767.2,125.1 750.0,110.0 765.1,92.8 782.3,107.9" fill="var(--box-label-bg)" fill-opacity="0.20" stroke="var(--box-label-bg)" stroke-width="0.9" />
+
+          <!-- Data Points on Curve -->
+          <circle cx="530.0" cy="350.0" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="554.4" cy="348.1" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="578.9" cy="341.2" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="603.3" cy="328.6" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="627.8" cy="309.7" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="652.2" cy="284.1" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="676.7" cy="251.6" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="701.1" cy="211.9" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="725.6" cy="164.8" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+          <circle cx="750.0" cy="110.0" r="4.2" fill="var(--accent)" stroke="var(--bg)" stroke-width="1.5" />
+
+          <!-- Comparative MSE Gauge -->
+          <g id="fig2-mse-nonlinear" transform="translate(520, 412)">
+            <rect x="0" y="0" width="264" height="28" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1" />
+            <text x="132" y="18" font-family="'Lora', serif" font-size="12.5" fill="var(--text)" text-anchor="middle">MSE = 265.9  ·  ∑ rᵢ² = 2,659  (37× higher error)</text>
+          </g>
+
+          <!-- Bottom Summary (No cross mark, clean normal text) -->
+          <text x="652" y="458" font-family="'Lora', serif" font-size="12.5" fill="var(--muted)" text-anchor="middle">Straight line cuts across empty space, leaving massive squared errors</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> Side-by-side comparison of 2D floor projections in linear vs. non-linear feature redundancy.
+      <em>Left:</em> In linear PCA (Living Area &amp; Bedrooms), bedrooms grow in direct linear proportion to area ($y \approx m \cdot x$). The optimal first principal component line aligns directly with the data, leaving only tiny observational noise ($\text{MSE} = \lambda_2 = 7.2$, $\sum r_i^2 = 72.1$).
+      <em>Right:</em> In kernel PCA (Width &amp; Area), area scales quadratically ($A = w^2$). The dark solid line is the <strong>exact minimum MSE linear PCA fit</strong>, contrasting sharply with the curved manifold ($A = w^2$). Because a straight line cannot bend, it cuts through empty space, leaving massive geometric squared-error areas ($r_i^2$) across all points ($\text{MSE} = \lambda_2 = 265.9$, $\sum r_i^2 = 2{,}659$)—a $37\times$ error explosion compared to the linear relationship.
+    </figcaption>
+  </figure>
+
+  <p>
+    This forces us to confront a fundamental question:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If we do not know ahead of time which features are dependent, and whether their relationship is linear, quadratic, cubic, or some other non-linear curve, how can an algorithm discover and eliminate this redundant information?</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2 — The Blind Spot of Covariance                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="covariance-blind-spot">
+  <h2>The Blind Spot of Covariance: Zero Correlation $\neq$ Independence</h2>
+
+  <p>
+    Here is the fundamental limitation of standard linear PCA:
+  </p>
+
+  <p>
+    <strong>A straight line is not the only relationship two variables can share.</strong>
+  </p>
+
+  <p>
+    Two variables can be deeply, deterministically dependent on each other, yet have <strong>zero linear correlation and zero covariance</strong>. Because the covariance formula only integrates linear co-movements, non-linear curves cancel out across symmetric distributions.
+  </p>
+
+  <h3>The Circle Experiment</h3>
+  <p>
+    Consider a simple 2D dataset where every observation lies on the circumference of a circle of radius $R$ centered at the origin:
+  </p>
+
+  <div class="math-display">
+    $$f_1^2 + f_2^2 = R^2 \quad\Longleftrightarrow\quad \begin{cases} f_1 = R \cos \theta \\ f_2 = R \sin \theta \end{cases} \quad \text{for } \theta \in [0, 2\pi)$$
+  </div>
+
+  <p>
+    Are $f_1$ and $f_2$ independent? Absolutely not! If you know $f_1$, you know $f_2$ up to a sign ($f_2 = \pm \sqrt{R^2 - f_1^2}$). The dataset has only <strong>one degree of freedom</strong>: every point is uniquely identified by its angle $\theta$. It is fundamentally a 1-dimensional manifold curved inside a 2-dimensional plane.
+  </p>
+
+  <p>
+    Now let us see what standard linear PCA calculates:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Rotational Symmetry:</strong> Because the points are distributed uniformly around the perimeter, for every positive coordinate there is an equal negative counterpart. The sample covariance is zero:
+      <div class="math-display">
+        $$\text{Cov}(f_1, f_2) = \frac{1}{n}\sum_{i=1}^n f_{i1} f_{i2} = 0$$
+      </div>
+    </li>
+    <li>
+      <strong>Equal Variance:</strong> The spread along the horizontal axis equals the spread along the vertical axis:
+      <div class="math-display">
+        $$\text{Var}(f_1) = \text{Var}(f_2) = \frac{R^2}{2} = \sigma^2$$
+      </div>
+    </li>
+    <li>
+      <strong>Eigendecomposition:</strong> The covariance matrix is a multiple of the identity:
+      <div class="math-display">
+        $$C = \begin{bmatrix} \sigma^2 & 0 \\ 0 & \sigma^2 \end{bmatrix} \quad\Longrightarrow\quad \lambda_1 = \lambda_2 = \sigma^2$$
+      </div>
+    </li>
+  </ol>
+
+  <p>
+    Because $\lambda_1 = \lambda_2$, each component explains exactly $50\%$ of the variance. Linear PCA reports that the data is strictly 2-dimensional and achieves <strong>zero compression</strong>, completely blind to the rigid circular dependency between the variables!
+  </p>
+
+  <p>
+    Whether non-linear redundancy takes the form of an open curve like the housing parabola ($A = w^2$) or a closed symmetric manifold like the circle ($f_1^2 + f_2^2 = R^2$), standard linear PCA is fundamentally thwarted: it either produces heavy reconstruction errors along flat hyperplanes or fails to find any principal direction at all.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 580 400" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 580px; height: auto;">
+        <defs>
+          <marker id="arrow-axis-2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--muted)" />
+          </marker>
+          <marker id="arrow-box-2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+        </defs>
+
+        <text x="290" y="25" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--text)" text-anchor="middle">Symmetric Redundancy: Circle (f₁² + f₂² = R²)</text>
+        <text x="290" y="48" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Cov(f₁, f₂) = 0  |  Isotropic Variance (0% Compression)</text>
+
+        <!-- Axes -->
+        <line x1="70" y1="200" x2="505" y2="200" stroke="var(--border)" stroke-width="1.8" marker-end="url(#arrow-axis-2)" />
+        <line x1="290" y1="325" x2="290" y2="75" stroke="var(--border)" stroke-width="1.8" marker-end="url(#arrow-axis-2)" />
+        <text x="520" y="205" font-family="'Lora', serif" font-size="16" font-style="italic" fill="var(--muted)">f₁</text>
+        <text x="290" y="62" font-family="'Lora', serif" font-size="16" font-style="italic" fill="var(--muted)" text-anchor="middle">f₂</text>
+
+        <!-- Circle Manifold -->
+        <circle cx="290" cy="200" r="85" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="5,4" opacity="0.75" />
+
+        <!-- Symmetry Pairing Lines -->
+        <line x1="229.9" y1="139.9" x2="350.1" y2="260.1" stroke="var(--border)" stroke-width="1.2" stroke-dasharray="3,3" />
+        <line x1="229.9" y1="260.1" x2="350.1" y2="139.9" stroke="var(--border)" stroke-width="1.2" stroke-dasharray="3,3" />
+
+        <!-- Principal Component Arrows -->
+        <line x1="290" y1="200" x2="375" y2="200" stroke="var(--box-label-bg)" stroke-width="3" marker-end="url(#arrow-box-2)" />
+        <line x1="290" y1="200" x2="290" y2="115" stroke="var(--box-label-bg)" stroke-width="3" marker-end="url(#arrow-box-2)" />
+
+        <!-- Eigenvalue Labels (Positioned cleanly in open space without colliding with points or arrows) -->
+        <text x="345" y="222" font-family="'Lora', serif" font-size="14" fill="var(--text)" text-anchor="middle">λ₁ = σ²</text>
+        <text x="306" y="152" font-family="'Lora', serif" font-size="14" fill="var(--text)" text-anchor="start">λ₂ = σ²</text>
+
+        <!-- Data Points on Circle -->
+        <circle cx="375" cy="200" r="5.5" fill="var(--accent)" />
+        <circle cx="350.1" cy="139.9" r="5.5" fill="var(--accent)" />
+        <circle cx="290" cy="115" r="5.5" fill="var(--accent)" />
+        <circle cx="229.9" cy="139.9" r="5.5" fill="var(--accent)" />
+        <circle cx="205" cy="200" r="5.5" fill="var(--accent)" />
+        <circle cx="229.9" cy="260.1" r="5.5" fill="var(--accent)" />
+        <circle cx="290" cy="285" r="5.5" fill="var(--accent)" />
+        <circle cx="350.1" cy="260.1" r="5.5" fill="var(--accent)" />
+
+        <!-- Center Covariance Text (Moved to open quadrant to avoid vertical axis overlap) -->
+        <text x="215" y="172" font-family="'Lora', serif" font-size="13" font-style="italic" fill="var(--muted)" text-anchor="middle">Cov(f₁, f₂) = 0</text>
+
+        <!-- Bottom annotations -->
+        <text x="290" y="355" font-family="'Lora', serif" font-size="13.5" fill="var(--text)" text-anchor="middle">Equal eigenvalues (λ₁ = λ₂): No principal axis</text>
+        <text x="290" y="375" font-family="'Lora', serif" font-size="12.5" fill="var(--muted)" text-anchor="middle">Spread is isotropic; linear PCA achieves 0% compression</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 3:</strong> On a circular manifold ($f_1^2 + f_2^2 = R^2$), rotational symmetry forces $\text{Cov}(f_1, f_2) = 0$ and $\lambda_1 = \lambda_2 = \sigma^2$. Because the variance is identical in all directions, linear PCA cannot identify any principal axis and achieves 0% compression.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3 — Higher-Order Feature Combinations                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="feature-combinations">
+  <h2>The Breakthrough: Higher-Order Feature Combinations</h2>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>How can we enable linear methods to capture non-linear dependencies?</em></p>
+    </div>
+  </div>
+
+  <p>
+    To capture quadratic, cubic, or higher-order dependencies between features, we face two possible paths:
+  </p>
+
+  <ul>
+    <li><strong>Path A:</strong> Abandon linear algebra and attempt to invent brand-new, complex non-linear statistical measures that quantify curved co-movements directly. This forfeits all the clean geometric properties of symmetric matrices, orthogonal projections, and eigendecompositions.</li>
+    <li><strong>Path B:</strong> <strong>Keep linear algebra intact</strong>, but expand the feature space into higher-degree polynomial combinations ($f_1^2, f_2^2, f_1 f_2, \dots$) where those curved dependencies manifest as <strong>standard linear relationships among the extended features</strong>.</li>
+  </ul>
+
+  <p>
+    Return to our real estate example:
+  </p>
+
+  <div class="math-display">
+    $$A = w^2$$
+  </div>
+
+  <p>
+    In the original 3D feature space $[w, A, p]^T$, the relationship between width $w$ and area $A$ is quadratic.
+  </p>
+
+  <p>
+    However, suppose we expand our feature representation to include quadratic and cross-product terms:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      x &= \begin{bmatrix} w \\ A \\ p \end{bmatrix} \in \mathbb{R}^3 \\[8pt]
+      \phi(x) &= \begin{bmatrix} w & A & p & w^2 & A^2 & p^2 & wA & wp & Ap \end{bmatrix}^T \in \mathbb{R}^9
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Look at what has happened to the relationship between area and width inside this 9-dimensional expanded space:
+  </p>
+
+  <div class="math-display">
+    $$A - 1 \cdot (w^2) = 0$$
+  </div>
+
+  <p>
+    This is an exact, <strong>straight linear dependency</strong> between the fourth feature ($w^2$) and the second feature ($A$)!
+  </p>
+
+  <p>
+    In real-world machine learning, we are given arbitrary features $x_1, x_2, \dots, x_d$. We do not know ahead of time which feature acts like "width", which acts like "area", or what complex polynomial links them.
+  </p>
+
+  <p>
+    Instead of hand-crafting specific formulas, <strong>we expand the feature space systematically</strong>! We define a non-linear mapping $\phi(x)$ that lifts our data into a higher-dimensional feature space containing polynomial powers and cross-products ($x_1^2, x_1 x_2, x_2^2, \dots$).
+  </p>
+
+  <p>
+    Conceptually, the dimensionality reduction pipeline becomes:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      x &\;\longrightarrow\; \phi(x) \\[6pt]
+      &\;\longrightarrow\; \text{PCA in Feature Space} \\[6pt]
+      &\;\longrightarrow\; \text{Lower-Dimensional Representation}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    This is the foundational intuition behind Kernel PCA: <strong>perform PCA in a non-linear, higher-dimensional feature space where curved manifolds straighten out</strong>.
+  </p>
+
+  <h3>Linear Decorrelation in the Expanded Feature Space</h3>
+  <p>
+    Once non-linear dependencies are transformed into straight linear relationships among these lifted features, <strong>standard linear eigendecomposition can operate effectively: diagonalizing the covariance matrix of $\phi(x)$ rotates the coordinate axes to align directly with the straightened manifold, isolating the dominant spread and eliminating the redundant dimensions.</strong>
+  </p>
+
+  <p>
+    Let us see this in action on our circular dataset $f_1^2 + f_2^2 = R^2$.
+  </p>
+
+  <p>
+    Define the quadratic combination features $F_1 = f_1^2$ and $F_2 = f_2^2$. In terms of these combination features, the circle equation becomes:
+  </p>
+
+  <div class="math-display">
+    $$F_1 + F_2 = R^2 \quad\Longrightarrow\quad F_2 = R^2 - F_1$$
+  </div>
+
+  <p>
+    Look at what just happened:
+  </p>
+
+  <ul>
+    <li>In the original 2D space $(f_1, f_2)$, the points formed a <strong>curved, non-linear circle</strong> with zero linear covariance ($\text{Cov}(f_1, f_2) = 0$).</li>
+    <li>In the combination feature space $(F_1, F_2)$, every single data point lies on a <strong>perfectly straight diagonal line</strong> with slope $-1$!</li>
+  </ul>
+
+  <p>
+    When we run PCA in this combination space:
+  </p>
+
+  <ol>
+    <li>The first principal component axis ($\text{PC}_1$) aligns directly along the diagonal line, capturing <strong>$100\%$ of the variance</strong>.</li>
+    <li>The second orthogonal axis ($\text{PC}_2$) points perpendicular to the line ($F_1 + F_2 = \text{constant}$), where the variance is <strong>identically zero</strong>.</li>
+  </ol>
+
+  <p>
+    PCA rotates the coordinate system in combination space, isolates the single true degree of freedom along $\text{PC}_1$, and discards $\text{PC}_2$ as redundant noise—achieving perfect dimensionality reduction!
+  </p>
+
+  <h3>Generalizing: Any Circle is a Flat Hyperplane in $\mathbb{R}^6$</h3>
+  <p>
+    The simple circle above was conveniently centered at the origin. What happens when the circular manifold is located anywhere in the plane, centered at an arbitrary coordinate $[a, b]^T$ with radius $r$?
+  </p>
+
+  <div class="math-display">
+    $$(f_1 - a)^2 + (f_2 - b)^2 = r^2$$
+  </div>
+
+  <p>
+    Expanding this quadratic equation algebraically yields:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      (f_1^2 - 2a f_1 + a^2) + (f_2^2 - 2b f_2 + b^2) &= r^2 \\[6pt]
+      f_1^2 + a^2 - 2a f_1 + f_2^2 + b^2 - 2b f_2 - r^2 &= 0
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Notice all the terms at play: pure squares ($f_1^2, f_2^2$), linear terms ($-2af_1, -2bf_2$), and constant terms ($a^2 + b^2 - r^2$). Simply squaring the coordinates is no longer enough.
+  </p>
+
+  <p>
+    To linearize this general circle, we map each 2D point $x = [f_1, f_2]^T \in \mathbb{R}^2$ to a 6-dimensional feature vector $\phi(x) \in \mathbb{R}^6$:
+  </p>
+
+  <div class="math-display">
+    $$\phi(x) = \begin{bmatrix} 1 \\[4pt] f_1 \\[4pt] f_2 \\[4pt] f_1 f_2 \\[4pt] f_1^2 \\[4pt] f_2^2 \end{bmatrix} \in \mathbb{R}^6$$
+  </div>
+
+  <p>
+    Now define the geometric parameter vector $u \in \mathbb{R}^6$:
+  </p>
+
+  <div class="math-display">
+    $$u = \begin{bmatrix} a^2 + b^2 - r^2 \\[4pt] -2a \\[4pt] -2b \\[4pt] 0 \\[4pt] 1 \\[4pt] 1 \end{bmatrix} \in \mathbb{R}^6$$
+  </div>
+
+  <p>
+    Let us evaluate the inner product between the transformed data vector $\phi(x)$ and the vector $u$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \phi(x)^T u &= \begin{bmatrix} 1 & f_1 & f_2 & f_1 f_2 & f_1^2 & f_2^2 \end{bmatrix} \begin{bmatrix} a^2 + b^2 - r^2 \\[4pt] -2a \\[4pt] -2b \\[4pt] 0 \\[4pt] 1 \\[4pt] 1 \end{bmatrix} \\[10pt]
+      &= 1 \cdot (a^2 + b^2 - r^2) + f_1 \cdot (-2a) + f_2 \cdot (-2b) + (f_1 f_2) \cdot 0 + f_1^2 \cdot 1 + f_2^2 \cdot 1 \\[8pt]
+      &= (f_1 - a)^2 + (f_2 - b)^2 - r^2
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Because every point on the circle satisfies $(f_1 - a)^2 + (f_2 - b)^2 - r^2 = 0$, every single transformed data point satisfies:
+  </p>
+
+  <div class="math-display">
+    $$\phi(x)^T u = 0$$
+  </div>
+
+  <p>
+    In linear algebra, the equation $w^T x = 0$ is the exact definition of a <strong>flat hyperplane passing through the origin</strong> with normal vector $w$.
+  </p>
+
+  <p>
+    This yields a profound geometric theorem: <strong>in the original 2D space, the points form a curved, non-linear circle; in the lifted 6D space $\phi(x)$, all points lie exactly on a single flat 5-dimensional linear hyperplane orthogonal to $u$!</strong>
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 580 820" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 580px; height: auto;">
+        <defs>
+          <marker id="arrow-axis-3" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--muted)" />
+          </marker>
+          <marker id="arrow-lift-3" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="arrow-pc1-3" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+          <marker id="arrow-pc2-3" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- ================= TOP: 1. Input Space ================= -->
+        <g id="panel-input-space">
+          <text x="290" y="25" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--text)" text-anchor="middle">1. Input Space (f₁, f₂)</text>
+          <text x="290" y="48" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Curved Manifold (f₁² + f₂² = R²)  |  Cov(f₁, f₂) = 0</text>
+
+          <!-- Axes -->
+          <line x1="80" y1="190" x2="495" y2="190" stroke="var(--border)" stroke-width="1.8" marker-end="url(#arrow-axis-3)" />
+          <line x1="290" y1="285" x2="290" y2="82" stroke="var(--border)" stroke-width="1.8" marker-end="url(#arrow-axis-3)" />
+          <text x="508" y="195" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--muted)">f₁</text>
+          <text x="306" y="88" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--muted)">f₂</text>
+
+          <!-- Circle -->
+          <circle cx="290" cy="190" r="80" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="5,5" opacity="0.6" />
+
+          <!-- Points around circle -->
+          <circle cx="370" cy="190" r="6" fill="var(--accent)" />
+          <circle cx="347" cy="133" r="6" fill="var(--accent)" />
+          <circle cx="290" cy="110" r="6" fill="var(--accent)" />
+          <circle cx="233" cy="133" r="6" fill="var(--accent)" />
+          <circle cx="210" cy="190" r="6" fill="var(--accent)" />
+          <circle cx="233" cy="247" r="6" fill="var(--accent)" />
+          <circle cx="290" cy="270" r="6" fill="var(--accent)" />
+          <circle cx="347" cy="247" r="6" fill="var(--accent)" />
+
+          <text x="290" y="325" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--text)" text-anchor="middle">Linear PCA is blind to non-linear circular dependency</text>
+        </g>
+
+        <!-- ================= CENTER: Downward Feature Lift Arrow ================= -->
+        <g transform="translate(290, 345)">
+          <line x1="0" y1="5" x2="0" y2="55" stroke="var(--box-label-bg)" stroke-width="3" marker-end="url(#arrow-lift-3)" />
+          <text x="-15" y="35" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)" text-anchor="end">Feature Lift</text>
+          <text x="18" y="25" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--text)" text-anchor="start">F₁ = f₁²,  F₂ = f₂²</text>
+          <text x="18" y="45" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="start">Curves → Lines</text>
+        </g>
+
+        <!-- ================= BOTTOM: 2. Combination Space ================= -->
+        <g id="panel-combination-space" transform="translate(0, 420)">
+          <text x="290" y="25" font-family="'Lora', serif" font-size="18" font-weight="600" fill="var(--text)" text-anchor="middle">2. Combination Space (F₁, F₂)</text>
+          <text x="290" y="48" font-family="'Lora', serif" font-size="13" font-weight="600" fill="var(--text)" text-anchor="middle">F₁ + F₂ = R²  (Straight Line!)</text>
+
+          <!-- Axes (F1 >= 0, F2 >= 0) -->
+          <line x1="130" y1="300" x2="465" y2="300" stroke="var(--border)" stroke-width="1.8" marker-end="url(#arrow-axis-3)" />
+          <line x1="160" y1="315" x2="160" y2="82" stroke="var(--border)" stroke-width="1.8" marker-end="url(#arrow-axis-3)" />
+          <text x="475" y="305" font-family="'Lora', serif" font-size="14.5" font-weight="600" fill="var(--muted)">F₁ = f₁²</text>
+          <text x="175" y="88" font-family="'Lora', serif" font-size="14.5" font-weight="600" fill="var(--muted)">F₂ = f₂²</text>
+
+          <!-- Straight Diagonal Line -->
+          <line x1="160" y1="100" x2="360" y2="300" stroke="var(--border)" stroke-width="2.5" stroke-dasharray="6,6" />
+          <text x="260" y="185" font-family="'Lora', serif" font-size="15" font-style="italic" font-weight="600" fill="var(--text)" transform="rotate(-45, 260, 185) translate(0, -12)">F₁ + F₂ = R²</text>
+
+          <!-- Data Points on the Line -->
+          <circle cx="160" cy="100" r="6" fill="var(--box-label-bg)" />
+          <circle cx="210" cy="150" r="6" fill="var(--box-label-bg)" />
+          <circle cx="260" cy="200" r="6" fill="var(--box-label-bg)" />
+          <circle cx="310" cy="250" r="6" fill="var(--box-label-bg)" />
+          <circle cx="360" cy="300" r="6" fill="var(--box-label-bg)" />
+
+          <!-- Principal Component 1 along the line -->
+          <line x1="260" y1="200" x2="375" y2="315" stroke="var(--box-label-bg)" stroke-width="4" marker-end="url(#arrow-pc1-3)" />
+          <text x="385" y="330" font-family="'Lora', serif" font-size="15" font-weight="700" fill="var(--text)">PC₁ (100% Var)</text>
+
+          <!-- Principal Component 2 orthogonal to the line -->
+          <line x1="260" y1="200" x2="320" y2="140" stroke="var(--accent)" stroke-width="3" marker-end="url(#arrow-pc2-3)" />
+          <text x="330" y="135" font-family="'Lora', serif" font-size="14" font-weight="700" fill="var(--text)">PC₂ (0% Var — Discarded)</text>
+
+          <text x="290" y="365" font-family="'Lora', serif" font-size="13.5" fill="var(--muted)" text-anchor="middle">PCA decorrelates space: PC₁ captures all signal along the manifold</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 4:</strong> In the quadratic combination space $(F_1 = f_1^2, F_2 = f_2^2)$, the non-linear circular dataset transforms into a straight line $F_1 + F_2 = R^2$. Linear PCA rotates the axes so $\text{PC}_1$ captures 100% of the variance along the manifold, while the redundant orthogonal direction $\text{PC}_2$ has zero variance and is eliminated.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4 — The Computational Trap                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="computational-trap">
+  <h2>The Computational Trap: The Curse of Explicit Combinations</h2>
+
+  <p>
+    If creating higher-order feature combinations turns curves into lines, why can't we simply transform every data point into $\phi(x)$ and run standard PCA on the resulting matrix?
+  </p>
+
+  <p>
+    The bottleneck is combinatorial explosion. Consider what happens even for a small 4-dimensional vector $x = [f_1, f_2, f_3, f_4]^T \in \mathbb{R}^4$ if we construct a full cubic ($p = 3$) polynomial feature map:
+  </p>
+
+  <div class="math-display">
+    $$\phi(x) = \begin{bmatrix} 1 & f_1 & f_2 & \dots & f_1^2 & f_1 f_2 & \dots & f_1^3 & f_1^2 f_2 & f_1 f_2 f_3 & \dots \end{bmatrix}^T$$
+  </div>
+
+  <p>
+    Counting the features degree by degree:
+  </p>
+
+  <div class="math-display">
+    $$\underbrace{1}_{\text{constant}} \;+\; \underbrace{\mathcal{O}(d)}_{\text{linear}} \;+\; \underbrace{\mathcal{O}(d^2)}_{\text{quadratic}} \;+\; \underbrace{\mathcal{O}(d^3)}_{\text{cubic}} \;+\; \dots \;+\; \mathcal{O}(d^p)$$
+  </div>
+
+  <p>
+    In general, lifting an input vector of dimension $d$ to degree $p$ produces a feature vector with asymptotic dimensionality:
+  </p>
+
+  <div class="math-display">
+    $$x \in \mathbb{R}^d \quad\Longrightarrow\quad \phi(x) \in \mathbb{R}^{\mathcal{O}(d^p)}$$
+  </div>
+
+  <p>
+    The exact number of combination features $D$ is given by the stars-and-bars combinatorial formula:
+  </p>
+
+  <div class="math-display">
+    $$D = \dim(\phi(x)) = \binom{d + p}{p}$$
+  </div>
+
+  <ul>
+    <li>For a modest dataset of $d = 100$ features with degree $p = 5$:
+      <div class="math-display">
+        $$D = \binom{105}{5} = \frac{105 \times 104 \times 103 \times 102 \times 101}{120} \approx \mathbf{96.5 \text{ million features}}$$
+      </div>
+    </li>
+    <li>For smooth, infinitely rich feature maps (such as Gaussian Radial Basis Functions), the number of combination features is literally <strong>infinite</strong> ($D = \infty$).</li>
+  </ul>
+
+  <p>
+    You cannot compute, store, or calculate covariance matrices for 96 million combination features, let alone infinite dimensions. Explicitly generating combination features is impossible in practice.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5 — The Dual Bridge & The Kernel Trick                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="kernel-trick">
+  <h2>The Dual Bridge & The Kernel Trick</h2>
+
+  <p>
+    We have reached the central dilemma of non-linear representation learning:
+  </p>
+
+  <ul>
+    <li>
+      <strong>The Promise:</strong> Lifting data into an extended combination feature space $\phi(x) \in \mathbb{R}^D$ turns curved, non-linear manifolds into flat linear subspaces where standard PCA works effortlessly.
+    </li>
+    <li>
+      <strong>The Obstacle:</strong> As shown in Section 4, explicitly computing the coordinate vectors $\phi(x)$ is computationally prohibitive ($D \gg n$) or mathematically impossible ($D = \infty$ for continuous RBF kernels).
+    </li>
+  </ul>
+
+  <p>
+    This creates an apparent deadlock. To reap the benefits of the linear combination space, must we truly construct the infinite-dimensional vectors $\phi(x)$?
+  </p>
+
+  <p>
+    Here is where the <strong>Dual Representation of PCA</strong> provides the critical breakthrough. Notice what dual PCA actually computes:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Finding the Principal Components:</strong> The dual coefficients $\vec{\alpha}_k \in \mathbb{R}^n$ are obtained by solving the $n \times n$ Gram matrix eigenvalue problem:
+      <div class="math-display">
+        $$K \vec{\alpha}_k = n \lambda_k \vec{\alpha}_k$$
+      </div>
+      where each entry $K_{ij}$ is simply the inner product between two mapped data points:
+      <div class="math-display">
+        $$K_{ij} = \langle \phi(x_i), \phi(x_j) \rangle = \phi(x_i)^T \phi(x_j)$$
+      </div>
+    </li>
+    <li>
+      <strong>Projecting a New Point:</strong> To extract the $k$-th coordinate of any point $x$, we compute:
+      <div class="math-display">
+        $$\begin{aligned}
+          y_k(x) &= \phi(x)^T w_k = \phi(x)^T \left( \sum_{j=1}^n \alpha_{kj} \phi(x_j) \right) \\[6pt]
+          &= \sum_{j=1}^n \alpha_{kj} \left( \phi(x)^T \phi(x_j) \right) = \sum_{j=1}^n \alpha_{kj} \langle \phi(x), \phi(x_j) \rangle
+        \end{aligned}$$
+      </div>
+    </li>
+  </ol>
+
+  <p>
+    Look closely at those two steps. <strong>Dual PCA never needs the individual feature coordinates of $\phi(x)$</strong>! It never asks "what is the 47th coordinate of $\phi(x_i)$?" It only ever asks for a single scalar: the <strong>inner product</strong> $\langle \phi(x), \phi(x') \rangle$ between pairs of vectors.
+  </p>
+
+  <p>
+    This sets up a profound commutative question:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Instead of taking the hard, expensive road—explicitly lifting $x \mapsto \phi(x)$ and $x' \mapsto \phi(x')$ and then computing their high-dimensional dot product $\phi(x)^T \phi(x')$—can we find a scalar function $k(x, x')$ that computes that exact same inner product directly in low-dimensional input space, completely bypassing $\phi(x)$?</em></p>
+    </div>
+  </div>
+
+  <h3>Algebraic Proof: Evaluating 6D Combinations in 2D</h3>
+  <p>
+    Consider what we would have to do naively if we wanted to capture all linear, interaction, and quadratic dependencies between two features $x = [f_1, f_2]^T$ and $x' = [g_1, g_2]^T$:
+  </p>
+
+  <p>
+    We would have to manually construct a 6-dimensional combination feature vector containing every single pure power, cross-term, constant bias, and their respective combinatorial coefficients:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \phi(x) &= \begin{bmatrix} f_1^2 \\[4pt] f_2^2 \\[4pt] 1 \\[4pt] \sqrt{2}f_1 f_2 \\[4pt] \sqrt{2}f_1 \\[4pt] \sqrt{2}f_2 \end{bmatrix} \in \mathbb{R}^6, \qquad
+      \phi(x') = \begin{bmatrix} g_1^2 \\[4pt] g_2^2 \\[4pt] 1 \\[4pt] \sqrt{2}g_1 g_2 \\[4pt] \sqrt{2}g_1 \\[4pt] \sqrt{2}g_2 \end{bmatrix} \in \mathbb{R}^6
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Notice the tedious manual baggage: the constant bias term ($1$), the squared features ($f_1^2, f_2^2$), the cross-product ($f_1 f_2$), and the careful scaling coefficients ($\sqrt{2}$) needed to preserve Euclidean geometry. For $d=100$ and $p=5$, this vector balloons to 96.5 million terms!
+  </p>
+
+  <p>
+    Then, to compute how similar $x$ and $x'$ are in this lifted space, we would have to evaluate their high-dimensional dot product term by term:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \phi(x)^T \phi(x') &= (f_1^2)(g_1^2) + (f_2^2)(g_2^2) + (1)(1) \\[6pt]
+      &\quad\; + (\sqrt{2}f_1 f_2)(\sqrt{2}g_1 g_2) + (\sqrt{2}f_1)(\sqrt{2}g_1) + (\sqrt{2}f_2)(\sqrt{2}g_2) \\[6pt]
+      &= f_1^2 g_1^2 + f_2^2 g_2^2 + 1 + 2 f_1 f_2 g_1 g_2 + 2 f_1 g_1 + 2 f_2 g_2
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Mapping every observation to this massive vector and multiplying 6 (or 96 million) coordinates is grueling. But look at the astonishing algebraic shortcut that bypasses the entire feature vector:
+  </p>
+
+  <div class="math-display">
+    $$k(x, x') = (x^T x' + 1)^2$$
+  </div>
+
+  <p>
+    Compute this simple scalar operation purely on our original 2D vectors:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      (x^T x' + 1)^2 &= (f_1 g_1 + f_2 g_2 + 1)^2 \\[6pt]
+      &= (f_1 g_1)^2 + (f_2 g_2)^2 + 1^2 \\[6pt]
+      &\quad\; + 2(f_1 g_1)(f_2 g_2) + 2(f_1 g_1)(1) + 2(f_2 g_2)(1) \\[6pt]
+      &= f_1^2 g_1^2 + f_2^2 g_2^2 + 1 + 2 f_1 f_2 g_1 g_2 + 2 f_1 g_1 + 2 f_2 g_2
+    \end{aligned}$$
+  </div>
+
+  <p>
+    The two expressions are <strong>identically equal</strong>! We never had to build the vector $\phi(x)$, balance its bias terms, or compute high-dimensional coordinates. The simple closed-form operation $(x^T x' + 1)^p$ automatically evaluates the exact dot product across all combinations—where the exponent $p$ directly controls the degree of polynomial interactions it captures:
+  </p>
+
+  <ul>
+    <li>$p = 1 \implies (x^T x' + 1)^1$: captures original linear features plus a constant bias.</li>
+    <li>$p = 2 \implies (x^T x' + 1)^2$: captures all pairwise interactions, pure squares, linear terms, and bias.</li>
+    <li>$p = d \implies (x^T x' + 1)^p$: captures all polynomial combinations up to degree $p$ with zero extra coordinate overhead.</li>
+  </ul>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 860 360" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 820px; height: auto;">
+        <defs>
+          <marker id="fig5-arrow-hard" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- ================= TOP: IDENTITY EQUALITY BRIDGE BOX ================= -->
+        <g id="fig5-top-bridge">
+          <rect x="230" y="24" width="400" height="46" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+          <text x="430" y="53" font-family="'Lora', serif" font-size="19" fill="var(--text)" text-anchor="middle">
+            (xᵀx′ + 1)² = ⟨ϕ(x), ϕ(x′)⟩
+          </text>
+        </g>
+
+        <!-- Overhead Arch Connectors (Bypassing the explicit mapping) -->
+        <path d="M 100 142 L 100 47 L 230 47" fill="none" stroke="var(--muted)" stroke-width="1.8" />
+        <path d="M 630 47 L 760 47 L 760 142" fill="none" stroke="var(--muted)" stroke-width="1.8" />
+
+        <!-- ================= LEFT: KERNEL SHORTCUT LABEL ================= -->
+        <text x="100" y="174" font-family="'Lora', serif" font-size="19" fill="var(--text)" text-anchor="middle">(xᵀx′ + 1)²</text>
+        <!-- Bracket from (xᵀx′ + 1)² to x and x' -->
+        <polyline points="200,126 142,170 200,214" fill="none" stroke="var(--text)" stroke-width="1.2" />
+
+        <!-- ================= INPUT SAMPLES x and x' ================= -->
+        <g id="fig5-inputs">
+          <!-- Box x -->
+          <rect x="200" y="105" width="85" height="42" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+          <text x="242.5" y="132" font-family="'Lora', serif" font-size="20" font-style="italic" fill="var(--text)" text-anchor="middle">x</text>
+
+          <!-- Box x' -->
+          <rect x="200" y="193" width="85" height="42" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+          <text x="242.5" y="220" font-family="'Lora', serif" font-size="20" font-style="italic" fill="var(--text)" text-anchor="middle">x′</text>
+        </g>
+
+        <!-- ================= RIGHT: HIGH-DIMENSIONAL FEATURES ϕ(x) and ϕ(x') ================= -->
+        <g id="fig5-features">
+          <!-- Box phi(x) -->
+          <rect x="575" y="105" width="95" height="42" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+          <text x="622.5" y="132" font-family="'Lora', serif" font-size="19" font-style="italic" fill="var(--text)" text-anchor="middle">ϕ(x)</text>
+
+          <!-- Box phi(x') -->
+          <rect x="575" y="193" width="95" height="42" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+          <text x="622.5" y="220" font-family="'Lora', serif" font-size="19" font-style="italic" fill="var(--text)" text-anchor="middle">ϕ(x′)</text>
+        </g>
+
+        <!-- Bracket from phi(x) and phi(x') to inner product -->
+        <polyline points="670,126 718,170 670,214" fill="none" stroke="var(--text)" stroke-width="1.2" />
+        <!-- Inner product label -->
+        <text x="760" y="174" font-family="'Lora', serif" font-size="19" fill="var(--text)" text-anchor="middle">ϕ(x)ᵀϕ(x′)</text>
+
+        <!-- ================= CENTER: THE EXPLICIT MAP ARROWS (HARD / INFEASIBLE) ================= -->
+        <g id="fig5-explicit-arrows">
+          <line x1="285" y1="126" x2="572" y2="126" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#fig5-arrow-hard)" />
+          <line x1="285" y1="214" x2="572" y2="214" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#fig5-arrow-hard)" />
+
+          <!-- Center Bottleneck Annotation -->
+          <text x="430" y="176" font-family="'Lora', serif" font-size="16" fill="var(--text)" text-anchor="middle">Hard</text>
+        </g>
+
+        <!-- ================= BOTTOM: THE CORE PRINCIPLE SUMMARY BOX ================= -->
+        <g id="fig5-bottom-summary">
+          <rect x="150" y="282" width="560" height="44" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1" />
+          <text x="430" y="310" font-family="'Lora', serif" font-size="15" fill="var(--text)" text-anchor="middle">
+            Compute ϕ(x)ᵀϕ(x′) directly, without explicitly forming ϕ(x).
+          </text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 5:</strong> The Kernel Trick commutative diagram. Explicitly lifting raw vectors $x, x' \in \mathbb{R}^d$ to high-dimensional feature vectors $\phi(x), \phi(x') \in \mathbb{R}^D$ is computationally infeasible when $D$ explodes combinatorially or becomes infinite. The Kernel Trick bypasses explicit construction entirely by evaluating the scalar kernel function $k(x, x') = (x^T x' + 1)^2$ directly on the raw inputs in $O(d)$ time, which algebraically yields the identical scalar inner product $\langle \phi(x), \phi(x') \rangle$.
+    </figcaption>
+  </figure>
+
+  <div class="math-box">
+    <div class="math-box-label">The Kernel Trick</div>
+    <div class="math-box-body">
+      <p>
+        A function $k(x, x')$ that computes the inner product between two points in some higher-dimensional feature space directly from their original coordinates—$k(x, x') = \langle \phi(x), \phi(x') \rangle$—is called a <strong>kernel function</strong>.
+      </p>
+      <p>
+        Executing linear algorithms in high-dimensional or infinite-dimensional spaces purely through $k(x, x')$ without ever constructing the combination features explicitly is known as the <strong>Kernel Trick</strong>.
+      </p>
+    </div>
+  </div>
+
+  <h3>Standard Kernel Functions</h3>
+  <ul>
+    <li>
+      <strong>Polynomial Kernel:</strong>
+      <div class="math-display">
+        $$k(x, x') = (x^T x' + c)^p$$
+      </div>
+      Implicitly computes inner products across all polynomial feature combinations up to degree $p$.
+    </li>
+    <li>
+      <strong>Gaussian Radial Basis Function (RBF) Kernel:</strong>
+      <div class="math-display">
+        $$k(x, x') = \exp\left(-\frac{\|x - x'\|^2}{2\sigma^2}\right)$$
+      </div>
+      <p>
+        The RBF kernel implicitly maps data into an <strong>infinite-dimensional Hilbert space</strong>. To see why, recall the Taylor series expansion:
+      </p>
+      <div class="math-display">
+        $$\begin{aligned}
+          \exp\left(\frac{x^T x'}{\sigma^2}\right) &= \sum_{m=0}^\infty \frac{1}{m!} \left(\frac{x^T x'}{\sigma^2}\right)^m \\[6pt]
+          &= 1 + \frac{x^T x'}{\sigma^2} + \frac{(x^T x')^2}{2!\sigma^4} + \frac{(x^T x')^3}{3!\sigma^6} + \dots
+        \end{aligned}$$
+      </div>
+      <p>
+        Because the exponential contains terms of <em>every degree from $0$ to $\infty$</em>, evaluating a single Gaussian function in $O(d)$ time calculates an inner product across infinite polynomial combinations!
+      </p>
+    </li>
+  </ul>
+
+  <h3>Demystifying the Notation: What Are $x$ and $x'$?</h3>
+  <p>
+    Before constructing the full matrix, let us clarify a common source of confusion in mathematical literature: the symbols $x$ and $x'$.
+  </p>
+
+  <p>
+    Suppose our dataset contains $N$ complete observations: $x_1, x_2, \dots, x_N$. Each observation $x_i$ is a vector containing all measured features for that particular sample. In our real estate example:
+  </p>
+
+  <div class="math-display">
+    $$x_i = \begin{bmatrix} \text{width}_i \\ \text{area}_i \\ \text{price}_i \end{bmatrix} \in \mathbb{R}^3$$
+  </div>
+
+  <p>
+    When we write the kernel function as $K(x, x')$:
+  </p>
+
+  <ul>
+    <li>$x$ and $x'$ simply represent <strong>two distinct sample observations</strong> (for example, $x = x_i$ and $x' = x_j$).</li>
+    <li>The prime symbol on $x'$ <strong>does not mean differentiation</strong>! In calculus, $f'(x)$ is a derivative, but in geometry and machine learning, $x'$ is standard notation simply used to label a second vector without having to introduce another letter.</li>
+  </ul>
+
+  <p>
+    Therefore, the kernel evaluation $K(x_i, x_j)$ asks a direct question:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>"How geometrically similar are observation $x_i$ and observation $x_j$ when mapped into the high-dimensional combination feature space?"</em></p>
+    </div>
+  </div>
+
+  <h3>A Concrete Numerical Example: Constructing the Kernel Matrix $K$</h3>
+  <p>
+    To see the arithmetic in action with real numbers, let us build a concrete kernel matrix from scratch.
+  </p>
+
+  <p>
+    Suppose we inspect $N = 3$ houses, each described by $d = 3$ features: $\text{width}$ ($w$), $\text{area}$ ($A$), and $\text{price}$ ($p$). As established, each house has a square layout, so floor area is the square of width ($A = w^2$):
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      x_1 &= \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix} \quad (\text{House 1: width}=1, \;\text{area}=1^2=1, \;\text{price}=1) \\[8pt]
+      x_2 &= \begin{bmatrix} 2 \\ 4 \\ 2 \end{bmatrix} \quad (\text{House 2: width}=2, \;\text{area}=2^2=4, \;\text{price}=2) \\[8pt]
+      x_3 &= \begin{bmatrix} 3 \\ 9 \\ 3 \end{bmatrix} \quad (\text{House 3: width}=3, \;\text{area}=3^2=9, \;\text{price}=3)
+    \end{aligned}$$
+  </div>
+
+  <p>
+    We choose the quadratic polynomial kernel ($p = 2$, $c = 1$):
+  </p>
+
+  <div class="math-display">
+    $$K(x_i, x_j) = (x_i^T x_j + 1)^2$$
+  </div>
+
+  <p>
+    Let us evaluate this pairwise operation across our three observations:
+  </p>
+
+  <h4>Step 1: Compute Raw Input Inner Products $x_i^T x_j$</h4>
+  <p>
+    We calculate the Euclidean dot product between each pair of 3D vectors:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      x_1^T x_1 &= (1)(1) + (1)(1) + (1)(1) = 3 \\[6pt]
+      x_1^T x_2 &= (1)(2) + (1)(4) + (1)(2) = 2 + 4 + 2 = 8 \\[6pt]
+      x_1^T x_3 &= (1)(3) + (1)(9) + (1)(3) = 3 + 9 + 3 = 15 \\[6pt]
+      x_2^T x_2 &= (2)(2) + (4)(4) + (2)(2) = 4 + 16 + 4 = 24 \\[6pt]
+      x_2^T x_3 &= (2)(3) + (4)(9) + (2)(3) = 6 + 36 + 6 = 48 \\[6pt]
+      x_3^T x_3 &= (3)(3) + (9)(9) + (3)(3) = 9 + 81 + 9 = 99
+    \end{aligned}$$
+  </div>
+
+  <h4>Step 2: Apply the Kernel Function to Every Pair</h4>
+  <p>
+    We now plug each dot product into our kernel formula $K(x_i, x_j) = (x_i^T x_j + 1)^2$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      K_{11} &= K(x_1, x_1) = (3 + 1)^2 = 4^2 = 16 \\[6pt]
+      K_{12} &= K(x_1, x_2) = (8 + 1)^2 = 9^2 = 81 \\[6pt]
+      K_{13} &= K(x_1, x_3) = (15 + 1)^2 = 16^2 = 256 \\[6pt]
+      K_{22} &= K(x_2, x_2) = (24 + 1)^2 = 25^2 = 625 \\[6pt]
+      K_{23} &= K(x_2, x_3) = (48 + 1)^2 = 49^2 = 2401 \\[6pt]
+      K_{33} &= K(x_3, x_3) = (99 + 1)^2 = 100^2 = 10{,}000
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Because inner products are symmetric, $K_{21} = K_{12} = 81$, $K_{31} = K_{13} = 256$, and $K_{32} = K_{23} = 2401$.
+  </p>
+
+  <h4>Step 3: Construct the $N \times N$ Kernel Matrix</h4>
+  <p>
+    Arranging these evaluations into a grid yields the complete $3 \times 3$ Kernel Matrix (Gram Matrix) $K$:
+  </p>
+
+  <div class="math-display">
+    $$K = \begin{bmatrix}
+      K(x_1, x_1) & K(x_1, x_2) & K(x_1, x_3) \\[6pt]
+      K(x_2, x_1) & K(x_2, x_2) & K(x_2, x_3) \\[6pt]
+      K(x_3, x_1) & K(x_3, x_2) & K(x_3, x_3)
+    \end{bmatrix} = \begin{bmatrix}
+      16 & 81 & 256 \\[6pt]
+      81 & 625 & 2401 \\[6pt]
+      256 & 2401 & 10{,}000
+    \end{bmatrix}$$
+  </div>
+
+  <h4>The Fundamental Dimensional Shift: $N \times N$ vs. $d \times d$</h4>
+  <p>
+    Notice something profound about this matrix:
+  </p>
+
+  <ul>
+    <li>In <strong>standard linear PCA</strong>, we construct a covariance matrix of size $d \times d$ (here $3 \times 3$, measuring relationships between features).</li>
+    <li>If we had <strong>explicitly expanded</strong> into degree-2 polynomial combinations, we would have had $D = \binom{3+2}{2} = 10$ combination features, creating a massive $10 \times 10$ covariance matrix.</li>
+    <li>In <strong>Kernel PCA</strong>, the kernel matrix $K$ is strictly <strong>$N \times N$</strong> ($3 \times 3$, because we have $N = 3$ houses).</li>
+  </ul>
+
+  <p>
+    The matrix $K$ represents <strong>pairwise relationships between data points</strong> in the implicit feature space. Even if the feature mapping $\phi(x)$ has 10, 1 million, or infinitely many dimensions, the kernel matrix size remains locked at $N \times N$!
+  </p>
+
+  <h3>A Crucial Conceptual Correction: What Kernel PCA Actually Does</h3>
+  <p>
+    At this point, it is very tempting to make an intuitive leap and assume:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>"Does Kernel PCA explicitly expand all polynomial terms, inspect which features are collinear (like finding $A = w^2$), manually delete the redundant features, and then perform PCA?"</em></p>
+    </div>
+  </div>
+
+  <p>
+    <strong>No. That is not what Kernel PCA does.</strong>
+  </p>
+
+  <p>
+    Kernel PCA does <em>not</em> search through all individual combination features ($w^2, wA, A^2, \dots$), calculate cross-correlations between each pair, or prune away collinear terms one by one.
+  </p>
+
+  <p>
+    Instead, Kernel PCA operates on the entire geometric cloud at once:
+  </p>
+
+  <ol>
+    <li>It defines an implicit high-dimensional feature space $\phi(x)$.</li>
+    <li>It uses a kernel function $K(x_i, x_j) = \langle \phi(x_i), \phi(x_j) \rangle$ to evaluate distances and angles between sample points in that space without ever constructing $\phi(x)$.</li>
+    <li>It forms the $N \times N$ kernel matrix $K$ representing all pairwise geometric interactions.</li>
+    <li>It centers this data cloud directly in Hilbert space ($K_c = H K H$).</li>
+    <li>It solves the eigenvalue problem on $K_c$ to discover the orthogonal directions of maximum variance in the high-dimensional space.</li>
+    <li>It projects the data points onto these dominant principal component directions.</li>
+  </ol>
+
+  <p>
+    The core philosophy is not: <em>"Find every non-linear dependency and delete it."</em>
+  </p>
+
+  <p>
+    The true breakthrough is: <strong>Change the representation of the data so that non-linear manifold structures become accessible to linear variance maximization, then perform PCA in that new representation to extract an optimal lower-dimensional encoding.</strong>
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6 — Mercer's Theorem: What Makes a Valid Kernel?       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="mercers-theorem">
+  <h2>What Makes a Function a Valid Kernel?</h2>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>What makes a formula $k(x, x')$ a valid kernel? Can we choose any arbitrary mathematical function?</em></p>
+    </div>
+  </div>
+
+  <p>
+    Suppose you invent a function—for example, $k(x, x') = -(x^T x' + 1)^2$ or $k(x, x') = \sin(x - x')$. Can you simply plug it into Dual PCA and claim you are performing non-linear analysis in some higher-dimensional space?
+  </p>
+
+  <p>
+    The answer is <strong>no</strong>. A function $k(x, x')$ cannot be just any arbitrary formula. For the kernel trick to work, $k(x, x')$ <strong>must correspond to a genuine Euclidean inner product</strong> between vectors in an actual geometric vector space:
+  </p>
+
+  <div class="math-display">
+    $$k(x, x') = \langle \phi(x), \phi(x') \rangle$$
+  </div>
+
+  <p>
+    In physical geometry, every valid vector space and inner product must obey two non-negotiable physical laws:
+  </p>
+
+  <h3>1. Symmetry: Order Cannot Change the Angle</h3>
+  <p>
+    In Euclidean space, the angle and dot product between vector $A$ and vector $B$ is identical to the dot product between vector $B$ and vector $A$:
+  </p>
+
+  <div class="math-display">
+    $$\langle \phi(x), \phi(x') \rangle = \langle \phi(x'), \phi(x') \rangle \quad\Longrightarrow\quad k(x, x') = k(x', x)$$
+  </div>
+
+  <p>
+    If a function produces different values when you swap its inputs ($k(x, x') \neq k(x', x)$), it cannot represent a geometric dot product.
+  </p>
+
+  <h3>2. Non-Negative Length: Vectors Cannot Have Imaginary Length</h3>
+  <p>
+    In physical reality, the length of any arrow in space must be a real, non-negative number. A vector cannot have negative squared length ($\|v\|^2 < 0$), because $\sqrt{\text{negative number}}$ would mean the vector has an imaginary length—which is geometrically impossible.
+  </p>
+
+  <p>
+    Now, consider our transformed data points $\{\phi(x_1), \phi(x_2), \dots, \phi(x_n)\}$ in feature space. Suppose we construct an arbitrary vector $v$ by taking a weighted linear combination of these points with real coefficients $c_1, c_2, \dots, c_n$:
+  </p>
+
+  <div class="math-display">
+    $$v = c_1 \phi(x_1) + c_2 \phi(x_2) + \dots + c_n \phi(x_n) = \sum_{i=1}^n c_i \phi(x_i)$$
+  </div>
+
+  <p>
+    What is the squared length $\|v\|^2$ of this combined vector? By definition of the inner product:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \|v\|^2 &= \langle v, v \rangle \\[6pt]
+      &= \left\langle \sum_{i=1}^n c_i \phi(x_i), \;\sum_{j=1}^n c_j \phi(x_j) \right\rangle \\[8pt]
+      &= \sum_{i=1}^n \sum_{j=1}^n c_i c_j \underbrace{\langle \phi(x_i), \phi(x_j) \rangle}_{k(x_i, x_j) \,=\, K_{ij}} \\[8pt]
+      &= \sum_{i=1}^n \sum_{j=1}^n c_i c_j K_{ij} = c^T K c
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Because the physical squared length of $v$ <strong>must be non-negative</strong> ($\|v\|^2 \geq 0$), this algebraic sum must satisfy:
+  </p>
+
+  <div class="math-display">
+    $$c^T K c \geq 0 \quad \text{for every possible choice of coefficient vector } c \in \mathbb{R}^n$$
+  </div>
+
+  <p>
+    In linear algebra, a symmetric matrix where $c^T K c \geq 0$ for all non-zero vectors $c$ is precisely the definition of a <a href="../../../02.linear-algebra/03.eigenvalues-and-eigenvectors/03.positive-defnite-matrices/index.html">Positive Semidefinite (PSD) Matrix</a>!
+  </p>
+
+  <p>
+    This brings us to the famous theorem established by mathematician James Mercer in 1909:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Mercer's Theorem (Kernel Validity)</div>
+    <div class="math-box-body">
+      <p>
+        A continuous function $k(x, x')$ is a <strong>valid kernel</strong> corresponding to an inner product $\langle \phi(x), \phi(x') \rangle$ in some Hilbert space if and only if for every finite dataset of points $\{x_1, \dots, x_n\}$, the resulting $n \times n$ Gram matrix $K$ (where $K_{ij} = k(x_i, x_j)$) satisfies two strict mathematical conditions:
+      </p>
+      <ol>
+        <li>
+          <strong>Symmetry:</strong> The matrix must equal its transpose ($K = K^T$), meaning $k(x_i, x_j) = k(x_j, x_i)$ for all points (reflecting order-invariance of geometric inner products).
+        </li>
+        <li>
+          <strong>Positive Semidefiniteness (PSD):</strong> The matrix must satisfy the quadratic form condition:
+          <div class="math-display">
+            $$c^T K c \geq 0 \quad \text{for all } c \in \mathbb{R}^n$$
+          </div>
+          or equivalently, all its eigenvalues must be non-negative ($\lambda_i \geq 0$), guaranteeing that every vector in the Hilbert space has a non-negative squared physical length ($\|v\|^2 \geq 0$).
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    Mercer's theorem gives us complete mathematical peace of mind: as long as $k(x, x')$ produces a PSD Gram matrix, a real geometric feature space $\phi(x)$ is <strong>guaranteed to exist</strong>, and we are guaranteed that no vectors in that space will ever have impossible, negative squared lengths.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7 — Centering in Hilbert Space                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="centering-hilbert-space">
+  <h2>Centering in Hilbert Space: The $HKH$ Discovery</h2>
+
+  <p>
+    We now encounter a critical mathematical obstacle.
+  </p>
+
+  <p>
+    PCA strictly requires the dataset to be centered at the origin: $\sum_{i=1}^n \phi(x_i) = \mathbf{0}$. If the data cloud is not centered, the first principal component simply points from the origin toward the center of mass rather than capturing the direction of maximum variance.
+  </p>
+
+  <p>
+    Here is the problem: even if your raw input data $x_i$ was centered in $\mathbb{R}^d$ ($\sum x_i = \mathbf{0}$), the combination features $\phi(x_i)$ in Hilbert space are almost <strong>never centered</strong>. For example, if $x$ has zero mean, squared features like $x^2$ are strictly positive, shifting the center of mass away from zero.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>How can we center data points in an infinite-dimensional feature space when we cannot calculate or see the combination vectors $\phi(x_i)$?</em></p>
+    </div>
+  </div>
+
+  <h3>Deriving the Centered Gram Matrix $K_c$</h3>
+  <p>
+    Let the true, unobserved centered feature vector for sample $i$ be:
+  </p>
+
+  <div class="math-display">
+    $$\tilde{\phi}(x_i) = \phi(x_i) - \bar{\phi} = \phi(x_i) - \frac{1}{n}\sum_{r=1}^n \phi(x_r)$$
+  </div>
+
+  <p>
+    We want to compute the entry $(K_c)_{ij}$ at row $i$ and column $j$ of the centered kernel matrix, which is the inner product of these centered vectors:
+  </p>
+
+  <div class="math-display">
+    $$(K_c)_{ij} = \langle \tilde{\phi}(x_i), \tilde{\phi}(x_j) \rangle = \tilde{\phi}(x_i)^T \tilde{\phi}(x_j)$$
+  </div>
+
+  <p>
+    Substitute the definition of centered vectors into this inner product:
+  </p>
+
+  <div class="math-display">
+    $$(K_c)_{ij} = \left( \phi(x_i) - \frac{1}{n}\sum_{r=1}^n \phi(x_r) \right)^T \left( \phi(x_j) - \frac{1}{n}\sum_{s=1}^n \phi(x_s) \right)$$
+  </div>
+
+  <p>
+    Notice that this has the familiar algebraic form $(A - B)^T (C - D)$. Expanding this product using standard distributive multiplication yields four distinct terms:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      (A - B)^T (C - D) &= \underbrace{A^T C}_{\text{Term 1}} \;-\; \underbrace{A^T D}_{\text{Term 2}} \\[10pt]
+      &\quad\; -\; \underbrace{B^T C}_{\text{Term 3}} \;+\; \underbrace{B^T D}_{\text{Term 4}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    To understand what these four terms mean, recall how our observable $n \times n$ Gram matrix $K$ is indexed:
+  </p>
+
+  <div class="math-display">
+    $$K = \begin{bmatrix}
+      K_{11} & K_{12} & \dots & K_{1j} & \dots & K_{1n} \\
+      K_{21} & K_{22} & \dots & K_{2j} & \dots & K_{2n} \\
+      \vdots & \vdots & \ddots & \vdots & \ddots & \vdots \\
+      K_{i1} & K_{i2} & \dots & K_{ij} & \dots & K_{in} \\
+      \vdots & \vdots & \ddots & \vdots & \ddots & \vdots \\
+      K_{n1} & K_{n2} & \dots & K_{nj} & \dots & K_{nn}
+    \end{bmatrix}, \qquad \text{where } K_{\text{row}, \text{col}} = \phi(x_{\text{row}})^T \phi(x_{\text{col}})$$
+  </div>
+
+  <p>
+    In any matrix entry $K_{a, b}$, the <strong>first index $a$ is the row number</strong>, and the <strong>second index $b$ is the column number</strong>. Now look at each of the four terms:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Term 1 ($A^T C$): The Original Point-to-Point Value</strong>
+      <div class="math-display">
+        $$\phi(x_i)^T \phi(x_j) = K_{ij}$$
+      </div>
+      This is simply the raw, uncentered kernel evaluation between sample $i$ and sample $j$—the single number at row $i$, column $j$ of our matrix $K$.
+    </li>
+    <li>
+      <strong>Term 2 ($A^T D$): The Average of Row $i$</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \phi(x_i)^T \left( \frac{1}{n}\sum_{s=1}^n \phi(x_s) \right) &= \frac{1}{n}\sum_{s=1}^n \phi(x_i)^T \phi(x_s) \\[6pt]
+          &= \frac{1}{n}\sum_{s=1}^n K_{is} \\[6pt]
+          &= \frac{K_{i1} + K_{i2} + \dots + K_{in}}{n} = \mu_i^{\text{row}}
+        \end{aligned}$$
+      </div>
+      Look at the indices: the <strong>row index is fixed at $i$</strong>, while the column index $s$ runs from $1$ to $n$. You are walking horizontally across <strong>row $i$</strong> from left to right, adding up all $n$ entries in that row, and dividing by $n$. This is the <strong>arithmetic mean of row $i$</strong> in $K$!
+    </li>
+    <li>
+      <strong>Term 3 ($B^T C$): The Average of Column $j$</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \left( \frac{1}{n}\sum_{r=1}^n \phi(x_r) \right)^T \phi(x_j) &= \frac{1}{n}\sum_{r=1}^n \phi(x_r)^T \phi(x_j) \\[6pt]
+          &= \frac{1}{n}\sum_{r=1}^n K_{rj} \\[6pt]
+          &= \frac{K_{1j} + K_{2j} + \dots + K_{nj}}{n} = \mu_j^{\text{col}}
+        \end{aligned}$$
+      </div>
+      Look at the indices: the <strong>column index is fixed at $j$</strong>, while the row index $r$ runs from $1$ to $n$. You are walking vertically down <strong>column $j$</strong> from top to bottom, adding up all $n$ entries in that column, and dividing by $n$. This is the <strong>arithmetic mean of column $j$</strong> in $K$!
+    </li>
+    <li>
+      <strong>Term 4 ($B^T D$): The Grand Matrix Average</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \left( \frac{1}{n}\sum_{r=1}^n \phi(x_r) \right)^T \left( \frac{1}{n}\sum_{s=1}^n \phi(x_s) \right) &= \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n \phi(x_r)^T \phi(x_s) \\[6pt]
+          &= \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n K_{rs} \\[6pt]
+          &= \mu^{\text{grand}}
+        \end{aligned}$$
+      </div>
+      Here, both $r$ and $s$ run from $1$ to $n$. You are summing every single entry across the entire $n \times n$ matrix $K$ and dividing by $n^2$. This is the <strong>overall grand average</strong> of the whole matrix $K$.
+    </li>
+  </ol>
+
+  <p>
+    Putting all four pieces together, the centered kernel value is:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      (K_c)_{ij} &= \underbrace{K_{ij}}_{\text{Original}} \;-\; \underbrace{\mu_i^{\text{row}}}_{\text{Row Average}} \\[10pt]
+      &\quad\; -\; \underbrace{\mu_j^{\text{col}}}_{\text{Column Average}} \;+\; \underbrace{\mu^{\text{grand}}}_{\text{Grand Average}} \\[10pt]
+      &= K_{ij} \;-\; \frac{1}{n}\sum_{s=1}^n K_{is} \;-\; \frac{1}{n}\sum_{r=1}^n K_{rj} \;+\; \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n K_{rs}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Why do we add the grand average back at the end? Because when you subtract the row average and subtract the column average, the overall matrix mean gets subtracted <em>twice</em>! Adding it back once corrects for this double-counting—the exact same principle used in classical table double-centering.
+  </p>
+
+  <h3>From Scalar Arithmetic to the Matrix Formula: $K_c = H K H$</h3>
+  <p>
+    Instead of calculating row and column averages one entry at a time in a loop, linear algebra allows us to perform this entire centering operation across the whole $n \times n$ matrix in a single step using the <strong>centering matrix</strong> $H$:
+  </p>
+
+  <div class="math-display">
+    $$H = I_n - \frac{1}{n}\mathbf{1}_n \mathbf{1}_n^T$$
+  </div>
+
+  <p>
+    where $I_n$ is the $n \times n$ identity matrix and $\mathbf{1}_n$ is an $n \times 1$ column vector of ones. Look at how multiplying by $H$ behaves:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Multiplying on the Left ($H K$):</strong>
+      $$(H K) = \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) K = K - \frac{1}{n}\mathbf{1}(\mathbf{1}^T K)$$
+      Because $\mathbf{1}^T K$ computes the sum of each column, $\frac{1}{n}\mathbf{1}(\mathbf{1}^T K)$ creates a matrix where every row is the column means. Subtracting it subtracts the column averages from $K$.
+    </li>
+    <li>
+      <strong>Multiplying on the Right ($(H K) H$):</strong>
+      Multiplying the result on the right by $\left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right)$ subtracts the row averages from each row.
+    </li>
+  </ul>
+
+  <p>
+    Expanding the full matrix product $H K H$ algebraically reveals the exact same four terms:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      H K H &= \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) K \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) \\[8pt]
+      &= K \;-\; \frac{1}{n} K \mathbf{1}\mathbf{1}^T \;-\; \frac{1}{n}\mathbf{1}\mathbf{1}^T K \;+\; \frac{1}{n^2}\mathbf{1}\mathbf{1}^T K \mathbf{1}\mathbf{1}^T
+    \end{aligned}$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Centered Kernel Matrix</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$K_c = H K H$$
+      </div>
+      <p>
+        The matrix product $H K H$ centers the data in the unobservable, infinite-dimensional Hilbert space purely through $n \times n$ matrix multiplications on the observable Gram matrix $K$, without ever calculating the coordinates of $\phi(x)$.
+      </p>
+    </div>
+  </div>
+
+  <h3>Numerical Walkthrough: Centering the 3-House Kernel Matrix</h3>
+  <p>
+    Let us apply this centering operation directly to the $3 \times 3$ Kernel matrix $K$ we constructed for our housing dataset:
+  </p>
+
+  <div class="math-display">
+    $$K = \begin{bmatrix}
+      16 & 81 & 256 \\[6pt]
+      81 & 625 & 2401 \\[6pt]
+      256 & 2401 & 10{,}000
+    \end{bmatrix}$$
+  </div>
+
+  <p>
+    We compute the four components required for double-centering:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Row Averages ($\mu_i^{\text{row}}$):</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \mu_1^{\text{row}} &= \frac{16 + 81 + 256}{3} = \frac{353}{3} \approx 117.67 \\[6pt]
+          \mu_2^{\text{row}} &= \frac{81 + 625 + 2401}{3} = \frac{3107}{3} \approx 1035.67 \\[6pt]
+          \mu_3^{\text{row}} &= \frac{256 + 2401 + 10{,}000}{3} = \frac{12{,}657}{3} = 4219.00
+        \end{aligned}$$
+      </div>
+    </li>
+    <li>
+      <strong>Column Averages ($\mu_j^{\text{col}}$):</strong>
+      Because the kernel matrix is symmetric ($K = K^T$), column averages equal the corresponding row averages:
+      <div class="math-display">
+        $$\begin{aligned}
+          \mu_1^{\text{col}} &= \mu_1^{\text{row}} \approx 117.67 \\[6pt]
+          \mu_2^{\text{col}} &= \mu_2^{\text{row}} \approx 1035.67 \\[6pt]
+          \mu_3^{\text{col}} &= \mu_3^{\text{row}} = 4219.00
+        \end{aligned}$$
+      </div>
+    </li>
+    <li>
+      <strong>Grand Matrix Average ($\mu^{\text{grand}}$):</strong>
+      Summing all 9 entries and dividing by $N^2 = 9$:
+      <div class="math-display">
+        $$\mu^{\text{grand}} = \frac{353 + 3107 + 12{,}657}{9} = \frac{16{,}117}{9} \approx 1790.78$$
+      </div>
+    </li>
+    <li>
+      <strong>Evaluate Centered Entries $(K_c)_{ij} = K_{ij} - \mu_i^{\text{row}} - \mu_j^{\text{col}} + \mu^{\text{grand}}$:</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          (K_c)_{11} &= 16 - 117.67 - 117.67 + 1790.78 \approx 1571.44 \\[6pt]
+          (K_c)_{12} &= 81 - 117.67 - 1035.67 + 1790.78 \approx 718.44 \\[6pt]
+          (K_c)_{13} &= 256 - 117.67 - 4219.00 + 1790.78 \approx -2289.89 \\[8pt]
+          (K_c)_{22} &= 625 - 1035.67 - 1035.67 + 1790.78 \approx 344.44 \\[6pt]
+          (K_c)_{23} &= 2401 - 1035.67 - 4219.00 + 1790.78 \approx -1062.89 \\[8pt]
+          (K_c)_{33} &= 10{,}000 - 4219.00 - 4219.00 + 1790.78 \approx 3352.78
+        \end{aligned}$$
+      </div>
+    </li>
+  </ol>
+
+  <p>
+    Putting these evaluations together gives the centered kernel matrix:
+  </p>
+
+  <div class="math-display">
+    $$K_c \approx \begin{bmatrix}
+      1571.44 & 718.44 & -2289.89 \\[6pt]
+      718.44 & 344.44 & -1062.89 \\[6pt]
+      -2289.89 & -1062.89 & 3352.78
+    \end{bmatrix}$$
+  </div>
+
+  <p>
+    Notice the verification check: sum across row 1:
+  </p>
+
+  <div class="math-display">
+    $$1571.44 + 718.44 - 2289.89 = 0.00$$
+  </div>
+
+  <p>
+    Every single row and column of $K_c$ sums identically to zero! Without ever calculating or observing the 10-dimensional combination feature coordinates $\phi(x)$, our $3 \times 3$ sample data points have been centered at the origin of Hilbert space.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8 — The Complete Kernel PCA Algorithm                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="complete-algorithm">
+  <h2>The Complete Kernel PCA Algorithm</h2>
+
+  <p>
+    Connecting all the pieces, we arrive at the complete, rigorous algorithm for non-linear dimensionality reduction:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Step 1: Compute the Uncentered Gram Matrix:</strong> Choose a valid Mercer kernel (such as polynomial or Gaussian RBF) and compute the $n \times n$ matrix across all training pairs:
+      <div class="math-display">
+        $$K_{ij} = k(x_i, x_j)$$
+      </div>
+    </li>
+    <li>
+      <strong>Step 1.5: Center the Kernel Matrix ($K \leftarrow K_c$):</strong> Apply double-centering to ensure the unobserved points are centered in Hilbert space:
+      <div class="math-display">
+        $$K_c = H K H = \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) K \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right)$$
+      </div>
+    </li>
+    <li>
+      <strong>Step 2: Solve the Kernel Eigenvalue Problem:</strong> Perform eigendecomposition on $K_c$ to obtain eigenvalues $\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_k > 0$ and unit eigenvectors $\vec{\beta}_1, \dots, \vec{\beta}_k$:
+      <div class="math-display">
+        $$K_c \vec{\beta}_k = \lambda_k \vec{\beta}_k \qquad \text{with} \quad \|\vec{\beta}_k\| = 1$$
+      </div>
+      To guarantee that the unobserved primal principal components $w_k$ have unit norm ($\|w_k\|^2 = 1$), normalize each dual eigenvector:
+      <div class="math-display">
+        $$\vec{\alpha}_k = \frac{\vec{\beta}_k}{\sqrt{\lambda_k}}$$
+      </div>
+    </li>
+    <li>
+      <strong>Step 3: Extract Features Directly (Why Forming $w_k$ Defeats the Purpose):</strong>
+      <p>
+        In linear PCA, one typically stores the eigenvectors $w_k$ as explicit weight vectors. In Kernel PCA, attempting to reconstruct:
+      </p>
+      <div class="math-display">
+        $$w_k = \sum_{j=1}^n \alpha_{kj} \phi(x_j)$$
+      </div>
+      <p>
+        <strong>completely defeats the purpose</strong>! The vector $w_k$ lives in the $D$-dimensional or infinite-dimensional Hilbert space. Reconstructing it explicitly would re-introduce the exact combinatorial explosion we set out to bypass.
+      </p>
+      <p>
+        Instead, we <em>never form $w_k$</em>. For any training point $x_i$, its $k$-th non-linear coordinate is computed purely using the dual coefficients and kernel entries:
+      </p>
+      <div class="math-display">
+        $$y_k(x_i) = \phi(x_i)^T w_k = \phi(x_i)^T \left(\sum_{j=1}^n \alpha_{kj} \phi(x_j)\right) = \sum_{j=1}^n \alpha_{kj} K_{ij}$$
+      </div>
+      <p>
+        These projection coordinates $y_k(x_i)$ are passed directly into downstream supervised or clustering models.
+      </p>
+    </li>
+    <li>
+      <strong>Step 4: Project Unseen Query Points:</strong> To extract the $k$-th non-linear coordinate $y_k(x^*)$ of a new test point $x^*$:
+      <div class="math-display">
+        $$y_k(x^*) = \tilde{\phi}(x^*)^T w_k = \sum_{i=1}^n \alpha_{ki} \tilde{k}_i(x^*)$$
+      </div>
+      where $\tilde{k}_i(x^*)$ is the centered kernel evaluation between query point $x^*$ and training sample $x_i$:
+      <div class="math-display">
+        $$\begin{aligned}
+          \tilde{k}_i(x^*) &= k(x^*, x_i) - \frac{1}{n}\sum_{j=1}^n k(x^*, x_j) \\[6pt]
+          &\quad\; - \frac{1}{n}\sum_{r=1}^n K_{ri} + \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n K_{rs}
+        \end{aligned}$$
+      </div>
+    </li>
+  </ol>
+
+  <h3>The Neural Interpretation of Kernel PCA</h3>
+  <p>
+    In their seminal 1998 paper, Bernhard Schölkopf, Alexander Smola, and Klaus-Robert Müller illustrated that Kernel PCA can be interpreted as a feed-forward neural architecture with a single hidden layer of non-linear similarity comparators:
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 740px; height: auto;">
+        <defs>
+          <marker id="fig6-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--dark)" />
+          </marker>
+        </defs>
+
+        <!-- ================= TOP: SUMMATION NODE ================= -->
+        <circle cx="340" cy="55" r="24" fill="var(--surface)" stroke="var(--dark)" stroke-width="2" />
+        <text x="340" y="63" font-family="'Lora', serif" font-size="22" font-weight="700" fill="var(--text)" text-anchor="middle">∑</text>
+
+        <!-- Top Output Arrow -->
+        <line x1="340" y1="31" x2="340" y2="12" stroke="var(--dark)" stroke-width="2" marker-end="url(#fig6-arrow)" />
+        <text x="385" y="22" font-family="'Lora', serif" font-size="14.5" font-weight="600" fill="var(--text)" text-anchor="start">yₖ(x) = ∑ᵢ αₖᵢ k(xᵢ, x)</text>
+        <text x="560" y="58" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Feature coordinate (wₖᵀϕ(x))</text>
+
+        <!-- ================= UPPER WEIGHTS (alpha_ki) ================= -->
+        <!-- Lines from kernel layer to summation node -->
+        <line x1="160" y1="140" x2="320" y2="72" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+        <line x1="280" y1="140" x2="332" y2="78" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+        <line x1="400" y1="140" x2="348" y2="78" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+        <line x1="520" y1="140" x2="360" y2="72" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+
+        <!-- Weight labels -->
+        <text x="215" y="98" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₁</text>
+        <text x="290" y="105" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₂</text>
+        <text x="382" y="105" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₃</text>
+        <text x="455" y="98" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₄</text>
+
+        <text x="560" y="100" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Eigenvector weights (αₖ)</text>
+
+        <!-- ================= MIDDLE LAYER: KERNEL COMPARATORS ================= -->
+        <!-- Box k1 -->
+        <rect x="135" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="160" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <!-- Box k2 -->
+        <rect x="255" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="280" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <!-- Box k3 -->
+        <rect x="375" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="400" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <!-- Box k4 -->
+        <rect x="495" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="520" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <text x="560" y="164" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Nonlinear similarity: k(xᵢ, x)</text>
+
+        <!-- ================= TRAINING PROTOTYPES ================= -->
+        <!-- Sample Box 1 -->
+        <rect x="135" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="160" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₁</text>
+
+        <!-- Sample Box 2 -->
+        <rect x="255" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="280" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₂</text>
+
+        <!-- Sample Box 3 -->
+        <rect x="375" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="400" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₃</text>
+
+        <!-- Sample Box 4 -->
+        <rect x="495" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="520" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₄</text>
+
+        <text x="560" y="239" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Training samples x₁, x₂, …</text>
+
+        <!-- Arrows from sample boxes to kernel comparators -->
+        <line x1="160" y1="215" x2="160" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+        <line x1="280" y1="215" x2="280" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+        <line x1="400" y1="215" x2="400" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+        <line x1="520" y1="215" x2="520" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig6-arrow)" />
+
+        <!-- ================= BOTTOM: INPUT VECTOR x ================= -->
+        <!-- Box x -->
+        <rect x="315" y="315" width="50" height="42" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="2" />
+        <text x="340" y="342" font-family="'Lora', serif" font-size="18" font-style="italic" font-weight="700" fill="var(--text)" text-anchor="middle">x</text>
+
+        <text x="380" y="342" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Input query vector x</text>
+
+        <!-- Fan-out lines from input x to all kernel comparators -->
+        <line x1="325" y1="315" x2="168" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig6-arrow)" />
+        <line x1="335" y1="315" x2="284" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig6-arrow)" />
+        <line x1="345" y1="315" x2="396" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig6-arrow)" />
+        <line x1="355" y1="315" x2="512" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig6-arrow)" />
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 6:</strong> The neural architecture interpretation of Kernel PCA (Schölkopf, Smola, &amp; Müller, 1998). A new query observation $x$ is simultaneously compared against stored training samples $x_1, \dots, x_n$ via the non-linear kernel function $k(x_i, x)$. The resulting non-linear activations are weighted by the dual eigenvector coefficients $\alpha_{ki}$ and accumulated at a linear summation node $\sum$, outputting the projection coordinate $y_k(x) = \langle w_k, \phi(x) \rangle$ without ever calculating the coordinates of $\phi(x)$.
+    </figcaption>
+  </figure>
+
+  <h3>Real-World Benchmark: Face Recognition (Eigenfaces vs. Kernel PCA)</h3>
+  <p>
+    A classic real-world benchmark demonstrating the superiority of non-linear feature extraction is <strong>face recognition</strong>. In the 1990s, Turk and Pentland introduced "Eigenfaces"—applying linear PCA to raw pixel intensities. While revolutionary, linear PCA assumes facial variations (such as lighting shifts, expressions, and 3D head poses) lie on flat hyperplanes.
+  </p>
+
+  <p>
+    In their landmark study, Yang, Ahuja, and Kriegman (2000) evaluated Kernel PCA against standard Eigenfaces on a benchmark dataset of 400 facial images across 40 subjects under varied expressions and poses ($23 \times 28 = 644$ dimensions per image):
+  </p>
+
+  <div class="math-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Reduced Space Dimensions</th>
+          <th>Error Rate (%)</th>
+          <th>Relative Performance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Eigenface (Linear PCA)</strong></td>
+          <td>30</td>
+          <td>2.75%</td>
+          <td>Baseline (linear hyperplane assumption)</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 2$)</strong></td>
+          <td>50</td>
+          <td>2.50%</td>
+          <td>9.1% error reduction over Eigenface</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 3$)</strong></td>
+          <td>50</td>
+          <td><strong>2.00%</strong></td>
+          <td><strong>27.3% error reduction (Optimal feature depth)</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 4$)</strong></td>
+          <td>60</td>
+          <td>2.25%</td>
+          <td>Captures higher interactions; slight overfitting</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 10$)</strong></td>
+          <td>80</td>
+          <td>2.25%</td>
+          <td>Diminishing returns on higher powers</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    By moving from linear Eigenfaces to degree-3 polynomial Kernel PCA ($p = 3$), the classification error rate dropped from <strong>2.75% down to 2.00%</strong>—a 27% error reduction! Higher-order combinations successfully linearize non-linear facial expressions and cast shadows, providing significantly cleaner features for downstream classifiers.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  9 — Connecting the Dots                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots: The Unified Landscape of PCA</h2>
+
+  <p>
+    Let us step back and appreciate the entire journey across the representations of Principal Component Analysis:
+  </p>
+
+  <div class="math-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Central Matrix</th>
+          <th>Matrix Size</th>
+          <th>When to Use</th>
+          <th>Core Geometric Breakthrough</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Primal Linear PCA</strong></td>
+          <td>Sample Covariance $C = \frac{1}{n} X X^T$</td>
+          <td>$d \times d$</td>
+          <td>$n \gg d$ (many samples, few features)</td>
+          <td>Maximizing preserved projection variance is mathematically identical to minimizing reconstruction error.</td>
+        </tr>
+        <tr>
+          <td><strong>Dual Linear PCA</strong></td>
+          <td>Linear Gram Matrix $K = X^T X$</td>
+          <td>$n \times n$</td>
+          <td>$d \gg n$ (high dimensions, images, genomics)</td>
+          <td>Principal components must live in the span of the data ($w = X\alpha$), collapsing $O(d^3) \to O(n^3)$.</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA</strong></td>
+          <td>Centered Gram Matrix $K_c = H K H$</td>
+          <td>$n \times n$</td>
+          <td>Non-linear manifolds (circles, Swiss rolls, spirals)</td>
+          <td>Higher-order combinations turn non-linear relationships into flat linear manifolds; the Kernel Trick evaluates infinite combinations in $O(d)$.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Every breakthrough in this journey emerged from a single fundamental desire: <strong>to eliminate redundant information</strong>:
+  </p>
+
+  <ul>
+    <li><strong>In standard Primal PCA</strong>, we eliminate linear redundancies among our raw features by diagonalizing the $d \times d$ covariance matrix.</li>
+    <li><strong>In high dimensions or infinite combinations</strong>, computing a $D \times D$ covariance matrix is physically impossible ($D = \infty$).</li>
+    <li><strong>In Kernel PCA</strong>, the dual representation rescues us: by computing scalar inner products through $k(x, x')$, we capture non-linear relationships across infinite combination dimensions using nothing more than an <strong>$n \times n$ sample matrix</strong>.</li>
+  </ul>
+
+  <p>
+    By uniting the <a href="../../../02.linear-algebra/03.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/index.html">Spectral Theorem</a>, orthogonal projection matrices, and positive definiteness, linear algebra allows us to unravel complex non-linear geometry in infinite dimensions using pure $n \times n$ matrix arithmetic.
+  </p>
+</section>
+
+                    </section>
+                </article>
+                <div id="article-comments"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof injectGiscusComments === 'function') {
+          injectGiscusComments('article-comments');
+        }
+      });
+    </script>
+
+    <!-- Interactive 3D Engine for Figure 1 -->
+    <script>
+      (function() {
+        const svg = document.getElementById("fig1-3d-svg");
+        if (!svg) return;
+        const svgNS = "http://www.w3.org/2000/svg";
+
+        const gridFloor = document.getElementById("fig1-grid-floor");
+        const parabolaFloor = document.getElementById("fig1-floor-parabola");
+        const floorPcaGroup = document.getElementById("fig1-floor-pca-group");
+        const floorPcaLine = document.getElementById("fig1-floor-pca-line");
+        const floorResiduals = document.getElementById("fig1-floor-residuals");
+        const planeGroup = document.getElementById("fig1-plane-group");
+        const slantPolygon = document.getElementById("fig1-slant-polygon");
+        const planeResiduals = document.getElementById("fig1-plane-residuals");
+        const droplines = document.getElementById("fig1-droplines");
+        const shadows = document.getElementById("fig1-shadows");
+        const pointsGroup = document.getElementById("fig1-points");
+        const axisX = document.getElementById("fig1-axis-x");
+        const axisY = document.getElementById("fig1-axis-y");
+        const axisZ = document.getElementById("fig1-axis-z");
+        const lblOrigin = document.getElementById("fig1-lbl-origin");
+        const lblX = document.getElementById("fig1-lbl-x");
+        const lblY = document.getElementById("fig1-lbl-y");
+        const lblZ = document.getElementById("fig1-lbl-z");
+        const readoutText = document.getElementById("fig1-readout-text");
+
+        const btnCloud = document.getElementById("fig1-btn-cloud");
+        const btnFloor = document.getElementById("fig1-btn-floor");
+        const btnPlane = document.getElementById("fig1-btn-plane");
+        const buttons = [btnCloud, btnFloor, btnPlane].filter(Boolean);
+
+        // Housing Data points on a curved parabolic ribbon in 3D (36 observations):
+        // x = Width (w), y = Area (A = w^2), z = Price (p)
+        const rawPoints = [
+          {x: 18.0, y: 10.0, z: 16.0}, {x: 25.7, y: 10.2, z: 18.1}, {x: 33.3, y: 10.7, z: 20.4}, {x: 41.0, y: 11.7, z: 23.0},
+          {x: 48.6, y: 12.9, z: 25.7}, {x: 56.3, y: 14.6, z: 28.7}, {x: 63.9, y: 16.6, z: 31.8}, {x: 71.6, y: 19.0, z: 35.2},
+          {x: 79.3, y: 21.8, z: 38.8}, {x: 86.9, y: 24.9, z: 42.6}, {x: 94.6, y: 28.4, z: 46.6}, {x: 102.2, y: 32.2, z: 50.8},
+          {x: 109.9, y: 36.4, z: 55.3}, {x: 117.5, y: 41.0, z: 59.9}, {x: 125.2, y: 46.0, z: 64.8}, {x: 132.9, y: 51.3, z: 69.9},
+          {x: 140.5, y: 57.0, z: 75.2}, {x: 148.2, y: 63.1, z: 80.7}, {x: 155.8, y: 69.5, z: 86.4}, {x: 163.5, y: 76.3, z: 92.3},
+          {x: 171.1, y: 83.5, z: 98.4}, {x: 178.8, y: 91.0, z: 104.8}, {x: 186.5, y: 98.9, z: 111.4}, {x: 194.1, y: 107.2, z: 118.1},
+          {x: 201.8, y: 115.8, z: 125.1}, {x: 209.4, y: 124.8, z: 132.3}, {x: 217.1, y: 134.2, z: 139.7}, {x: 224.7, y: 143.9, z: 147.4},
+          {x: 232.4, y: 154.0, z: 155.2}, {x: 240.1, y: 164.5, z: 163.2}, {x: 247.7, y: 175.3, z: 171.5}, {x: 255.4, y: 186.5, z: 180.0},
+          {x: 263.0, y: 198.1, z: 188.7}, {x: 270.7, y: 210.0, z: 197.6}, {x: 278.3, y: 222.3, z: 206.7}, {x: 286.0, y: 235.0, z: 216.0}
+        ];
+
+        // Camera & Projection Setup
+        let yaw = -0.55, targetYaw = -0.55;
+        let pitch = 0.35, targetPitch = 0.35;
+        let planeT = 0, targetPlaneT = 0;
+        let floorT = 0, targetFloorT = 0;
+
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let startYaw = 0, startPitch = 0;
+
+        const cx = 400, cy = 250;
+        const px = 150, py = 120, pz = 110;
+        const scale = 1.05;
+
+        function project(x, y, z, yAngle, pAngle) {
+          const dx = x - px, dy = y - py, dz = z - pz;
+          const cosY = Math.cos(yAngle), sinY = Math.sin(yAngle);
+          const x1 = dx * cosY - dy * sinY;
+          const y1 = dx * sinY + dy * cosY;
+          const cosP = Math.cos(pAngle), sinP = Math.sin(pAngle);
+          const depth = y1 * cosP - dz * sinP;
+          const screenY = y1 * sinP + dz * cosP;
+          return {
+            u: cx + x1 * scale,
+            v: cy - screenY * scale,
+            depth: depth
+          };
+        }
+
+        // Floor grid setup
+        const floorLines = [];
+        if (gridFloor) {
+          [0, 60, 120, 180, 240].forEach((yVal) => {
+            const line = document.createElementNS(svgNS, "line");
+            line.setAttribute("stroke", "var(--border)");
+            line.setAttribute("stroke-width", "1");
+            line.setAttribute("stroke-dasharray", "3,3");
+            line.setAttribute("opacity", "0.6");
+            gridFloor.appendChild(line);
+            floorLines.push({ el: line, x1: 0, y1: yVal, z1: 0, x2: 300, y2: yVal, z2: 0 });
+          });
+          [0, 75, 150, 225, 300].forEach((xVal) => {
+            const line = document.createElementNS(svgNS, "line");
+            line.setAttribute("stroke", "var(--border)");
+            line.setAttribute("stroke-width", "1");
+            line.setAttribute("stroke-dasharray", "3,3");
+            line.setAttribute("opacity", "0.6");
+            gridFloor.appendChild(line);
+            floorLines.push({ el: line, x1: xVal, y1: 0, z1: 0, x2: xVal, y2: 240, z2: 0 });
+          });
+        }
+
+        // Compute 2D sample covariance and floor PC1 eigenvector
+        const floorPts = rawPoints.map(p => ({ x: p.x, y: p.y }));
+        const meanFx = floorPts.reduce((acc, p) => acc + p.x, 0) / floorPts.length;
+        const meanFy = floorPts.reduce((acc, p) => acc + p.y, 0) / floorPts.length;
+        const covXX = floorPts.reduce((acc, p) => acc + Math.pow(p.x - meanFx, 2), 0) / floorPts.length;
+        const covYY = floorPts.reduce((acc, p) => acc + Math.pow(p.y - meanFy, 2), 0) / floorPts.length;
+        const covXY = floorPts.reduce((acc, p) => acc + (p.x - meanFx) * (p.y - meanFy), 0) / floorPts.length;
+
+        const thetaPca = 0.5 * Math.atan2(2 * covXY, covXX - covYY);
+        let dirFx = Math.cos(thetaPca), dirFy = Math.sin(thetaPca);
+        if (dirFx < 0) { dirFx = -dirFx; dirFy = -dirFy; }
+
+        const sProj = floorPts.map(p => (p.x - meanFx) * dirFx + (p.y - meanFy) * dirFy);
+        const sMin = Math.min(...sProj) - 10;
+        const sMax = Math.max(...sProj) + 10;
+
+        const floorLineEndpoints = {
+          p1: { x: meanFx + sMin * dirFx, y: meanFy + sMin * dirFy, z: 0 },
+          p2: { x: meanFx + sMax * dirFx, y: meanFy + sMax * dirFy, z: 0 }
+        };
+
+        const floorResidualLines = [];
+        if (floorResiduals) {
+          floorPts.forEach(p => {
+            const s = (p.x - meanFx) * dirFx + (p.y - meanFy) * dirFy;
+            const projX = meanFx + s * dirFx;
+            const projY = meanFy + s * dirFy;
+            const line = document.createElementNS(svgNS, "line");
+            line.setAttribute("stroke", "var(--muted)");
+            line.setAttribute("stroke-width", "1.5");
+            line.setAttribute("stroke-dasharray", "2,2");
+            line.setAttribute("opacity", "0.75");
+            floorResiduals.appendChild(line);
+            floorResidualLines.push({ el: line, orig: { x: p.x, y: p.y, z: 0 }, proj: { x: projX, y: projY, z: 0 } });
+          });
+        }
+
+        // 3D PCA Slant Plane: strictly PERPENDICULAR to the xy floor plane,
+        // standing directly on top of the floor PCA line [p1, p2] from z = 0 up to z = 240:
+        const planeCorners = [
+          { x: floorLineEndpoints.p1.x, y: floorLineEndpoints.p1.y, z: 0 },
+          { x: floorLineEndpoints.p2.x, y: floorLineEndpoints.p2.y, z: 0 },
+          { x: floorLineEndpoints.p2.x, y: floorLineEndpoints.p2.y, z: 240 },
+          { x: floorLineEndpoints.p1.x, y: floorLineEndpoints.p1.y, z: 240 }
+        ];
+
+        // 3D Horizontal Residual lines from 3D points to the perpendicular plane
+        const planeResidualLines = [];
+        if (planeResiduals) {
+          rawPoints.forEach(p => {
+            const s = (p.x - meanFx) * dirFx + (p.y - meanFy) * dirFy;
+            const projX = meanFx + s * dirFx;
+            const projY = meanFy + s * dirFy;
+            const line = document.createElementNS(svgNS, "line");
+            line.setAttribute("stroke", "var(--box-label-bg)");
+            line.setAttribute("stroke-width", "1.5");
+            line.setAttribute("stroke-dasharray", "2,2");
+            line.setAttribute("opacity", "0.85");
+            planeResiduals.appendChild(line);
+            planeResidualLines.push({ el: line, orig: { x: p.x, y: p.y, z: p.z }, proj: { x: projX, y: projY, z: p.z } });
+          });
+        }
+
+        // Data points DOM elements
+        const pointElements = [];
+        if (pointsGroup && droplines && shadows) {
+          rawPoints.forEach(p => {
+            const drop = document.createElementNS(svgNS, "line");
+            drop.setAttribute("stroke", "var(--border)");
+            drop.setAttribute("stroke-width", "1");
+            drop.setAttribute("stroke-dasharray", "2,2");
+            drop.setAttribute("opacity", "0.55");
+            droplines.appendChild(drop);
+
+            const shadow = document.createElementNS(svgNS, "circle");
+            shadow.setAttribute("r", "3");
+            shadow.setAttribute("fill", "var(--dark)");
+            shadow.setAttribute("opacity", "0.4");
+            shadows.appendChild(shadow);
+
+            const circle = document.createElementNS(svgNS, "circle");
+            circle.setAttribute("r", "5");
+            circle.setAttribute("fill", "var(--accent)");
+            circle.setAttribute("stroke", "var(--bg)");
+            circle.setAttribute("stroke-width", "1.5");
+            pointsGroup.appendChild(circle);
+
+            pointElements.push({ p, drop, shadow, circle, depth: 0 });
+          });
+        }
+
+        function render() {
+          if (!svg) return;
+
+          // 1. Grid
+          const gridOpacity = Math.min(0.55, Math.max(0, Math.sin(Math.max(0, pitch)) * 1.5));
+          floorLines.forEach(fl => {
+            const p1 = project(fl.x1, fl.y1, fl.z1, yaw, pitch);
+            const p2 = project(fl.x2, fl.y2, fl.z2, yaw, pitch);
+            fl.el.setAttribute("x1", p1.u); fl.el.setAttribute("y1", p1.v);
+            fl.el.setAttribute("x2", p2.u); fl.el.setAttribute("y2", p2.v);
+            fl.el.setAttribute("opacity", gridOpacity.toFixed(2));
+          });
+
+          // 2. Parabola curve on floor (sample 40 points matching exact data curve)
+          if (parabolaFloor) {
+            let d = "";
+            for (let i = 0; i <= 40; i++) {
+              const w = 18.0 + (i / 40) * (286.0 - 18.0);
+              const u = (w - 18.0) / (286.0 - 18.0);
+              const a = 10.0 + 225.0 * (u * u);
+              const prj = project(w, a, 0, yaw, pitch);
+              d += (i === 0 ? "M " : " L ") + prj.u.toFixed(1) + " " + prj.v.toFixed(1);
+            }
+            parabolaFloor.setAttribute("d", d);
+          }
+
+          // 3. Axes
+          const p0 = project(0, 0, 0, yaw, pitch);
+          const pX = project(320, 0, 0, yaw, pitch);
+          const pY = project(0, 260, 0, yaw, pitch);
+          const pZ = project(0, 0, 260, yaw, pitch);
+
+          const lenX = Math.hypot(pX.u - p0.u, pX.v - p0.v);
+          const lenY = Math.hypot(pY.u - p0.u, pY.v - p0.v);
+          const lenZ = Math.hypot(pZ.u - p0.u, pZ.v - p0.v);
+
+          if (axisX) {
+            axisX.setAttribute("x1", p0.u); axisX.setAttribute("y1", p0.v);
+            axisX.setAttribute("x2", pX.u); axisX.setAttribute("y2", pX.v);
+            axisX.setAttribute("opacity", lenX < 8 ? "0" : "1");
+          }
+          if (axisY) {
+            axisY.setAttribute("x1", p0.u); axisY.setAttribute("y1", p0.v);
+            axisY.setAttribute("x2", pY.u); axisY.setAttribute("y2", pY.v);
+            axisY.setAttribute("opacity", lenY < 8 ? "0" : "1");
+          }
+          if (axisZ) {
+            axisZ.setAttribute("x1", p0.u); axisZ.setAttribute("y1", p0.v);
+            axisZ.setAttribute("x2", pZ.u); axisZ.setAttribute("y2", pZ.v);
+            axisZ.setAttribute("opacity", lenZ < 8 ? "0" : "1");
+          }
+
+          // 4. Labels
+          if (lblOrigin) {
+            lblOrigin.setAttribute("x", p0.u - 14);
+            lblOrigin.setAttribute("y", p0.v + 14);
+          }
+          if (lblX && lenX >= 8) {
+            const dx = pX.u - p0.u, dy = pX.v - p0.v;
+            lblX.setAttribute("x", pX.u + (dx / lenX) * 16);
+            lblX.setAttribute("y", pX.v + (dy / lenX) * 16 + 5);
+            lblX.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+            lblX.setAttribute("opacity", "1");
+          }
+          if (lblY && lenY >= 8) {
+            const dx = pY.u - p0.u, dy = pY.v - p0.v;
+            lblY.setAttribute("x", pY.u + (dx / lenY) * 16);
+            lblY.setAttribute("y", pY.v + (dy / lenY) * 16 + 5);
+            lblY.setAttribute("text-anchor", dx > 5 ? "start" : (dx < -5 ? "end" : "middle"));
+            lblY.setAttribute("opacity", "1");
+          }
+          if (lblZ) {
+            lblZ.setAttribute("x", pZ.u);
+            lblZ.setAttribute("y", pZ.v - 14);
+            lblZ.setAttribute("text-anchor", "middle");
+            lblZ.setAttribute("opacity", lenZ < 8 ? "0" : "1");
+          }
+
+          // 5. Floor PCA Line & Residuals
+          if (floorPcaGroup) {
+            if (floorT > 0.01) {
+              floorPcaGroup.style.display = "inline";
+              floorPcaGroup.setAttribute("opacity", floorT.toFixed(2));
+              const prj1 = project(floorLineEndpoints.p1.x, floorLineEndpoints.p1.y, 0, yaw, pitch);
+              const prj2 = project(floorLineEndpoints.p2.x, floorLineEndpoints.p2.y, 0, yaw, pitch);
+              if (floorPcaLine) {
+                floorPcaLine.setAttribute("x1", prj1.u); floorPcaLine.setAttribute("y1", prj1.v);
+                floorPcaLine.setAttribute("x2", prj2.u); floorPcaLine.setAttribute("y2", prj2.v);
+              }
+              const lblFloorPca = document.getElementById("fig1-lbl-floor-pca");
+              const lblFloorPcaT1 = document.getElementById("fig1-lbl-floor-pca-t1");
+              const lblFloorPcaT2 = document.getElementById("fig1-lbl-floor-pca-t2");
+              if (lblFloorPca && lblFloorPcaT1 && lblFloorPcaT2) {
+                let lx = prj2.u + 12;
+                let ly = prj2.v - 2;
+                let anchor = "start";
+                if (lx + 160 > 805) {
+                  anchor = "end";
+                  lx = prj2.u - 12;
+                }
+                lblFloorPca.setAttribute("text-anchor", anchor);
+                lblFloorPca.setAttribute("y", ly);
+                lblFloorPcaT1.setAttribute("x", lx);
+                lblFloorPcaT2.setAttribute("x", lx);
+              }
+              floorResidualLines.forEach(item => {
+                const pOrig = project(item.orig.x, item.orig.y, 0, yaw, pitch);
+                const pProj = project(item.proj.x, item.proj.y, 0, yaw, pitch);
+                item.el.setAttribute("x1", pOrig.u); item.el.setAttribute("y1", pOrig.v);
+                item.el.setAttribute("x2", pProj.u); item.el.setAttribute("y2", pProj.v);
+              });
+            } else {
+              floorPcaGroup.style.display = "none";
+            }
+          }
+
+          // 6. Slant 2D Plane (Vertical Plane perpendicular to xy floor)
+          if (planeGroup && slantPolygon) {
+            if (planeT > 0.01) {
+              planeGroup.style.display = "inline";
+              planeGroup.setAttribute("opacity", planeT.toFixed(2));
+              const cornersPrj = planeCorners.map(c => project(c.x, c.y, c.z, yaw, pitch));
+              slantPolygon.setAttribute("points", cornersPrj.map(c => `${c.u.toFixed(1)},${c.v.toFixed(1)}`).join(" "));
+              const lblPlane = document.getElementById("fig1-lbl-slant-plane");
+              if (lblPlane) {
+                // Position near the top right corner c3:
+                let px = cornersPrj[2].u + 12;
+                let py = cornersPrj[2].v + 4;
+                let pAnchor = "start";
+                if (px + 150 > 805) {
+                  pAnchor = "end";
+                  px = cornersPrj[2].u - 12;
+                }
+                lblPlane.setAttribute("text-anchor", pAnchor);
+                lblPlane.setAttribute("x", px);
+                lblPlane.setAttribute("y", py);
+              }
+              // Render 3D horizontal residual lines from curved ribbon to vertical plane
+              planeResidualLines.forEach(item => {
+                const pOrig = project(item.orig.x, item.orig.y, item.orig.z, yaw, pitch);
+                const pProj = project(item.proj.x, item.proj.y, item.proj.z, yaw, pitch);
+                item.el.setAttribute("x1", pOrig.u); item.el.setAttribute("y1", pOrig.v);
+                item.el.setAttribute("x2", pProj.u); item.el.setAttribute("y2", pProj.v);
+              });
+            } else {
+              planeGroup.style.display = "none";
+            }
+          }
+
+          // 7. Points, shadows, and droplines
+          pointElements.forEach(item => {
+            const p3d = project(item.p.x, item.p.y, item.p.z, yaw, pitch);
+            const pFloor = project(item.p.x, item.p.y, 0, yaw, pitch);
+
+            item.drop.setAttribute("x1", p3d.u); item.drop.setAttribute("y1", p3d.v);
+            item.drop.setAttribute("x2", pFloor.u); item.drop.setAttribute("y2", pFloor.v);
+
+            const shadowOp = Math.min(0.48, Math.max(0.20, Math.sin(Math.max(0, pitch)) * 0.9));
+            item.shadow.setAttribute("cx", pFloor.u); item.shadow.setAttribute("cy", pFloor.v);
+            item.shadow.setAttribute("opacity", shadowOp.toFixed(2));
+
+            item.circle.setAttribute("cx", p3d.u); item.circle.setAttribute("cy", p3d.v);
+            item.circle.setAttribute("opacity", "0.9");
+            item.depth = p3d.depth;
+          });
+
+          // Depth sort points
+          pointElements.slice().sort((a, b) => a.depth - b.depth).forEach(item => {
+            pointsGroup.appendChild(item.circle);
+          });
+        }
+
+        // Animation Loop for Smooth Camera Transition
+        function animate() {
+          let changed = false;
+          if (Math.abs(yaw - targetYaw) > 0.001) { yaw += (targetYaw - yaw) * 0.12; changed = true; }
+          else { yaw = targetYaw; }
+          if (Math.abs(pitch - targetPitch) > 0.001) { pitch += (targetPitch - pitch) * 0.12; changed = true; }
+          else { pitch = targetPitch; }
+          if (Math.abs(planeT - targetPlaneT) > 0.005) { planeT += (targetPlaneT - planeT) * 0.14; changed = true; }
+          else { planeT = targetPlaneT; }
+          if (Math.abs(floorT - targetFloorT) > 0.005) { floorT += (targetFloorT - floorT) * 0.14; changed = true; }
+          else { floorT = targetFloorT; }
+
+          if (changed || isDragging) {
+            render();
+          }
+          requestAnimationFrame(animate);
+        }
+        render();
+        requestAnimationFrame(animate);
+
+        // Drag Interaction
+        svg.addEventListener("pointerdown", (e) => {
+          isDragging = true;
+          svg.style.cursor = "grabbing";
+          startX = e.clientX; startY = e.clientY;
+          startYaw = yaw; startPitch = pitch;
+          try { svg.setPointerCapture(e.pointerId); } catch (_) {}
+        });
+
+        svg.addEventListener("pointermove", (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - startX, dy = e.clientY - startY;
+          yaw = startYaw + dx * 0.007;
+          pitch = Math.max(-0.25, Math.min(1.52, startPitch + dy * 0.007));
+          targetYaw = yaw; targetPitch = pitch;
+          render();
+        });
+
+        const endDrag = (e) => {
+          if (!isDragging) return;
+          isDragging = false;
+          svg.style.cursor = "grab";
+          try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+        };
+        svg.addEventListener("pointerup", endDrag);
+        svg.addEventListener("pointercancel", endDrag);
+
+        // Button Controls
+        function setActiveBtn(activeBtn) {
+          buttons.forEach(b => b.classList.remove("active"));
+          if (activeBtn) activeBtn.classList.add("active");
+        }
+
+        if (btnCloud) {
+          btnCloud.addEventListener("click", () => {
+            setActiveBtn(btnCloud);
+            targetYaw = -0.55; targetPitch = 0.35;
+            targetPlaneT = 0; targetFloorT = 0;
+            if (readoutText) readoutText.textContent = "Interactive 3D view: houses form a curved parabolic ribbon in 3D space. Drag anytime to rotate.";
+          });
+        }
+
+        if (btnFloor) {
+          btnFloor.addEventListener("click", () => {
+            setActiveBtn(btnFloor);
+            targetYaw = 0; targetPitch = 1.48;
+            targetPlaneT = 0; targetFloorT = 1;
+            if (readoutText) readoutText.textContent = "Floor POV (Width × Area): points form a parabola (A = w²). No straight linear combination (a₁w + a₂A) can serve as a principal component!";
+          });
+        }
+
+        if (btnPlane) {
+          btnPlane.addEventListener("click", () => {
+            setActiveBtn(btnPlane);
+            targetYaw = -0.55; targetPitch = 0.35;
+            targetPlaneT = 1; targetFloorT = 0;
+            if (readoutText) readoutText.textContent = "Vertical Slant Plane: perpendicular to the xy floor over the floor combination line. Because the data forms a parabola, the curved ribbon bows away from this vertical wall!";
+          });
+        }
+      })();
+    </script>
+</body>
+</html>

@@ -87,7 +87,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="10">
+  <meta name="reading_time" content="11">
     <meta property="og:title" content="Introduction to Unsupervised and Representation Learning">
     <meta property="og:description" content="Discovering the foundational philosophy of representation learning: Gregory Chaitin's compression principle, the pop quiz on collinear data, why real data breaks lossless compression, and deriving orthogonal projection from least-squares calculus.">
     <meta property="og:type" content="article">
@@ -158,11 +158,7 @@
   </p>
 
   <p>
-    Learning is therefore fundamentally about <strong>information redundancy reduction</strong>: stripping away repeated or unnecessary coordinates so that only the essential degrees of freedom remain. The core challenge of representation learning can be stated as a concrete computational problem:
-  </p>
-
-  <p>
-    Learning <em>is</em> the discovery of a compact, structured representation. The core problem of representation learning can therefore be framed as a concrete computational challenge:
+    Learning is therefore fundamentally about <strong>information redundancy reduction</strong>: discovering a compact, structured representation that strips away repeated or unnecessary coordinates so that only the essential degrees of freedom remain. We can frame this as a concrete computational challenge:
   </p>
 
   <div class="math-display">
@@ -217,7 +213,7 @@
   </div>
 
   <p>
-    Every single observation lies on the exact same straight line passing through the origin: $x_2 = -0.5 x_1$ (Figure 1, Panel A).
+    Every single observation lies on the exact same straight line passing through the origin: $x_2 = -0.5 x_1$ (Figure 1).
   </p>
 
   <p>
@@ -254,6 +250,63 @@
   <p>
     Using this compressed representation, we can <strong>exactly reconstruct</strong> the entire dataset without losing a single decimal point: $x_i = c_i w$. Because the data truly lived on a 1D line inside 2D space, discovering this geometric structure enabled <strong>exact, lossless compression</strong>.
   </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig1-collinear-svg" viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 760px; height: auto;">
+        <defs>
+          <marker id="fig1-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="fig1-arrow-w" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- Coordinate Axes (Origin at 400, 280) -->
+        <line x1="40" y1="280" x2="840" y2="280" stroke="var(--border)" stroke-width="1.8" marker-end="url(#fig1-arrow)" />
+        <line x1="400" y1="470" x2="400" y2="30" stroke="var(--border)" stroke-width="1.8" marker-end="url(#fig1-arrow)" />
+        <text x="840" y="308" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">x₁</text>
+        <text x="380" y="45" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">x₂</text>
+        <text x="385" y="305" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--muted)" text-anchor="end">0</text>
+
+        <!-- Subspace Line: x2 = -0.5 x1 -->
+        <line x1="60" y1="110" x2="740" y2="450" stroke="var(--border)" stroke-width="2.2" stroke-dasharray="6,4" />
+        <text x="745" y="465" font-family="'Lora', serif" font-size="16" font-style="italic" fill="var(--muted)">Line: x₂ = −0.5x₁</text>
+
+        <!-- Representative direction vector w = [-2, 1]^T -->
+        <line x1="400" y1="280" x2="336" y2="248" stroke="var(--accent)" stroke-width="4.5" marker-end="url(#fig1-arrow-w)" />
+        <text x="368" y="235" font-family="'Lora', serif" font-size="17" font-style="italic" font-weight="700" fill="var(--text)" text-anchor="middle">w = [−2, 1]ᵀ (c = 1.0)</text>
+
+        <!-- Data Point x1: [-5, 2.5] at (240, 200) -->
+        <circle cx="240" cy="200" r="7" fill="var(--accent)" />
+        <text x="240" y="160" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="middle">x₁ [−5, 2.5]</text>
+        <text x="240" y="184" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)" text-anchor="middle">c₁ = 2.5</text>
+
+        <!-- Data Point x2: [-2, 1] at (336, 248) -->
+        <circle cx="336" cy="248" r="7" fill="var(--accent)" />
+        <text x="300" y="285" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">x₂ [−2, 1]</text>
+        <text x="300" y="307" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)" text-anchor="end">c₂ = 1.0</text>
+
+        <!-- Data Point x3: [4, -2] at (528, 344) -->
+        <circle cx="528" cy="344" r="7" fill="var(--accent)" />
+        <text x="528" y="380" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="middle">x₃ [4, −2]</text>
+        <text x="528" y="404" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)" text-anchor="middle">c₃ = −2.0</text>
+
+        <!-- Data Point x4: [5, -2.5] at (560, 360) -->
+        <circle cx="560" cy="360" r="7" fill="var(--accent)" />
+        <text x="585" y="365" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)">x₄ [5, −2.5]</text>
+        <text x="585" y="388" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)">c₄ = −2.5</text>
+
+        <!-- Storage economics callout text (clean direct typography) -->
+        <text x="50" y="420" font-family="'Lora', serif" font-size="17.5" font-weight="700" fill="var(--text)">Naive Storage: 4 points × 2 coords = 8 numbers</text>
+        <text x="50" y="445" font-family="'Lora', serif" font-size="17.5" font-weight="700" fill="var(--text)">Compressed Storage: vector w (2) + 4 scalars (cᵢ) = 6 numbers</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> Exact lossless compression on a 1D line in 2D space. Because all four observations ($x_1, x_2, x_3, x_4$) satisfy $x_2 = -0.5x_1$, fixing a single representative direction vector $w = [-2, 1]^T$ allows every point to be reconstructed perfectly as $x_i = c_i w$ using only 4 scalar coefficients $\{c_1, c_2, c_3, c_4\}$, compressing total storage from 8 numbers down to 6.
+    </figcaption>
+  </figure>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -263,7 +316,7 @@
   <h2>The Breakdown of Lossless Compression</h2>
 
   <p>
-    Now suppose our dataset acquires just one more observation—a point that does not fall on the line:
+    Now suppose our dataset acquires just one more observation—a point that does not fall on the line (Figure 2):
   </p>
 
   <div class="math-display">
@@ -294,6 +347,63 @@
     This exposes an inevitable reality: in real-world data, noise, measurement discrepancies, and complex factors guarantee that points <em>never</em> fall perfectly on an exact lower-dimensional line or hyperplane. If we demand lossless precision, dimensionality reduction is impossible.
   </p>
 
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig2-breakdown-svg" viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 760px; height: auto;">
+        <defs>
+          <marker id="fig2-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="fig2-arrow-w" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- Coordinate Axes (Origin at 400, 280) -->
+        <line x1="40" y1="280" x2="840" y2="280" stroke="var(--border)" stroke-width="1.8" marker-end="url(#fig2-arrow)" />
+        <line x1="400" y1="470" x2="400" y2="30" stroke="var(--border)" stroke-width="1.8" marker-end="url(#fig2-arrow)" />
+        <text x="840" y="308" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">x₁</text>
+        <text x="380" y="45" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">x₂</text>
+        <text x="385" y="305" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--muted)" text-anchor="end">0</text>
+
+        <!-- 1D Subspace Line: x2 = -0.5 x1 -->
+        <line x1="60" y1="110" x2="740" y2="450" stroke="var(--border)" stroke-width="2.2" stroke-dasharray="6,4" />
+        <text x="745" y="465" font-family="'Lora', serif" font-size="16" font-style="italic" fill="var(--muted)">Line: x₂ = −0.5x₁</text>
+
+        <!-- Vector w = [-2, 1]^T along line from (400, 280) to (336, 248) -->
+        <line x1="400" y1="280" x2="336" y2="248" stroke="var(--accent)" stroke-width="4.5" marker-end="url(#fig2-arrow-w)" />
+        <text x="368" y="235" font-family="'Lora', serif" font-size="17" font-style="italic" font-weight="700" fill="var(--text)" text-anchor="middle">w = [−2, 1]ᵀ</text>
+
+        <!-- Off-line data point x5 = [2, 5] at (464, 120) -->
+        <circle cx="464" cy="120" r="15" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3,3" opacity="0.85" />
+        <circle cx="464" cy="120" r="7" fill="var(--accent)" />
+        <text x="485" y="125" font-family="'Lora', serif" font-size="19" font-weight="700" fill="var(--text)">x₅ = [2, 5]ᵀ</text>
+
+        <!-- Candidate Proxy A: perpendicular drop to (387, 274) -->
+        <line x1="464" y1="120" x2="387" y2="274" stroke="var(--dark)" stroke-width="2.2" stroke-dasharray="5,4" />
+        <circle cx="387" cy="274" r="7" fill="var(--box-label-bg)" />
+        <text x="360" y="330" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)" text-anchor="end">Proxy A (c₅?)</text>
+
+        <!-- Candidate Proxy B: vertical drop to (464, 312) -->
+        <line x1="464" y1="120" x2="464" y2="312" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="4,4" />
+        <circle cx="464" cy="312" r="6" fill="var(--muted)" />
+        <text x="485" y="316" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)">Proxy B (c₅?)</text>
+
+        <!-- Candidate Proxy C: along line at c5 = 2.0 -> [-4, 2] at (272, 216) -->
+        <line x1="464" y1="120" x2="272" y2="216" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="4,4" />
+        <circle cx="272" cy="216" r="6" fill="var(--muted)" />
+        <text x="255" y="210" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="end">Proxy C (c₅?)</text>
+
+        <!-- Concise pedagogical question -->
+        <text x="520" y="190" font-family="'Lora', serif" font-size="18" font-style="italic" font-weight="600" fill="var(--text)">Which proxy c₅ along</text>
+        <text x="520" y="215" font-family="'Lora', serif" font-size="18" font-style="italic" font-weight="600" fill="var(--text)">the line should we choose?</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> The breakdown of lossless compression and the representation dilemma. While the original four observations ($x_1$ through $x_4$) lay comfortably along the 1D line, the arrival of $x_5 = [2, 5]^T$ disrupts the collinearity. Demanding exact zero-error recovery forces the addition of a second basis vector, causing total storage ($4 + 2n = 14$) to exceed naive storage ($2n = 10$). To preserve dimensionality reduction, we must approximate $x_5$ with a proxy $\hat{x}_5 = c_5 w$ lying on the line—raising the central question: <em>which scalar coefficient $c_5$ along the line should we choose?</em>
+    </figcaption>
+  </figure>
+
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
       <p><em>If lossless compression fails on real data, what if we accept a small, controlled amount of error in exchange for massive compression? Let us try lossy compression!</em></p>
@@ -308,7 +418,7 @@
   <h2>Where Should the Proxy Be Chosen?</h2>
 
   <p>
-    In lossy compression, we represent each observation $x \in \mathbb{R}^d$ not by its exact coordinates, but by an approximate <strong>proxy</strong> $\hat{x}$ constrained to lie on a shared candidate line defined by direction vector $w = [w_1, w_2]^T$ (Figure 1, Panel B).
+    In lossy compression, we represent each observation $x \in \mathbb{R}^d$ not by its exact coordinates, but by an approximate <strong>proxy</strong> $\hat{x}$ constrained to lie on a shared candidate line defined by direction vector $w = [w_1, w_2]^T$ (Figure 3).
   </p>
 
   <p>
@@ -366,28 +476,28 @@
 
   <h3>Testing the Arithmetic: Scale Invariance</h3>
   <p>
-    Let us test this formula on our off-line observation $x = [2, 5]^T$:
+    Let us test this formula on our off-line observation $x_5 = [2, 5]^T$:
   </p>
 
   <p>
-    Suppose we pick the candidate direction $w = [1, 1]^T$. Evaluating the formula:
+    Using the candidate direction vector from our pop quiz, $w = [-2, 1]^T$. Evaluating the formula:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      C &= \frac{w_1 x_1 + w_2 x_2}{w_1^2 + w_2^2} = \frac{1(2) + 1(5)}{1^2 + 1^2} = \frac{7}{2} = 3.5 \\[8pt]
-      \text{Proxy } \hat{x} &= C w = 3.5 \begin{bmatrix} 1 \\[3pt] 1 \end{bmatrix} = \begin{bmatrix} 3.5 \\[3pt] 3.5 \end{bmatrix}
+      C &= \frac{w_1 x_{5,1} + w_2 x_{5,2}}{w_1^2 + w_2^2} = \frac{(-2)(2) + 1(5)}{(-2)^2 + 1^2} = \frac{1}{5} = 0.2 \\[8pt]
+      \text{Proxy } \hat{x}_5 &= C w = 0.2 \begin{bmatrix} -2 \\[3pt] 1 \end{bmatrix} = \begin{bmatrix} -0.4 \\[3pt] 0.2 \end{bmatrix}
     \end{aligned}$$
   </div>
 
   <p>
-    Now, what if someone else chose a representative vector pointing in the same direction, but 10 times longer: $w' = [10, 10]^T$?
+    Now, what if someone else chose a representative vector pointing in the same direction, but twice as long: $w' = [-4, 2]^T$?
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      C' &= \frac{10(2) + 10(5)}{10^2 + 10^2} = \frac{70}{200} = 0.35 \\[8pt]
-      \text{Proxy } \hat{x}' &= C' w' = 0.35 \begin{bmatrix} 10 \\[3pt] 10 \end{bmatrix} = \begin{bmatrix} 3.5 \\[3pt] 3.5 \end{bmatrix}
+      C' &= \frac{(-4)(2) + 2(5)}{(-4)^2 + 2^2} = \frac{-8 + 10}{16 + 4} = \frac{2}{20} = 0.1 \\[8pt]
+      \text{Proxy } \hat{x}_5' &= C' w' = 0.1 \begin{bmatrix} -4 \\[3pt] 2 \end{bmatrix} = \begin{bmatrix} -0.4 \\[3pt] 0.2 \end{bmatrix}
     \end{aligned}$$
   </div>
 
@@ -420,109 +530,61 @@
 
   <figure class="diagram-figure">
     <div class="svg-container">
-      <svg id="fig-popquiz-svg" viewBox="0 0 580 760" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 580px; height: auto;">
+      <svg id="fig3-orthogonal-projection-svg" viewBox="0 0 880 500" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 760px; height: auto;">
         <defs>
-          <marker id="pq-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <marker id="fig3-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
           </marker>
-          <marker id="pq-arrow-w" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <marker id="fig3-arrow-w" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--accent)" />
           </marker>
         </defs>
 
-        <!-- ================= TOP: Panel A = Collinear Data ================= -->
-        <g id="panel-a">
-          <text x="290" y="28" font-family="'Lora', serif" font-size="17" font-weight="600" fill="var(--text)" text-anchor="middle">Panel A: Collinear Data (Lossless Compression)</text>
-          <text x="290" y="48" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">All 4 points lie on x₂ = −0.5x₁ → 6 numbers vs. 8</text>
+        <!-- Coordinate Axes (Origin at 400, 280 - identical to Figure 2) -->
+        <line x1="40" y1="280" x2="840" y2="280" stroke="var(--border)" stroke-width="1.8" marker-end="url(#fig3-arrow)" />
+        <line x1="400" y1="470" x2="400" y2="30" stroke="var(--border)" stroke-width="1.8" marker-end="url(#fig3-arrow)" />
+        <text x="840" y="308" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">x₁</text>
+        <text x="380" y="45" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">x₂</text>
+        <text x="385" y="305" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--muted)" text-anchor="end">0</text>
 
-          <!-- Coordinate Axes for Panel A (Origin at 290, 200) -->
-          <line x1="50" y1="200" x2="530" y2="200" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
-          <line x1="290" y1="320" x2="290" y2="65" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
-          <text x="530" y="218" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₁</text>
-          <text x="278" y="78" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₂</text>
-          <text x="278" y="216" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="end">0</text>
+        <!-- 1D Subspace Line: x2 = -0.5 x1 -->
+        <line x1="60" y1="110" x2="740" y2="450" stroke="var(--border)" stroke-width="2.2" stroke-dasharray="6,4" />
+        <text x="745" y="465" font-family="'Lora', serif" font-size="16" font-style="italic" fill="var(--muted)">Line: x₂ = −0.5x₁</text>
 
-          <!-- Subspace Line: x2 = -0.5 x1 -->
-          <line x1="60" y1="85" x2="510" y2="310" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5,4" />
+        <!-- Direction vector w = [-2, 1]^T from (400, 280) to (336, 248) -->
+        <line x1="400" y1="280" x2="336" y2="248" stroke="var(--accent)" stroke-width="4.5" marker-end="url(#fig3-arrow-w)" />
+        <text x="368" y="235" font-family="'Lora', serif" font-size="17" font-style="italic" font-weight="700" fill="var(--text)" text-anchor="middle">w = [−2, 1]ᵀ</text>
 
-          <!-- Basis / Direction vector w = [-2, 1]^T -->
-          <line x1="290" y1="200" x2="210" y2="160" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#pq-arrow-w)" />
-          <text x="230" y="145" font-family="'Lora', serif" font-size="15" font-style="italic" font-weight="600" fill="var(--text)">w = [−2, 1]ᵀ</text>
+        <!-- Target Observation Point x5 = [2, 5] at (464, 120) -->
+        <circle cx="464" cy="120" r="15" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3,3" opacity="0.85" />
+        <circle cx="464" cy="120" r="7" fill="var(--accent)" />
+        <text x="485" y="125" font-family="'Lora', serif" font-size="19" font-weight="700" fill="var(--text)">x₅ = [2, 5]ᵀ</text>
 
-          <!-- Data point x1 (Labels placed safely above the line) -->
-          <circle cx="90" cy="100" r="5" fill="var(--accent)" />
-          <text x="90" y="70" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">x₁ [−5, 2.5]</text>
-          <text x="90" y="86" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">(c₁ = 2.5)</text>
+        <!-- Suboptimal Proxy B: vertical drop to (464, 312) -->
+        <line x1="464" y1="120" x2="464" y2="312" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="4,4" />
+        <circle cx="464" cy="312" r="6" fill="var(--muted)" />
+        <text x="485" y="316" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)">Proxy B (c₅ = −1.0)</text>
 
-          <!-- Data point x2 -->
-          <circle cx="210" cy="160" r="5" fill="var(--accent)" />
-          <text x="180" y="180" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">x₂ [−2, 1]</text>
+        <!-- Suboptimal Proxy C: at (272, 216) -->
+        <line x1="464" y1="120" x2="272" y2="216" stroke="var(--muted)" stroke-width="1.8" stroke-dasharray="4,4" />
+        <circle cx="272" cy="216" r="6" fill="var(--muted)" />
+        <text x="255" y="210" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="end">Proxy C (c₅ = 2.0)</text>
 
-          <!-- Data point x3 (Labels placed safely above the line) -->
-          <circle cx="450" cy="280" r="5" fill="var(--accent)" />
-          <text x="450" y="252" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="middle">x₃ [4, −2]</text>
-          <text x="450" y="268" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">(c₃ = −2.0)</text>
+        <!-- Optimal Orthogonal Projection Drop Line (e = x5 - x_hat) -->
+        <line x1="464" y1="120" x2="387" y2="274" stroke="var(--dark)" stroke-width="2.8" stroke-dasharray="5,4" />
+        <text x="432" y="195" font-family="'Lora', serif" font-size="18" font-style="italic" font-weight="700" fill="var(--dark)">e*</text>
 
-          <!-- Data point x4 -->
-          <circle cx="490" cy="300" r="5" fill="var(--accent)" />
-          <text x="505" y="305" font-family="'Lora', serif" font-size="13" fill="var(--text)" text-anchor="start">x₄ [5, −2.5]</text>
+        <!-- Exact Right-Angle Square (90°) at perpendicular foot (387, 274) inside the right triangle -->
+        <path d="M 393.3 261.5 L 405.8 267.7 L 399.5 280.3" fill="none" stroke="var(--dark)" stroke-width="1.8" />
 
-          <!-- Storage note -->
-          <text x="290" y="340" font-family="'Lora', serif" font-size="12.5" font-weight="600" fill="var(--text)" text-anchor="middle">Storage: 2 (vector w) + 4 (scalars) = 6 numbers</text>
-        </g>
-
-        <!-- Horizontal Divider Line -->
-        <line x1="40" y1="380" x2="540" y2="380" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4" />
-
-        <!-- ================= BOTTOM: Panel B = Off-Line Point & Proxy Selection ================= -->
-        <g id="panel-b" transform="translate(0, 400)">
-          <text x="290" y="26" font-family="'Lora', serif" font-size="17" font-weight="600" fill="var(--text)" text-anchor="middle">Panel B: Off-Line Point &amp; Proxy Selection</text>
-          <text x="290" y="48" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Minimizing error ‖x − Cw‖² yields orthogonal projection</text>
-
-          <!-- Coordinate Axes for Panel B (Origin at 190, 275) -->
-          <line x1="140" y1="275" x2="520" y2="275" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
-          <line x1="190" y1="315" x2="190" y2="75" stroke="var(--border)" stroke-width="1.5" marker-end="url(#pq-arrow)" />
-          <text x="520" y="292" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₁</text>
-          <text x="178" y="85" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="end">x₂</text>
-          <text x="178" y="290" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="end">0</text>
-
-          <!-- Candidate line w = [1, 1]^T -->
-          <line x1="160" y1="305" x2="336" y2="129" stroke="var(--box-label-bg)" stroke-width="2.5" />
-          <text x="342" y="126" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="start">Line w = [1, 1]ᵀ</text>
-
-          <!-- Basis / Direction vector w = [1, 1]^T -->
-          <line x1="190" y1="275" x2="216" y2="249" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#pq-arrow-w)" />
-          <text x="226" y="262" font-family="'Lora', serif" font-size="14" font-style="italic" font-weight="600" fill="var(--text)">w = [1, 1]ᵀ</text>
-
-          <!-- Suboptimal proxies -->
-          <line x1="242" y1="145" x2="236.8" y2="228.2" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,3" />
-          <circle cx="236.8" cy="228.2" r="4" fill="var(--muted)" />
-          <text x="175" y="232" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="end">Suboptimal Proxy (C = 1.8)</text>
-
-          <line x1="242" y1="145" x2="320" y2="145" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="4,3" />
-          <circle cx="320" cy="145" r="4" fill="var(--muted)" />
-          <text x="332" y="149" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="start">Suboptimal (C = 5.0)</text>
-
-          <!-- Optimal orthogonal projection drop line -->
-          <line x1="242" y1="145" x2="281" y2="184" stroke="var(--dark)" stroke-width="2.8" stroke-dasharray="5,4" />
-          <path d="M 275 178 L 269 184 L 275 190" fill="none" stroke="var(--muted)" stroke-width="1.8" />
-
-          <!-- Data Point Dot x = [2, 5] -->
-          <circle cx="242" cy="145" r="6" fill="var(--accent)" />
-          <text x="242" y="128" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="middle">Data Point x = [2, 5]ᵀ</text>
-
-          <!-- Optimal Proxy Dot \hat{x} = [3.5, 3.5] -->
-          <circle cx="281" cy="184" r="6" fill="var(--box-label-bg)" />
-          <text x="295" y="186" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">Optimal Proxy x̂ = [3.5, 3.5]ᵀ</text>
-          <text x="295" y="202" font-family="'Lora', serif" font-size="12" fill="var(--muted)">(C = 3.5, Minimum Error)</text>
-
-          <!-- Bottom annotation -->
-          <text x="290" y="340" font-family="'Lora', serif" font-size="12.5" font-weight="600" fill="var(--text)" text-anchor="middle">Perpendicular Gap ⊥ Line w: Zero Redundancy</text>
-        </g>
+        <!-- Optimal Proxy Point A: x_hat = [-0.4, 0.2] at (387, 274) -->
+        <circle cx="387" cy="274" r="7.5" fill="var(--box-label-bg)" />
+        <text x="360" y="330" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="end">Optimal x̂₅ = [−0.4, 0.2]ᵀ</text>
+        <text x="360" y="354" font-family="'Lora', serif" font-size="15.5" fill="var(--muted)" text-anchor="end">c₅ = 0.2 (e* ⊥ w)</text>
       </svg>
     </div>
     <figcaption class="figure-caption">
-      <strong>Figure 1:</strong> The geometric foundations of representation learning and compression. <strong>Panel A:</strong> When four 2D data points fall on a single line $x_2 = -0.5x_1$, fixing 1 representative direction vector $w$ allows exact lossless reconstruction using only 4 scalar coefficients (storing 6 numbers instead of 8). <strong>Panel B:</strong> When an observation $x = [2, 5]^T$ falls off the line, exact lossless recovery requires $4 + 2n > 2n$ numbers. Embracing lossy compression, the optimal proxy $\hat{x} = C w$ minimizing squared error is uniquely achieved when the error vector $e = x - C w$ drops perpendicularly onto the line ($C = 3.5$, $\hat{x} = [3.5, 3.5]^T$).
+      <strong>Figure 3:</strong> Geometric proof that orthogonal projection minimizes squared reconstruction error. Resolving the dilemma posed in Figure 2 for observation $x_5 = [2, 5]^T$ and line $w = [-2, 1]^T$, evaluating $C = \frac{w^T x_5}{\|w\|^2}$ reveals the unique optimal proxy $\hat{x}_5 = [-0.4, 0.2]^T$ ($C = 0.2$, Proxy A). Suboptimal choices like Proxy B ($C = -1.0$) or Proxy C ($C = 2.0$) yield strictly longer error vectors. Because the error vector $e^* = x_5 - \hat{x}_5$ is strictly perpendicular ($90^\circ$) to $w$, the Pythagorean theorem dictates that any other candidate proxy forms the hypotenuse of a right-angled triangle ($\|x_5 - \hat{x}'\|^2 = \|e^*\|^2 + \|\hat{x}^* - \hat{x}'\|^2$), guaranteeing that orthogonal projection achieves the unique global minimum error.
     </figcaption>
   </figure>
 </section>
@@ -576,8 +638,59 @@
   </div>
 
   <p>
-    This is an astronomical reduction: <strong>$10$ million numbers collapse down to $110{,}000$ numbers</strong>, delivering over a $90\times$ compression ratio while capturing the essential geometry of the data.
+    This is an astronomical reduction: <strong>$10$ million numbers collapse down to $110{,}000$ numbers</strong>, delivering over a $90\times$ compression ratio while capturing the essential geometry of the data (Figure 4).
   </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig4-matrix-factorization-svg" viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 760px; height: auto;">
+        <!-- Matrix X (Raw Data) -->
+        <rect x="110" y="55" width="180" height="145" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1.8" />
+        <line x1="110" y1="92" x2="290" y2="92" stroke="var(--border)" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6" />
+        <line x1="110" y1="128" x2="290" y2="128" stroke="var(--border)" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6" />
+        <line x1="110" y1="164" x2="290" y2="164" stroke="var(--border)" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6" />
+        <line x1="170" y1="55" x2="170" y2="200" stroke="var(--border)" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6" />
+        <line x1="230" y1="55" x2="230" y2="200" stroke="var(--border)" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.6" />
+
+        <text x="200" y="36" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="middle">d = 1,000 features</text>
+        <text x="96" y="122" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="end">n = 10,000</text>
+        <text x="96" y="144" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)" text-anchor="end">samples</text>
+
+        <text x="200" y="112" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)" text-anchor="middle">Raw Matrix X</text>
+        <text x="200" y="136" font-family="'Lora', serif" font-size="16" font-weight="600" fill="var(--text)" text-anchor="middle">n × d = 10,000,000</text>
+        <text x="200" y="156" font-family="'Lora', serif" font-size="14.5" fill="var(--muted)" text-anchor="middle">floating-point numbers</text>
+
+        <!-- Approximation symbol ≈ -->
+        <text x="320" y="136" font-family="'Lora', serif" font-size="34" font-weight="700" fill="var(--text)" text-anchor="middle">≈</text>
+
+        <!-- Matrix Z (Compressed Latent Codes) -->
+        <rect x="350" y="55" width="65" height="145" rx="6" fill="var(--highlight)" fill-opacity="0.35" stroke="var(--accent)" stroke-width="2" />
+        <text x="382" y="36" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="middle">K = 10</text>
+        <text x="382" y="115" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)" text-anchor="middle">Codes Z</text>
+        <text x="382" y="138" font-family="'Lora', serif" font-size="15" font-weight="600" fill="var(--text)" text-anchor="middle">(n × K)</text>
+        <text x="382" y="226" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="middle">100,000</text>
+        <text x="382" y="246" font-family="'Lora', serif" font-size="14.5" fill="var(--muted)" text-anchor="middle">numbers</text>
+
+        <!-- Multiplication symbol × -->
+        <text x="440" y="136" font-family="'Lora', serif" font-size="28" font-weight="700" fill="var(--text)" text-anchor="middle">×</text>
+
+        <!-- Matrix W^T (Shared Basis Dictionary) -->
+        <rect x="470" y="55" width="190" height="52" rx="6" fill="var(--highlight)" fill-opacity="0.35" stroke="var(--box-label-bg)" stroke-width="2" />
+        <text x="565" y="36" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="middle">d = 1,000 features</text>
+        <text x="675" y="88" font-family="'Lora', serif" font-size="16" font-weight="700" fill="var(--text)" text-anchor="start">K = 10</text>
+        <text x="565" y="88" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)" text-anchor="middle">Basis Dictionary Wᵀ</text>
+        <text x="565" y="132" font-family="'Lora', serif" font-size="15.5" font-weight="600" fill="var(--text)" text-anchor="middle">K × d = 10,000 numbers</text>
+
+        <!-- Storage economics summary (clean direct typography, no card box) -->
+        <text x="470" y="178" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)">Total Compressed Storage:</text>
+        <text x="470" y="204" font-family="'Lora', serif" font-size="16" fill="var(--muted)">100,000 (codes) + 10,000 (basis) = 110,000</text>
+        <text x="470" y="232" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)">Compression Ratio: 90.9× (98.9% saved)</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 4:</strong> The linear algebra of representation learning in high dimensions. A high-dimensional data matrix $X \in \mathbb{R}^{n \times d}$ storing $10{,}000{,}000$ floating-point values is approximated as the low-rank product $Z W^T$ of a tall skinny coordinate matrix $Z \in \mathbb{R}^{n \times K}$ ($100{,}000$ numbers) and a flat basis dictionary $W^T \in \mathbb{R}^{K \times d}$ ($10{,}000$ numbers). Projecting onto an intrinsic $K$-dimensional subspace ($K = 10$) preserves the primary geometric structure while eliminating over $98.9\%$ of raw coordinate storage.
+    </figcaption>
+  </figure>
 
   <h3>The Pivotal Mystery: Who Gives Us the Line?</h3>
   <p>

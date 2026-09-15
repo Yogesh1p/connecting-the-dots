@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="4aea2c59">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="PCA ●─● Spectral Theorem & SVD">
+<meta name="description" content="From vector projections to matrix operators: discovering how coordinate rotations diagonalize covariance, how Singular Value Decomposition factors data matrices directly, and why numerical stability dictates modern PCA computation.">
+<meta name="keywords" content="PCA, PCA ●─● Spectral Theorem & SVD, spectral theorem, SVD, singular value decomposition, coordinate rotation, covariance diagonalization, Eckart Young Mirsky, numerical stability, representation learning, Foundations of Machine Learning">
+<meta name="status" content="draft">
+<meta name="date" content="2026-09-12">
+<meta name="author" content="Yogesh">
+
+<title>PCA ●─● Spectral Theorem & SVD</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .svg-container svg {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+  .pca-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin: 1.2rem 0 0.5rem;
+    width: 100%;
+  }
+  .pca-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    transition: all 0.2s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .pca-btn:hover {
+    background: var(--highlight);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .pca-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [["$", "$"], ["\\(", "\\)"]],
+            displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<meta name="reading_time" content="15">
+<meta property="og:title" content="PCA ●─● Spectral Theorem & SVD">
+<meta property="og:description" content="From vector projections to matrix operators: discovering how coordinate rotations diagonalize covariance, how Singular Value Decomposition factors data matrices directly, and why numerical stability dictates modern PCA computation.">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-pca-spectral-theorem-and-svd.png">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  The Matrix View: Orthogonal Coordinate Rotation        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="coordinate-rotation">
+  <h2>The Matrix View: Orthogonal Coordinate Rotation</h2>
+
+  <p>
+    In the previous article, we discovered Principal Component Analysis vector-by-vector from first principles—grounded in geometric projections, constrained optimization via Lagrange multipliers, and Pythagorean variance conservation. We saw how finding the direction of greatest spread naturally led us to the eigenvectors and eigenvalues of the sample covariance matrix.
+  </p>
+
+  <p>
+    Now, we take a profound step forward: looking at the entire operation through matrix algebra. How do computers actually perform PCA simultaneously across thousands of dimensions without laboriously searching for one component at a time? And how do matrix factorizations reveal the deeper geometric and computational structure of our data?
+  </p>
+
+  <p>
+    Geometrically, we are not changing or distorting the data cloud. We are simply rotating the coordinate system until the axes line up with the natural directions in which the data varies.
+  </p>
+
+  <h3>Assembling the Rotation Matrix</h3>
+  <p>
+    From our eigendecomposition of the covariance matrix $C$, we obtained $d$ orthonormal eigenvectors $v_1, v_2, \dots, v_d$. Let us place these vectors as the columns of a matrix $V$:
+  </p>
+
+  <div class="math-display">
+    $V = \begin{bmatrix} | & | & & | \\ v_1 & v_2 & \cdots & v_d \\ | & | & & | \end{bmatrix} \in \mathbb{R}^{d \times d}$
+  </div>
+
+  <p>
+    Because the eigenvectors are <strong>mutually perpendicular</strong> and normalized to <strong>unit length</strong> ($v_i^T v_j = 0$ for $i \neq j$, and $v_i^T v_i = 1$), the matrix $V$ satisfies:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      V^T V &= I_d \\[6pt]
+      V V^T &= I_d
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Therefore, $V$ is an <strong>orthogonal matrix</strong> ($V^{-1} = V^T$). Geometrically, multiplying by an orthogonal matrix performs a <strong>pure rigid coordinate rotation</strong> (and possible reflection) of $\mathbb{R}^d$—aligning our data along the axes of maximum variance without stretching, compressing, or shearing any distances.
+  </p>
+
+  <h3>Rotating the Data Cloud</h3>
+  <p>
+    Suppose our centered dataset of $n$ observations is stacked into an $n \times d$ matrix $X$ (where each row $x_i^T \in \mathbb{R}^d$ is a centered sample). To express every data point in this new orthonormal coordinate system, we multiply by $V$:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The PCA Coordinate Transformation</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $Z = X V$
+      </div>
+      <p>
+        The matrix $Z \in \mathbb{R}^{n \times d}$ is the <strong>PCA-transformed dataset</strong>.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    Let us inspect the rows and columns of $Z$:
+  </p>
+
+  <div class="math-display">
+    $Z = \begin{bmatrix} x_1^T \\ x_2^T \\ \vdots \\ x_n^T \end{bmatrix} \begin{bmatrix} v_1 & v_2 & \cdots & v_d \end{bmatrix} = \begin{bmatrix} x_1^T v_1 & x_1^T v_2 & \cdots & x_1^T v_d \\ x_2^T v_1 & x_2^T v_2 & \cdots & x_2^T v_d \\ \vdots & \vdots & \ddots & \vdots \\ x_n^T v_1 & x_n^T v_2 & \cdots & x_n^T v_d \end{bmatrix}$
+  </div>
+
+  <p>
+    The $j$-th column of $Z$ contains the coordinates of every data point along the $j$-th principal component axis $v_j$. Each entry is a scalar projection onto a PCA axis.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 880 370" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
+        <defs>
+          <marker id="rot-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+          <marker id="rot-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
+          </marker>
+          <marker id="rot-arrow-box" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
+          </marker>
+        </defs>
+
+        <!-- Left: Correlated Original Axes -->
+        <g transform="translate(45, 25)">
+          <text x="150" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Original Coordinates (X)</text>
+          
+          <!-- Original Axes -->
+          <line x1="20" y1="180" x2="280" y2="180" stroke="var(--muted)" stroke-width="2" />
+          <text x="295" y="185" font-family="'Lora', serif" font-size="15" fill="var(--muted)">x₁</text>
+          <line x1="150" y1="290" x2="150" y2="45" stroke="var(--muted)" stroke-width="2" />
+          <text x="150" y="38" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">x₂</text>
+
+          <!-- Tilted Ellipse -->
+          <ellipse cx="150" cy="180" rx="95" ry="40" transform="rotate(-35, 150, 180)" fill="var(--highlight)" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6,4" />
+
+          <!-- Principal Component Vectors -->
+          <line x1="150" y1="180" x2="225" y2="128" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#rot-arrow-accent)" />
+          <text x="238" y="122" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">v₁</text>
+          
+          <line x1="150" y1="180" x2="112" y2="125" stroke="var(--box-label-bg)" stroke-width="3.5" marker-end="url(#rot-arrow-box)" />
+          <text x="98" y="120" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">v₂</text>
+
+          <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Correlated: C has non-zero off-diagonals</text>
+        </g>
+
+        <!-- Transformation Arrow -->
+        <g transform="translate(390, 160)">
+          <line x1="0" y1="0" x2="45" y2="0" stroke="var(--text)" stroke-width="2.5" marker-end="url(#rot-arrow-text)" />
+          <text x="22" y="-12" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">Z = XV</text>
+          <text x="22" y="22" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Rotate Frame</text>
+        </g>
+
+        <!-- Right: Rotated PCA Frame -->
+        <g transform="translate(485, 25)">
+          <text x="150" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">PCA Coordinates (Z = XV)</text>
+          
+          <!-- PCA Axes aligned with frame -->
+          <line x1="20" y1="180" x2="280" y2="180" stroke="var(--accent)" stroke-width="2.5" />
+          <text x="295" y="185" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)">z₁</text>
+          <line x1="150" y1="290" x2="150" y2="45" stroke="var(--box-label-bg)" stroke-width="2.5" />
+          <text x="150" y="38" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">z₂</text>
+
+          <!-- Upright Ellipse -->
+          <ellipse cx="150" cy="180" rx="95" ry="40" fill="var(--highlight)" stroke="var(--accent)" stroke-width="2.5" />
+
+          <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Uncorrelated: Cov(Z) = Λ (Diagonal)</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> PCA as an orthogonal coordinate rotation. Multiplying $Z = XV$ rotates the coordinate axes until they align with the natural eigenvectors of the data cloud, completely eliminating off-diagonal correlations.
+    </figcaption>
+  </figure>
+
+  <h3>Diagonalizing the Covariance Matrix</h3>
+  <p>
+    What is the sample covariance matrix of our transformed data $Z$? Let us calculate it directly:
+  </p>
+
+  <div class="math-display">
+    $\begin{aligned}
+    \text{Cov}(Z) &= \frac{1}{n} Z^T Z \\
+    &= \frac{1}{n} (X V)^T (X V) \\
+    &= \frac{1}{n} V^T X^T X V \\
+    &= V^T \left( \frac{1}{n} X^T X \right) V \\
+    &= V^T C V
+    \end{aligned}$
+  </div>
+
+  <p>
+    Recall the fundamental matrix eigenvector equation: $C V = V \Lambda$, where $\Lambda = \text{diag}(\lambda_1, \dots, \lambda_d)$.
+  </p>
+
+  <p>
+    Multiplying both sides on the left by $V^T$ (since $V^T V = I_d$):
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Diagonalization of the Covariance Matrix</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $\text{Cov}(Z) = V^T C V = \Lambda = \begin{bmatrix} \lambda_1 & 0 & \cdots & 0 \\ 0 & \lambda_2 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & \lambda_d \end{bmatrix}$
+      </div>
+      <p>
+        Because $\Lambda$ is strictly diagonal, the covariance between any two distinct coordinates $z_i$ and $z_j$ is zero:
+      </p>
+      <div class="math-display">
+        $\text{Cov}(Z_i, Z_j) = 0 \qquad \text{for all } i \neq j$
+      </div>
+      <p>
+        The transformed features $Z_1, Z_2, \dots, Z_d$ are completely <strong>uncorrelated</strong>, and their individual variances are precisely the eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_d$.
+      </p>
+    </div>
+  </div>
+
+  <h3>The SVD View: Factoring the Data Matrix Directly</h3>
+  <p>
+    Up to this point, we constructed PCA by first forming the covariance matrix $C = \frac{1}{n} X^T X$ and finding its eigenvectors. But there is an even more direct, purely matrix-algebraic way to view PCA: through the <strong>Singular Value Decomposition (SVD)</strong> of the centered data matrix itself.
+  </p>
+
+  <p>
+    Any centered data matrix $X \in \mathbb{R}^{n \times d}$ can be factored directly as:
+  </p>
+
+  <div class="math-display">
+    $X = U \Sigma V^T$
+  </div>
+
+  <p>
+    where $U \in \mathbb{R}^{n \times n}$ and $V \in \mathbb{R}^{d \times d}$ have orthonormal columns, and $\Sigma \in \mathbb{R}^{n \times d}$ contains the singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$ along its main diagonal.
+  </p>
+
+  <p>
+    Substitute this factorization directly into the sample covariance matrix:
+  </p>
+
+  <div class="math-display">
+    $\begin{aligned}
+      C &= \frac{1}{n} X^T X \\[6pt]
+      &= \frac{1}{n} (U \Sigma V^T)^T (U \Sigma V^T) \\[6pt]
+      &= \frac{1}{n} V \Sigma^T (U^T U) \Sigma V^T \\[6pt]
+      &= V \left( \frac{\Sigma^T \Sigma}{n} \right) V^T
+    \end{aligned}$
+  </div>
+
+  <p>
+    Because $U^T U = I_n$ and $\frac{\Sigma^T \Sigma}{n}$ is a diagonal matrix, this is the exact eigendecomposition $C = V \Lambda V^T$. This reveals the direct relationship between singular values and covariance eigenvalues:
+  </p>
+
+  <div class="math-display">
+    $\lambda_i = \frac{\sigma_i^2}{n}$
+  </div>
+
+  <p>
+    The right singular vectors $v_i$ (the columns of $V$) are <em>identically</em> the principal component directions. The transformed coordinates $Z = XV$ follow immediately from the SVD:
+  </p>
+
+  <div class="math-display">
+    $Z = X V = (U \Sigma V^T) V = U \Sigma$
+  </div>
+
+  <p>
+    The $i$-th column of $Z$ is simply $\sigma_i u_i$. The singular value $\sigma_i$ scales the column, while the left singular vector $u_i \in \mathbb{R}^n$ contains the normalized coordinates of all $n$ samples along the $i$-th principal axis.
+  </p>
+
+  <h3>PCA as a Sum of Rank-One Matrices</h3>
+  <p>
+    Every matrix product can be expanded as a sum of outer products. Writing $X = U \Sigma V^T$ term-by-term decomposes the entire dataset into a sum of rank-one matrices:
+  </p>
+
+  <div class="math-display">
+    $\begin{aligned}
+      X &= \sum_{i=1}^r \sigma_i u_i v_i^T \\[6pt]
+      &= \sigma_1 u_1 v_1^T + \sigma_2 u_2 v_2^T + \dots + \sigma_r u_r v_r^T
+    \end{aligned}$
+  </div>
+
+  <p>
+    Each term $\sigma_i u_i v_i^T$ is an independent, rank-one piece of the data:
+  </p>
+
+  <ul>
+    <li>$v_i \in \mathbb{R}^d$ is the feature pattern (the direction in feature space).</li>
+    <li>$u_i \in \mathbb{R}^n$ is the sample profile (how much each observation exhibits that pattern).</li>
+    <li>$\sigma_i$ is the amplitude, measuring the total spread carried by this component.</li>
+  </ul>
+
+  <p>
+    When we keep only the top $k$ principal components, our low-rank reconstruction is simply the truncated sum:
+  </p>
+
+  <div class="math-display">
+    $X_k = \sum_{i=1}^k \sigma_i u_i v_i^T$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Eckart–Young–Mirsky Theorem</div>
+    <div class="math-box-body">
+      <p>
+        For any rank $k < r$, the truncated SVD matrix $X_k$ is the <strong>globally optimal rank-$k$ approximation</strong> to $X$. It minimizes the total squared reconstruction error over all possible rank-$k$ matrices $B$:
+      </p>
+      <div class="math-display">
+        $\begin{aligned}
+          \min_{\operatorname{rank}(B) \le k} \|X - B\|_F^2 &= \|X - X_k\|_F^2 \\[6pt]
+          &= \sum_{i=k+1}^d \sigma_i^2 \\[6pt]
+          &= n \sum_{i=k+1}^d \lambda_i
+        \end{aligned}$
+      </div>
+      <p>
+        The total reconstruction error across the entire matrix is exactly $n$ times the sum of the discarded eigenvalues.
+      </p>
+    </div>
+  </div>
+
+  <h3>How Software Actually Computes PCA: The Computational Reality</h3>
+  <p>
+    In introductory linear algebra, we learn to solve eigenvalues by hand using the characteristic equation $\det(C - \lambda I) = 0$. But in production machine learning with thousands of dimensions, computing determinants or forming $X^T X$ directly is both mathematically impossible and numerically destructive.
+  </p>
+
+  <details class="toggle" style="margin: 1.5rem 0 2.5rem;">
+    <summary style="font-size: 1.05rem; font-weight: 600;">Deep Dive: Why Characteristic Polynomials Fail &amp; How Production Solvers Compute PCA</summary>
+    <div style="margin-top: 1.2rem;">
+
+      <h4>The Breakdown of the Characteristic Polynomial</h4>
+      <p>
+        Why does $\det(C - \lambda I) = 0$ fail in production? Three mathematical and computational barriers stand in the way:
+      </p>
+
+      <ul>
+        <li>
+          <strong>The Abel&ndash;Ruffini Impossibility:</strong> By the famous Abel&ndash;Ruffini theorem, there is no general algebraic solution in radicals for polynomial equations of degree five or higher ($d \ge 5$). Closed-form formulas simply do not exist. All eigenvalue solutions for $d \ge 5$ <em>must</em> be approximated iteratively.
+        </li>
+        <li>
+          <strong>Wilkinson's Catastrophic Instability:</strong> Polynomial root-finding is one of the most notoriously ill-conditioned problems in numerical analysis. In floating-point arithmetic, changing a single coefficient of a high-degree polynomial by a minuscule amount—even by $10^{-14}$ due to machine roundoff—can perturb the calculated roots by orders of magnitude (a phenomenon famously demonstrated by James H. Wilkinson).
+        </li>
+        <li>
+          <strong>Combinatorial Determinant Explosion:</strong> Expanding $\det(C - \lambda I)$ naively requires $O(d!)$ operations. Even using Gaussian elimination to find polynomial coefficients takes $O(d^3)$ operations and leaves behind wildly unstable coefficients.
+        </li>
+      </ul>
+
+      <p>
+        If computers never solve characteristic polynomials, how do libraries like NumPy, SciPy, LAPACK, and PyTorch actually compute eigenvalues and eigenvectors?
+      </p>
+
+      <h4>1. The Intuitive Engine: Power Iteration</h4>
+      <p>
+        The simplest and most intuitive way to extract an eigenvector without ever touching a determinant is the <strong>Power Method</strong>.
+      </p>
+
+      <p>
+        Suppose we pick an arbitrary, non-zero random vector $b_0 \in \mathbb{R}^d$. Because the orthonormal eigenvectors $v_1, v_2, \dots, v_d$ form a complete basis of $\mathbb{R}^d$, we can express $b_0$ as a linear combination of them:
+      </p>
+
+      <div class="math-display">
+        $$b_0 = c_1 v_1 + c_2 v_2 + \dots + c_d v_d$$
+      </div>
+
+      <p>
+        Now, multiply $b_0$ by the covariance matrix $C$. Because $C v_i = \lambda_i v_i$, each eigenvector component is scaled by its corresponding eigenvalue:
+      </p>
+
+      <div class="math-display">
+        $$\begin{aligned}
+          C b_0 &= c_1 C v_1 + c_2 C v_2 + \dots + c_d C v_d \\[6pt]
+          &= c_1 \lambda_1 v_1 + c_2 \lambda_2 v_2 + \dots + c_d \lambda_d v_d
+        \end{aligned}$$
+      </div>
+
+      <p>
+        In every iteration $k$, the algorithm multiplies by $C$ and normalizes the vector by its Euclidean length $\|w\| = \sqrt{\sum w_i^2}$:
+      </p>
+
+      <div class="math-display">
+        $$\begin{aligned}
+          w &= C b_k \\[6pt]
+          b_{k+1} &= \frac{w}{\|w\|}
+        \end{aligned}$$
+      </div>
+
+      <p>
+        <em>Notice a vital practical detail:</em> Normalizing simply divides $w$ by its Euclidean length. You do <strong>not</strong> need to know $\lambda_1$ to run this loop!
+      </p>
+
+      <p>
+        Why does this converge? Because mathematically, repeating this multiplication $k$ times expands to:
+      </p>
+
+      <div class="math-display">
+        $$\begin{aligned}
+          C^k b_0 &= c_1 \lambda_1^k v_1 + c_2 \lambda_2^k v_2 + \dots + c_d \lambda_d^k v_d \\[8pt]
+          &= \lambda_1^k \left[ c_1 v_1 + c_2 \left(\frac{\lambda_2}{\lambda_1}\right)^k v_2 + \dots + c_d \left(\frac{\lambda_d}{\lambda_1}\right)^k v_d \right]
+        \end{aligned}$$
+      </div>
+
+      <p>
+        Because $\lambda_1$ is the strictly dominant eigenvalue ($\lambda_1 > \lambda_2 \ge \dots \ge \lambda_d \ge 0$), the ratio $(\lambda_j / \lambda_1)^k$ decays exponentially toward zero as $k$ increases:
+      </p>
+
+      <div class="math-display">
+        $$\lim_{k \to \infty} \left(\frac{\lambda_j}{\lambda_1}\right)^k = 0 \quad (\text{for all } j \ge 2)$$
+      </div>
+
+      <p>
+        Every other eigenvector component dies out! The normalized vector converges directly onto the first principal component:
+      </p>
+
+      <div class="math-display">
+        $$\lim_{k \to \infty} b_k = v_1$$
+      </div>
+
+      <p>
+        Its eigenvalue $\lambda_1$ is then discovered in a single dot product via the <strong>Rayleigh quotient</strong>:
+      </p>
+
+      <div class="math-display">
+        $$\lambda_1 = \frac{v_1^T C v_1}{v_1^T v_1} = v_1^T C v_1$$
+      </div>
+
+      <p>
+        To find the second principal component $v_2$, we simply remove the influence of $v_1$ from the covariance matrix through <strong>Hotelling deflation</strong>:
+      </p>
+
+      <div class="math-display">
+        $$C_{\text{deflated}} = C - \lambda_1 v_1 v_1^T$$
+      </div>
+
+      <p>
+        Running power iteration on $C_{\text{deflated}}$ converges to $v_2$, and repeating this deflation sequence extracts each successive principal component in descending order of variance.
+      </p>
+
+      <h4>2. The Dense Workhorse: The QR Algorithm with Shifts</h4>
+      <p>
+        While power iteration is conceptually intuitive, extracting all $d$ eigenvectors one-by-one via deflation accumulates numerical error. For dense symmetric matrices of moderate size ($d \le 5{,}000$), modern linear algebra packages (such as LAPACK's <code>dsyev</code> and NumPy's <code>np.linalg.eigh</code>) use Francis's <strong>shifted QR algorithm</strong>.
+      </p>
+
+      <p>
+        The QR algorithm does not calculate roots. Instead, it repeatedly factors the matrix into an orthogonal matrix $Q$ and an upper-triangular matrix $R$, and then multiplies them in reverse:
+      </p>
+
+      <div class="math-display">
+        $$\begin{aligned}
+          A_k &= Q_k R_k \\[6pt]
+          A_{k+1} &= R_k Q_k = Q_k^T A_k Q_k
+        \end{aligned}$$
+      </div>
+
+      <p>
+        Notice that $A_{k+1}$ is an <strong>orthogonal similarity transformation</strong> of $A_k$, which means it shares the exact same eigenvalues. With every iteration, the off-diagonal entries shrink toward zero at an astonishing cubic rate. After a handful of iterations, $A_k$ converges to a purely diagonal matrix $\Lambda$ containing all eigenvalues along its diagonal, while the accumulated product of transformations $Q_1 Q_2 \cdots Q_k$ directly yields the eigenvector matrix $V$!
+      </p>
+
+      <h4>3. High Dimensions &amp; Truncated PCA: The Lanczos Iteration</h4>
+      <p>
+        In modern machine learning, datasets often feature tens of thousands of dimensions ($d = 50{,}000$). However, we almost never need all $50{,}000$ eigenvectors; we typically only want the top $k = 20$ or $k = 50$ principal components.
+      </p>
+
+      <p>
+        Factoring a $50{,}000 \times 50{,}000$ matrix using the full QR algorithm would cost $O(d^3) \approx 1.25 \times 10^{14}$ operations—taking hours or running out of memory.
+      </p>
+
+      <p>
+        Instead, algorithms like the <strong>Lanczos method</strong> (implemented in ARPACK and SciPy's <code>scipy.sparse.linalg.eigsh</code>) construct a low-dimensional <strong>Krylov subspace</strong>:
+      </p>
+
+      <div class="math-display">
+        $$\mathcal{K}_m(C, b) = \operatorname{span}\{b, Cb, C^2 b, \dots, C^{m-1} b\}$$
+      </div>
+
+      <p>
+        By projecting the gigantic matrix $C$ into an $m$-dimensional Krylov subspace (where $m \ll d$, often just $2k$ or $3k$), the problem is reduced to finding eigenvalues of a tiny tridiagonal matrix. Lanczos extracts the extreme largest eigenvalues and eigenvectors with pinpoint precision in $O(k \cdot d^2)$ operations, without ever computing or diagonalizing the rest of the matrix.
+      </p>
+
+      <h4>4. The Production Standard: SVD Directly on the Data Matrix $X$</h4>
+      <p>
+        Yet even with advanced iterative eigensolvers, production libraries like <strong>scikit-learn</strong> rarely form the covariance matrix $C = \frac{1}{n} X^T X$ at all. Instead, they compute the Singular Value Decomposition directly on the centered data matrix $X$.
+      </p>
+
+      <p>
+        The decisive reason is <strong>numerical stability</strong>. Forming the matrix product $X^T X$ squares the condition number:
+      </p>
+
+      <div class="math-display">
+        $$\kappa(X^T X) = (\kappa(X))^2$$
+      </div>
+
+      <p>
+        In standard 64-bit IEEE floating-point arithmetic, numbers have roughly $16$ decimal digits of precision (machine epsilon $\epsilon_{\text{mach}} \approx 10^{-16}$). Consider the consequences:
+      </p>
+
+      <ul>
+        <li>
+          If a dataset $X$ has a condition number of $\kappa(X) = 10^4$, the covariance matrix $X^T X$ has $\kappa(X^T X) = 10^8$, losing half of its available precision.
+        </li>
+        <li>
+          If $X$ has $\kappa(X) = 10^8$ (common in datasets with collinear features or varying units), then $\kappa(X^T X) = 10^{16}$. At this point, the matrix product wipes out all precision—the smaller singular values (which represent minor variance directions) are entirely rounded down to zero and lost in machine noise.
+        </li>
+      </ul>
+
+      <p>
+        Production engines (like LAPACK's <code>dgesdd</code>, which powers <code>scikit-learn</code>'s <code>PCA</code>) bypass $X^T X$ entirely using a <strong>bidiagonal divide-and-conquer SVD</strong>. They apply Householder reflections directly to $X$ to reduce it to a bidiagonal matrix, and then recursively diagonalize it. This guarantees that singular values and principal directions are calculated with full floating-point precision, even for components with minuscule variances.
+      </p>
+    </div>
+  </details>
+
+  <h3>Two Matrix Conventions: Columns vs Rows</h3>
+  <p>
+    In machine learning and linear algebra literature, you will encounter two matrix conventions. Both describe the exact same mathematics:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Two Matrix Conventions</div>
+    <div class="math-box-body">
+      <table style="width:100%; border-collapse: collapse; font-size: 0.95em;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 6px 8px;">Concept</th>
+            <th style="padding: 6px 8px;">Samples as Columns ($X \in \mathbb{R}^{d \times n}$)</th>
+            <th style="padding: 6px 8px;">Samples as Rows ($X \in \mathbb{R}^{n \times d}$)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 8px;"><strong>Feature Covariance ($C$)</strong></td>
+            <td style="padding: 6px 8px;">$C = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$</td>
+            <td style="padding: 6px 8px;">$C = \frac{1}{n} X^T X \in \mathbb{R}^{d \times d}$</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 6px 8px;"><strong>Sample Gram Matrix ($K$)</strong></td>
+            <td style="padding: 6px 8px;">$K = X^T X \in \mathbb{R}^{n \times n}$</td>
+            <td style="padding: 6px 8px;">$K = X X^T \in \mathbb{R}^{n \times n}$</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 8px;"><strong>Projected Data</strong></td>
+            <td style="padding: 6px 8px;">$Y = V^T X \in \mathbb{R}^{k \times n}$</td>
+            <td style="padding: 6px 8px;">$Z = X V \in \mathbb{R}^{n \times k}$</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Where This Leads: Two Natural Questions                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="where-this-leads">
+  <h2>Where This Leads</h2>
+
+  <p>
+    Standard PCA provides an optimal linear compression, but real datasets present two immediate challenges:
+  </p>
+
+  <ol>
+    <li>
+      <strong>High Dimensions ($d \gg n$):</strong> When features greatly outnumber samples (such as $10{,}000$ pixels across $500$ photos), the $d \times d$ covariance matrix is massive and rank-deficient. Because $n$ samples span at most $n$ dimensions, we can invert the problem to an $n \times n$ matrix of sample comparisons to compute the exact same principal components far more efficiently.
+    </li>
+    <li>
+      <strong>Non-Linear Patterns:</strong> PCA only finds flat hyperplanes of spread. When data lies along curved structures—such as concentric rings—linear projection collapses the inner and outer circles on top of each other, destroying the cluster structure entirely (Figure 2).
+    </li>
+  </ol>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig4-svg" viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
+        <defs>
+          <marker id="fig4-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
+          </marker>
+        </defs>
+
+        <!-- Left: 2D Concentric Circles -->
+        <g transform="translate(30, 20)">
+          <text x="170" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Original 2D Concentric Data</text>
+          
+          <!-- Outer Circle Guide (Dark) -->
+          <circle cx="170" cy="170" r="105" fill="none" stroke="var(--dark)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.45" />
+          <!-- Inner Circle Guide (Accent) -->
+          <circle cx="170" cy="170" r="45" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />
+
+          <!-- Candidate Linear Projection Axis w -->
+          <line x1="20" y1="170" x2="320" y2="170" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6,4" />
+          <text x="330" y="175" font-family="'Lora', serif" font-size="15" fill="var(--muted)">w</text>
+
+          <!-- Drop Lines for Left Points (dynamically updated) -->
+          <g id="fig4-drop-group"></g>
+
+          <!-- Outer Ring Points (Dark: deep charcoal in light mode, cream in dark mode) -->
+          <g id="fig4-outer-group">
+            <circle cx="275" cy="170" r="5" fill="var(--dark)" data-orig-x="275" data-orig-y="170" />
+            <circle cx="261" cy="222" r="5" fill="var(--dark)" data-orig-x="261" data-orig-y="222" />
+            <circle cx="222" cy="261" r="5" fill="var(--dark)" data-orig-x="222" data-orig-y="261" />
+            <circle cx="170" cy="275" r="5" fill="var(--dark)" data-orig-x="170" data-orig-y="275" />
+            <circle cx="118" cy="261" r="5" fill="var(--dark)" data-orig-x="118" data-orig-y="261" />
+            <circle cx="79" cy="222" r="5" fill="var(--dark)" data-orig-x="79" data-orig-y="222" />
+            <circle cx="65" cy="170" r="5" fill="var(--dark)" data-orig-x="65" data-orig-y="170" />
+            <circle cx="79" cy="118" r="5" fill="var(--dark)" data-orig-x="79" data-orig-y="118" />
+            <circle cx="118" cy="79" r="5" fill="var(--dark)" data-orig-x="118" data-orig-y="79" />
+            <circle cx="170" cy="65" r="5" fill="var(--dark)" data-orig-x="170" data-orig-y="65" />
+            <circle cx="222" cy="79" r="5" fill="var(--dark)" data-orig-x="222" data-orig-y="79" />
+            <circle cx="261" cy="118" r="5" fill="var(--dark)" data-orig-x="261" data-orig-y="118" />
+          </g>
+
+          <!-- Inner Ring Points (Accent: warm terracotta) -->
+          <g id="fig4-inner-group">
+            <circle cx="215" cy="170" r="5" fill="var(--accent)" data-orig-x="215" data-orig-y="170" />
+            <circle cx="202" cy="202" r="5" fill="var(--accent)" data-orig-x="202" data-orig-y="202" />
+            <circle cx="170" cy="215" r="5" fill="var(--accent)" data-orig-x="170" data-orig-y="215" />
+            <circle cx="138" cy="202" r="5" fill="var(--accent)" data-orig-x="138" data-orig-y="202" />
+            <circle cx="125" cy="170" r="5" fill="var(--accent)" data-orig-x="125" data-orig-y="170" />
+            <circle cx="138" cy="138" r="5" fill="var(--accent)" data-orig-x="138" data-orig-y="138" />
+            <circle cx="170" cy="125" r="5" fill="var(--accent)" data-orig-x="170" data-orig-y="125" />
+            <circle cx="202" cy="138" r="5" fill="var(--accent)" data-orig-x="202" data-orig-y="138" />
+          </g>
+
+          <!-- Distinction Legend -->
+          <g transform="translate(68, 305)">
+            <circle cx="0" cy="0" r="4.5" fill="var(--accent)" />
+            <text x="12" y="4" font-family="'Lora', serif" font-size="12" fill="var(--text)">Inner Ring</text>
+            <circle cx="105" cy="0" r="4.5" fill="var(--dark)" />
+            <text x="117" y="4" font-family="'Lora', serif" font-size="12" fill="var(--text)">Outer Ring</text>
+          </g>
+
+          <text x="170" y="332" font-family="'Lora', serif" font-size="12.5" fill="var(--muted)" text-anchor="middle">Separable in 2D (Concentric Manifolds)</text>
+        </g>
+
+        <!-- Center Arrow -->
+        <g transform="translate(395, 150)">
+          <line x1="0" y1="20" x2="50" y2="20" stroke="var(--text)" stroke-width="2.5" marker-end="url(#fig4-arrow-text)" />
+          <text x="25" y="0" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">Linear 1D</text>
+          <text x="25" y="45" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Projection</text>
+        </g>
+
+        <!-- Right: 1D Collapsed Line -->
+        <g transform="translate(490, 20)">
+          <text x="170" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Linear PCA 1D Projection</text>
+
+          <!-- 1D Axis Line -->
+          <line x1="20" y1="170" x2="320" y2="170" stroke="var(--text)" stroke-width="2.5" />
+          <text x="330" y="175" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)">w</text>
+
+          <!-- Origin Mark -->
+          <line x1="170" y1="160" x2="170" y2="180" stroke="var(--muted)" stroke-width="1.5" />
+          <text x="170" y="198" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">0</text>
+
+          <!-- Projected Points (Outer: Dark) -->
+          <circle cx="65" cy="170" r="5" fill="var(--dark)" />
+          <circle cx="79" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="118" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="170" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="222" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="261" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
+          <circle cx="275" cy="170" r="5" fill="var(--dark)" />
+
+          <!-- Projected Points (Inner: Accent) -->
+          <circle cx="125" cy="170" r="5" fill="var(--accent)" />
+          <circle cx="138" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
+          <circle cx="170" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
+          <circle cx="202" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
+          <circle cx="215" cy="170" r="5" fill="var(--accent)" />
+
+          <!-- Failure Callout Bracket / Highlight -->
+          <rect id="fig4-overlap-box" x="110" y="125" width="120" height="30" rx="6" fill="var(--highlight)" stroke="var(--accent)" stroke-width="1.5" />
+          <text x="170" y="145" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="middle">Heavy Overlap</text>
+
+          <text x="170" y="310" font-family="'Lora', serif" font-size="13" fill="var(--text)" font-weight="bold" text-anchor="middle">Linear PCA collapses and destroys the concentric pattern</text>
+        </g>
+      </svg>
+    </div>
+    <div class="pca-controls" style="margin-top: 0.8rem;">
+      <button type="button" class="pca-btn" id="fig4-anim-btn">
+        <span id="fig4-anim-text">Project Concentric Points (2D → 1D)</span>
+      </button>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> The limitation of linear projections on non-linear data. Projecting concentric rings onto any 1D straight line collapses both rings together in the middle, destroying the ring structure and entangling the clusters. Click <em>"Project Concentric Points (2D → 1D)"</em> to animate the 2D rings flattening onto $w$.
+    </figcaption>
+  </figure>
+
+  <p>
+    Overcoming this non-linear breakdown leads to <strong>Kernel PCA</strong>: lifting data into a higher-dimensional feature space where curved manifolds straighten out into flat hyperplanes.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7 — Connecting the Dots: The Grand Synthesis           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots: The Grand Synthesis</h2>
+
+  <p>
+    Principal Component Analysis is often presented as an isolated machine learning recipe. But from first principles, it is the profound intersection where Euclidean geometry, linear algebra, and constrained optimization converge into a single unified theory:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Four Lenses of Principal Component Analysis</div>
+    <div class="math-box-body">
+      <table style="width:100%; border-collapse: collapse; font-size: 0.95em;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+            <th style="padding: 8px 10px;">Perspective</th>
+            <th style="padding: 8px 10px;">Core Question</th>
+            <th style="padding: 8px 10px;">Foundational Mechanism</th>
+            <th style="padding: 8px 10px;">Linear Algebra Connection</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 10px;"><strong>Geometric Projection</strong></td>
+            <td style="padding: 8px 10px;">How do we compress a point onto a line or hyperplane with minimal loss?</td>
+            <td style="padding: 8px 10px;">Pythagorean conservation: preserved variance plus reconstruction error equals total data energy. Maximizing variance minimizes squared error.</td>
+            <td style="padding: 8px 10px;"><a href="../../../02.linear-algebra/04.orthogonality-and-projections/02.projections-onto-subspaces/">Orthogonal Projections</a> ensure error vectors are perpendicular to the representation subspace.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 10px;"><strong>Matrix Operator &amp; Spectral Theory</strong></td>
+            <td style="padding: 8px 10px;">Which axes naturally capture the spread of the data cloud?</td>
+            <td style="padding: 8px 10px;">The covariance matrix $C = \frac{1}{n} X X^T$ is symmetric ($C^T = C$) and positive semidefinite ($w^T C w \ge 0$).</td>
+            <td style="padding: 8px 10px;"><a href="../../../02.linear-algebra/03.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/">The Spectral Theorem</a> guarantees an orthonormal eigenbasis with non-negative real eigenvalues that literally equal the variance along each axis.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 10px;"><strong>Constrained Optimization</strong></td>
+            <td style="padding: 8px 10px;">Can any oblique or hybrid direction retain more variance than the eigenvectors?</td>
+            <td style="padding: 8px 10px;">Maximizing the Rayleigh quotient $w^T C w$ subject to $w^T w = 1$ via Lagrange multipliers forces $C w = \lambda w$.</td>
+            <td style="padding: 8px 10px;"><a href="../../../02.linear-algebra/03.eigenvalues-and-eigenvectors/03.positive-defnite-matrices/">Quadratic Forms</a> prove the stationary points of unit ellipsoids are precisely the eigenvectors, ordered by eigenvalue magnitude.</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 10px;"><strong>Decoupling &amp; Factorization</strong></td>
+            <td style="padding: 8px 10px;">How do we eliminate cross-feature redundancy and compute components stably?</td>
+            <td style="padding: 8px 10px;">Rotating coordinates via $Y = W^T X$ completely diagonalizes covariance ($C_Y = \Lambda$), eliminating linear cross-talk.</td>
+            <td style="padding: 8px 10px;"><a href="../../../02.linear-algebra/05.singular-value-decomposition/01.the-singular-value-decomposition-svd/">Singular Value Decomposition</a> factors $X = U \Sigma V^T$ directly without squaring the condition number.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p>
+    Notice how every concept connects to the mathematical foundations we built:
+  </p>
+
+  <ul>
+    <li>
+      <strong>We did not invent orthogonality:</strong> Nature and matrix symmetry gave it to us. Because the covariance matrix $C = \frac{1}{n} X X^T$ is symmetric, the eigenvectors are guaranteed to be mutually perpendicular without any ad-hoc constraints.
+    </li>
+    <li>
+      <strong>We did not guess the ranking of components:</strong> Because $C$ is positive semidefinite, its eigenvalues are real and non-negative, and their magnitudes literally equal the variance along each eigenvector axis ($\operatorname{Var}(w_i^T x) = \lambda_i$). Sorting the eigenvalues from largest to smallest ($\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$) naturally arranges our principal components in descending order of informational importance.
+    </li>
+    <li>
+      <strong>Linearity is both our power and our limitation:</strong> When data lies on or near a flat hyperplane, PCA achieves the theoretical optimum for linear dimensionality reduction. But when the underlying manifold curves or loops—as in concentric rings—linear projection reaches its geometric limit.
+    </li>
+  </ul>
+
+  <p>
+    This brings us directly to the next frontier: What if we lift our data into a higher-dimensional feature space where non-linear curves straighten into hyperplanes, and what if we can evaluate inner products there without ever calculating the high-dimensional coordinates? That breakthrough is the <strong>Kernel Trick</strong>, and its application to representation learning is <strong>Kernel PCA</strong>.
+  </p>
+</section>
+
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+    <script>
+(() => {
+  document.addEventListener("DOMContentLoaded", () => {
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    // ══════════════════════════════════════════════════════════════
+    // FIGURE 2: Concentric Circles Non-Linear Projection Animation
+    // ══════════════════════════════════════════════════════════════
+    const fig4OuterGroup = document.getElementById("fig4-outer-group");
+    const fig4InnerGroup = document.getElementById("fig4-inner-group");
+    const fig4DropGroup = document.getElementById("fig4-drop-group");
+    const fig4AnimBtn = document.getElementById("fig4-anim-btn");
+    const fig4AnimText = document.getElementById("fig4-anim-text");
+    const fig4OverlapBox = document.getElementById("fig4-overlap-box");
+
+    let fig4T = 0;
+    let fig4TargetT = 0;
+    const fig4Circles = [];
+    const fig4Lines = [];
+
+    if (fig4OuterGroup && fig4InnerGroup && fig4DropGroup) {
+      const allCircs = [
+        ...fig4OuterGroup.querySelectorAll("circle"),
+        ...fig4InnerGroup.querySelectorAll("circle")
+      ];
+
+      allCircs.forEach((c) => {
+        const ox = parseFloat(c.getAttribute("data-orig-x"));
+        const oy = parseFloat(c.getAttribute("data-orig-y"));
+        fig4Circles.push({ el: c, ox, oy });
+
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", ox);
+        line.setAttribute("y1", oy);
+        line.setAttribute("x2", ox);
+        line.setAttribute("y2", 170);
+        line.setAttribute("stroke", "var(--muted)");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("stroke-dasharray", "3,3");
+        line.setAttribute("opacity", "0.4");
+        fig4DropGroup.appendChild(line);
+        fig4Lines.push(line);
+      });
+    }
+
+    if (fig4AnimBtn) {
+      fig4AnimBtn.addEventListener("click", () => {
+        fig4TargetT = fig4TargetT === 0 ? 1 : 0;
+        if (fig4TargetT === 1) {
+          fig4AnimBtn.classList.add("active");
+          fig4AnimText.textContent = "Restore 2D Concentric Rings";
+        } else {
+          fig4AnimBtn.classList.remove("active");
+          fig4AnimText.textContent = "Project Concentric Points (2D → 1D)";
+        }
+      });
+    }
+
+    function frame() {
+      if (Math.abs(fig4TargetT - fig4T) > 0.001) {
+        fig4T += (fig4TargetT - fig4T) * 0.08;
+        fig4Circles.forEach((c, i) => {
+          const curY = c.oy + fig4T * (170 - c.oy);
+          c.el.setAttribute("cy", curY);
+          if (fig4Lines[i]) {
+            fig4Lines[i].setAttribute("y1", curY);
+            fig4Lines[i].setAttribute("opacity", Math.max(0.15, 0.5 * (1 - fig4T * 0.6)));
+          }
+        });
+        if (fig4OverlapBox) {
+          fig4OverlapBox.setAttribute("stroke-width", fig4T > 0.6 ? (1.5 + fig4T * 1.5).toString() : "1.5");
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+  });
+})();
+</script>
+</body>
+</html>

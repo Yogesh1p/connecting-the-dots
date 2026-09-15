@@ -121,7 +121,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="24">
+  <meta name="reading_time" content="29">
     <meta property="og:title" content="Principal Component Analysis (PCA)">
     <meta property="og:description" content="From arbitrary measurement coordinates to the data's natural axes: discovering how geometric projection, Pythagorean variance conservation, and constrained optimization inevitably reveal the eigendecomposition of the covariance matrix.">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-principal-component-analysis-pca.png">
@@ -331,6 +331,78 @@
     Now, the dataset satisfies $\sum_{i=1}^n x_i = \mathbf{0}$. With the origin placed at the heart of the cloud, any line passing through the origin is a candidate axis of variation, and the squared distance $\|x_i\|^2$ measures pure variance from the dataset's mean.
   </p>
 
+  <p>
+    Watch Figure 2 below as the data cloud centers itself. The observations continuously glide along the negative sample mean vector $-\bar{x}$ until their center of mass coincides exactly with the origin $(0, 0, 0)$.
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg id="fig2-center-svg" viewBox="0 0 760 480" xmlns="http://www.w3.org/2000/svg" style="cursor: grab; user-select: none; touch-action: none; width: 100%; max-width: 680px; height: auto;">
+        <defs>
+          <marker id="fig2c-arrow-text" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--text)" />
+          </marker>
+          <marker id="fig2c-arrow-mean" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--box-label-bg)" />
+          </marker>
+        </defs>
+
+        <!-- Floor Grid Lines -->
+        <g id="fig2c-grid-floor"></g>
+
+        <!-- Vertical Floor Drop Lines & Base Shadows -->
+        <g id="fig2c-floor-droplines"></g>
+        <g id="fig2c-shadows"></g>
+
+        <!-- Coordinate Axes through (0,0,0) -->
+        <g id="fig2c-axes-neg">
+          <line id="fig2c-axis-neg-x" stroke="var(--border)" stroke-width="1.8" stroke-dasharray="4,4" opacity="0" />
+          <line id="fig2c-axis-neg-y" stroke="var(--border)" stroke-width="1.8" stroke-dasharray="4,4" opacity="0" />
+          <line id="fig2c-axis-neg-z" stroke="var(--border)" stroke-width="1.8" stroke-dasharray="4,4" opacity="0" />
+        </g>
+        <g id="fig2c-axes">
+          <line id="fig2c-axis-x" stroke="var(--text)" stroke-width="2" marker-end="url(#fig2c-arrow-text)" />
+          <line id="fig2c-axis-y" stroke="var(--text)" stroke-width="2" marker-end="url(#fig2c-arrow-text)" />
+          <line id="fig2c-axis-z" stroke="var(--text)" stroke-width="2" marker-end="url(#fig2c-arrow-text)" />
+        </g>
+
+        <!-- Mean Vector Arrow from Origin to Mean -->
+        <g id="fig2c-mean-group">
+          <line id="fig2c-vec-mean" stroke="var(--box-label-bg)" stroke-width="3" marker-end="url(#fig2c-arrow-mean)" />
+          <text id="fig2c-lbl-vec-mean" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)">x̄ (Mean Vector)</text>
+        </g>
+
+        <!-- Center of Mass Marker -->
+        <g id="fig2c-mean-marker">
+          <circle id="fig2c-mean-halo" r="8.5" fill="none" stroke="var(--box-label-bg)" stroke-width="2.2" stroke-dasharray="4,3" />
+          <circle id="fig2c-mean-dot" r="4" fill="var(--box-label-bg)" />
+          <text id="fig2c-lbl-mean" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">Center of Mass x̄</text>
+        </g>
+
+        <!-- Data Points -->
+        <g id="fig2c-points-group"></g>
+
+        <!-- Coordinate Frame Labels -->
+        <g id="fig2c-labels">
+          <circle id="fig2c-origin-dot" r="4.5" fill="var(--text)" />
+          <text id="fig2c-lbl-origin" font-family="'Lora', serif" font-size="14" fill="var(--muted)">0 (Origin)</text>
+          <text id="fig2c-lbl-x" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">Living Area (x₁)</text>
+          <text id="fig2c-lbl-y" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)">Bedrooms (x₂)</text>
+          <text id="fig2c-lbl-z" font-family="'Lora', serif" font-size="14" font-weight="600" fill="var(--text)" text-anchor="middle">Sale Price (x₃)</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Live Readout of Center of Mass Status -->
+    <div id="fig2c-readout" style="margin-top: 0.8rem; padding: 0.5rem 0; font-size: 0.92rem; color: var(--text); line-height: 1.5; width: 100%; max-width: 680px; text-align: center;">
+      <span id="fig2c-readout-text"></span>
+    </div>
+
+    <figcaption class="figure-caption">
+      <strong>Figure 2:</strong> 3D repeating animation of centering the housing dataset. Observations initially cluster far from the origin around their sample mean $\bar{x} \approx [149, 119, 118]^T$, meaning raw coordinates primarily measure distance from the origin. The dataset smoothly translates by $-\bar{x}$ until its center of mass aligns with $\mathbf{0}$, ensuring any line passing through the origin measures pure internal variance from the mean. Drag anytime to rotate in 3D.
+    </figcaption>
+  </figure>
+
   <h3>2. How Do We Measure Points Along a Candidate Axis?</h3>
   <p>
     Any candidate axis passing through the origin can be defined by a unit direction vector $w \in \mathbb{R}^d$ (with length $\|w\| = 1$).
@@ -370,7 +442,7 @@
   </div>
 
   <p>
-    Interact with Figure 2 below to see this orthogonal projection in action. Click <em>"Bring in Axis w"</em> to introduce the candidate direction, <em>"Project onto w (3D → 1D)"</em> to watch the data points slide along orthogonal drop lines onto the axis, or <em>"Inspect Observation xᵢ (Zoom)"</em> (or click any data point directly) to zoom into the perpendicular decomposition right triangle in 3D.
+    Interact with Figure 3 below to see this orthogonal projection in action. Click <em>"Bring in Axis w"</em> to introduce the candidate direction, <em>"Project onto w (3D → 1D)"</em> to watch the data points slide along orthogonal drop lines onto the axis, or <em>"Inspect Observation xᵢ (Zoom)"</em> (or click any data point directly) to zoom into the perpendicular decomposition right triangle in 3D.
   </p>
 
   <figure class="diagram-figure">
@@ -394,8 +466,12 @@
           </marker>
         </defs>
 
-        <!-- Floor Grid Plane (centered around origin) -->
+        <!-- Floor Grid Lines -->
         <g id="fig2-grid-floor"></g>
+
+        <!-- Vertical Floor Drop Lines & Base Shadows -->
+        <g id="fig2-floor-droplines"></g>
+        <g id="fig2-shadows"></g>
 
         <!-- 3D Centered Coordinate Axes (x1, x2, x3) -->
         <g id="fig2-axes">
@@ -487,7 +563,7 @@
     </div>
 
     <figcaption class="figure-caption">
-      <strong>Figure 2:</strong> Interactive 3D projection of the housing dataset onto candidate axis $w$. The candidate unit direction vector $w$ ($\|w\| = 1$) defines a 1D subspace through the centered data cloud. Orthogonally projecting observation $x_i$ computes its 1D scalar coordinate $z_i = w^T x_i$ and discards perpendicular error $e_i$. Click <em>"Bring in Axis w"</em> to introduce the direction, <em>"Project onto w (3D → 1D)"</em> to animate the data points sliding onto $w$ along orthogonal drop lines, or <em>"Inspect Observation xᵢ (Zoom)"</em> (or click any point directly) to zoom into the orthogonal decomposition right triangle. Drag anytime to rotate in 3D.
+      <strong>Figure 3:</strong> Interactive 3D projection of the housing dataset onto candidate axis $w$. The candidate unit direction vector $w$ ($\|w\| = 1$) defines a 1D subspace through the centered data cloud. Orthogonally projecting observation $x_i$ computes its 1D scalar coordinate $z_i = w^T x_i$ and discards perpendicular error $e_i$. Click <em>"Bring in Axis w"</em> to introduce the direction, <em>"Project onto w (3D → 1D)"</em> to animate the data points sliding onto $w$ along orthogonal drop lines, or <em>"Inspect Observation xᵢ (Zoom)"</em> (or click any point directly) to zoom into the orthogonal decomposition right triangle. Drag anytime to rotate in 3D.
     </figcaption>
   </figure>
 
@@ -527,7 +603,7 @@
 
   <h3>4. The Pythagorean Conservation Law</h3>
   <p>
-    To resolve this question, examine the right triangle visualized in Figure 2. Because the projection vector $(w^T x_i)w$ lies directly along the axis and the error vector $e_i$ is perpendicular to it (since $w^T e_i = w^T(x_i - (w^T x_i)w) = w^T x_i - (w^T x_i)(w^T w) = 0$), they form the perpendicular legs of a right triangle whose hypotenuse is the observation vector $x_i$.
+    To resolve this question, examine the right triangle visualized in Figure 3. Because the projection vector $(w^T x_i)w$ lies directly along the axis and the error vector $e_i$ is perpendicular to it (since $w^T e_i = w^T(x_i - (w^T x_i)w) = w^T x_i - (w^T x_i)(w^T w) = 0$), they form the perpendicular legs of a right triangle whose hypotenuse is the observation vector $x_i$.
   </p>
 
   <p>
@@ -628,27 +704,65 @@
 
   <h3>Why the Covariance Matrix Matters</h3>
   <p>
-    Notice what just happened. Our raw data matrix $X \in \mathbb{R}^{d \times n}$ was rectangular. Because it is not square and has no symmetry, we could not directly compute eigenvectors or apply the Spectral Theorem to $X$.
+    Notice what just happened. Our raw data matrix $X$ was rectangular ($d \times n$). You cannot take eigenvectors of a rectangular matrix! It is not square, it has no symmetry, and its rows and columns live in two completely different spaces.
   </p>
 
   <p>
-    Yet the variance formula naturally produced $C = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$. This matrix has three essential properties:
+    Yet the moment we asked for the variance along a projection direction $w$, the algebra handed us $C = \frac{1}{n} X X^T$. And this matrix is wonderful. It is square ($d \times d$), mapping the feature space directly back onto itself. It is symmetric:
   </p>
 
-  <ul>
-    <li>
-      <strong>Square ($d \times d$):</strong> No matter how many samples $n$ we collected, $C$ maps the $d$ feature dimensions directly onto themselves.
-    </li>
-    <li>
-      <strong>Symmetric:</strong> Transposing gives $(X X^T)^T = X X^T$, so $C^T = C$.
-    </li>
-    <li>
-      <strong>Positive semidefinite:</strong> For any vector $w$, $w^T C w = \frac{1}{n} \|X^T w\|^2 \ge 0$. Variance in any direction is never negative.
-    </li>
-  </ul>
+  <div class="math-display">
+    $$\begin{aligned}
+      C^T &= \left(\frac{1}{n} X X^T\right)^T \\[6pt]
+      &= \frac{1}{n} (X^T)^T X^T \\[6pt]
+      &= \frac{1}{n} X X^T \\[6pt]
+      &= C
+    \end{aligned}$$
+  </div>
 
   <p>
-    Because $C$ is symmetric and positive semidefinite, the <strong>Spectral Theorem</strong> applies directly. It guarantees that $C$ has a complete orthonormal basis of eigenvectors with non-negative real eigenvalues—the exact orthogonal directions of variance we need.
+    And it is positive semidefinite. For any direction $w$, the projected variance $w^T C w = \frac{1}{n} \|X^T w\|^2 \ge 0$ is never negative.
+  </p>
+
+  <p>
+    In linear algebra, symmetric matrices are king. The moment a real matrix is symmetric, <a href="../../../02.linear-algebra/03.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/">the Spectral Theorem</a> steps in and does almost all the work for us.
+  </p>
+
+  <p>
+    First, the eigenvectors are <strong>automatically perpendicular</strong>. A symmetric matrix always has a complete orthonormal basis of eigenvectors $\{w_1, w_2, \dots, w_d\}$. We never have to fight or artificially constrain our coordinate axes to be orthogonal—symmetry gives us a perpendicular coordinate grid for free.
+  </p>
+
+  <p>
+    Second, the eigenvalues are real, non-negative ($\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$), and they have an immediate physical meaning: <strong>the eigenvalue <em>is</em> the variance</strong>. Look at what happens when you project the centered data onto any unit eigenvector $w_i$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \operatorname{Var}(w_i^T x) &= w_i^T C w_i \\[6pt]
+      &= w_i^T (\lambda_i w_i) \\[6pt]
+      &= \lambda_i (w_i^T w_i) \\[6pt]
+      &= \lambda_i
+    \end{aligned}$$
+  </div>
+
+  <p>
+    The spread of the data cloud along direction $w_i$ is literally $\lambda_i$.
+  </p>
+
+  <p>
+    So before we write down a single line of calculus, the entire picture of Principal Component Analysis is already right in front of us:
+  </p>
+
+  <p>
+    Where is the spread largest? Along the eigenvector $w_1$ with the largest eigenvalue $\lambda_1$. That is our <strong>first principal component</strong>.
+  </p>
+
+  <p>
+    Where is the next-largest spread, perpendicular to the first? The Spectral Theorem already guarantees that the other eigenvectors are perpendicular to $w_1$. So the next-best perpendicular direction is the second eigenvector $w_2$, with eigenvalue $\lambda_2$. That is the <strong>second principal component</strong>. And the remaining components simply follow the descending order of their eigenvalues.
+  </p>
+
+  <p>
+    This is the beauty of linear algebra: the geometric axes of maximum spread and the algebraic eigenvectors of the symmetric covariance matrix are the exact same thing. Let us now verify this directly with calculus.
   </p>
 
   <h3>Maximizing the First Principal Component</h3>
@@ -986,501 +1100,452 @@
     Geometrically, $95\%$ of the total squared distance of the centered observations from their mean is preserved along the $K$-dimensional hyperplane spanned by $\{w_1, \dots, w_K\}$, while only $5\%$ lies in the discarded perpendicular residuals.
   </p>
 
+  <h3>Why $z_i = W_K^T x_i$? Deriving the Optimal Latent Representation</h3>
+  <p>
+    Suppose we have chosen our $K$-dimensional orthonormal basis $W_K = [w_1, w_2, \dots, w_K] \in \mathbb{R}^{d \times K}$, where $W_K^T W_K = I_K$. Any reconstruction of a centered point $x_i$ lying on this $K$-dimensional hyperplane is a linear combination of these basis vectors:
+  </p>
+
+  <div class="math-display">
+    $$\hat{x}_i = W_K z_i = \sum_{k=1}^K z_{ik} w_k$$
+  </div>
+
+  <p>
+    for some vector of coordinates $z_i = [z_{i1}, \dots, z_{iK}]^T \in \mathbb{R}^K$. But how do we choose the coordinate vector $z_i$?
+  </p>
+
+  <p>
+    We demand that $\hat{x}_i$ be the <strong>best possible reconstruction</strong> of $x_i$ by minimizing the squared reconstruction error (the Euclidean distance from $x_i$ to the subspace):
+  </p>
+
+  <div class="math-display">
+    $$\min_{z_i} \mathcal{L}(z_i) = \|x_i - \hat{x}_i\|^2 = \|x_i - W_K z_i\|^2$$
+  </div>
+
+  <p>
+    Let us expand this quadratic objective using vector inner products:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \mathcal{L}(z_i) &= (x_i - W_K z_i)^T (x_i - W_K z_i) \\[6pt]
+      &= x_i^T x_i - x_i^T W_K z_i - z_i^T W_K^T x_i + z_i^T W_K^T W_K z_i \\[6pt]
+      &= x_i^T x_i - 2 z_i^T W_K^T x_i + z_i^T (W_K^T W_K) z_i
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Because the principal component columns of $W_K$ are orthonormal, $W_K^T W_K = I_K$. The quadratic term simplifies immediately:
+  </p>
+
+  <div class="math-display">
+    $$\mathcal{L}(z_i) = x_i^T x_i - 2 z_i^T W_K^T x_i + z_i^T z_i$$
+  </div>
+
+  <p>
+    To find the minimizer $z_i^*$, we take the gradient with respect to $z_i$ and set it to zero:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \nabla_{z_i} \mathcal{L}(z_i) &= -2 W_K^T x_i + 2 z_i = \mathbf{0} \\[8pt]
+      2 z_i &= 2 W_K^T x_i \\[8pt]
+      z_i^* &= W_K^T x_i
+    \end{aligned}$$
+  </div>
+
+  <p>
+    The optimal encoding coordinate $z_i$ is nothing other than the orthogonal projection of $x_i$ onto each principal axis: $z_{ik} = w_k^T x_i$.
+  </p>
+
+  <p>
+    Plugging this optimal code back into our reconstruction gives the orthogonal projection operator:
+  </p>
+
+  <div class="math-display">
+    $$\hat{x}_i = W_K z_i^* = W_K (W_K^T x_i) = (W_K W_K^T) x_i$$
+  </div>
+
+  <p>
+    The matrix $P_K = W_K W_K^T \in \mathbb{R}^{d \times d}$ is symmetric ($P_K^T = P_K$) and idempotent ($P_K^2 = W_K (W_K^T W_K) W_K^T = W_K I_K W_K^T = P_K$). It orthogonally projects any ambient vector $x_i \in \mathbb{R}^d$ onto the $K$-dimensional subspace, guaranteeing that the residual vector $e_i = x_i - \hat{x}_i$ is strictly perpendicular to the hyperplane:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      W_K^T (x_i - \hat{x}_i) &= W_K^T (x_i - W_K W_K^T x_i) \\[6pt]
+      &= W_K^T x_i - (W_K^T W_K) W_K^T x_i \\[6pt]
+      &= W_K^T x_i - I_K W_K^T x_i = \mathbf{0}
+    \end{aligned}$$
+  </div>
+
   <div class="math-box">
-    <div class="math-box-label">The Principal Component Analysis (PCA) Algorithm</div>
+    <div class="math-box-label">The Operational Blueprint: Principal Component Analysis</div>
     <div class="math-box-body">
-      <ol style="margin: 0.4rem 0; padding-left: 1.3rem; line-height: 1.8;">
-        <li>
-          <strong>Input:</strong> Unlabeled dataset $\mathcal{D} = \{x_1, x_2, \dots, x_n\} \subset \mathbb{R}^d$.
-        </li>
-        <li>
-          <strong>Preprocessing (Centering):</strong> Compute the sample mean $\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$ and center every observation:
-          $$x_i \leftarrow x_i - \bar{x}$$
-        </li>
-        <li>
-          <strong>Compute Covariance &amp; Eigendecomposition:</strong> Compute sample covariance matrix $C = \frac{1}{n} \sum_{i=1}^n x_i x_i^T = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$. Find its orthonormal eigenvectors $\{w_1, \dots, w_d\}$ and sorted eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$.
-        </li>
-        <li>
-          <strong>Select Dimensionality $K$ (Stopping Rule):</strong> Pick the smallest integer $K$ satisfying:
-          $$\frac{\sum_{k=1}^K \lambda_k}{\sum_{j=1}^d \lambda_j} \ge 0.95$$
-        </li>
-        <li>
-          <strong>Store Compressed Representation:</strong> For each observation $x_i$, store its $K$-dimensional coordinate vector:
-          $$z_i = \begin{bmatrix} w_1^T x_i \\[3pt] w_2^T x_i \\[3pt] \vdots \\[3pt] w_K^T x_i \end{bmatrix} \in \mathbb{R}^K$$
-          along with the $K$ basis direction vectors $\{w_1, w_2, \dots, w_K\} \subset \mathbb{R}^d$.
-        </li>
-      </ol>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.92em; line-height: 1.6;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+              <th style="padding: 10px 12px; width: 22%;">Stage</th>
+              <th style="padding: 10px 12px; width: 38%;">Mathematical Formulation</th>
+              <th style="padding: 10px 12px; width: 40%;">Geometric Purpose &amp; Physical Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; vertical-align: top;">
+                <strong>1. Data Ingestion</strong>
+              </td>
+              <td style="padding: 12px; vertical-align: top;">
+                $$\mathcal{D} = \{x_1, x_2, \dots, x_n\} \subset \mathbb{R}^d$$
+                $$X = \begin{bmatrix} x_1^T \\ \vdots \\ x_n^T \end{bmatrix} \in \mathbb{R}^{n \times d}$$
+              </td>
+              <td style="padding: 12px; vertical-align: top; color: var(--text);">
+                Unlabeled collection of $n$ observations living in an ambient $d$-dimensional space with correlated, redundant features.
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; vertical-align: top;">
+                <strong>2. Centering<br><span style="font-size: 0.85em; color: var(--muted); font-weight: normal;">(Zero-Mean Anchoring)</span></strong>
+              </td>
+              <td style="padding: 12px; vertical-align: top;">
+                $$\bar{x} = \frac{1}{n} \sum_{i=1}^n x_i$$
+                $$x_i \leftarrow x_i - \bar{x}$$
+              </td>
+              <td style="padding: 12px; vertical-align: top; color: var(--text);">
+                Translates the physical center of mass to the origin ($\sum x_i = \mathbf{0}$). Guarantees that subsequent axes passing through the origin measure pure internal variance rather than offset distance.
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; vertical-align: top;">
+                <strong>3. Spectral Analysis<br><span style="font-size: 0.85em; color: var(--muted); font-weight: normal;">(Covariance Eigendecomposition)</span></strong>
+              </td>
+              <td style="padding: 12px; vertical-align: top;">
+                $$S = \frac{1}{n} X^T X \in \mathbb{R}^{d \times d}$$
+                $$S w_j = \lambda_j w_j, \quad \|w_j\| = 1$$
+                $$\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d \ge 0$$
+              </td>
+              <td style="padding: 12px; vertical-align: top; color: var(--text);">
+                By the Spectral Theorem, symmetric positive semidefinite $S$ yields an orthonormal basis of mutually perpendicular axes $\{w_j\}$, where each eigenvalue $\lambda_j$ literally equals the variance preserved along axis $w_j$.
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; vertical-align: top;">
+                <strong>4. Dimensionality Selection<br><span style="font-size: 0.85em; color: var(--muted); font-weight: normal;">(Energy Conservation Budget)</span></strong>
+              </td>
+              <td style="padding: 12px; vertical-align: top;">
+                $$\text{Choose smallest } K \text{ such that:}$$
+                $$\frac{\sum_{k=1}^K \lambda_k}{\sum_{j=1}^d \lambda_j} \ge 0.95$$
+              </td>
+              <td style="padding: 12px; vertical-align: top; color: var(--text);">
+                Discards the $(d - K)$ weakest orthogonal directions whose aggregate variance is negligible ($< 5\%$), preserving $95\%$ of the total data energy in a compact $K$-dimensional subspace.
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px; vertical-align: top;">
+                <strong>5. Encoding<br><span style="font-size: 0.85em; color: var(--muted); font-weight: normal;">(Subspace Projection)</span></strong>
+              </td>
+              <td style="padding: 12px; vertical-align: top;">
+                $$z_i = W_K^T x_i = \begin{bmatrix} w_1^T x_i \\ \vdots \\ w_K^T x_i \end{bmatrix} \in \mathbb{R}^K$$
+                $$Z = X W_K \in \mathbb{R}^{n \times K}$$
+              </td>
+              <td style="padding: 12px; vertical-align: top; color: var(--text);">
+                Computes the optimal scalar coordinates $z_i$ that minimize the reconstruction loss $\|x_i - W_K z_i\|^2$. Because $W_K^T W_K = I_K$, setting $\nabla_{z_i} \|x_i - W_K z_i\|^2 = \mathbf{0}$ yields the orthogonal projection $z_i = W_K^T x_i$. The transformed features $z_i$ are decorrelated ($\operatorname{Cov}(Z) = \operatorname{diag}(\lambda_1, \dots, \lambda_K)$).
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; vertical-align: top;">
+                <strong>6. Decoding<br><span style="font-size: 0.85em; color: var(--muted); font-weight: normal;">(Optimal Reconstruction)</span></strong>
+              </td>
+              <td style="padding: 12px; vertical-align: top;">
+                $$\hat{x}_i = W_K z_i + \bar{x} = \sum_{k=1}^K z_{ik} w_k + \bar{x}$$
+                $$\text{Residual Loss: } \|x_i - \hat{x}_i\|^2 = \sum_{j=K+1}^d (w_j^T x_i)^2$$
+              </td>
+              <td style="padding: 12px; vertical-align: top; color: var(--text);">
+                Reconstructs the original observation back in ambient $\mathbb{R}^d$ via $\hat{x}_i = W_K W_K^T x_i + \bar{x}$. Since $z_i = W_K^T x_i$ is the least-squares solution and the residual $(x_i - \hat{x}_i) \perp \operatorname{span}(W_K)$, by the Pythagorean Theorem $\hat{x}_i$ is the mathematically closest possible point on the $K$-dimensional hyperplane to the original point $x_i$.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <h3>A Concrete Numerical Walkthrough: Putting the Blueprint into Practice</h3>
+  <p>
+    Formulas become second nature when we see their gears turn on real numbers. Let us trace all six steps of our blueprint on a tiny toy dataset: $n = 4$ homes evaluated across $d = 2$ features: <em>living space</em> (in hundreds of square feet) and <em>assessed value</em> (in tens of thousands of dollars).
+  </p>
+
+  <p>
+    Our four raw observations in $\mathbb{R}^2$ are:
+  </p>
+
+  $$\begin{aligned}
+    x_1 &= \begin{bmatrix} 6 \\ 7 \end{bmatrix}, \qquad
+    x_2 = \begin{bmatrix} 5 \\ 8 \end{bmatrix}, \qquad
+    x_3 = \begin{bmatrix} 3 \\ 4 \end{bmatrix}, \qquad
+    x_4 = \begin{bmatrix} 2 \\ 5 \end{bmatrix}
+  \end{aligned}$$
+
+  <h4>Step 1: Compute the Center of Mass (Sample Mean)</h4>
+  <p>
+    Before looking for directions of variance, we find the balance point of the data:
+  </p>
+
+  $$\begin{aligned}
+    \bar{x} &= \frac{1}{4} \sum_{i=1}^4 x_i \\[6pt]
+    &= \frac{1}{4} \left( \begin{bmatrix} 6 \\ 7 \end{bmatrix} + \begin{bmatrix} 5 \\ 8 \end{bmatrix} + \begin{bmatrix} 3 \\ 4 \end{bmatrix} + \begin{bmatrix} 2 \\ 5 \end{bmatrix} \right) \\[8pt]
+    &= \frac{1}{4} \begin{bmatrix} 16 \\ 24 \end{bmatrix} \\[8pt]
+    &= \begin{bmatrix} 4 \\ 6 \end{bmatrix}
+  \end{aligned}$$
+
+  <p>
+    On average, a home in this neighborhood has $400\text{ sq ft}$ and costs $\$60{,}000$.
+  </p>
+
+  <h4>Step 2: Center the Dataset</h4>
+  <p>
+    We translate every home so that the origin sits squarely at the centroid $\bar{x}$:
+  </p>
+
+  $$\begin{aligned}
+    \tilde{x}_1 &= x_1 - \bar{x} = \begin{bmatrix} 6 - 4 \\ 7 - 6 \end{bmatrix} = \begin{bmatrix} 2 \\ 1 \end{bmatrix} \\[6pt]
+    \tilde{x}_2 &= x_2 - \bar{x} = \begin{bmatrix} 5 - 4 \\ 8 - 6 \end{bmatrix} = \begin{bmatrix} 1 \\ 2 \end{bmatrix} \\[6pt]
+    \tilde{x}_3 &= x_3 - \bar{x} = \begin{bmatrix} 3 - 4 \\ 4 - 6 \end{bmatrix} = \begin{bmatrix} -1 \\ -2 \end{bmatrix} \\[6pt]
+    \tilde{x}_4 &= x_4 - \bar{x} = \begin{bmatrix} 2 - 4 \\ 5 - 6 \end{bmatrix} = \begin{bmatrix} -2 \\ -1 \end{bmatrix}
+  \end{aligned}$$
+
+  <p>
+    Notice that the centered points sum exactly to zero:
+  </p>
+
+  $$\begin{aligned}
+    \sum_{i=1}^4 \tilde{x}_i &= \begin{bmatrix} 2 + 1 - 1 - 2 \\ 1 + 2 - 2 - 1 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+  \end{aligned}$$
+
+  <h4>Step 3: Construct the Sample Covariance Matrix & Eigendecomposition</h4>
+  <p>
+    With the data centered, the outer products $\tilde{x}_i \tilde{x}_i^T$ capture the pairwise spread:
+  </p>
+
+  $$\begin{aligned}
+    S &= \frac{1}{4} \sum_{i=1}^4 \tilde{x}_i \tilde{x}_i^T \\[6pt]
+    &= \frac{1}{4} \left( 
+        \begin{bmatrix} 2 \\ 1 \end{bmatrix} \begin{bmatrix} 2 & 1 \end{bmatrix}
+        + \begin{bmatrix} 1 \\ 2 \end{bmatrix} \begin{bmatrix} 1 & 2 \end{bmatrix}
+        + \begin{bmatrix} -1 \\ -2 \end{bmatrix} \begin{bmatrix} -1 & -2 \end{bmatrix}
+        + \begin{bmatrix} -2 \\ -1 \end{bmatrix} \begin{bmatrix} -2 & -1 \end{bmatrix}
+      \right) \\[8pt]
+    &= \frac{1}{4} \left(
+        \begin{bmatrix} 4 & 2 \\ 2 & 1 \end{bmatrix}
+        + \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}
+        + \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}
+        + \begin{bmatrix} 4 & 2 \\ 2 & 1 \end{bmatrix}
+      \right) \\[8pt]
+    &= \frac{1}{4} \begin{bmatrix} 10 & 8 \\ 8 & 10 \end{bmatrix} \\[8pt]
+    &= \begin{bmatrix} 2.5 & 2.0 \\ 2.0 & 2.5 \end{bmatrix}
+  \end{aligned}$$
+
+  <p>
+    The diagonal entries show that each feature has variance $s_1^2 = s_2^2 = 2.5$. The off-diagonal covariance is $+2.0$, confirming a strong positive correlation: bigger homes cost more. The total variance contained in our system is:
+  </p>
+
+  $$\begin{aligned}
+    \operatorname{tr}(S) = 2.5 + 2.5 = 5.0
+  \end{aligned}$$
+
+  <p>
+    Next, we solve the characteristic equation $\det(S - \lambda I) = 0$:
+  </p>
+
+  $$\begin{aligned}
+    \det \begin{bmatrix} 2.5 - \lambda & 2.0 \\ 2.0 & 2.5 - \lambda \end{bmatrix} &= (2.5 - \lambda)^2 - (2.0)^2 \\[6pt]
+    &= \lambda^2 - 5\lambda + 6.25 - 4 \\[6pt]
+    &= \lambda^2 - 5\lambda + 2.25 \\[6pt]
+    &= (\lambda - 4.5)(\lambda - 0.5) = 0
+  \end{aligned}$$
+
+  <p>
+    The eigenvalues are $\lambda_1 = 4.5$ and $\lambda_2 = 0.5$. Notice that their sum preserves the total variance: $\lambda_1 + \lambda_2 = 4.5 + 0.5 = 5.0 = \operatorname{tr}(S)$.
+  </p>
+
+  <p>
+    Finding the normalized eigenvectors $(S - \lambda I)w = 0$:
+  </p>
+
+  $$\begin{aligned}
+    \text{For } \lambda_1 = 4.5: \quad 
+    &\begin{bmatrix} -2 & 2 \\ 2 & -2 \end{bmatrix} \begin{bmatrix} w_{11} \\ w_{12} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+    \implies w_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[8pt]
+    \text{For } \lambda_2 = 0.5: \quad 
+    &\begin{bmatrix} 2 & 2 \\ 2 & 2 \end{bmatrix} \begin{bmatrix} w_{21} \\ w_{22} \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \end{bmatrix}
+    \implies w_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} -1 \\ 1 \end{bmatrix}
+  \end{aligned}$$
+
+  <p>
+    The vector $w_1$ points along the $45^\circ$ line where size and price grow together. The vector $w_2$ is strictly orthogonal ($w_1^T w_2 = 0$) and captures perpendicular noise.
+  </p>
+
+  <p>
+    <em>A Practical Note on Real-World Scale:</em> Solving $\det(S - \lambda I) = 0$ by expanding the characteristic polynomial is simple for a $2 \times 2$ problem with pen and paper. However, for matrices with hundreds or thousands of features, polynomial root-finding becomes mathematically and numerically impossible (by the Abel&ndash;Ruffini theorem and Wilkinson's extreme instability). In production, scientific software never evaluates characteristic polynomials; instead, it relies on iterative numerical linear algebra methods (such as the QR algorithm, Lanczos Krylov iteration, and direct bidiagonal SVD), which we explore in depth in our companion lesson <em>PCA ●─● Spectral Theorem &amp; SVD</em>.
+  </p>
+
+  <h4>Step 4: Select Subspace Dimension ($K$)</h4>
+  <p>
+    We evaluate the Explained Variance Ratio (EVR) for $K = 1$:
+  </p>
+
+  $$\begin{aligned}
+    \text{EVR}(1) &= \frac{\lambda_1}{\lambda_1 + \lambda_2} \\[6pt]
+    &= \frac{4.5}{4.5 + 0.5} \\[6pt]
+    &= \frac{4.5}{5.0} = 90.0\%
+  \end{aligned}$$
+
+  <p>
+    A single principal axis preserves $90\%$ of all information in the dataset! We choose $K = 1$, reducing our feature space from 2 dimensions down to 1. Our projection matrix is simply:
+  </p>
+
+  $$\begin{aligned}
+    W_1 = w_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix}
+  \end{aligned}$$
+
+  <h4>Step 5: Encode (Compress $2\text{D} \to 1\text{D}$)</h4>
+  <p>
+    We project each centered home $\tilde{x}_i$ onto $w_1$ by taking the dot product $z_i = w_1^T \tilde{x}_i$:
+  </p>
+
+  $$\begin{aligned}
+    z_1 &= w_1^T \tilde{x}_1 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \end{bmatrix} \begin{bmatrix} 2 \\ 1 \end{bmatrix} = \frac{3}{\sqrt{2}} \approx +2.121 \\[6pt]
+    z_2 &= w_1^T \tilde{x}_2 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ 2 \end{bmatrix} = \frac{3}{\sqrt{2}} \approx +2.121 \\[6pt]
+    z_3 &= w_1^T \tilde{x}_3 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \end{bmatrix} \begin{bmatrix} -1 \\ -2 \end{bmatrix} = -\frac{3}{\sqrt{2}} \approx -2.121 \\[6pt]
+    z_4 &= w_1^T \tilde{x}_4 = \frac{1}{\sqrt{2}} \begin{bmatrix} 1 & 1 \end{bmatrix} \begin{bmatrix} -2 \\ -1 \end{bmatrix} = -\frac{3}{\sqrt{2}} \approx -2.121
+  \end{aligned}$$
+
+  <p>
+    Each 2-dimensional property is now completely summarized by a single scalar coordinate $z_i$. Let us verify the sample variance of this compressed latent representation:
+  </p>
+
+  $$\begin{aligned}
+    \operatorname{Var}(z) &= \frac{1}{4} \sum_{i=1}^4 z_i^2 \\[6pt]
+    &= \frac{1}{4} \left( \left(\frac{3}{\sqrt{2}}\right)^2 + \left(\frac{3}{\sqrt{2}}\right)^2 + \left(-\frac{3}{\sqrt{2}}\right)^2 + \left(-\frac{3}{\sqrt{2}}\right)^2 \right) \\[8pt]
+    &= \frac{1}{4} \left( 4.5 + 4.5 + 4.5 + 4.5 \right) \\[6pt]
+    &= 4.5 = \lambda_1
+  \end{aligned}$$
+
+  <p>
+    The variance of our 1D coordinates matches the eigenvalue $\lambda_1$ to the last decimal place!
+  </p>
+
+  <h4>Step 6: Decode (Reconstruction & Error Quantification)</h4>
+  <p>
+    Can we take our compressed scalar $z_i$ and reconstruct the original 2D home? Using the decoding formula $\hat{x}_i = W_1 z_i + \bar{x} = z_i w_1 + \bar{x}$:
+  </p>
+
+  $$\begin{aligned}
+    \hat{x}_1 &= z_1 w_1 + \bar{x} \\[6pt]
+    &= \frac{3}{\sqrt{2}} \left( \frac{1}{\sqrt{2}} \begin{bmatrix} 1 \\ 1 \end{bmatrix} \right) + \begin{bmatrix} 4 \\ 6 \end{bmatrix} \\[8pt]
+    &= \frac{3}{2} \begin{bmatrix} 1 \\ 1 \end{bmatrix} + \begin{bmatrix} 4 \\ 6 \end{bmatrix} \\[8pt]
+    &= \begin{bmatrix} 1.5 \\ 1.5 \end{bmatrix} + \begin{bmatrix} 4 \\ 6 \end{bmatrix} = \begin{bmatrix} 5.5 \\ 7.5 \end{bmatrix}
+  \end{aligned}$$
+
+  <p>
+    Similarly, decoding all four points:
+  </p>
+
+  $$\begin{aligned}
+    \hat{x}_1 &= \begin{bmatrix} 5.5 \\ 7.5 \end{bmatrix}, \qquad
+    \hat{x}_2 = \begin{bmatrix} 5.5 \\ 7.5 \end{bmatrix}, \qquad
+    \hat{x}_3 = \begin{bmatrix} 2.5 \\ 4.5 \end{bmatrix}, \qquad
+    \hat{x}_4 = \begin{bmatrix} 2.5 \\ 4.5 \end{bmatrix}
+  \end{aligned}$$
+
+  <p>
+    Let us calculate the exact reconstruction error vector $e_i = x_i - \hat{x}_i$ for each home:
+  </p>
+
+  $$\begin{aligned}
+    e_1 &= x_1 - \hat{x}_1 = \begin{bmatrix} 6 \\ 7 \end{bmatrix} - \begin{bmatrix} 5.5 \\ 7.5 \end{bmatrix} = \begin{bmatrix} +0.5 \\ -0.5 \end{bmatrix} \\[8pt]
+    e_2 &= x_2 - \hat{x}_2 = \begin{bmatrix} 5 \\ 8 \end{bmatrix} - \begin{bmatrix} 5.5 \\ 7.5 \end{bmatrix} = \begin{bmatrix} -0.5 \\ +0.5 \end{bmatrix} \\[8pt]
+    e_3 &= x_3 - \hat{x}_3 = \begin{bmatrix} 3 \\ 4 \end{bmatrix} - \begin{bmatrix} 2.5 \\ 4.5 \end{bmatrix} = \begin{bmatrix} +0.5 \\ -0.5 \end{bmatrix} \\[8pt]
+    e_4 &= x_4 - \hat{x}_4 = \begin{bmatrix} 2 \\ 5 \end{bmatrix} - \begin{bmatrix} 2.5 \\ 4.5 \end{bmatrix} = \begin{bmatrix} -0.5 \\ +0.5 \end{bmatrix}
+  \end{aligned}$$
+
+  <p>
+    Notice that every error vector is directed strictly along the discarded axis $w_2 = \frac{1}{\sqrt{2}} [-1, 1]^T$:
+  </p>
+
+  $$\begin{aligned}
+    e_1 &= -\frac{1}{\sqrt{2}} w_2, \qquad e_2 = +\frac{1}{\sqrt{2}} w_2, \qquad e_3 = -\frac{1}{\sqrt{2}} w_2, \qquad e_4 = +\frac{1}{\sqrt{2}} w_2
+  \end{aligned}$$
+
+  <p>
+    Finally, we evaluate the mean squared reconstruction error across the dataset:
+  </p>
+
+  $$\begin{aligned}
+    \text{MSE} &= \frac{1}{4} \sum_{i=1}^4 \|x_i - \hat{x}_i\|^2 \\[6pt]
+    &= \frac{1}{4} \left( (0.5^2 + (-0.5)^2) + ((-0.5)^2 + 0.5^2) + (0.5^2 + (-0.5)^2) + ((-0.5)^2 + 0.5^2) \right) \\[8pt]
+    &= \frac{1}{4} \left( 0.5 + 0.5 + 0.5 + 0.5 \right) \\[6pt]
+    &= 0.5 = \lambda_2
+  \end{aligned}$$
+
+  <p>
+    The reconstruction error matches the discarded eigenvalue $\lambda_2 = 0.5$ with mathematical perfection!
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p>
+        <em>
+          $$\underbrace{\operatorname{Var}(\text{Preserved})}_{\lambda_1 = 4.5} + \underbrace{\operatorname{MSE}(\text{Discarded})}_{\lambda_2 = 0.5} = \underbrace{\operatorname{Var}(\text{Total})}_{\operatorname{tr}(S) = 5.0}$$
+          The Pythagorean theorem guarantees that no variance is created or destroyed—what we do not encode in $z_i$ becomes our exact reconstruction loss.
+        </em>
+      </p>
     </div>
   </div>
 </section>
-
 <!-- ═══════════════════════════════════════════════════════ -->
-<!--  The Matrix View: Orthogonal Coordinate Rotation        -->
+<!--  Where This Leads: From Vectors to Matrix Operators      -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<section id="coordinate-rotation">
-  <h2>The Matrix View: Orthogonal Coordinate Rotation</h2>
+<section id="where-this-leads">
+  <h2>Where This Leads: From Vectors to Matrix Operators</h2>
 
   <p>
-    We have derived PCA component-by-component using Lagrange multipliers. Now, let us look at the entire operation through matrix algebra.
-  </p>
-
-  <p>
-    Geometrically, we are not changing or distorting the data cloud. We are simply rotating the coordinate system until the axes line up with the natural directions in which the data varies.
-  </p>
-
-  <h3>Assembling the Rotation Matrix</h3>
-  <p>
-    From our eigendecomposition of the covariance matrix $C$, we obtained $d$ orthonormal eigenvectors $v_1, v_2, \dots, v_d$. Let us place these vectors as the columns of a matrix $V$:
-  </p>
-
-  <div class="math-display">
-    $$V = \begin{bmatrix} | & | & & | \\ v_1 & v_2 & \cdots & v_d \\ | & | & & | \end{bmatrix} \in \mathbb{R}^{d \times d}$$
-  </div>
-
-  <p>
-    Because the eigenvectors are mutually perpendicular and unit length ($v_i^T v_j = \delta_{ij}$), the matrix $V$ satisfies:
-  </p>
-
-  <div class="math-display">
-    $$V^T V = I_d \qquad \text{and} \qquad V V^T = I_d$$
-  </div>
-
-  <p>
-    Therefore, $V$ is an <strong>orthogonal matrix</strong> representing a pure rigid rotation (and possible reflection) of $\mathbb{R}^d$.
-  </p>
-
-  <h3>Rotating the Data Cloud</h3>
-  <p>
-    Suppose our centered dataset of $n$ observations is stacked into an $n \times d$ matrix $X$ (where each row $x_i^T \in \mathbb{R}^d$ is a centered sample). To express every data point in this new orthonormal coordinate system, we multiply by $V$:
-  </p>
-
-  <div class="math-box">
-    <div class="math-box-label">The PCA Coordinate Transformation</div>
-    <div class="math-box-body">
-      <div class="math-display">
-        $$Z = X V$$
-      </div>
-      <p>
-        The matrix $Z \in \mathbb{R}^{n \times d}$ is the <strong>PCA-transformed dataset</strong>.
-      </p>
-    </div>
-  </div>
-
-  <p>
-    Let us inspect the rows and columns of $Z$:
-  </p>
-
-  <div class="math-display">
-    $$Z = \begin{bmatrix} x_1^T \\ x_2^T \\ \vdots \\ x_n^T \end{bmatrix} \begin{bmatrix} v_1 & v_2 & \cdots & v_d \end{bmatrix} = \begin{bmatrix} x_1^T v_1 & x_1^T v_2 & \cdots & x_1^T v_d \\ x_2^T v_1 & x_2^T v_2 & \cdots & x_2^T v_d \\ \vdots & \vdots & \ddots & \vdots \\ x_n^T v_1 & x_n^T v_2 & \cdots & x_n^T v_d \end{bmatrix}$$
-  </div>
-
-  <p>
-    The $j$-th column of $Z$ contains the coordinates of every data point along the $j$-th principal component axis $v_j$. Each entry is a scalar projection onto a PCA axis.
-  </p>
-
-  <figure class="diagram-figure">
-    <div class="svg-container">
-      <svg viewBox="0 0 880 370" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
-        <defs>
-          <marker id="rot-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
-          </marker>
-          <marker id="rot-arrow-accent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)" />
-          </marker>
-          <marker id="rot-arrow-box" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--box-label-bg)" />
-          </marker>
-        </defs>
-
-        <!-- Left: Correlated Original Axes -->
-        <g transform="translate(45, 25)">
-          <text x="150" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Original Coordinates (X)</text>
-          
-          <!-- Original Axes -->
-          <line x1="20" y1="180" x2="280" y2="180" stroke="var(--muted)" stroke-width="2" />
-          <text x="295" y="185" font-family="'Lora', serif" font-size="15" fill="var(--muted)">x₁</text>
-          <line x1="150" y1="290" x2="150" y2="45" stroke="var(--muted)" stroke-width="2" />
-          <text x="150" y="38" font-family="'Lora', serif" font-size="15" fill="var(--muted)" text-anchor="middle">x₂</text>
-
-          <!-- Tilted Ellipse -->
-          <ellipse cx="150" cy="180" rx="95" ry="40" transform="rotate(-35, 150, 180)" fill="var(--highlight)" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="6,4" />
-
-          <!-- Principal Component Vectors -->
-          <line x1="150" y1="180" x2="225" y2="128" stroke="var(--accent)" stroke-width="3.5" marker-end="url(#rot-arrow-accent)" />
-          <text x="238" y="122" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">v₁</text>
-          
-          <line x1="150" y1="180" x2="112" y2="125" stroke="var(--box-label-bg)" stroke-width="3.5" marker-end="url(#rot-arrow-box)" />
-          <text x="98" y="120" font-family="'Lora', serif" font-size="16" font-weight="bold" fill="var(--text)">v₂</text>
-
-          <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Correlated: C has non-zero off-diagonals</text>
-        </g>
-
-        <!-- Transformation Arrow -->
-        <g transform="translate(390, 160)">
-          <line x1="0" y1="0" x2="45" y2="0" stroke="var(--text)" stroke-width="2.5" marker-end="url(#rot-arrow-text)" />
-          <text x="22" y="-12" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">Z = XV</text>
-          <text x="22" y="22" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Rotate Frame</text>
-        </g>
-
-        <!-- Right: Rotated PCA Frame -->
-        <g transform="translate(485, 25)">
-          <text x="150" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">PCA Coordinates (Z = XV)</text>
-          
-          <!-- PCA Axes aligned with frame -->
-          <line x1="20" y1="180" x2="280" y2="180" stroke="var(--accent)" stroke-width="2.5" />
-          <text x="295" y="185" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)">z₁</text>
-          <line x1="150" y1="290" x2="150" y2="45" stroke="var(--box-label-bg)" stroke-width="2.5" />
-          <text x="150" y="38" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)" text-anchor="middle">z₂</text>
-
-          <!-- Upright Ellipse -->
-          <ellipse cx="150" cy="180" rx="95" ry="40" fill="var(--highlight)" stroke="var(--accent)" stroke-width="2.5" />
-
-          <text x="150" y="315" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">Uncorrelated: Cov(Z) = Λ (Diagonal)</text>
-        </g>
-      </svg>
-    </div>
-    <figcaption class="figure-caption">
-      <strong>Figure 3:</strong> PCA as an orthogonal coordinate rotation. Multiplying $Z = XV$ rotates the coordinate axes until they align with the natural eigenvectors of the data cloud, completely eliminating off-diagonal correlations.
-    </figcaption>
-  </figure>
-
-  <h3>Diagonalizing the Covariance Matrix</h3>
-  <p>
-    What is the sample covariance matrix of our transformed data $Z$? Let us calculate it directly:
-  </p>
-
-  <div class="math-display">
-    $$\begin{aligned}
-    \text{Cov}(Z) &= \frac{1}{n} Z^T Z \\
-    &= \frac{1}{n} (X V)^T (X V) \\
-    &= \frac{1}{n} V^T X^T X V \\
-    &= V^T \left( \frac{1}{n} X^T X \right) V \\
-    &= V^T C V
-    \end{aligned}$$
-  </div>
-
-  <p>
-    Recall the fundamental matrix eigenvector equation: $C V = V \Lambda$, where $\Lambda = \text{diag}(\lambda_1, \dots, \lambda_d)$.
-  </p>
-
-  <p>
-    Multiplying both sides on the left by $V^T$ (since $V^T V = I_d$):
-  </p>
-
-  <div class="math-box">
-    <div class="math-box-label">Diagonalization of the Covariance Matrix</div>
-    <div class="math-box-body">
-      <div class="math-display">
-        $$\text{Cov}(Z) = V^T C V = \Lambda = \begin{bmatrix} \lambda_1 & 0 & \cdots & 0 \\ 0 & \lambda_2 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & \lambda_d \end{bmatrix}$$
-      </div>
-      <p>
-        Because $\Lambda$ is strictly diagonal, the covariance between any two distinct coordinates $z_i$ and $z_j$ is zero:
-      </p>
-      <div class="math-display">
-        $$\text{Cov}(Z_i, Z_j) = 0 \qquad \text{for all } i \neq j$$
-      </div>
-      <p>
-        The transformed features $Z_1, Z_2, \dots, Z_d$ are completely <strong>uncorrelated</strong>, and their individual variances are precisely the eigenvalues $\lambda_1, \lambda_2, \dots, \lambda_d$.
-      </p>
-    </div>
-  </div>
-
-  <h3>The SVD View: Factoring the Data Matrix Directly</h3>
-  <p>
-    Up to this point, we constructed PCA by first forming the covariance matrix $C = \frac{1}{n} X^T X$ and finding its eigenvectors. But there is an even more direct, purely matrix-algebraic way to view PCA: through the <strong>Singular Value Decomposition (SVD)</strong> of the centered data matrix itself.
-  </p>
-
-  <p>
-    Any centered data matrix $X \in \mathbb{R}^{n \times d}$ can be factored directly as:
-  </p>
-
-  <div class="math-display">
-    $$X = U \Sigma V^T$$
-  </div>
-
-  <p>
-    where $U \in \mathbb{R}^{n \times n}$ and $V \in \mathbb{R}^{d \times d}$ have orthonormal columns, and $\Sigma \in \mathbb{R}^{n \times d}$ contains the singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge 0$ along its main diagonal.
-  </p>
-
-  <p>
-    Substitute this factorization directly into the sample covariance matrix:
-  </p>
-
-  <div class="math-display">
-    $$\begin{aligned}
-      C &= \frac{1}{n} X^T X \\[6pt]
-      &= \frac{1}{n} (U \Sigma V^T)^T (U \Sigma V^T) \\[6pt]
-      &= \frac{1}{n} V \Sigma^T (U^T U) \Sigma V^T \\[6pt]
-      &= V \left( \frac{\Sigma^T \Sigma}{n} \right) V^T
-    \end{aligned}$$
-  </div>
-
-  <p>
-    Because $U^T U = I_n$ and $\frac{\Sigma^T \Sigma}{n}$ is a diagonal matrix, this is the exact eigendecomposition $C = V \Lambda V^T$. This reveals the direct relationship between singular values and covariance eigenvalues:
-  </p>
-
-  <div class="math-display">
-    $$\lambda_i = \frac{\sigma_i^2}{n}$$
-  </div>
-
-  <p>
-    The right singular vectors $v_i$ (the columns of $V$) are <em>identically</em> the principal component directions. The transformed coordinates $Z = XV$ follow immediately from the SVD:
-  </p>
-
-  <div class="math-display">
-    $$Z = X V = (U \Sigma V^T) V = U \Sigma$$
-  </div>
-
-  <p>
-    The $i$-th column of $Z$ is simply $\sigma_i u_i$. The singular value $\sigma_i$ scales the column, while the left singular vector $u_i \in \mathbb{R}^n$ contains the normalized coordinates of all $n$ samples along the $i$-th principal axis.
-  </p>
-
-  <h3>PCA as a Sum of Rank-One Matrices</h3>
-  <p>
-    Every matrix product can be expanded as a sum of outer products. Writing $X = U \Sigma V^T$ term-by-term decomposes the entire dataset into a sum of rank-one matrices:
-  </p>
-
-  <div class="math-display">
-    $$\begin{aligned}
-      X &= \sum_{i=1}^r \sigma_i u_i v_i^T \\[6pt]
-      &= \sigma_1 u_1 v_1^T + \sigma_2 u_2 v_2^T + \dots + \sigma_r u_r v_r^T
-    \end{aligned}$$
-  </div>
-
-  <p>
-    Each term $\sigma_i u_i v_i^T$ is an independent, rank-one piece of the data:
+    We have constructed Principal Component Analysis entirely from first principles. By asking where an axis should be anchored, in which direction it should point, and how subsequent directions must be constrained, we discovered:
   </p>
 
   <ul>
-    <li>$v_i \in \mathbb{R}^d$ is the feature pattern (the direction in feature space).</li>
-    <li>$u_i \in \mathbb{R}^n$ is the sample profile (how much each observation exhibits that pattern).</li>
-    <li>$\sigma_i$ is the amplitude, measuring the total spread carried by this component.</li>
+    <li>Centering observations at the center of mass ensures that distance from the origin measures pure internal variance rather than coordinate offset.</li>
+    <li>Maximizing projected variance via Lagrange multipliers leads inevitably to the dominant eigenvector $w_1$ of the sample covariance matrix $C$.</li>
+    <li>Deflating the dataset produces mutually orthogonal eigenvectors $w_2, \dots, w_d$, each capturing a decreasing slice of variance equal to its eigenvalue $\lambda_k$.</li>
+    <li>The Pythagorean theorem guarantees exact energy conservation: $\operatorname{Var}(\text{Preserved}) + \operatorname{MSE}(\text{Discarded}) = \operatorname{Var}(\text{Total})$.</li>
+    <li>The optimal low-dimensional latent code that minimizes Euclidean reconstruction error is simply the orthogonal projection shadow $z_i = W_K^T x_i$.</li>
   </ul>
 
   <p>
-    When we keep only the top $k$ principal components, our low-rank reconstruction is simply the truncated sum:
-  </p>
-
-  <div class="math-display">
-    $$X_k = \sum_{i=1}^k \sigma_i u_i v_i^T$$
-  </div>
-
-  <div class="math-box">
-    <div class="math-box-label">The Eckart–Young–Mirsky Theorem</div>
-    <div class="math-box-body">
-      <p>
-        For any rank $k < r$, the truncated SVD matrix $X_k$ is the <strong>globally optimal rank-$k$ approximation</strong> to $X$. It minimizes the total squared reconstruction error over all possible rank-$k$ matrices $B$:
-      </p>
-      <div class="math-display">
-        $$\begin{aligned}
-          \min_{\operatorname{rank}(B) \le k} \|X - B\|_F^2 &= \|X - X_k\|_F^2 \\[6pt]
-          &= \sum_{i=k+1}^d \sigma_i^2 \\[6pt]
-          &= n \sum_{i=k+1}^d \lambda_i
-        \end{aligned}$$
-      </div>
-      <p>
-        The total reconstruction error across the entire matrix is exactly $n$ times the sum of the discarded eigenvalues.
-      </p>
-    </div>
-  </div>
-
-  <h3>Why Software Computes PCA via SVD</h3>
-  <p>
-    In practice, scientific computing libraries almost never form the covariance matrix $C = \frac{1}{n} X^T X$ to compute PCA. Instead, they compute the SVD of $X$ directly.
+    Our geometric and statistical journey is complete—we can now compute, encode, and decode PCA models by hand with pen and paper.
   </p>
 
   <p>
-    The reason is numerical stability. Forming the product $X^T X$ squares the condition number:
+    Yet this opens a critical practical question: <em>How do scientific software packages execute this transformation simultaneously across millions of dimensions and samples without looping through one eigenvector at a time? And why does production software almost never form the covariance matrix $X^T X$ directly?</em>
   </p>
 
-  <div class="math-display">
-    $$\kappa(X^T X) = (\kappa(X))^2$$
-  </div>
-
   <p>
-    If $X$ has a condition number of $10^4$, $X^T X$ has a condition number of $10^8$. This squaring doubles the sensitivity to roundoff errors and can cause small singular values (minor variance components) to be rounded to zero. Computing the SVD directly on $X$ completely avoids this matrix multiplication, producing far more accurate eigenvectors and eigenvalues.
-  </p>
-
-  <h3>Two Matrix Conventions: Columns vs Rows</h3>
-  <p>
-    In machine learning and linear algebra literature, you will encounter two matrix conventions. Both describe the exact same mathematics:
+    To see how linear algebra elevates vector projections into a single rigid <strong>orthogonal coordinate rotation</strong>, and how the <strong>Singular Value Decomposition (SVD)</strong> provides the numerically stable engine powering all modern machine learning implementations, proceed to our dedicated companion article:
   </p>
 
   <div class="math-box">
-    <div class="math-box-label">The Two Matrix Conventions</div>
-    <div class="math-box-body">
-      <table style="width:100%; border-collapse: collapse; font-size: 0.95em;">
-        <thead>
-          <tr style="border-bottom: 1px solid var(--border); text-align: left;">
-            <th style="padding: 6px 8px;">Concept</th>
-            <th style="padding: 6px 8px;">Samples as Columns ($X \in \mathbb{R}^{d \times n}$)</th>
-            <th style="padding: 6px 8px;">Samples as Rows ($X \in \mathbb{R}^{n \times d}$)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 6px 8px;"><strong>Feature Covariance ($C$)</strong></td>
-            <td style="padding: 6px 8px;">$C = \frac{1}{n} X X^T \in \mathbb{R}^{d \times d}$</td>
-            <td style="padding: 6px 8px;">$C = \frac{1}{n} X^T X \in \mathbb{R}^{d \times d}$</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 6px 8px;"><strong>Sample Gram Matrix ($K$)</strong></td>
-            <td style="padding: 6px 8px;">$K = X^T X \in \mathbb{R}^{n \times n}$</td>
-            <td style="padding: 6px 8px;">$K = X X^T \in \mathbb{R}^{n \times n}$</td>
-          </tr>
-          <tr>
-            <td style="padding: 6px 8px;"><strong>Projected Data</strong></td>
-            <td style="padding: 6px 8px;">$Y = V^T X \in \mathbb{R}^{k \times n}$</td>
-            <td style="padding: 6px 8px;">$Z = X V \in \mathbb{R}^{n \times k}$</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="math-box-label">Continue to Part II</div>
+    <div class="math-box-body" style="text-align: center; padding: 1.5rem 1rem;">
+      <h3 style="margin-top: 0; font-family: 'Lora', serif;">
+        <a href="../03.pca-spectral-theorem-and-svd/" style="text-decoration: none; color: var(--text);">
+          PCA ●─● Spectral Theorem & SVD &rarr;
+        </a>
+      </h3>
+      <p style="margin-bottom: 0; color: var(--muted); font-size: 0.95em;">
+        Explore orthogonal coordinate rotations ($Z = XV$), covariance diagonalization ($\operatorname{Cov}(Z) = \Lambda$), the Eckart&ndash;Young&ndash;Mirsky low-rank theorem, and why numerical stability dictates computing PCA directly on $X$.
+      </p>
     </div>
   </div>
 </section>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!--  Where This Leads: Two Natural Questions                -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section id="where-this-leads">
-  <h2>Where This Leads</h2>
-
-  <p>
-    Standard PCA provides an optimal linear compression, but real datasets present two immediate challenges:
-  </p>
-
-  <ol>
-    <li>
-      <strong>High Dimensions ($d \gg n$):</strong> When features greatly outnumber samples (such as $10{,}000$ pixels across $500$ photos), the $d \times d$ covariance matrix is massive and rank-deficient. Because $n$ samples span at most $n$ dimensions, we can invert the problem to an $n \times n$ matrix of sample comparisons to compute the exact same principal components far more efficiently.
-    </li>
-    <li>
-      <strong>Non-Linear Patterns:</strong> PCA only finds flat hyperplanes of spread. When data lies along curved structures—such as concentric rings—linear projection collapses the inner and outer circles on top of each other, destroying the cluster structure entirely (Figure 4).
-    </li>
-  </ol>
-
-  <figure class="diagram-figure">
-    <div class="svg-container">
-      <svg id="fig4-svg" viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto; max-width: 720px;">
-        <defs>
-          <marker id="fig4-arrow-text" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text)" />
-          </marker>
-        </defs>
-
-        <!-- Left: 2D Concentric Circles -->
-        <g transform="translate(30, 20)">
-          <text x="170" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Original 2D Concentric Data</text>
-          
-          <!-- Outer Circle Guide (Dark) -->
-          <circle cx="170" cy="170" r="105" fill="none" stroke="var(--dark)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.45" />
-          <!-- Inner Circle Guide (Accent) -->
-          <circle cx="170" cy="170" r="45" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />
-
-          <!-- Candidate Linear Projection Axis w -->
-          <line x1="20" y1="170" x2="320" y2="170" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6,4" />
-          <text x="330" y="175" font-family="'Lora', serif" font-size="15" fill="var(--muted)">w</text>
-
-          <!-- Drop Lines for Left Points (dynamically updated) -->
-          <g id="fig4-drop-group"></g>
-
-          <!-- Outer Ring Points (Dark: deep charcoal in light mode, cream in dark mode) -->
-          <g id="fig4-outer-group">
-            <circle cx="275" cy="170" r="5" fill="var(--dark)" data-orig-x="275" data-orig-y="170" />
-            <circle cx="261" cy="222" r="5" fill="var(--dark)" data-orig-x="261" data-orig-y="222" />
-            <circle cx="222" cy="261" r="5" fill="var(--dark)" data-orig-x="222" data-orig-y="261" />
-            <circle cx="170" cy="275" r="5" fill="var(--dark)" data-orig-x="170" data-orig-y="275" />
-            <circle cx="118" cy="261" r="5" fill="var(--dark)" data-orig-x="118" data-orig-y="261" />
-            <circle cx="79" cy="222" r="5" fill="var(--dark)" data-orig-x="79" data-orig-y="222" />
-            <circle cx="65" cy="170" r="5" fill="var(--dark)" data-orig-x="65" data-orig-y="170" />
-            <circle cx="79" cy="118" r="5" fill="var(--dark)" data-orig-x="79" data-orig-y="118" />
-            <circle cx="118" cy="79" r="5" fill="var(--dark)" data-orig-x="118" data-orig-y="79" />
-            <circle cx="170" cy="65" r="5" fill="var(--dark)" data-orig-x="170" data-orig-y="65" />
-            <circle cx="222" cy="79" r="5" fill="var(--dark)" data-orig-x="222" data-orig-y="79" />
-            <circle cx="261" cy="118" r="5" fill="var(--dark)" data-orig-x="261" data-orig-y="118" />
-          </g>
-
-          <!-- Inner Ring Points (Accent: warm terracotta) -->
-          <g id="fig4-inner-group">
-            <circle cx="215" cy="170" r="5" fill="var(--accent)" data-orig-x="215" data-orig-y="170" />
-            <circle cx="202" cy="202" r="5" fill="var(--accent)" data-orig-x="202" data-orig-y="202" />
-            <circle cx="170" cy="215" r="5" fill="var(--accent)" data-orig-x="170" data-orig-y="215" />
-            <circle cx="138" cy="202" r="5" fill="var(--accent)" data-orig-x="138" data-orig-y="202" />
-            <circle cx="125" cy="170" r="5" fill="var(--accent)" data-orig-x="125" data-orig-y="170" />
-            <circle cx="138" cy="138" r="5" fill="var(--accent)" data-orig-x="138" data-orig-y="138" />
-            <circle cx="170" cy="125" r="5" fill="var(--accent)" data-orig-x="170" data-orig-y="125" />
-            <circle cx="202" cy="138" r="5" fill="var(--accent)" data-orig-x="202" data-orig-y="138" />
-          </g>
-
-          <!-- Distinction Legend -->
-          <g transform="translate(68, 305)">
-            <circle cx="0" cy="0" r="4.5" fill="var(--accent)" />
-            <text x="12" y="4" font-family="'Lora', serif" font-size="12" fill="var(--text)">Inner Ring</text>
-            <circle cx="105" cy="0" r="4.5" fill="var(--dark)" />
-            <text x="117" y="4" font-family="'Lora', serif" font-size="12" fill="var(--text)">Outer Ring</text>
-          </g>
-
-          <text x="170" y="332" font-family="'Lora', serif" font-size="12.5" fill="var(--muted)" text-anchor="middle">Separable in 2D (Concentric Manifolds)</text>
-        </g>
-
-        <!-- Center Arrow -->
-        <g transform="translate(395, 150)">
-          <line x1="0" y1="20" x2="50" y2="20" stroke="var(--text)" stroke-width="2.5" marker-end="url(#fig4-arrow-text)" />
-          <text x="25" y="0" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)" text-anchor="middle">Linear 1D</text>
-          <text x="25" y="45" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">Projection</text>
-        </g>
-
-        <!-- Right: 1D Collapsed Line -->
-        <g transform="translate(490, 20)">
-          <text x="170" y="20" font-family="'Lora', serif" font-size="17" font-weight="bold" fill="var(--text)" text-anchor="middle">Linear PCA 1D Projection</text>
-
-          <!-- 1D Axis Line -->
-          <line x1="20" y1="170" x2="320" y2="170" stroke="var(--text)" stroke-width="2.5" />
-          <text x="330" y="175" font-family="'Lora', serif" font-size="15" font-weight="bold" fill="var(--text)">w</text>
-
-          <!-- Origin Mark -->
-          <line x1="170" y1="160" x2="170" y2="180" stroke="var(--muted)" stroke-width="1.5" />
-          <text x="170" y="198" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">0</text>
-
-          <!-- Projected Points (Outer: Dark) -->
-          <circle cx="65" cy="170" r="5" fill="var(--dark)" />
-          <circle cx="79" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
-          <circle cx="118" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
-          <circle cx="170" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
-          <circle cx="222" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
-          <circle cx="261" cy="170" r="5" fill="var(--dark)" opacity="0.8" />
-          <circle cx="275" cy="170" r="5" fill="var(--dark)" />
-
-          <!-- Projected Points (Inner: Accent) -->
-          <circle cx="125" cy="170" r="5" fill="var(--accent)" />
-          <circle cx="138" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
-          <circle cx="170" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
-          <circle cx="202" cy="170" r="5" fill="var(--accent)" opacity="0.9" />
-          <circle cx="215" cy="170" r="5" fill="var(--accent)" />
-
-          <!-- Failure Callout Bracket / Highlight -->
-          <rect id="fig4-overlap-box" x="110" y="125" width="120" height="30" rx="6" fill="var(--highlight)" stroke="var(--accent)" stroke-width="1.5" />
-          <text x="170" y="145" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="middle">Heavy Overlap</text>
-
-          <text x="170" y="310" font-family="'Lora', serif" font-size="13" fill="var(--text)" font-weight="bold" text-anchor="middle">Linear PCA collapses and destroys the concentric pattern</text>
-        </g>
-      </svg>
-    </div>
-    <div class="pca-controls" style="margin-top: 0.8rem;">
-      <button type="button" class="pca-btn" id="fig4-anim-btn">
-        <span id="fig4-anim-text">Project Concentric Points (2D → 1D)</span>
-      </button>
-    </div>
-    <figcaption class="figure-caption">
-      <strong>Figure 4:</strong> The limitation of linear projections on non-linear data. Projecting concentric rings onto any 1D straight line collapses both rings together in the middle, destroying the ring structure and entangling the clusters. Click <em>"Project Concentric Points (2D → 1D)"</em> to animate the 2D rings flattening onto $w$.
-    </figcaption>
-  </figure>
-
-  <p>
-    Overcoming this non-linear breakdown leads to <strong>Kernel PCA</strong>: lifting data into a higher-dimensional feature space where curved manifolds straighten out into flat hyperplanes.
-  </p>
-</section>
-
 
                     </section>
                 </article>
@@ -1896,10 +1961,374 @@
     renderFig1();
 
     // ══════════════════════════════════════════════════════════════
-    // FIGURE 2: Interactive 3D Projection onto Axis w
+    // FIGURE 2: Centering the Dataset (Translation by -x̄)
+    // ══════════════════════════════════════════════════════════════
+    const fig2cSvg = document.getElementById("fig2-center-svg");
+    const fig2cGridFloor = document.getElementById("fig2c-grid-floor");
+    const fig2cFloorDroplines = document.getElementById("fig2c-floor-droplines");
+    const fig2cShadows = document.getElementById("fig2c-shadows");
+    const fig2cAxisX = document.getElementById("fig2c-axis-x");
+    const fig2cAxisY = document.getElementById("fig2c-axis-y");
+    const fig2cAxisZ = document.getElementById("fig2c-axis-z");
+    const fig2cAxisNegX = document.getElementById("fig2c-axis-neg-x");
+    const fig2cAxisNegY = document.getElementById("fig2c-axis-neg-y");
+    const fig2cAxisNegZ = document.getElementById("fig2c-axis-neg-z");
+    const fig2cMeanGroup = document.getElementById("fig2c-mean-group");
+    const fig2cVecMean = document.getElementById("fig2c-vec-mean");
+    const fig2cLblVecMean = document.getElementById("fig2c-lbl-vec-mean");
+    const fig2cMeanMarker = document.getElementById("fig2c-mean-marker");
+    const fig2cMeanHalo = document.getElementById("fig2c-mean-halo");
+    const fig2cMeanDot = document.getElementById("fig2c-mean-dot");
+    const fig2cLblMean = document.getElementById("fig2c-lbl-mean");
+    const fig2cPointsGroup = document.getElementById("fig2c-points-group");
+    const fig2cOriginDot = document.getElementById("fig2c-origin-dot");
+    const fig2cLblOrigin = document.getElementById("fig2c-lbl-origin");
+    const fig2cLblX = document.getElementById("fig2c-lbl-x");
+    const fig2cLblY = document.getElementById("fig2c-lbl-y");
+    const fig2cLblZ = document.getElementById("fig2c-lbl-z");
+    const fig2cReadoutText = document.getElementById("fig2c-readout-text");
+
+    let fig2cIsVisible = false;
+    let fig2cAnimStartTime = null;
+    let fig2cYaw = -0.55, fig2cTargetYaw = -0.55;
+    let fig2cPitch = 0.35, fig2cTargetPitch = 0.35;
+    let fig2cT = 0;
+
+    let fig2cIsDragging = false;
+    let fig2cStartX = 0, fig2cStartY = 0;
+    let fig2cStartYaw = 0, fig2cStartPitch = 0;
+
+    const fig2cCx = 380, fig2cCy = 240;
+    const fig2cScale = 1.05;
+
+    // Mean vector of raw points
+    const fig2cMeanX = fig1RawPoints.reduce((s, p) => s + p.x, 0) / fig1RawPoints.length;
+    const fig2cMeanY = fig1RawPoints.reduce((s, p) => s + p.y, 0) / fig1RawPoints.length;
+    const fig2cMeanZ = fig1RawPoints.reduce((s, p) => s + p.z, 0) / fig1RawPoints.length;
+
+    function projectFig2c(x, y, z, yaw, pitch, t) {
+      // Pivot smoothly shifts from (75, 60, 60) down to (0, 0, 0)
+      const px = 75 * (1 - t);
+      const py = 60 * (1 - t);
+      const pz = 60 * (1 - t);
+      const dx = x - px, dy = y - py, dz = z - pz;
+      const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+      const x1 = dx * cosY - dy * sinY;
+      const y1 = dx * sinY + dy * cosY;
+      const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+      const depth = y1 * cosP - dz * sinP;
+      const screenY = y1 * sinP + dz * cosP;
+      return {
+        u: fig2cCx + x1 * fig2cScale,
+        v: fig2cCy - screenY * fig2cScale,
+        depth: depth
+      };
+    }
+
+    // Floor grid lines
+    const fig2cFloorLinesX = [];
+    const fig2cFloorLinesY = [];
+    if (fig2cGridFloor) {
+      [0, 60, 120, 180, 240].forEach((yVal) => {
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("stroke", "var(--border)");
+        line.setAttribute("stroke-width", "1.5");
+        line.setAttribute("stroke-dasharray", "4,3");
+        line.setAttribute("opacity", "0.65");
+        fig2cGridFloor.appendChild(line);
+        fig2cFloorLinesY.push({ el: line, yBase: yVal });
+      });
+      [0, 75, 150, 225, 300].forEach((xVal) => {
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("stroke", "var(--border)");
+        line.setAttribute("stroke-width", "1.5");
+        line.setAttribute("stroke-dasharray", "4,3");
+        line.setAttribute("opacity", "0.65");
+        fig2cGridFloor.appendChild(line);
+        fig2cFloorLinesX.push({ el: line, xBase: xVal });
+      });
+    }
+
+    // Points, floor droplines, shadows
+    const fig2cPointElements = [];
+    if (fig2cPointsGroup && fig2cFloorDroplines && fig2cShadows) {
+      fig1RawPoints.forEach((p) => {
+        const drop = document.createElementNS(svgNS, "line");
+        drop.setAttribute("stroke", "var(--border)");
+        drop.setAttribute("stroke-width", "1.1");
+        drop.setAttribute("stroke-dasharray", "2,2");
+        drop.setAttribute("opacity", "0.45");
+        fig2cFloorDroplines.appendChild(drop);
+
+        const shadow = document.createElementNS(svgNS, "circle");
+        shadow.setAttribute("r", "2.8");
+        shadow.setAttribute("fill", "var(--dark)");
+        shadow.setAttribute("opacity", "0.28");
+        fig2cShadows.appendChild(shadow);
+
+        const circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("r", "4.8");
+        circle.setAttribute("fill", "var(--accent)");
+        circle.setAttribute("stroke", "var(--bg)");
+        circle.setAttribute("stroke-width", "1.5");
+        fig2cPointsGroup.appendChild(circle);
+
+        fig2cPointElements.push({ raw: p, drop, shadow, circle, depth: 0 });
+      });
+    }
+
+    function renderFig2c() {
+      if (!fig2cSvg) return;
+
+      const t = fig2cT;
+
+      // 1. Floor grid lines: glide from [0, 300]x[0, 240] to [-150, 150]x[-120, 120]
+      const gridMinX = -150 * t;
+      const gridMaxX = 300 - 150 * t;
+      const gridMinY = -120 * t;
+      const gridMaxY = 240 - 120 * t;
+      const gridOp = Math.min(0.65, Math.max(0.2, Math.sin(Math.max(0.08, fig2cPitch)) * 1.5)).toFixed(2);
+
+      fig2cFloorLinesY.forEach((fl) => {
+        const yCur = fl.yBase - 120 * t;
+        const p1 = projectFig2c(gridMinX, yCur, 0, fig2cYaw, fig2cPitch, t);
+        const p2 = projectFig2c(gridMaxX, yCur, 0, fig2cYaw, fig2cPitch, t);
+        fl.el.setAttribute("x1", p1.u.toFixed(1));
+        fl.el.setAttribute("y1", p1.v.toFixed(1));
+        fl.el.setAttribute("x2", p2.u.toFixed(1));
+        fl.el.setAttribute("y2", p2.v.toFixed(1));
+        fl.el.setAttribute("opacity", gridOp);
+      });
+
+      fig2cFloorLinesX.forEach((fl) => {
+        const xCur = fl.xBase - 150 * t;
+        const p1 = projectFig2c(xCur, gridMinY, 0, fig2cYaw, fig2cPitch, t);
+        const p2 = projectFig2c(xCur, gridMaxY, 0, fig2cYaw, fig2cPitch, t);
+        fl.el.setAttribute("x1", p1.u.toFixed(1));
+        fl.el.setAttribute("y1", p1.v.toFixed(1));
+        fl.el.setAttribute("x2", p2.u.toFixed(1));
+        fl.el.setAttribute("y2", p2.v.toFixed(1));
+        fl.el.setAttribute("opacity", gridOp);
+      });
+
+      // 2. Origin and Coordinate axes
+      const pO = projectFig2c(0, 0, 0, fig2cYaw, fig2cPitch, t);
+      const pX = projectFig2c(280, 0, 0, fig2cYaw, fig2cPitch, t);
+      const pY = projectFig2c(0, 230, 0, fig2cYaw, fig2cPitch, t);
+      const pZ = projectFig2c(0, 0, 220, fig2cYaw, fig2cPitch, t);
+
+      if (fig2cAxisX && fig2cAxisY && fig2cAxisZ) {
+        fig2cAxisX.setAttribute("x1", pO.u.toFixed(1));
+        fig2cAxisX.setAttribute("y1", pO.v.toFixed(1));
+        fig2cAxisX.setAttribute("x2", pX.u.toFixed(1));
+        fig2cAxisX.setAttribute("y2", pX.v.toFixed(1));
+
+        fig2cAxisY.setAttribute("x1", pO.u.toFixed(1));
+        fig2cAxisY.setAttribute("y1", pO.v.toFixed(1));
+        fig2cAxisY.setAttribute("x2", pY.u.toFixed(1));
+        fig2cAxisY.setAttribute("y2", pY.v.toFixed(1));
+
+        fig2cAxisZ.setAttribute("x1", pO.u.toFixed(1));
+        fig2cAxisZ.setAttribute("y1", pO.v.toFixed(1));
+        fig2cAxisZ.setAttribute("x2", pZ.u.toFixed(1));
+        fig2cAxisZ.setAttribute("y2", pZ.v.toFixed(1));
+      }
+
+      // Negative axes (emerge as dataset centers)
+      const negOp = (t * 0.85).toFixed(2);
+      if (fig2cAxisNegX && fig2cAxisNegY && fig2cAxisNegZ) {
+        const pNegX = projectFig2c(-160 * t, 0, 0, fig2cYaw, fig2cPitch, t);
+        const pNegY = projectFig2c(0, -140 * t, 0, fig2cYaw, fig2cPitch, t);
+        const pNegZ = projectFig2c(0, 0, -140 * t, fig2cYaw, fig2cPitch, t);
+
+        fig2cAxisNegX.setAttribute("x1", pNegX.u.toFixed(1));
+        fig2cAxisNegX.setAttribute("y1", pNegX.v.toFixed(1));
+        fig2cAxisNegX.setAttribute("x2", pO.u.toFixed(1));
+        fig2cAxisNegX.setAttribute("y2", pO.v.toFixed(1));
+        fig2cAxisNegX.setAttribute("opacity", negOp);
+
+        fig2cAxisNegY.setAttribute("x1", pNegY.u.toFixed(1));
+        fig2cAxisNegY.setAttribute("y1", pNegY.v.toFixed(1));
+        fig2cAxisNegY.setAttribute("x2", pO.u.toFixed(1));
+        fig2cAxisNegY.setAttribute("y2", pO.v.toFixed(1));
+        fig2cAxisNegY.setAttribute("opacity", negOp);
+
+        fig2cAxisNegZ.setAttribute("x1", pNegZ.u.toFixed(1));
+        fig2cAxisNegZ.setAttribute("y1", pNegZ.v.toFixed(1));
+        fig2cAxisNegZ.setAttribute("x2", pO.u.toFixed(1));
+        fig2cAxisNegZ.setAttribute("y2", pO.v.toFixed(1));
+        fig2cAxisNegZ.setAttribute("opacity", negOp);
+      }
+
+      // Origin dot & Axis labels
+      if (fig2cOriginDot) {
+        fig2cOriginDot.setAttribute("cx", pO.u.toFixed(1));
+        fig2cOriginDot.setAttribute("cy", pO.v.toFixed(1));
+      }
+      if (fig2cLblOrigin) {
+        fig2cLblOrigin.setAttribute("x", (pO.u - 14).toFixed(1));
+        fig2cLblOrigin.setAttribute("y", (pO.v + 16).toFixed(1));
+        fig2cLblOrigin.textContent = t < 0.5 ? "0 (Origin)" : "0 (Centered Origin)";
+      }
+      if (fig2cLblX) {
+        fig2cLblX.setAttribute("x", (pX.u + 10).toFixed(1));
+        fig2cLblX.setAttribute("y", (pX.v + 4).toFixed(1));
+      }
+      if (fig2cLblY) {
+        fig2cLblY.setAttribute("x", (pY.u + 10).toFixed(1));
+        fig2cLblY.setAttribute("y", (pY.v + 12).toFixed(1));
+      }
+      if (fig2cLblZ) {
+        fig2cLblZ.setAttribute("x", pZ.u.toFixed(1));
+        fig2cLblZ.setAttribute("y", (pZ.v - 12).toFixed(1));
+      }
+
+      // 3. Center of Mass & Mean Vector
+      const curMx = fig2cMeanX * (1 - t);
+      const curMy = fig2cMeanY * (1 - t);
+      const curMz = fig2cMeanZ * (1 - t);
+      const pM = projectFig2c(curMx, curMy, curMz, fig2cYaw, fig2cPitch, t);
+
+      const meanVecDist = Math.hypot(pM.u - pO.u, pM.v - pO.v);
+      const meanVecOp = Math.max(0, (1 - t * 1.15)).toFixed(2);
+
+      if (fig2cVecMean && fig2cLblVecMean) {
+        if (meanVecDist > 12 && t < 0.9) {
+          fig2cVecMean.setAttribute("x1", pO.u.toFixed(1));
+          fig2cVecMean.setAttribute("y1", pO.v.toFixed(1));
+          fig2cVecMean.setAttribute("x2", pM.u.toFixed(1));
+          fig2cVecMean.setAttribute("y2", pM.v.toFixed(1));
+          fig2cVecMean.setAttribute("opacity", meanVecOp);
+
+          const midMx = (pO.u + pM.u) * 0.5 - 20;
+          const midMy = (pO.v + pM.v) * 0.5 - 12;
+          fig2cLblVecMean.setAttribute("x", midMx.toFixed(1));
+          fig2cLblVecMean.setAttribute("y", midMy.toFixed(1));
+          fig2cLblVecMean.setAttribute("opacity", meanVecOp);
+        } else {
+          fig2cVecMean.setAttribute("opacity", "0");
+          fig2cLblVecMean.setAttribute("opacity", "0");
+        }
+      }
+
+      if (fig2cMeanHalo && fig2cMeanDot && fig2cLblMean) {
+        fig2cMeanHalo.setAttribute("cx", pM.u.toFixed(1));
+        fig2cMeanHalo.setAttribute("cy", pM.v.toFixed(1));
+        fig2cMeanDot.setAttribute("cx", pM.u.toFixed(1));
+        fig2cMeanDot.setAttribute("cy", pM.v.toFixed(1));
+
+        fig2cLblMean.setAttribute("x", (pM.u + 14).toFixed(1));
+        fig2cLblMean.setAttribute("y", (pM.v - 6).toFixed(1));
+        fig2cLblMean.textContent = t < 0.5
+          ? "Center of Mass x̄"
+          : "Center of Mass = 0";
+      }
+
+      // 4. Data points, drop lines & floor shadows
+      const floorDropOp = Math.min(0.55, Math.max(0.12, Math.sin(Math.max(0.06, fig2cPitch)) * 1.3)).toFixed(2);
+      const floorShadowOp = Math.min(0.35, Math.max(0.1, Math.sin(Math.max(0.06, fig2cPitch)) * 1.0)).toFixed(2);
+
+      fig2cPointElements.forEach((item) => {
+        const curX = item.raw.x - t * fig2cMeanX;
+        const curY = item.raw.y - t * fig2cMeanY;
+        const curZ = item.raw.z - t * fig2cMeanZ;
+
+        const p3d = projectFig2c(curX, curY, curZ, fig2cYaw, fig2cPitch, t);
+        const pFloor = projectFig2c(curX, curY, 0, fig2cYaw, fig2cPitch, t);
+
+        item.depth = p3d.depth;
+
+        item.drop.setAttribute("x1", p3d.u.toFixed(1));
+        item.drop.setAttribute("y1", p3d.v.toFixed(1));
+        item.drop.setAttribute("x2", pFloor.u.toFixed(1));
+        item.drop.setAttribute("y2", pFloor.v.toFixed(1));
+        item.drop.setAttribute("opacity", floorDropOp);
+
+        item.shadow.setAttribute("cx", pFloor.u.toFixed(1));
+        item.shadow.setAttribute("cy", pFloor.v.toFixed(1));
+        item.shadow.setAttribute("opacity", floorShadowOp);
+
+        item.circle.setAttribute("cx", p3d.u.toFixed(1));
+        item.circle.setAttribute("cy", p3d.v.toFixed(1));
+      });
+
+      // Depth sort points
+      fig2cPointElements.slice().sort((a, b) => a.depth - b.depth).forEach((item) => {
+        fig2cPointsGroup.appendChild(item.circle);
+      });
+
+      // 5. Live Readout Text
+      if (fig2cReadoutText) {
+        if (t < 0.15) {
+          fig2cReadoutText.innerHTML = `<strong>1. Raw Coordinates:</strong> Sample Mean x̄ = [${fig2cMeanX.toFixed(1)}, ${fig2cMeanY.toFixed(1)}, ${fig2cMeanZ.toFixed(1)}]ᵀ &ne; <strong>0</strong> &bull; Point coordinates mostly reflect distance from origin.`;
+        } else if (t < 0.85) {
+          fig2cReadoutText.innerHTML = `<strong>2. Centering Dataset:</strong> Subtracting sample mean x̄ from each observation (xᵢ &larr; xᵢ &minus; x̄)...`;
+        } else {
+          fig2cReadoutText.innerHTML = `<strong>3. Centered at Origin:</strong> Sample Mean &sum;(x<sub>i</sub> &minus; x̄) = [0.0, 0.0, 0.0]ᵀ = <strong>0</strong> &bull; Origin anchored at center of mass: pure internal variance.`;
+        }
+      }
+    }
+
+    // Drag Interaction on Figure 2 SVG
+    if (fig2cSvg) {
+      fig2cSvg.addEventListener("pointerdown", (e) => {
+        fig2cIsDragging = true;
+        fig2cSvg.style.cursor = "grabbing";
+        fig2cStartX = e.clientX;
+        fig2cStartY = e.clientY;
+        fig2cStartYaw = fig2cTargetYaw;
+        fig2cStartPitch = fig2cTargetPitch;
+        try { fig2cSvg.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+
+      fig2cSvg.addEventListener("pointermove", (e) => {
+        if (!fig2cIsDragging) return;
+        const dx = e.clientX - fig2cStartX;
+        const dy = e.clientY - fig2cStartY;
+        fig2cTargetYaw = fig2cStartYaw + dx * 0.007;
+        fig2cTargetPitch = Math.max(-0.25, Math.min(1.15, fig2cStartPitch + dy * 0.007));
+      });
+
+      const endFig2cDrag = (e) => {
+        if (!fig2cIsDragging) return;
+        fig2cIsDragging = false;
+        fig2cSvg.style.cursor = "grab";
+        try { fig2cSvg.releasePointerCapture(e.pointerId); } catch (_) {}
+      };
+
+      fig2cSvg.addEventListener("pointerup", endFig2cDrag);
+      fig2cSvg.addEventListener("pointercancel", endFig2cDrag);
+    }
+
+    // Auto-play repeating centering animation when scrolled into view
+    if ("IntersectionObserver" in window && fig2cSvg) {
+      const fig2cObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            fig2cIsVisible = entry.isIntersecting;
+            if (fig2cIsVisible && fig2cAnimStartTime === null) {
+              fig2cAnimStartTime = performance.now();
+            }
+          });
+        },
+        { threshold: 0.25 }
+      );
+      fig2cObserver.observe(fig2cSvg);
+    } else {
+      fig2cIsVisible = true;
+      fig2cAnimStartTime = performance.now();
+    }
+
+    // Initial render for Figure 2
+    renderFig2c();
+
+    // ══════════════════════════════════════════════════════════════
+    // FIGURE 3: Interactive 3D Projection onto Axis w
     // ══════════════════════════════════════════════════════════════
     const fig2Svg = document.getElementById("fig2-3d-svg");
     const fig2GridFloor = document.getElementById("fig2-grid-floor");
+    const fig2FloorDroplines = document.getElementById("fig2-floor-droplines");
+    const fig2Shadows = document.getElementById("fig2-shadows");
     const fig2AxisX = document.getElementById("fig2-axis-x");
     const fig2AxisY = document.getElementById("fig2-axis-y");
     const fig2AxisZ = document.getElementById("fig2-axis-z");
@@ -1976,30 +2405,30 @@
       };
     }
 
-    // Floor grid
+    // Floor grid lines (thickened for clear 3D perspective without canvas box)
     const fig2FloorLines = [];
     if (fig2GridFloor) {
       [0, 60, 120, 180, 240].forEach((yVal) => {
         const line = document.createElementNS(svgNS, "line");
         line.setAttribute("stroke", "var(--border)");
-        line.setAttribute("stroke-width", "1");
-        line.setAttribute("stroke-dasharray", "3,3");
-        line.setAttribute("opacity", "0.4");
+        line.setAttribute("stroke-width", "1.8");
+        line.setAttribute("stroke-dasharray", "5,4");
+        line.setAttribute("opacity", "0.75");
         fig2GridFloor.appendChild(line);
         fig2FloorLines.push({ el: line, x1: 0, y1: yVal, z1: 0, x2: 300, y2: yVal, z2: 0 });
       });
       [0, 75, 150, 225, 300].forEach((xVal) => {
         const line = document.createElementNS(svgNS, "line");
         line.setAttribute("stroke", "var(--border)");
-        line.setAttribute("stroke-width", "1");
-        line.setAttribute("stroke-dasharray", "3,3");
-        line.setAttribute("opacity", "0.4");
+        line.setAttribute("stroke-width", "1.8");
+        line.setAttribute("stroke-dasharray", "5,4");
+        line.setAttribute("opacity", "0.75");
         fig2GridFloor.appendChild(line);
         fig2FloorLines.push({ el: line, x1: xVal, y1: 0, z1: 0, x2: xVal, y2: 240, z2: 0 });
       });
     }
 
-    // Data points & orthogonal drop lines
+    // Data points, floor droplines, base shadows & orthogonal drop lines to axis w
     const fig2PointElements = [];
     if (fig2PointsGroup && fig2DropGroup) {
       fig1RawPoints.forEach((p, idx) => {
@@ -2010,6 +2439,27 @@
           y: 120 + s * fig1U1[1],
           z: 120 + s * fig1U1[2]
         };
+
+        // Floor drop line down to z = 0
+        let floorDrop = null;
+        if (fig2FloorDroplines) {
+          floorDrop = document.createElementNS(svgNS, "line");
+          floorDrop.setAttribute("stroke", "var(--border)");
+          floorDrop.setAttribute("stroke-width", "1.1");
+          floorDrop.setAttribute("stroke-dasharray", "2,2");
+          floorDrop.setAttribute("opacity", "0.45");
+          fig2FloorDroplines.appendChild(floorDrop);
+        }
+
+        // Base shadow dot on floor (z = 0)
+        let floorShadow = null;
+        if (fig2Shadows) {
+          floorShadow = document.createElementNS(svgNS, "circle");
+          floorShadow.setAttribute("r", "2.8");
+          floorShadow.setAttribute("fill", "var(--dark)");
+          floorShadow.setAttribute("opacity", "0.26");
+          fig2Shadows.appendChild(floorShadow);
+        }
 
         const drop = document.createElementNS(svgNS, "line");
         drop.setAttribute("stroke", "var(--border)");
@@ -2031,7 +2481,7 @@
           triggerInspect(idx);
         });
 
-        fig2PointElements.push({ p, q, s, drop, circle, idx, depth: 0 });
+        fig2PointElements.push({ p, q, s, drop, circle, floorDrop, floorShadow, idx, depth: 0 });
       });
     }
 
@@ -2194,6 +2644,9 @@
       }
 
       // 1. Grid
+      const gridPitchFactor = Math.min(0.85, Math.max(0.3, Math.sin(Math.max(0.08, fig2Pitch)) * 1.8));
+      const gridOp = (gridPitchFactor * (1 - fig2InspectT * 0.75)).toFixed(2);
+
       fig2FloorLines.forEach((fl) => {
         const p1 = projectFig2(fl.x1, fl.y1, fl.z1, fig2Yaw, fig2Pitch);
         const p2 = projectFig2(fl.x2, fl.y2, fl.z2, fig2Yaw, fig2Pitch);
@@ -2201,8 +2654,7 @@
         fl.el.setAttribute("y1", p1.v);
         fl.el.setAttribute("x2", p2.u);
         fl.el.setAttribute("y2", p2.v);
-        // Dim grid when zoomed in
-        fl.el.setAttribute("opacity", (0.4 * (1 - fig2InspectT * 0.75)).toFixed(2));
+        fl.el.setAttribute("opacity", gridOp);
       });
 
       // 2. Coordinate axes through origin (150, 120, 120)
@@ -2305,20 +2757,44 @@
         }
       }
 
-      // 4. Points & Orthogonal Drop Lines
+      // 4. Points, Floor Droplines, Base Shadows & Orthogonal Drop Lines
+      const floorDropBaseOp = Math.min(0.55, Math.max(0.12, Math.sin(Math.max(0.06, fig2Pitch)) * 1.3));
+      const floorDropOp = (floorDropBaseOp * (1 - fig2InspectT * 0.85)).toFixed(3);
+      const floorShadowBaseOp = Math.min(0.35, Math.max(0.1, Math.sin(Math.max(0.06, fig2Pitch)) * 1.0));
+      const floorShadowOp = (floorShadowBaseOp * (1 - fig2InspectT * 0.85)).toFixed(3);
+
       fig2PointElements.forEach((item) => {
         const curX = item.p.x + fig2ProjT * (item.q.x - item.p.x);
         const curY = item.p.y + fig2ProjT * (item.q.y - item.p.y);
         const curZ = item.p.z + fig2ProjT * (item.q.z - item.p.z);
 
         const pCur = projectFig2(curX, curY, curZ, fig2Yaw, fig2Pitch);
+        const pFloor = projectFig2(curX, curY, 0, fig2Yaw, fig2Pitch);
         item.depth = pCur.depth;
+
+        const isTarget = item.idx === fig2InspectIdx;
+
+        // Floor drop line down to z = 0
+        if (item.floorDrop) {
+          item.floorDrop.setAttribute("x1", pCur.u);
+          item.floorDrop.setAttribute("y1", pCur.v);
+          item.floorDrop.setAttribute("x2", pFloor.u);
+          item.floorDrop.setAttribute("y2", pFloor.v);
+          item.floorDrop.setAttribute("opacity", isTarget && fig2InspectT > 0.05 ? "0.75" : floorDropOp);
+        }
+
+        // Base shadow on the floor (z = 0)
+        if (item.floorShadow) {
+          item.floorShadow.setAttribute("cx", pFloor.u);
+          item.floorShadow.setAttribute("cy", pFloor.v);
+          item.floorShadow.setAttribute("r", (2.8 * pFloor.scale).toFixed(1));
+          item.floorShadow.setAttribute("opacity", isTarget && fig2InspectT > 0.05 ? "0.6" : floorShadowOp);
+        }
 
         item.circle.setAttribute("cx", pCur.u);
         item.circle.setAttribute("cy", pCur.v);
 
         // Dim other points during zoomed inspection
-        const isTarget = item.idx === fig2InspectIdx;
         const ptOpacity = fig2InspectT > 0.05
           ? (isTarget ? "1" : (1 - fig2InspectT * 0.82).toFixed(3))
           : "1";
@@ -2499,63 +2975,9 @@
       }
     }
 
-    // Initial render for Figure 2
+    // Initial render for Figure 3
     renderFig2();
 
-    // ══════════════════════════════════════════════════════════════
-    // FIGURE 4: Concentric Circles Non-Linear Projection Animation
-    // ══════════════════════════════════════════════════════════════
-    const fig4OuterGroup = document.getElementById("fig4-outer-group");
-    const fig4InnerGroup = document.getElementById("fig4-inner-group");
-    const fig4DropGroup = document.getElementById("fig4-drop-group");
-    const fig4AnimBtn = document.getElementById("fig4-anim-btn");
-    const fig4AnimText = document.getElementById("fig4-anim-text");
-    const fig4OverlapBox = document.getElementById("fig4-overlap-box");
-
-    let fig4T = 0;
-    let fig4TargetT = 0;
-    const fig4Circles = [];
-    const fig4Lines = [];
-
-    if (fig4OuterGroup && fig4InnerGroup && fig4DropGroup) {
-      const allCircs = [
-        ...fig4OuterGroup.querySelectorAll("circle"),
-        ...fig4InnerGroup.querySelectorAll("circle")
-      ];
-
-      allCircs.forEach((c) => {
-        const ox = parseFloat(c.getAttribute("data-orig-x"));
-        const oy = parseFloat(c.getAttribute("data-orig-y"));
-        fig4Circles.push({ el: c, ox, oy });
-
-        const line = document.createElementNS(svgNS, "line");
-        line.setAttribute("x1", ox);
-        line.setAttribute("y1", oy);
-        line.setAttribute("x2", ox);
-        line.setAttribute("y2", 170);
-        line.setAttribute("stroke", "var(--muted)");
-        line.setAttribute("stroke-width", "1");
-        line.setAttribute("stroke-dasharray", "3,3");
-        line.setAttribute("opacity", "0.4");
-        fig4DropGroup.appendChild(line);
-        fig4Lines.push(line);
-      });
-    }
-
-    if (fig4AnimBtn) {
-      fig4AnimBtn.addEventListener("click", () => {
-        fig4TargetT = fig4TargetT === 0 ? 1 : 0;
-        if (fig4TargetT === 1) {
-          fig4AnimBtn.classList.add("active");
-          fig4AnimText.textContent = "Restore 2D Concentric Rings";
-        } else {
-          fig4AnimBtn.classList.remove("active");
-          fig4AnimText.textContent = "Project Concentric Points (2D → 1D)";
-        }
-      });
-    }
-
-    // ══════════════════════════════════════════════════════════════
     // MASTER ANIMATION LOOP
     // ══════════════════════════════════════════════════════════════
     function frame() {
@@ -2581,7 +3003,50 @@
         renderFig1();
       }
 
-      // 1. Update Figure 2 (Camera, Zoom, Focus & 3D Projections)
+      // 1. Update Figure 2 (Centering Repeating Animation on Scroll)
+      let fig2cNeedsRender = false;
+      if (fig2cIsVisible) {
+        const now = performance.now();
+        if (fig2cAnimStartTime === null) fig2cAnimStartTime = now;
+        const elapsed = (now - fig2cAnimStartTime) % 7000; // 7-second repeating cycle
+        const s = elapsed / 1000;
+
+        let targetT = 0;
+        if (s < 1.8) {
+          // Phase 1: Hold raw coordinates (1.8s)
+          targetT = 0;
+        } else if (s < 3.6) {
+          // Phase 2: Smooth shift to center (1.8s duration, cosine easing)
+          const u = (s - 1.8) / 1.8;
+          targetT = 0.5 - 0.5 * Math.cos(Math.PI * u);
+        } else if (s < 5.4) {
+          // Phase 3: Hold centered at origin (1.8s)
+          targetT = 1;
+        } else {
+          // Phase 4: Smooth return to raw coordinates (1.6s duration)
+          const u = (s - 5.4) / 1.6;
+          targetT = 0.5 + 0.5 * Math.cos(Math.PI * u);
+        }
+
+        if (Math.abs(targetT - fig2cT) > 0.001) {
+          fig2cT = targetT;
+          fig2cNeedsRender = true;
+        }
+      }
+
+      if (Math.abs(fig2cTargetYaw - fig2cYaw) > 0.0005) {
+        fig2cYaw += (fig2cTargetYaw - fig2cYaw) * 0.08;
+        fig2cNeedsRender = true;
+      }
+      if (Math.abs(fig2cTargetPitch - fig2cPitch) > 0.0005) {
+        fig2cPitch += (fig2cTargetPitch - fig2cPitch) * 0.08;
+        fig2cNeedsRender = true;
+      }
+      if (fig2cNeedsRender) {
+        renderFig2c();
+      }
+
+      // 2. Update Figure 3 (Camera, Zoom, Focus & 3D Projections)
       let fig2NeedsRender = false;
       if (Math.abs(fig2TargetYaw - fig2Yaw) > 0.0005) {
         fig2Yaw += (fig2TargetYaw - fig2Yaw) * 0.08;
@@ -2615,22 +3080,6 @@
       }
       if (fig2NeedsRender) {
         renderFig2();
-      }
-
-      // 2. Update Figure 4 (Concentric Circles)
-      if (Math.abs(fig4TargetT - fig4T) > 0.001) {
-        fig4T += (fig4TargetT - fig4T) * 0.08;
-        fig4Circles.forEach((c, i) => {
-          const curY = c.oy + fig4T * (170 - c.oy);
-          c.el.setAttribute("cy", curY);
-          if (fig4Lines[i]) {
-            fig4Lines[i].setAttribute("y1", curY);
-            fig4Lines[i].setAttribute("opacity", Math.max(0.15, 0.5 * (1 - fig4T * 0.6)));
-          }
-        });
-        if (fig4OverlapBox) {
-          fig4OverlapBox.setAttribute("stroke-width", fig4T > 0.6 ? (1.5 + fig4T * 1.5).toString() : "1.5");
-        }
       }
 
       requestAnimationFrame(frame);

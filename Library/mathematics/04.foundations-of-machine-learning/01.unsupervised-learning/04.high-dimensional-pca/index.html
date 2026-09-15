@@ -85,7 +85,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="15">
+  <meta name="reading_time" content="20">
     <meta property="og:title" content="PCA for High-Dimensional Data">
     <meta property="og:description" content="The conceptual and geometric duality of PCA — understanding feature space (X Xᵀ) vs. sample space (Xᵀ X), uncorrelating features vs. uncorrelating samples, the Representer property, and solving high-dimensional data (d ≫ n).">
     <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-pca-for-high-dimensional-data.png">
@@ -219,7 +219,11 @@
   </p>
 
   <div class="math-display">
-    $$x_1 = \begin{bmatrix} -6 \\ -3 \end{bmatrix} \quad (\text{Studio}), \qquad x_2 = \begin{bmatrix} 2 \\ 1 \end{bmatrix} \quad (\text{Townhouse}), \qquad x_3 = \begin{bmatrix} 4 \\ 2 \end{bmatrix} \quad (\text{Estate})$$
+    $$\begin{aligned}
+      x_1 &= \begin{bmatrix} -6 \\ -3 \end{bmatrix} \quad (\text{Studio}) \\[8pt]
+      x_2 &= \begin{bmatrix} 2 \\ 1 \end{bmatrix} \quad (\text{Townhouse}) \\[8pt]
+      x_3 &= \begin{bmatrix} 4 \\ 2 \end{bmatrix} \quad (\text{Luxury Estate})
+    \end{aligned}$$
   </div>
 
   <figure class="diagram-figure">
@@ -309,12 +313,38 @@
   </p>
 
   <p>
-    To find the optimal direction of maximum variance, we multiply the rows of $X$ by themselves, forming the $d \times d$ feature covariance matrix:
+    To find the optimal direction of maximum variance, we examine how the features covary across the properties. Let us denote the rows of our centered data matrix $X$ as feature vectors $r_1, r_2 \in \mathbb{R}^3$, where each vector captures the values of one feature across all $n = 3$ properties:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      X X^T &= \begin{bmatrix} r_1 \cdot r_1 & r_1 \cdot r_2 \\ r_2 \cdot r_1 & r_2 \cdot r_2 \end{bmatrix} \\[6pt]
+      r_1 &= \begin{bmatrix} -6 \\ \phantom{-}2 \\ \phantom{-}4 \end{bmatrix} \quad (\text{Living Area deviations}) \\[8pt]
+      r_2 &= \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix} \quad (\text{Market Price deviations})
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Expressing $X$ by its row vectors $r_1^T$ and $r_2^T$, its transpose $X^T$ places these exact vectors into its columns:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X &= \begin{bmatrix} \text{—} & r_1^T & \text{—} \\ \text{—} & r_2^T & \text{—} \end{bmatrix} = \begin{bmatrix} -6 & \phantom{-}2 & \phantom{-}4 \\ -3 & \phantom{-}1 & \phantom{-}2 \end{bmatrix} \\[10pt]
+      X^T &= \begin{bmatrix} | & | \\ r_1 & r_2 \\ | & | \end{bmatrix} = \begin{bmatrix} -6 & -3 \\ \phantom{-}2 & \phantom{-}1 \\ \phantom{-}4 & \phantom{-}2 \end{bmatrix}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Multiplying the rows of $X$ ($d \times n$) by the columns of $X^T$ ($n \times d$) forms the $d \times d$ (here $2 \times 2$) unnormalized feature covariance matrix $X X^T$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X X^T &= \overset{\mathbb{R}^{d \times n}}{\begin{bmatrix} \text{—} & r_1^T & \text{—} \\ \text{—} & r_2^T & \text{—} \end{bmatrix}} \;\; \overset{\mathbb{R}^{n \times d}}{\begin{bmatrix} | & | \\ r_1 & r_2 \\ | & | \end{bmatrix}} \\[10pt]
+      &= \overset{\mathbb{R}^{d \times d}}{\begin{bmatrix} r_1^T r_1 & r_1^T r_2 \\ r_2^T r_1 & r_2^T r_2 \end{bmatrix}} \\[8pt]
+      &= \begin{bmatrix} r_1 \cdot r_1 & r_1 \cdot r_2 \\ r_2 \cdot r_1 & r_2 \cdot r_2 \end{bmatrix} \\[8pt]
+      &= \begin{bmatrix} -6 & \phantom{-}2 & \phantom{-}4 \\ -3 & \phantom{-}1 & \phantom{-}2 \end{bmatrix} \begin{bmatrix} -6 & -3 \\ \phantom{-}2 & \phantom{-}1 \\ \phantom{-}4 & \phantom{-}2 \end{bmatrix} \\[8pt]
+      &= \begin{bmatrix} 36 + 4 + 16 & 18 + 2 + 8 \\ 18 + 2 + 8 & 9 + 1 + 4 \end{bmatrix} \\[8pt]
       &= \begin{bmatrix} 56 & 28 \\ 28 & 14 \end{bmatrix} \in \mathbb{R}^{2 \times 2}
     \end{aligned}$$
   </div>
@@ -368,7 +398,10 @@
   </p>
 
   <div class="math-display">
-    $$r_1 = \begin{bmatrix} -6 \\ \phantom{-}2 \\ \phantom{-}4 \end{bmatrix} \quad (\text{Living Area Profile}), \qquad r_2 = \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix} \quad (\text{Market Price Profile})$$
+    $$\begin{aligned}
+      r_1 &= \begin{bmatrix} -6 \\ \phantom{-}2 \\ \phantom{-}4 \end{bmatrix} \quad (\text{Living Area Profile}) \\[8pt]
+      r_2 &= \begin{bmatrix} -3 \\ \phantom{-}1 \\ \phantom{-}2 \end{bmatrix} \quad (\text{Market Price Profile})
+    \end{aligned}$$
   </div>
 
   <p>
@@ -692,12 +725,43 @@
   </p>
 
   <p>
-    Dual PCA finds this dominant direction in sample space. To find this principal axis, we construct the $n \times n$ <strong>Sample Gram Matrix</strong> ($X^T X$), which computes the pairwise dot products between our observation columns:
+    Dual PCA finds this dominant direction in sample space. To find this principal axis, we construct the $n \times n$ <strong>Sample Gram Matrix</strong> ($X^T X$).
+  </p>
+
+  <p>
+    Recall our observation points in $\mathbb{R}^2$:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      X^T X &= \begin{bmatrix} x_1 \cdot x_1 & x_1 \cdot x_2 & x_1 \cdot x_3 \\ x_2 \cdot x_1 & x_2 \cdot x_2 & x_2 \cdot x_3 \\ x_3 \cdot x_1 & x_3 \cdot x_2 & x_3 \cdot x_3 \end{bmatrix} \\[8pt]
+      x_1 &= \begin{bmatrix} -6 \\ -3 \end{bmatrix} \quad (\text{Studio}) \\[8pt]
+      x_2 &= \begin{bmatrix} 2 \\ 1 \end{bmatrix} \quad (\text{Townhouse}) \\[8pt]
+      x_3 &= \begin{bmatrix} 4 \\ 2 \end{bmatrix} \quad (\text{Luxury Estate})
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Expressing $X$ by its column vectors, its transpose $X^T$ places these observations into its rows:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X^T &= \begin{bmatrix} \text{—} & x_1^T & \text{—} \\ \text{—} & x_2^T & \text{—} \\ \text{—} & x_3^T & \text{—} \end{bmatrix} = \begin{bmatrix} -6 & -3 \\ \phantom{-}2 & \phantom{-}1 \\ \phantom{-}4 & \phantom{-}2 \end{bmatrix} \\[12pt]
+      X &= \begin{bmatrix} | & | & | \\ x_1 & x_2 & x_3 \\ | & | & | \end{bmatrix} = \begin{bmatrix} -6 & \phantom{-}2 & \phantom{-}4 \\ -3 & \phantom{-}1 & \phantom{-}2 \end{bmatrix}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Multiplying the rows of $X^T$ ($n \times d$) by the columns of $X$ ($d \times n$) forms the $n \times n$ (here $3 \times 3$) Sample Gram matrix $X^T X$, calculating every pairwise dot product between observations:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      X^T X &= \overset{\mathbb{R}^{n \times d}}{\begin{bmatrix} \text{—} & x_1^T & \text{—} \\ \text{—} & x_2^T & \text{—} \\ \text{—} & x_3^T & \text{—} \end{bmatrix}} \;\; \overset{\mathbb{R}^{d \times n}}{\begin{bmatrix} | & | & | \\ x_1 & x_2 & x_3 \\ | & | & | \end{bmatrix}} \\[10pt]
+      &= \overset{\mathbb{R}^{n \times n}}{\begin{bmatrix} x_1^T x_1 & x_1^T x_2 & x_1^T x_3 \\ x_2^T x_1 & x_2^T x_2 & x_2^T x_3 \\ x_3^T x_1 & x_3^T x_2 & x_3^T x_3 \end{bmatrix}} \\[10pt]
+      &= \begin{bmatrix} x_1 \cdot x_1 & x_1 \cdot x_2 & x_1 \cdot x_3 \\ x_2 \cdot x_1 & x_2 \cdot x_2 & x_2 \cdot x_3 \\ x_3 \cdot x_1 & x_3 \cdot x_2 & x_3 \cdot x_3 \end{bmatrix} \\[10pt]
+      &= \begin{bmatrix} -6 & -3 \\ \phantom{-}2 & \phantom{-}1 \\ \phantom{-}4 & \phantom{-}2 \end{bmatrix} \begin{bmatrix} -6 & \phantom{-}2 & \phantom{-}4 \\ -3 & \phantom{-}1 & \phantom{-}2 \end{bmatrix} \\[10pt]
+      &= \begin{bmatrix} 36 + 9 & -12 - 3 & -24 - 6 \\ -12 - 3 & 4 + 1 & 8 + 2 \\ -24 - 6 & 8 + 2 & 16 + 4 \end{bmatrix} \\[10pt]
       &= \begin{bmatrix} \phantom{-}45 & -15 & -30 \\ -15 & \phantom{-}5 & \phantom{-}10 \\ -30 & \phantom{-}10 & \phantom{-}20 \end{bmatrix} \in \mathbb{R}^{3 \times 3}
     \end{aligned}$$
   </div>
@@ -785,6 +849,11 @@
     </thead>
     <tbody>
       <tr>
+        <td><strong>Optimal Problem Regime</strong></td>
+        <td>$n \gg d$ (Many samples, few features)</td>
+        <td>$d \gg n$ (Few samples, massive feature dimensions)</td>
+      </tr>
+      <tr>
         <td><strong>Coordinate Axes</strong></td>
         <td>Features ($F_1, F_2, \dots, F_d$)</td>
         <td>Observations ($S_1, S_2, \dots, S_n$)</td>
@@ -808,11 +877,6 @@
         <td><strong>Eigenvector Meaning</strong></td>
         <td>Weights to blend features ($w \in \mathbb{R}^d$)</td>
         <td>Weights to blend samples ($\vec{\beta} \in \mathbb{R}^n$)</td>
-      </tr>
-      <tr>
-        <td><strong>Optimal Problem Regime</strong></td>
-        <td>$n \gg d$ (Many samples, few features)</td>
-        <td>$d \gg n$ (Few samples, massive feature dimensions)</td>
       </tr>
     </tbody>
   </table>
@@ -942,7 +1006,8 @@
 
   <div class="math-display">
     $$\begin{aligned}
-      X X^T &= \begin{bmatrix} \mid & \dots & \mid \\ x_1 & \dots & x_n \\ \mid & \dots & \mid \end{bmatrix} \begin{bmatrix} \text{---} & x_1^T & \text{---} \\ & \vdots & \\ \text{---} & x_n^T & \text{---} \end{bmatrix} = \sum_{i=1}^n x_i x_i^T \\[10pt]
+      X X^T &= \begin{bmatrix} \mid & \dots & \mid \\ x_1 & \dots & x_n \\ \mid & \dots & \mid \end{bmatrix} \begin{bmatrix} \text{---} & x_1^T & \text{---} \\ & \vdots & \\ \text{---} & x_n^T & \text{---} \end{bmatrix} \\[10pt]
+      &= \sum_{i=1}^n x_i x_i^T \\[10pt]
       &\implies C = \frac{1}{n} X X^T
     \end{aligned}$$
   </div>
@@ -1090,6 +1155,53 @@
       </div>
     </div>
   </details>
+
+  <p><strong>6. The Spectral Equivalence of $nC$ and $K$</strong></p>
+  <p>
+    We can now state the central theorem connecting primal and dual PCA: the primal scatter matrix $nC = X X^T$ and the dual Gram matrix $K = X^T X$ share the <strong>exact same non-zero eigenvalues</strong>.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Theorem: Spectral Equivalence of $nC$ and $K$</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$\begin{aligned}
+          \text{Primal Scatter: } &\quad nC = X X^T \longrightarrow \{w_1, \dots, w_\ell\}, \quad w_k \in \mathbb{R}^d, \quad \|w_k\|^2 = 1, \quad n\lambda_1 \ge \dots \ge n\lambda_\ell > 0 \\[10pt]
+          \text{Dual Gram: } &\quad K = X^T X \longrightarrow \{\vec{\beta}_1, \dots, \vec{\beta}_\ell\}, \quad \vec{\beta}_k \in \mathbb{R}^n, \quad \|\vec{\beta}_k\|^2 = 1, \quad n\lambda_1 \ge \dots \ge n\lambda_\ell > 0
+        \end{aligned}$$
+      </div>
+      <p>
+        The non-zero eigenvalues of $nC = X X^T$ and $K = X^T X$ are identical. If $\lambda_k$ is an eigenvalue of the sample covariance matrix $C = \frac{1}{n} X X^T$, then $n \lambda_k$ is the eigenvalue of both $X X^T$ and $K$.
+      </p>
+    </div>
+  </div>
+
+  <details class="toggle">
+    <summary><strong>Proof: Why do $X X^T$ and $X^T X$ share the same non-zero eigenvalues?</strong></summary>
+    <div class="toggle-body">
+      <p>
+        Let $\vec{\beta}_k$ be an eigenvector of $K = X^T X$ corresponding to a non-zero eigenvalue $\mu_k = n\lambda_k \neq 0$:
+      </p>
+      <div class="math-display">
+        $$(X^T X) \vec{\beta}_k = (n\lambda_k) \vec{\beta}_k$$
+      </div>
+      <p>
+        Premultiplying both sides on the left by $X$:
+      </p>
+      <div class="math-display">
+        $$X (X^T X) \vec{\beta}_k = X \big((n\lambda_k) \vec{\beta}_k\big) \iff (X X^T) (X \vec{\beta}_k) = (n\lambda_k) (X \vec{\beta}_k)$$
+      </div>
+      <p>
+        Because $n\lambda_k \neq 0$ and $\vec{\beta}_k \neq 0$, the vector $X \vec{\beta}_k$ cannot be zero (otherwise $X^T (X \vec{\beta}_k) = 0 \neq n\lambda_k \vec{\beta}_k$). Therefore, $X \vec{\beta}_k$ is an eigenvector of $nC = X X^T$ with the <strong>exact same eigenvalue</strong> $n\lambda_k$.
+      </p>
+      <p>
+        Normalizing $X \vec{\beta}_k$ to unit norm yields the primal principal component $w_k = \frac{X \vec{\beta}_k}{\sqrt{n\lambda_k}} = X \vec{\alpha}_k$.
+      </p>
+      <p>
+        In linear algebra, this universal property—that $A A^T$ and $A^T A$ share the exact same non-zero eigenvalues for any rectangular matrix $A$—is the foundational bedrock of the <a href="../../../02.linear-algebra/05.singular-value-decomposition/01.the-singular-value-decomposition-svd/">Singular Value Decomposition (SVD)</a>, where these shared non-zero eigenvalues are the squared singular values $\sigma_k^2$.
+      </p>
+    </div>
+  </details>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -1104,7 +1216,10 @@
 
   <ol>
     <li>
-      <strong>Calculate the Gram Matrix:</strong>
+      <strong>Calculate the Sample Gram Matrix (Instead of $X X^T \in \mathbb{R}^{d \times d}$):</strong>
+      <p>
+        Instead of constructing the intractable $d \times d$ feature covariance matrix $X X^T \in \mathbb{R}^{d \times d}$, compute the much smaller $n \times n$ Sample Gram matrix $K$:
+      </p>
       <div class="math-display">
         $$K = X^T X \in \mathbb{R}^{n \times n}, \qquad K_{ij} = x_i^T x_j$$
       </div>
@@ -1122,12 +1237,18 @@
       </div>
     </li>
     <li>
-      <strong>Recover Directions or Project Queries:</strong>
+      <strong>Project Directly into Compressed Coordinates (Bypassing $w_k$):</strong>
+      <p>
+        To compute the compressed coordinate $z_k$ of any query point $x_{\text{test}} \in \mathbb{R}^d$, <strong>we do not need to calculate or store the $d$-dimensional vector $w_k$</strong>. We can evaluate the projection directly using the dual weights $\vec{\alpha}_k$ and pairwise dot products with the training data:
+      </p>
       <div class="math-display">
-        $$\begin{aligned}
-          \text{Component: } &\quad w_k = X \vec{\alpha}_k \in \mathbb{R}^d \quad (\|w_k\|^2 = 1) \\[6pt]
-          \text{Projection: } &\quad x_{\text{test}}^T w_k = \sum_{i=1}^n \alpha_{ki} (x_{\text{test}}^T x_i)
-        \end{aligned}$$
+        $$\text{Direct Projection: } \quad z_k = x_{\text{test}}^T w_k = \sum_{i=1}^n \alpha_{ki} (x_{\text{test}}^T x_i)$$
+      </div>
+      <p>
+        Explicitly materializing $w_k \in \mathbb{R}^d$ is purely optional—only needed if you wish to visualize the principal axis itself (such as displaying an Eigenface):
+      </p>
+      <div class="math-display">
+        $$\text{Component (Optional): } \quad w_k = X \vec{\alpha}_k = \sum_{i=1}^n \alpha_{ki} x_i \in \mathbb{R}^d \quad (\|w_k\|^2 = 1)$$
       </div>
     </li>
   </ol>
@@ -1178,7 +1299,7 @@
     <summary><strong>Connection to the Singular Value Decomposition (SVD)</strong></summary>
     <div class="toggle-body">
       <p>
-        This duality is the direct reflection of the Thin SVD of the data matrix $X \in \mathbb{R}^{d \times n}$:
+        This duality is the direct reflection of the Thin <a href="../../../02.linear-algebra/05.singular-value-decomposition/01.the-singular-value-decomposition-svd/">Singular Value Decomposition (SVD)</a> of the data matrix $X \in \mathbb{R}^{d \times n}$:
       </p>
       <div class="math-display">
         $$X = U \Sigma V^T$$
@@ -1187,7 +1308,10 @@
         where $U \in \mathbb{R}^{d \times r}$ contains the orthonormal left singular vectors, $V \in \mathbb{R}^{n \times r}$ contains the orthonormal right singular vectors, and $\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_r)$.
       </p>
       <div class="math-display">
-        $$C = \frac{1}{n} X X^T = \frac{1}{n} U \Sigma^2 U^T \qquad \text{and} \qquad K = X^T X = V \Sigma^2 V^T$$
+        $$\begin{aligned}
+          C &= \frac{1}{n} X X^T = \frac{1}{n} U \Sigma^2 U^T \in \mathbb{R}^{d \times d} \\[8pt]
+          K &= X^T X = V \Sigma^2 V^T \in \mathbb{R}^{n \times n}
+        \end{aligned}$$
       </div>
       <p>
         Both $X X^T$ and $X^T X$ share the <em>exact same non-zero eigenvalues</em> $\mu_k = \sigma_k^2 = n \lambda_k$:
