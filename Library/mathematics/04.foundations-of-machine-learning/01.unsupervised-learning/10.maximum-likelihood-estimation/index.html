@@ -12,7 +12,7 @@
 <meta name="title" content="Maximum Likelihood Estimation">
 <meta name="description" content="A rigorous first-principles guide to parameter estimation in machine learning: deriving Fisher's MLE, resolving the continuous likelihood paradox, analyzing sampling distributions, unpacking the bias-variance decomposition, and setting the stage for Bayesian prior beliefs.">
 <meta name="keywords" content="maximum likelihood estimation, MLE, bias-variance tradeoff, MVUE, cramer-rao lower bound, laplace smoothing, gaussian MLE, bessel correction, sampling distribution, parameter estimation, unsupervised learning, IITM FML">
-<meta name="status" content="draft">
+<meta name="status" content="published">
 <meta name="date" content="2026-09-05">
 <meta name="author" content="Yogesh">
 
@@ -83,7 +83,7 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-  <meta name="reading_time" content="12">
+  <meta name="reading_time" content="18">
     <meta property="og:title" content="Maximum Likelihood Estimation">
     <meta property="og:description" content="A rigorous first-principles guide to parameter estimation in machine learning: deriving Fisher's MLE, resolving the continuous likelihood paradox, analyzing sampling distributions, unpacking the bias-variance decomposition, and setting the stage for Bayesian prior beliefs.">
     <meta property="og:type" content="article">
@@ -110,29 +110,106 @@
   <h2>The Paradigm Shift: From Geometry to Generative Probabilities</h2>
 
   <p>
-    Throughout our study of unsupervised learning, our algorithms have shared a foundational design philosophy: <em>they operate purely on spatial geometry without making any assumptions about how the data was physically generated</em>.
+    Throughout our exploration of unsupervised learning, every algorithm we developed operated under a shared premise: <em>the model works directly on spatial coordinates without making any assumptions about how the data was physically generated</em>.
   </p>
 
   <p>
-    When we derived <strong>Principal Component Analysis (PCA)</strong> and its kernelized counterpart, our objective was purely mechanical: find a linear subspace that maximizes projected variance and minimizes reconstruction error. When we analyzed <strong>$K$-Means</strong> and <strong>Spectral Clustering</strong>, our goal was strictly geometric: partition coordinate vectors into convex Voronoi cells or cut graph manifolds to minimize Euclidean distortion. At no point did we ask: <em>"What random physical process produced these numbers?"</em>
+    When we derived <strong>Principal Component Analysis (PCA)</strong> and its non-linear extension, <strong>Kernel PCA</strong>, our objective was purely mechanical: find a low-dimensional subspace that maximizes projected variance and minimizes squared reconstruction error. When we analyzed <strong>$K$-Means</strong> and <strong>Spectral Clustering</strong>, our mission was strictly geometric: partition coordinate vectors into compact Voronoi cells or cut graph manifolds to minimize Euclidean distortion. At no point did we stop to ask: <em>"What random physical law or natural mechanism generated these numbers in the first place?"</em>
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="tax-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 2 L 8 5 L 0 8 z" fill="var(--accent)" />
+          </marker>
+        </defs>
+
+        <!-- Main Divider Axis -->
+        <line x1="280" y1="35" x2="280" y2="265" stroke="var(--border)" stroke-width="2.5" />
+        <line x1="40" y1="200" x2="720" y2="200" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />
+
+        <!-- Vertical Labels: Assumptions vs No Assumptions -->
+        <g transform="translate(250, 100) rotate(-90)">
+          <text x="0" y="0" font-family="'Lora', serif" font-size="15" font-weight="700" fill="var(--text)" text-anchor="middle">No assumptions</text>
+          <text x="0" y="18" font-family="'Lora', serif" font-size="13" fill="var(--muted)" text-anchor="middle">about data generation</text>
+        </g>
+
+        <g transform="translate(250, 240) rotate(-90)">
+          <text x="0" y="0" font-family="'Lora', serif" font-size="14" font-weight="700" fill="var(--accent)" text-anchor="middle">Probabilistic</text>
+          <text x="0" y="16" font-family="'Lora', serif" font-size="13" fill="var(--accent)" text-anchor="middle">assumptions</text>
+        </g>
+
+        <!-- Top Branch: Representation Learning -->
+        <line x1="280" y1="70" x2="330" y2="70" stroke="var(--accent)" stroke-width="2" marker-end="url(#tax-arrow)" />
+        <text x="345" y="75" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)">Representation Learning</text>
+        <text x="560" y="75" font-family="'Lora', serif" font-size="14" fill="var(--muted)">↳ PCA, Kernel-PCA</text>
+
+        <!-- Middle Branch: Clustering -->
+        <line x1="280" y1="135" x2="330" y2="135" stroke="var(--accent)" stroke-width="2" marker-end="url(#tax-arrow)" />
+        <text x="345" y="135" font-family="'Lora', serif" font-size="17" font-weight="700" fill="var(--text)">Clustering</text>
+        <text x="440" y="135" font-family="'Lora', serif" font-size="14" fill="var(--muted)">↳ Lloyd's algorithm ($K$-means)</text>
+        <text x="460" y="158" font-family="'Lora', serif" font-size="14" fill="var(--muted)">Spectral clustering (Kernel $K$-means)</text>
+
+        <!-- Bottom Branch: Estimation -->
+        <line x1="280" y1="240" x2="330" y2="240" stroke="var(--accent)" stroke-width="2" marker-end="url(#tax-arrow)" />
+        <text x="345" y="245" font-family="'Lora', serif" font-size="18" font-weight="700" fill="var(--text)">Estimation</text>
+        <text x="445" y="245" font-family="'Lora', serif" font-size="14" fill="var(--muted)">↳ Maximum Likelihood, Bayesian, EM</text>
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> The Landscape of Unsupervised Learning. Machine learning algorithms naturally bifurcate along their foundational assumptions: purely geometric methods that make no assumptions about how data arises (Representation Learning &amp; Clustering), versus generative statistical methods that explicitly model the underlying probabilistic mechanism (Estimation).
+    </figcaption>
+  </figure>
+
+  <p>
+    While pure geometry provides flexible, distribution-free algorithms, it suffers from an inherent limitation: it is oblivious to <strong>uncertainty and noise</strong>. A data point lying midway between two cluster centroids in $K$-means is arbitrarily forced into one cluster with 100% certainty, ignoring the inherent ambiguity of finite sampling.
   </p>
 
   <p>
-    While geometric tools are powerful, they suffer from a shared limitation: they are blind to <strong>uncertainty</strong>. A data point sitting midway between two cluster centroids in $K$-means is arbitrarily assigned to one Voronoi cell with 100% confidence, ignoring the intrinsic ambiguity of noisy measurements.
+    To reason about noise, confidence, and missing information, we pivot to the second grand pillar of unsupervised learning: <strong>Probabilistic Estimation</strong>.
+  </p>
+
+  <h3>The Generative Mechanism: Estimation as Compression</h3>
+  <p>
+    In the estimation paradigm, we imagine nature as a generative "black box". Inside this black box sits a probabilistic mechanism governed by unknown parameters $\theta \in \Theta$. The black box operates on these parameters to emit the observable data points $X = \{x_1, x_2, \dots, x_n\}$ that appear on our instruments.
   </p>
 
   <p>
-    To move beyond flat geometric boundaries, we pivot to the second grand wing of machine learning: <strong>Probabilistic Estimation</strong>.
+    Notice how directly this fulfills Gregory Chaitin's computational principle from our opening lesson: <em>"Comprehension is compression."</em>
   </p>
 
+  <div class="math-display">
+    $$\text{Observed Data } X \;\xrightarrow{\quad\text{Estimate Parameters}\quad}\; \hat{\theta} \;\xrightarrow{\quad\text{Generative Model}\quad}\; \text{Compressed Understanding of Data}$$
+  </div>
+
   <p>
-    In this new paradigm, we posit that there is some <strong>probabilistic mechanism</strong> (a "black box" distribution) governed by unknown parameters $\theta \in \Theta$ that outputs our observed sample $X = \{x_1, x_2, \dots, x_n\}$. Given only the realizations on the page, our mission is to invert the causal arrow: <em>estimate what we do not know</em>.
+    Instead of memorizing millions of raw coordinates, discovering the underlying parameters $\theta$ (such as the probability of a coin landing heads, or the mean and covariance of a sensor signal) compresses an infinite stream of random fluctuations into a minimal set of governing parameters.
+  </p>
+
+  <h3>The Foundational Assumptions: Why i.i.d.?</h3>
+  <p>
+    How can we develop a mathematically principled procedure to infer the unseen parameters $\theta$ from the observed sample $X$? To make progress, frequentist estimation rests upon two indispensable assumptions:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Identically Distributed:</strong> Every single observation $x_i$ is generated by the <em>same</em> physical process governed by the exact same parameter $\theta$. The coin does not secretly change its bias between tosses; the sensor calibration does not drift during the experiment.
+    </li>
+    <li>
+      <strong>Independent:</strong> The realization of any one observation $x_i$ provides zero direct physical influence on the outcome of any other observation $x_j$ ($i \ne j$).
+    </li>
+  </ol>
+
+  <p>
+    Together, these form the ubiquitous <strong>i.i.d. (independent and identically distributed)</strong> assumption. Its mathematical power is decisive: <em>independence allows the joint probability of our entire dataset to factorize cleanly into a simple product of individual probabilities</em>.
   </p>
 
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
       <p>
-        <em>How can we formulate a mathematically principled procedure to infer the true parameters of a generative mechanism using only a finite set of random observations?</em>
+        <em>If a probabilistic mechanism generates our data, how do we systematically invert the arrow of causality to choose the single "best" parameter value from a finite set of random observations?</em>
       </p>
     </div>
   </div>
@@ -145,87 +222,129 @@
   <h2>Fisher's Maximum Likelihood Estimator (MLE)</h2>
 
   <p>
-    The most intuitive frequentist answer was formulated by Ronald Fisher: <strong>choose the parameters that make the data we actually observed as probable as possible</strong>.
+    In the 1920s, the statistician and geneticist Ronald A. Fisher proposed an answer of striking conceptual simplicity: <strong>choose the parameter that makes the data we actually observed as probable as possible</strong>.
   </p>
 
   <div class="math-box">
-    <div class="math-box-label">Definition: The Likelihood Function</div>
+    <div class="math-box-label">Definition: The Likelihood Function &amp; Fisher's MLE</div>
     <div class="math-box-body">
       <p>
-        Given an independent and identically distributed (i.i.d.) dataset $X = \{x_1, x_2, \dots, x_n\}$ drawn from a distribution with probability mass or density function $f(x; \theta)$, the <strong>Likelihood function</strong> $L(\theta; X)$ is defined as:
+        Given an i.i.d. dataset $X = \{x_1, x_2, \dots, x_n\}$ drawn from a distribution with probability mass or density function $f(x; \theta)$, the <strong>Likelihood function</strong> $L(\theta; X)$ is defined as the joint probability of the data viewed as a function of the parameter $\theta$:
       </p>
       <div class="math-display">
-        $$L(\theta; X) = \prod_{i=1}^n f(x_i; \theta)$$
+        $$L(\theta; X) = P(x_1, x_2, \dots, x_n; \theta) = \prod_{i=1}^n f(x_i; \theta)$$
       </div>
       <p>
-        The <strong>Maximum Likelihood Estimator (MLE)</strong> is the parameter vector that maximizes this joint probability:
+        The <strong>Maximum Likelihood Estimator (MLE)</strong> $\hat{\theta}_{ML}$ is the parameter vector that maximizes this joint likelihood over the allowable parameter space $\Theta$:
       </p>
       <div class="math-display">
-        $$\hat{\theta}_{ML} = \arg\max_{\theta \in \Theta} L(\theta; X) = \arg\max_{\theta \in \Theta} \sum_{i=1}^n \log f(x_i; \theta)$$
+        $$\hat{\theta}_{ML} = \arg\max_{\theta \in \Theta} L(\theta; X)$$
       </div>
     </div>
   </div>
 
   <p>
-    Because products of probabilities rapidly decay to zero (causing severe floating-point underflow), and because sums are significantly easier to differentiate than products, we almost always work with the <strong>log-likelihood</strong> $\ell(\theta) = \log L(\theta; X)$. Because $\log(\cdot)$ is a strictly monotonically increasing function, $\arg\max L(\theta) \equiv \arg\max \ell(\theta)$.
-  </p>
-
-  <h3>Concrete Walkthrough: The Bernoulli Coin Flip</h3>
-  <p>
-    Let us ground this in a simple example. Suppose we flip an unfair coin $n$ times with unknown probability of heads $p \in [0, 1]$. We observe $n_h$ heads ($x_i = 1$) and $n_t$ tails ($x_i = 0$), such that $n = n_h + n_t$.
+    In practice, maximizing the product directly is analytically and computationally cumbersome: products of numbers between $0$ and $1$ rapidly collapse below machine floating-point precision ($10^{-300}$), causing numerical underflow. Furthermore, differentiating products requires cumbersome product rules.
   </p>
 
   <p>
-    The probability mass function of a single trial is $P(x_i; p) = p^{x_i}(1-p)^{1-x_i}$. The likelihood and log-likelihood functions are:
+    We eliminate both problems by taking the natural logarithm, defining the <strong>log-likelihood</strong>:
+  </p>
+
+  <div class="math-display">
+    $$\ell(\theta) = \log L(\theta; X) = \sum_{i=1}^n \log f(x_i; \theta)$$
+  </div>
+
+  <p>
+    Because the logarithm is a strictly monotonically increasing function ($\frac{d}{du}\log u = \frac{1}{u} > 0$ for $u > 0$), applying $\log(\cdot)$ preserves the location of all optima:
+  </p>
+
+  <div class="math-display">
+    $$\arg\max_{\theta \in \Theta} L(\theta; X) \equiv \arg\max_{\theta \in \Theta} \ell(\theta)$$
+  </div>
+
+  <h3>Concrete Walkthrough: The Bernoulli Model</h3>
+  <p>
+    Let us trace this machinery on the simplest generative machine: flipping a coin with unknown probability of landing Heads ($x_i = 1$) equal to $p \in [0, 1]$, and Tails ($x_i = 0$) equal to $1 - p$.
+  </p>
+
+  <p>
+    The probability mass function for a single trial is compactly written as:
+  </p>
+
+  <div class="math-display">
+    $$P(x_i; p) = p^{x_i}(1 - p)^{1 - x_i}, \quad x_i \in \{0, 1\}$$
+  </div>
+
+  <p>
+    Suppose we observe $n$ independent tosses containing $n_h = \sum_{i=1}^n x_i$ heads and $n_t = n - n_h$ tails. By independence, the joint likelihood and its logarithm expand step-by-step:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      L(p; X) &= \prod_{i=1}^n p^{x_i}(1-p)^{1-x_i} = p^{n_h}(1-p)^{n_t} \\[8pt]
-      \ell(p) &= \log L(p; X) = n_h \log p + n_t \log (1 - p)
+      L(p; X) &= \prod_{i=1}^n p^{x_i}(1 - p)^{1 - x_i} \\[6pt]
+      &= p^{\sum x_i}(1 - p)^{n - \sum x_i} \\[6pt]
+      &= p^{n_h}(1 - p)^{n_t} \\[8pt]
+      \ell(p) &= \log \left( p^{n_h}(1 - p)^{n_t} \right) \\[6pt]
+      &= n_h \log p + n_t \log(1 - p)
     \end{aligned}$$
   </div>
 
   <p>
-    To find the maximum, we compute the first derivative with respect to $p$ (known as the <em>score function</em>) and set it to zero:
+    To find the maximizing parameter, we compute the first derivative with respect to $p$ (the <em>score function</em>) and set it to zero:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \frac{\partial \ell}{\partial p} &= \frac{n_h}{p} - \frac{n_t}{1 - p} = 0 \\[8pt]
-      \implies \frac{n_h}{p} &= \frac{n_t}{1 - p} \implies n_h(1 - p) = n_t p \\[6pt]
+      \frac{d\ell}{dp} &= \frac{d}{dp}\left[ n_h \log p + n_t \log(1 - p) \right] \\[6pt]
+      &= \frac{n_h}{p} - \frac{n_t}{1 - p} = 0 \\[8pt]
+      \implies \frac{n_h}{p} &= \frac{n_t}{1 - p} \\[8pt]
+      \implies n_h(1 - p) &= n_t p \\[6pt]
+      \implies n_h - n_h p &= n_t p \\[6pt]
       \implies n_h &= (n_h + n_t)p = n p \\[8pt]
-      \implies \hat{p}_{ML} &= \frac{n_h}{n} = \frac{1}{n}\sum_{i=1}^n x_i
+      \implies \mathbf{\hat{p}_{ML}} &= \mathbf{\frac{n_h}{n} = \frac{1}{n}\sum_{i=1}^n x_i}
     \end{aligned}$$
   </div>
 
   <p>
-    We verify that this critical point is a true maximum by checking the second derivative:
+    We confirm that this critical point is a unique maximum by evaluating the second derivative:
   </p>
 
   <div class="math-display">
-    $$\frac{\partial^2 \ell}{\partial p^2} = -\frac{n_h}{p^2} - \frac{n_t}{(1-p)^2} < 0 \quad \forall p \in (0, 1)$$
+    $$\frac{d^2\ell}{dp^2} = -\frac{n_h}{p^2} - \frac{n_t}{(1 - p)^2} < 0 \quad \forall p \in (0, 1)$$
   </div>
 
   <p>
-    The second derivative is strictly negative everywhere, proving that the log-likelihood is strictly concave and the maximum is unique. The MLE rigorously confirms our everyday intuition: the most likely probability of heads is simply the empirical fraction of heads observed!
+    The second derivative is strictly negative everywhere, proving that the log-likelihood is strictly concave. On simplification, $\hat{p}_{ML}$ is simply the <strong>fraction of 1's in the observed data</strong>! Fisher's calculus rigorously confirms our common-sense intuition.
   </p>
 
-  <h3>The Continuous Likelihood Paradox</h3>
+  <h3>Continuous Data: "Need a Different Box!"</h3>
   <p>
-    Now consider a continuous random variable $x \in \mathbb{R}$, such as height, velocity, or temperature. In continuous probability theory, <strong>the probability of observing any exact real number is precisely zero</strong>: $P(X = x_i) = 0$.
+    Now suppose our observations are not binary coin flips, but real numbers $x_i \in \mathbb{R}$—such as sensor voltages, physical temperatures, or audio waveforms.
+  </p>
+
+  <p>
+    A coin mechanism cannot explain real numbers. We need a different box: a continuous distribution, such as the Gaussian distribution $\mathcal{N}(\mu, \sigma^2)$. But when we attempt to evaluate the likelihood $L = \prod_{i=1}^n P(X = x_i)$, we encounter an immediate roadblock:
+  </p>
+
+  <div class="math-display">
+    $$P(X = x_i) = 0 \quad \forall x_i \in \mathbb{R} \implies L = \prod_{i=1}^n 0 = 0$$
+  </div>
+
+  <p>
+    <strong>Bad news — this is always zero!</strong> In continuous probability, the probability of drawing any exact real number with infinite decimal precision is precisely zero.
   </p>
 
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
       <p>
-        <em>If the probability of observing any continuous data point is identically zero, how can we compute the "likelihood" of continuous data by multiplying probability density values?</em>
+        <em>If the probability of observing any continuous data point is identically zero, how can Fisher's likelihood be defined or maximized?</em>
       </p>
     </div>
   </div>
 
   <p>
-    Fisher resolved this apparent paradox through a rigorous limiting argument. In physical reality, no measurement instrument has infinite precision. When we record $x_i = 1.75\text{ m}$, what we actually observed is that the measurement fell inside a tiny measurement resolution window of width $\Delta x$:
+    Fisher resolved this paradox through a physical measurement argument: no physical apparatus possesses infinite precision. A sensor recording $x_i = 2.45\text{ V}$ actually observes that the true continuous voltage landed within an infinitesimal measurement resolution window $[x_i, x_i + \Delta x]$ of width $\Delta x$:
   </p>
 
   <div class="math-display">
@@ -233,23 +352,19 @@
   </div>
 
   <p>
-    Now look at the joint probability of our entire observed sample:
+    Now write the true joint probability of the entire measured sample:
   </p>
 
   <div class="math-display">
-    $$P(\text{Data}) \approx \prod_{i=1}^n \Big[ f(x_i; \theta)\,\Delta x \Big] = \left( \prod_{i=1}^n f(x_i; \theta) \right) (\Delta x)^n$$
+    $$\begin{aligned}
+      P(\text{Sample}) &\approx \prod_{i=1}^n \Big[ f(x_i; \theta)\,\Delta x \Big] \\[6pt]
+      &= \left( \prod_{i=1}^n f(x_i; \theta) \right) (\Delta x)^n \\[8pt]
+      \log P(\text{Sample}) &\approx \sum_{i=1}^n \log f(x_i; \theta) + \underbrace{n \log \Delta x}_{\text{Constant with respect to } \theta}
+    \end{aligned}$$
   </div>
 
   <p>
-    Taking the logarithm:
-  </p>
-
-  <div class="math-display">
-    $$\log P(\text{Data}) = \sum_{i=1}^n \log f(x_i; \theta) + \underbrace{n \log \Delta x}_{\text{Constant with respect to } \theta}$$
-  </div>
-
-  <p>
-    Because the measurement resolution $\Delta x$ is a property of the instrument and does not depend on the distribution parameters $\theta$, <strong>maximizing the true joint probability of the measurement bins is identically equivalent to maximizing the product of the probability density values</strong>!
+    Because the measurement precision $\Delta x$ is a fixed property of the instrument and does not depend on the parameter $\theta$, <strong>maximizing the true joint probability is mathematically identical to maximizing the product of the probability densities</strong>!
   </p>
 
   <figure class="diagram-figure">
@@ -274,7 +389,7 @@
         <line x1="345" y1="240" x2="345" y2="107.9" stroke="var(--accent)" stroke-width="1.5" />
         <line x1="385" y1="240" x2="385" y2="175.8" stroke="var(--accent)" stroke-width="1.5" />
 
-        <!-- Mathematically exact Normal density curve: mean=300, sigma=60, peak height=175 (apex at 300, 65) -->
+        <!-- Normal density curve: mean=300, sigma=60, peak height=175 (apex at 300, 65) -->
         <path d="M 80 239.8 C 125.3 237.9, 171.2 244.8, 215 175.8 C 228.4 155.7, 241.7 130.0, 255 107.9 C 270.1 83.0, 284.3 65.0, 300 65 C 315.7 65.0, 329.9 83.0, 345 107.9 C 358.3 130.0, 371.6 155.7, 385 175.8 C 428.8 244.8, 474.7 237.9, 520 239.8" fill="none" stroke="var(--text)" stroke-width="2.5" />
 
         <!-- Slice Ticks & Labels on X-axis -->
@@ -287,7 +402,7 @@
         <line x1="348" y1="212" x2="382" y2="212" stroke="var(--text)" stroke-width="1" marker-start="url(#slice-arrow-h)" marker-end="url(#slice-arrow-h)" />
         <text x="365" y="206" font-family="'Lora', serif" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">Δx</text>
 
-        <!-- Area Annotation with clean pointer pointing to slice center -->
+        <!-- Area Annotation -->
         <text x="440" y="115" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)">Probability ≈ f(xᵢ; θ) · Δx</text>
         <text x="440" y="132" font-family="'Lora', serif" font-size="11" fill="var(--muted)">Area under density curve</text>
         <path d="M 435 125 L 372 155" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,3" />
@@ -299,13 +414,13 @@
       </svg>
     </div>
     <figcaption class="figure-caption">
-      <strong>Figure 1:</strong> Fisher's Continuous Likelihood Solution. While the probability of landing on an exact point $x_i$ is 0, the probability of falling into an infinitesimal window $[x_i, x_i + \Delta x]$ is $f(x_i; \theta)\Delta x$. Since $\Delta x$ does not depend on the parameter $\theta$, maximizing joint probability is identical to maximizing the product of probability densities.
+      <strong>Figure 2:</strong> Fisher's Continuous Likelihood Solution. While the probability of observing an exact real number $x_i$ is zero, the probability of landing within an instrument window $[x_i, x_i + \Delta x]$ is $f(x_i; \theta)\Delta x$. Since the instrument width $\Delta x$ does not depend on $\theta$, maximizing joint probability is identical to maximizing the joint probability density function.
     </figcaption>
   </figure>
 
-  <h3>Gaussian Mean and Variance MLE</h3>
+  <h3>Gaussian Mean Estimation: The Genesis of Euclidean Distance</h3>
   <p>
-    Let $x_1, \dots, x_n \sim \mathcal{N}(\mu, \sigma^2)$ be independent Gaussian observations with density:
+    Let $x_1, \dots, x_n \sim^{\text{i.i.d.}} \mathcal{N}(\mu, \sigma^2)$ be continuous Gaussian observations with probability density:
   </p>
 
   <div class="math-display">
@@ -313,105 +428,202 @@
   </div>
 
   <p>
-    The log-likelihood for the parameter pair $\theta = (\mu, \sigma^2)$ is:
+    The log-likelihood expands as:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \ell(\mu, \sigma^2) &= \sum_{i=1}^n \left[ -\frac{1}{2}\log(2\pi) - \frac{1}{2}\log(\sigma^2) - \frac{(x_i - \mu)^2}{2\sigma^2} \right] \\[8pt]
-      &= -\frac{n}{2}\log(2\pi) - \frac{n}{2}\log(\sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^n (x_i - \mu)^2
+      \ell(\mu, \sigma^2) &= \sum_{i=1}^n \left[ -\frac{1}{2}\log(2\pi\sigma^2) - \frac{(x_i - \mu)^2}{2\sigma^2} \right] \\[8pt]
+      &= -\frac{n}{2}\log(2\pi\sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^n (x_i - \mu)^2
     \end{aligned}$$
   </div>
 
   <p>
-    Setting partial derivatives with respect to $\mu$ and $\sigma^2$ to zero gives the maximum likelihood estimators:
+    Differentiating with respect to the mean $\mu$:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \frac{\partial \ell}{\partial \mu} &= \frac{1}{\sigma^2}\sum_{i=1}^n (x_i - \mu) = 0 \implies \mathbf{\hat{\mu}_{ML} = \frac{1}{n}\sum_{i=1}^n x_i} \\[8pt]
-      \frac{\partial \ell}{\partial \sigma^2} &= -\frac{n}{2\sigma^2} + \frac{1}{2(\sigma^2)^2}\sum_{i=1}^n (x_i - \mu)^2 = 0 \implies \mathbf{\hat{\sigma}^2_{ML} = \frac{1}{n}\sum_{i=1}^n (x_i - \hat{\mu}_{ML})^2}
+      \frac{\partial \ell}{\partial \mu} &= \frac{1}{\sigma^2}\sum_{i=1}^n (x_i - \mu) = 0 \\[8pt]
+      \implies \sum_{i=1}^n x_i - n\mu &= 0 \\[6pt]
+      \implies \mathbf{\hat{\mu}_{ML}} &= \mathbf{\frac{1}{n}\sum_{i=1}^n x_i}
     \end{aligned}$$
   </div>
 
   <p>
-    Notice that maximizing the Gaussian log-likelihood with respect to $\mu$ is <em>identically equivalent to minimizing the sum of squared Euclidean distances</em>:
+    Notice the relationship between the log-likelihood and geometric distance:
   </p>
 
   <div class="math-display">
-    $$\arg\max_\mu \ell(\mu, \sigma^2) \equiv \arg\min_\mu \sum_{i=1}^n (x_i - \mu)^2$$
+    $$\arg\max_\mu \ell(\mu, \sigma^2) \equiv \arg\max_\mu \left( -\sum_{i=1}^n (x_i - \mu)^2 \right) \equiv \arg\min_\mu \sum_{i=1}^n (x_i - \mu)^2$$
   </div>
 
   <p>
-    Here is our first profound synthesis: <strong>the ordinary sample mean is the maximum likelihood estimator precisely because Euclidean distance corresponds to a Gaussian noise assumption</strong>!
+    Here is our first deep connection: <strong>minimizing the sum of squared Euclidean errors in geometric algorithms like $K$-means is fundamentally equivalent to maximizing the likelihood of data under a spherical Gaussian noise assumption</strong>!
+  </p>
+
+  <h3>Exercise: Estimating Variance When $\mu$ is Known vs. Unknown</h3>
+  <p>
+    Consider the following pedagogical exercise: suppose $x_1, \dots, x_n \sim^{\text{i.i.d.}} \mathcal{N}(\mu, \sigma^2)$. How does our estimate of variance behave if the true mean $\mu$ is already known, versus when $\mu$ must be estimated from the data?
   </p>
 
   <p>
-    However, there is an insidious flaw hidden in the variance estimator $\hat{\sigma}^2_{ML}$. If we take the expected value of $\hat{\sigma}^2_{ML}$ across repeated experiments, we find:
+    <strong>Case 1: Known Mean $\mu$.</strong> Taking the derivative of $\ell(\sigma^2)$ with respect to $\sigma^2$ and setting it to zero yields:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-    \mathbb{E}[\hat{\sigma}^2_{ML}] &= \mathbb{E}\left[ \frac{1}{n}\sum_{i=1}^n (x_i - \hat{\mu}_{ML})^2 \right] \\[6pt]
-    &= \mathbb{E}\left[ \frac{1}{n}\sum_{i=1}^n \left( (x_i - \mu) - (\hat{\mu}_{ML} - \mu) \right)^2 \right] \\[6pt]
-    &= \frac{1}{n}\sum_{i=1}^n \mathbb{E}[(x_i - \mu)^2] - \mathbb{E}[(\hat{\mu}_{ML} - \mu)^2] \\[6pt]
-    &= \sigma^2 - \operatorname{Var}(\hat{\mu}_{ML}) \\[6pt]
-    &= \sigma^2 - \frac{\sigma^2}{n} \\[6pt]
-    &= \mathbf{\frac{n-1}{n}\sigma^2}
+      \frac{\partial \ell}{\partial \sigma^2} &= -\frac{n}{2\sigma^2} + \frac{1}{2(\sigma^2)^2}\sum_{i=1}^n (x_i - \mu)^2 = 0 \\[8pt]
+      \implies \hat{\sigma}^2_{\text{known }\mu} &= \frac{1}{n}\sum_{i=1}^n (x_i - \mu)^2
     \end{aligned}$$
   </div>
 
   <p>
-    The maximum likelihood estimator systematically <strong>underestimates</strong> the true variance by a factor of $\frac{n-1}{n}$! Because $\hat{\mu}_{ML}$ was calculated from the exact same sample, the deviations $(x_i - \hat{\mu}_{ML})$ are artificially smaller than the true deviations $(x_i - \mu)$. To eliminate this bias, we must apply <strong>Bessel's correction</strong>, multiplying by $\frac{n}{n-1}$ to yield the familiar unbiased sample variance $s^2 = \frac{1}{n-1}\sum_{i=1}^n (x_i - \bar{x})^2$.
+    Taking the expectation across repeated draws from the true distribution:
   </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \mathbb{E}\left[\hat{\sigma}^2_{\text{known }\mu}\right] &= \mathbb{E}\left[ \frac{1}{n}\sum_{i=1}^n (x_i - \mu)^2 \right] \\[6pt]
+      &= \frac{1}{n}\sum_{i=1}^n \mathbb{E}[(x_i - \mu)^2] \\[6pt]
+      &= \frac{1}{n}\sum_{i=1}^n \sigma^2 \\[6pt]
+      &= \mathbf{\sigma^2}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    When the true center $\mu$ is known, the maximum likelihood variance estimator is <strong>strictly unbiased</strong>!
+  </p>
+
+  <p>
+    <strong>Case 2: Unknown Mean $\mu$.</strong> In real applications, $\mu$ is almost never known beforehand. We must substitute the sample mean $\hat{\mu}_{ML} = \frac{1}{n}\sum x_i$, yielding:
+  </p>
+
+  <div class="math-display">
+    $$\hat{\sigma}^2_{ML} = \frac{1}{n}\sum_{i=1}^n (x_i - \hat{\mu}_{ML})^2$$
+  </div>
+
+  <p>
+    Now compute its expectation:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \mathbb{E}[\hat{\sigma}^2_{ML}] &= \mathbb{E}\left[ \frac{1}{n}\sum_{i=1}^n \big( (x_i - \mu) - (\hat{\mu}_{ML} - \mu) \big)^2 \right] \\[6pt]
+      &= \mathbb{E}\left[ \frac{1}{n}\sum_{i=1}^n (x_i - \mu)^2 - (\hat{\mu}_{ML} - \mu)^2 \right] \\[6pt]
+      &= \frac{1}{n}\sum_{i=1}^n \mathbb{E}[(x_i - \mu)^2] - \mathbb{E}[(\hat{\mu}_{ML} - \mu)^2] \\[6pt]
+      &= \sigma^2 - \operatorname{Var}(\hat{\mu}_{ML}) \\[6pt]
+      &= \sigma^2 - \frac{\sigma^2}{n} \\[6pt]
+      &= \mathbf{\frac{n - 1}{n}\sigma^2}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    The standard MLE systematically <strong>underestimates</strong> the true variance by a factor of $\frac{n - 1}{n}$. Why? Because deviations are computed around the sample centroid $\hat{\mu}_{ML}$, which was fitted directly to that specific dataset. The data points automatically satisfy $\sum (x_i - \hat{\mu}_{ML}) = 0$, consuming one degree of freedom. To correct this systematic bias, we multiply by $\frac{n}{n - 1}$, producing <strong>Bessel's correction</strong>:
+  </p>
+
+  <div class="math-display">
+    $$S^2 = \frac{1}{n - 1}\sum_{i=1}^n (x_i - \hat{\mu}_{ML})^2 \implies \mathbb{E}[S^2] = \sigma^2$$
+  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
-<!--  3 — Overfitting & The Bias-Variance Dilemma            -->
+<!--  3 — Quantifying Estimators & The Bias-Variance Tradeoff -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="bias-variance">
-  <h2>The Flaws of Pure MLE: Overfitting &amp; The Bias-Variance Dilemma</h2>
+  <h2>Quantifying Estimators: Sampling Distributions &amp; The Bias-Variance Dilemma</h2>
 
   <p>
-    Despite its elegance, Maximum Likelihood Estimation suffers from a critical vulnerability: <strong>it severely overfits small sample sizes</strong>.
+    Suppose we record a dataset $X = \{x_1, \dots, x_n\}$ and compute an estimate $\hat{\theta}$. If we happen to observe an atypical or "unlucky" sample, our estimate will be poor.
   </p>
 
   <p>
-    Suppose you are testing a coin for fairness. You flip it $n = 3$ times, and by sheer chance it lands Heads every time: $X = \{H, H, H\}$. What is Fisher's MLE estimate of the probability of heads?
+    This raises a fundamental question: <em>How should we judge the quality of an estimation procedure?</em>
+  </p>
+
+  <p>
+    In frequentist statistics, we evaluate an estimator not on a single realization, but <strong>on average over repeated random samples drawn from the underlying distribution</strong>.
+  </p>
+
+  <p>
+    Because the data points $x_1, \dots, x_n$ are random variables, any function of the data—including the estimator $\hat{\mu}_{ML} = \frac{1}{n}\sum x_i$—is <strong>itself a random variable</strong> with its own probability distribution, known as its <em>sampling distribution</em>.
+  </p>
+
+  <h3>Unbiasedness: Centering on the Truth</h3>
+  <p>
+    Let us evaluate the expected value of $\hat{\mu}_{ML}$ across infinite parallel experiments using the linearity of expectation:
   </p>
 
   <div class="math-display">
-    $$\hat{p}_{ML} = \frac{3}{3} = 1.0$$
+    $$\begin{aligned}
+      \mathbb{E}[\hat{\mu}_{ML}] &= \mathbb{E}\left[ \frac{1}{n}\sum_{i=1}^n x_i \right] \\[6pt]
+      &= \frac{1}{n}\sum_{i=1}^n \mathbb{E}[x_i] \quad \text{(Linearity of Expectation)} \\[6pt]
+      &= \frac{1}{n}\sum_{i=1}^n \mu \\[6pt]
+      &= \frac{1}{n}(n\mu) = \mathbf{\mu}
+    \end{aligned}$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Definition: Unbiased Estimator</div>
+    <div class="math-box-body">
+      <p>
+        An estimator $\hat{\theta}$ of an unknown parameter $\theta$ is called <strong>unbiased</strong> if its expected value over repeated samples equals the true parameter:
+      </p>
+      <div class="math-display">
+        $$\mathbb{E}[\hat{\theta}] = \theta \iff \operatorname{Bias}(\hat{\theta}) \equiv \mathbb{E}[\hat{\theta}] - \theta = 0$$
+      </div>
+    </div>
   </div>
 
   <p>
-    The MLE boldly asserts that Tails is an <em>impossible event</em>! If you flip this coin again, MLE assigns zero probability to Tails, and if Tails ever appears, the likelihood of your model collapses to $-\infty$. This catastrophic failure is the <strong>zero-frequency problem</strong>.
+    Since $\mathbb{E}[\hat{\mu}_{ML}] = \mu$, Fisher's maximum likelihood estimator for the Gaussian mean is strictly unbiased.
   </p>
 
-  <h3>Estimator Evaluation: Unbiasedness vs. Variance</h3>
+  <h3>Beyond Unbiasedness: "Another Estimator"</h3>
   <p>
-    To understand why MLE fails in low-data regimes, we must examine how statisticians evaluate an estimator $\hat{\theta}$:
+    Is unbiasedness sufficient to guarantee a good estimator? Consider a deliberately lazy alternative estimator:
   </p>
 
-  <ol>
-    <li>
-      <strong>Bias:</strong> Does the estimator center on the truth on average across infinite parallel universes?
-      $$\operatorname{Bias}(\hat{\theta}) = \mathbb{E}[\hat{\theta}] - \theta^*$$
-      If $\operatorname{Bias}(\hat{\theta}) = 0$, the estimator is called <em>unbiased</em>.
-    </li>
-    <li>
-      <strong>Variance:</strong> How violently does the estimator fluctuate from one dataset sample to another?
-      $$\operatorname{Var}(\hat{\theta}) = \mathbb{E}\left[ (\hat{\theta} - \mathbb{E}[\hat{\theta}])^2 \right]$$
-    </li>
-  </ol>
+  <div class="math-display">
+    $$\hat{\mu}_{\text{another}} = x_1$$
+  </div>
 
   <p>
-    A classic theoretical benchmark in frequentist statistics is the <strong>Minimum Variance Unbiased Estimator (MVUE)</strong>: among all estimators with zero bias, which one has the smallest variance? The <em>Cramér-Rao Lower Bound</em> proves that under mild regularity conditions, Fisher's MLE asymptotically achieves this theoretical minimum variance limit as $n \to \infty$.
+    This estimator completely throws away $x_2, x_3, \dots, x_n$ and returns only the very first measurement. Look at its expected value:
   </p>
+
+  <div class="math-display">
+    $$\mathbb{E}[\hat{\mu}_{\text{another}}] = \mathbb{E}[x_1] = \mu$$
+  </div>
+
+  <p>
+    <strong>$\hat{\mu}_{\text{another}}$ is completely unbiased as well!</strong>
+  </p>
+
+  <p>
+    If both $\hat{\mu}_{ML}$ and $\hat{\mu}_{\text{another}}$ center exactly at the true parameter $\mu$, how do we distinguish between them? We must inspect their <strong>variance</strong>—how violently they fluctuate from one sample to the next:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \operatorname{Var}(\hat{\mu}_{\text{another}}) &= \operatorname{Var}(x_1) = \mathbf{\sigma^2} \\[8pt]
+      \operatorname{Var}(\hat{\mu}_{ML}) &= \operatorname{Var}\left( \frac{1}{n}\sum_{i=1}^n x_i \right) \\[6pt]
+      &= \frac{1}{n^2}\sum_{i=1}^n \operatorname{Var}(x_i) \quad \text{(Independence)} \\[6pt]
+      &= \frac{1}{n^2}\sum_{i=1}^n \sigma^2 = \frac{n\sigma^2}{n^2} = \mathbf{\frac{\sigma^2}{n}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    For any sample size $n > 1$:
+  </p>
+
+  <div class="math-display">
+    $$\operatorname{Var}(\hat{\mu}_{\text{another}}) = \sigma^2 > \frac{\sigma^2}{n} = \operatorname{Var}(\hat{\mu}_{ML})$$
+  </div>
 
   <figure class="diagram-figure">
     <div class="svg-container">
-      <svg viewBox="0 0 840 300" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 840 310" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <marker id="var-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
             <path d="M 0 2 L 8 5 L 0 8 z" fill="var(--text)" />
@@ -422,98 +634,156 @@
         </defs>
 
         <!-- Horizontal Axis -->
-        <line x1="40" y1="240" x2="730" y2="240" stroke="var(--border)" stroke-width="2" />
-        <text x="738" y="244" font-family="'Lora', serif" font-size="12" fill="var(--text)">Estimator Value θ̂</text>
+        <line x1="40" y1="240" x2="780" y2="240" stroke="var(--border)" stroke-width="2" />
+        <text x="788" y="244" font-family="'Lora', serif" font-size="12" fill="var(--text)">Estimator Value θ̂</text>
 
         <!-- Center True Parameter Line (μ*) -->
-        <line x1="390" y1="240" x2="390" y2="35" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
-        <circle cx="390" cy="240" r="4" fill="var(--text)" />
-        <text x="390" y="262" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">True Population Mean μ*</text>
-        <text x="390" y="278" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">(Both estimators centered at μ* ⇒ Zero Bias)</text>
+        <line x1="410" y1="240" x2="410" y2="35" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4,4" />
+        <circle cx="410" cy="240" r="4" fill="var(--text)" />
+        <text x="410" y="262" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">True Mean μ*</text>
+        <text x="410" y="278" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">(Both estimators centered at μ* ⇒ Zero Bias)</text>
 
-        <!-- Lazy Estimator Distribution (Wide Gaussian: mean=390, sigma=115, height=80, apex at 390, 160) -->
-        <path d="M 70 238.3 C 126.7 236.0, 183.3 227.8, 240.0 205.8 C 270.0 194.2, 300.0 179.7, 330.0 170.2 C 350.0 163.8, 370.0 160.0, 390.0 160.0 C 410.0 160.0, 430.0 163.8, 450.0 170.2 C 480.0 179.7, 510.0 194.2, 540.0 205.8 C 596.7 227.8, 653.3 236.0, 710.0 238.3" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5,5" />
+        <!-- Another Estimator Distribution (Wide Gaussian: mean=410, sigma=115, height=80, apex at 410, 160) -->
+        <path d="M 90 238.3 C 146.7 236.0, 203.3 227.8, 260.0 205.8 C 290.0 194.2, 320.0 179.7, 350.0 170.2 C 370.0 163.8, 390.0 160.0, 410.0 160.0 C 430.0 160.0, 450.0 163.8, 470.0 170.2 C 500.0 179.7, 530.0 194.2, 560.0 205.8 C 616.7 227.8, 673.3 236.0, 730.0 238.3" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5,5" />
 
-        <!-- MLE Distribution (Sharp Gaussian: mean=390, sigma=45, height=185, apex at 390, 55) -->
-        <path d="M 250 238.5 C 273.3 236.2, 296.7 229.3, 320.0 184.8 C 333.3 159.4, 346.7 121.1, 360.0 91.9 C 370.0 69.9, 380.0 55.0, 390.0 55.0 C 400.0 55.0, 410.0 69.9, 420.0 91.9 C 433.3 121.1, 446.7 159.4, 460.0 184.8 C 483.3 229.3, 506.7 236.2, 530.0 238.5" fill="none" stroke="var(--accent)" stroke-width="2.5" />
+        <!-- MLE Distribution (Sharp Gaussian: mean=410, sigma=45, height=185, apex at 410, 55) -->
+        <path d="M 270 238.5 C 293.3 236.2, 316.7 229.3, 340.0 184.8 C 353.3 159.4, 366.7 121.1, 380.0 91.9 C 390.0 69.9, 400.0 55.0, 410.0 55.0 C 420.0 55.0, 430.0 69.9, 440.0 91.9 C 453.3 121.1, 466.7 159.4, 480.0 184.8 C 503.3 229.3, 526.7 236.2, 550.0 238.5" fill="none" stroke="var(--accent)" stroke-width="2.5" />
 
-        <!-- Lazy Estimator Callout (Uncluttered Top-Left) -->
-        <g transform="translate(50, 50)">
-          <text x="0" y="16" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">Lazy Estimator: μ̂_lazy = x₁</text>
-          <text x="0" y="38" font-family="'Lora', serif" font-size="12" fill="var(--muted)">• Unbiased: 𝔼[μ̂_lazy] = μ*</text>
+        <!-- Another Estimator Callout -->
+        <g transform="translate(60, 50)">
+          <text x="0" y="16" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">Another Estimator: μ̂_another = x₁</text>
+          <text x="0" y="38" font-family="'Lora', serif" font-size="12" fill="var(--muted)">• Unbiased: 𝔼[μ̂_another] = μ*</text>
           <text x="0" y="56" font-family="'Lora', serif" font-size="12" fill="var(--muted)">• High Sampling Variance: Var = σ²</text>
-          <text x="0" y="74" font-family="'Lora', serif" font-size="11" font-style="italic" fill="var(--muted)">Single observation → wide, noisy spread</text>
+          <text x="0" y="74" font-family="'Lora', serif" font-size="11" font-style="italic" fill="var(--muted)">Single sample → wide, erratic spread</text>
         </g>
-        <path d="M 220 95 C 250 95, 265 145, 265 190" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#var-arrow-muted)" />
+        <path d="M 240 95 C 270 95, 285 145, 285 190" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#var-arrow-muted)" />
 
-        <!-- MLE Estimator Callout (Uncluttered Top-Right) -->
-        <g transform="translate(535, 50)">
+        <!-- MLE Estimator Callout -->
+        <g transform="translate(545, 50)">
           <text x="0" y="16" font-family="'Lora', serif" font-size="14" font-weight="bold" fill="var(--text)">MLE Estimator: μ̂_ML = (1/n) ∑ xᵢ</text>
           <text x="0" y="38" font-family="'Lora', serif" font-size="12" fill="var(--muted)">• Unbiased: 𝔼[μ̂_ML] = μ*</text>
           <text x="0" y="56" font-family="'Lora', serif" font-size="12" fill="var(--muted)">• Minimum Variance: Var = σ² / n (MVUE)</text>
-          <text x="0" y="74" font-family="'Lora', serif" font-size="11" font-style="italic" fill="var(--muted)">Averages n samples → sharp, concentrated peak</text>
+          <text x="0" y="74" font-family="'Lora', serif" font-size="11" font-style="italic" fill="var(--muted)">Averages n samples → sharp concentration</text>
         </g>
-        <path d="M 530 95 C 475 95, 435 95, 425 105" fill="none" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#var-arrow)" />
+        <path d="M 540 95 C 495 95, 455 95, 445 105" fill="none" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#var-arrow)" />
 
-        <!-- Variance Spread Indicators with Clean Label Badges -->
-        <!-- MLE Spread: 1-sigma interval [345, 435] -->
-        <line x1="345" y1="135" x2="435" y2="135" stroke="var(--text)" stroke-width="1.5" marker-start="url(#var-arrow)" marker-end="url(#var-arrow)" />
-        <rect x="338" y="125" width="104" height="20" rx="4" fill="var(--bg)" opacity="0.92" />
-        <text x="390" y="139" font-family="'Lora', serif" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">Spread ∝ σ / √n</text>
+        <!-- Variance Spread Indicators -->
+        <line x1="365" y1="135" x2="455" y2="135" stroke="var(--text)" stroke-width="1.5" marker-start="url(#var-arrow)" marker-end="url(#var-arrow)" />
+        <rect x="358" y="125" width="104" height="20" rx="4" fill="var(--bg)" opacity="0.92" />
+        <text x="410" y="139" font-family="'Lora', serif" font-size="11" font-weight="bold" fill="var(--text)" text-anchor="middle">Spread ∝ σ / √n</text>
 
-        <!-- Lazy Spread: 1-sigma interval [275, 505] -->
-        <line x1="275" y1="195" x2="505" y2="195" stroke="var(--muted)" stroke-width="1.2" marker-start="url(#var-arrow-muted)" marker-end="url(#var-arrow-muted)" />
-        <rect x="332" y="185" width="116" height="20" rx="4" fill="var(--bg)" opacity="0.92" />
-        <text x="390" y="199" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Spread ∝ σ (Wide)</text>
+        <line x1="295" y1="195" x2="525" y2="195" stroke="var(--muted)" stroke-width="1.2" marker-start="url(#var-arrow-muted)" marker-end="url(#var-arrow-muted)" />
+        <rect x="352" y="185" width="116" height="20" rx="4" fill="var(--bg)" opacity="0.92" />
+        <text x="410" y="199" font-family="'Lora', serif" font-size="11" fill="var(--muted)" text-anchor="middle">Spread ∝ σ (Wide)</text>
       </svg>
     </div>
     <figcaption class="figure-caption">
-      <strong>Figure 2:</strong> Sampling distributions of two unbiased estimators across repeated experiments. Both $\hat{\mu}_{ML}$ and $\hat{\mu}_{\text{lazy}} = x_1$ are centered exactly at the true mean $\mu$. However, $\hat{\mu}_{ML}$ averages $n$ independent observations, shrinking its variance by a factor of $n$.
+      <strong>Figure 3:</strong> Sampling distributions of two unbiased estimators across repeated experiments. While both $\hat{\mu}_{ML}$ and $\hat{\mu}_{\text{another}} = x_1$ are centered at the true mean $\mu$, the maximum likelihood estimator averages $n$ independent samples, dampening variance by a factor of $n$. In repeated sampling experiments (e.g. 10 runs), $\hat{\mu}_{\text{another}}$ scatters widely while $\hat{\mu}_{ML}$ clusters tightly around the true value.
     </figcaption>
   </figure>
 
-  <h3>The Total Error: Mean Squared Error (MSE)</h3>
+  <h3>Minimum-Variance Unbiased Estimators &amp; The Cramér–Rao Bound</h3>
   <p>
-    However, <strong>unbiasedness is an arbitrary mathematical constraint</strong>. In the real world, what we actually care about is the overall distance between our estimate and the truth: the <strong>Mean Squared Error (MSE)</strong>.
+    Can we do even better than $\frac{\sigma^2}{n}$? Can some clever mathematical function of the data produce an unbiased estimator with variance smaller than $\frac{\sigma^2}{n}$?
+  </p>
+
+  <p>
+    The answer is an emphatic <strong>no</strong>. The <em>Cramér–Rao Lower Bound (CRLB)</em> establishes an absolute theoretical lower limit on the variance of any unbiased estimator:
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Theorem: Cramér–Rao Lower Bound (Gaussian Mean)</div>
+    <div class="math-box-body">
+      <p>
+        For any unbiased estimator $\hat{\mu}$ constructed from $n$ independent observations drawn from $\mathcal{N}(\mu, \sigma^2)$, its sampling variance is strictly bounded from below:
+      </p>
+      <div class="math-display">
+        $$\operatorname{Var}(\hat{\mu}) \ge \frac{\sigma^2}{n}$$
+      </div>
+      <p>
+        Because $\operatorname{Var}(\hat{\mu}_{ML}) = \frac{\sigma^2}{n}$, Fisher's MLE achieves the theoretical floor, earning the title of <strong>Minimum-Variance Unbiased Estimator (MVUE)</strong>.
+      </p>
+    </div>
+  </div>
+
+  <h3>The Total Quality: Mean Squared Error (MSE)</h3>
+  <p>
+    Among unbiased estimators, the MVUE is the undisputed king. However, <strong>unbiasedness is an arbitrary mathematical restriction</strong>. In the physical world, what we actually care about is how close our estimate is to the truth on any given experiment: the <strong>Mean Squared Error (MSE)</strong>.
+  </p>
+
+  <div class="math-display">
+    $$\operatorname{MSE}(\hat{\theta}) = \mathbb{E}\left[ (\hat{\theta} - \theta)^2 \right]$$
+  </div>
+
+  <p>
+    Let $a = \mathbb{E}[\hat{\theta}]$ denote the expected center of the estimator. We add and subtract $a$ inside the square and expand:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \operatorname{MSE}(\hat{\theta}) &= \mathbb{E}\left[ (\hat{\theta} - \theta^*)^2 \right] \\[8pt]
-      &= \mathbb{E}\left[ \big( (\hat{\theta} - \mathbb{E}[\hat{\theta}]) + (\mathbb{E}[\hat{\theta}] - \theta^*) \big)^2 \right] \\[8pt]
-      &= \mathbb{E}\left[ (\hat{\theta} - \mathbb{E}[\hat{\theta}])^2 \right] + 2(\mathbb{E}[\hat{\theta}] - \theta^*)\underbrace{\mathbb{E}[\hat{\theta} - \mathbb{E}[\hat{\theta}]]}_{= 0} \\[10pt]
-      &\quad + (\mathbb{E}[\hat{\theta}] - \theta^*)^2 \\[8pt]
-      &= \underbrace{\operatorname{Var}(\hat{\theta})}_{\text{Sampling Fluctuations}} + \underbrace{\operatorname{Bias}(\hat{\theta})^2}_{\text{Systematic Offset}}
+      \operatorname{MSE}(\hat{\theta}) &= \mathbb{E}\left[ (\hat{\theta} - \theta)^2 \right] \\[6pt]
+      &= \mathbb{E}\left[ \big( (\hat{\theta} - a) + (a - \theta) \big)^2 \right] \\[8pt]
+      &= \mathbb{E}\left[ (\hat{\theta} - a)^2 + (a - \theta)^2 + 2(\hat{\theta} - a)(a - \theta) \right] \\[8pt]
+      &= \mathbb{E}\left[ (\hat{\theta} - a)^2 \right] + (a - \theta)^2 + 2(a - \theta)\mathbb{E}[\hat{\theta} - a]
     \end{aligned}$$
   </div>
 
+  <p>
+    Now examine the cross-term:
+  </p>
+
+  <div class="math-display">
+    $$2(a - \theta)\mathbb{E}[\hat{\theta} - a] = 2(a - \theta)\big( \mathbb{E}[\hat{\theta}] - a \big) = 2(a - \theta)(a - a) = 0$$
+  </div>
+
+  <p>
+    The cross-term vanishes identically! Substituting back gives the famous <strong>Bias-Variance Decomposition</strong>:
+  </p>
+
   <div class="math-box">
-    <div class="math-box-label">The Bias-Variance Tradeoff</div>
+    <div class="math-box-label">The Bias-Variance Decomposition of MSE</div>
     <div class="math-box-body">
       <div class="math-display">
         $$\mathbf{\operatorname{MSE}(\hat{\theta}) = \operatorname{Var}(\hat{\theta}) + \operatorname{Bias}(\hat{\theta})^2}$$
       </div>
       <p>
-        An unbiased estimator forces $\operatorname{Bias} = 0$, meaning its MSE is determined purely by its variance. But if we deliberately inject a <strong>small amount of bias</strong>, can we reduce the variance so drastically that the <em>total MSE is strictly lower</em> than the best unbiased estimator?
+        where $\operatorname{Var}(\hat{\theta}) = \mathbb{E}[(\hat{\theta} - \mathbb{E}[\hat{\theta}])^2]$ measures sampling fluctuation, and $\operatorname{Bias}(\hat{\theta}) = \mathbb{E}[\hat{\theta}] - \theta$ measures systematic shift from the truth.
+      </p>
+    </div>
+  </div>
+
+  <p>
+    For any unbiased estimator, $\operatorname{Bias} = 0$, so $\operatorname{MSE}(\hat{\theta}) = \operatorname{Var}(\hat{\theta})$. This proves that among unbiased estimators, the MVUE is indeed the best we can achieve.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p>
+        <em>What if we abandon the requirement of unbiasedness? Can introducing a deliberate, controlled bias shrink the variance so drastically that the total MSE beats the MVUE?</em>
       </p>
     </div>
   </div>
 
   <h3>Beating the Best Unbiased Estimator: Laplace Smoothing</h3>
   <p>
-    Consider our coin-flipping problem with true bias $p \in [0, 1]$ and sample size $n$. The MLE estimator is $\hat{p}_{ML} = \frac{1}{n}\sum x_i$. Its bias and variance are:
+    Return to our coin tossing problem with unknown parameter $p \in [0, 1]$. We draw $n$ Bernoulli trials. The MLE is $\hat{p}_{ML} = \frac{1}{n}\sum_{i=1}^n x_i$. Its sampling properties are:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \operatorname{Bias}(\hat{p}_{ML}) &= 0 \\[6pt]
-      \operatorname{Var}(\hat{p}_{ML}) &= \frac{p(1-p)}{n} \\[6pt]
-      \operatorname{MSE}(\hat{p}_{ML}) &= \frac{p(1-p)}{n}
+      \mathbb{E}[\hat{p}_{ML}] &= \mathbb{E}\left[ \frac{1}{n}\sum_{i=1}^n x_i \right] \\[6pt]
+      &= \frac{1}{n}\sum_{i=1}^n \mathbb{E}[x_i] \\[6pt]
+      &= \frac{1}{n}(np) = p \quad \implies \operatorname{Bias}(\hat{p}_{ML}) = 0 \\[10pt]
+      \operatorname{Var}(\hat{p}_{ML}) &= \operatorname{Var}\left( \frac{1}{n}\sum_{i=1}^n x_i \right) \\[6pt]
+      &= \frac{1}{n^2}\sum_{i=1}^n \operatorname{Var}(x_i) \\[6pt]
+      &= \frac{1}{n^2}\big( n p(1 - p) \big) = \frac{p(1 - p)}{n} \\[10pt]
+      \operatorname{MSE}(\hat{p}_{ML}) &= \operatorname{Var}(\hat{p}_{ML}) + \operatorname{Bias}(\hat{p}_{ML})^2 \\[6pt]
+      &= \mathbf{\frac{p(1 - p)}{n}}
     \end{aligned}$$
   </div>
 
   <p>
-    Now let us introduce a <strong>biased estimator</strong> that implements <em>Laplace's Rule of Succession</em> (adding two "pseudo-counts", one head and one tail):
+    Now let us introduce a candidate estimator $\hat{p}_{\text{new}}$ that incorporates <em>Laplace's Rule of Succession</em>—adding two "pseudo-counts" (one head and one tail) to the sample:
   </p>
 
   <div class="math-display">
@@ -521,44 +791,88 @@
   </div>
 
   <p>
-    Notice what this does: if we observe 0 heads out of 3 flips, instead of estimating $p = 0$, it estimates $\hat{p} = \frac{0 + 1}{3 + 2} = 0.20$. Let us compute its bias and variance:
+    Let us compute its expected value, bias, and variance step-by-step:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \mathbb{E}[\hat{p}_{\text{new}}] &= \frac{np + 1}{n + 2} \\[8pt]
-      \operatorname{Bias}(\hat{p}_{\text{new}}) &= \frac{np + 1}{n + 2} - p \\[6pt]
-      &= \frac{np + 1 - np - 2p}{n + 2} = \mathbf{\frac{1 - 2p}{n + 2}} \\[8pt]
-      \operatorname{Var}(\hat{p}_{\text{new}}) &= \operatorname{Var}\left( \frac{\sum x_i + 1}{n + 2} \right) = \mathbf{\frac{np(1 - p)}{(n + 2)^2}}
+      \mathbb{E}[\hat{p}_{\text{new}}] &= \mathbb{E}\left[ \frac{\sum_{i=1}^n x_i + 1}{n + 2} \right] \\[6pt]
+      &= \frac{\sum_{i=1}^n \mathbb{E}[x_i] + 1}{n + 2} \\[6pt]
+      &= \frac{np + 1}{n + 2} \ne p \quad \implies \text{Biased} \\[10pt]
+      \operatorname{Bias}(\hat{p}_{\text{new}}) &= \mathbb{E}[\hat{p}_{\text{new}}] - p \\[6pt]
+      &= \frac{np + 1}{n + 2} - \frac{p(n + 2)}{n + 2} \\[6pt]
+      &= \mathbf{\frac{1 - 2p}{n + 2}} \\[10pt]
+      \operatorname{Var}(\hat{p}_{\text{new}}) &= \operatorname{Var}\left( \frac{\sum_{i=1}^n x_i + 1}{n + 2} \right) \\[6pt]
+      &= \frac{1}{(n + 2)^2}\operatorname{Var}\left( \sum_{i=1}^n x_i \right) \\[6pt]
+      &= \mathbf{\frac{np(1 - p)}{(n + 2)^2}}
     \end{aligned}$$
   </div>
 
   <p>
-    Now let us evaluate the total Mean Squared Error of our biased estimator:
+    Notice what happened to the variance: the denominator increased from $n$ to $(n + 2)^2$, drastically suppressing variance! Now let us combine bias and variance into the total MSE:
   </p>
 
   <div class="math-display">
     $$\begin{aligned}
-      \operatorname{MSE}(\hat{p}_{\text{new}}) &= \operatorname{Var}(\hat{p}_{\text{new}}) + \operatorname{Bias}(\hat{p}_{\text{new}})^2 \\[6pt]
+      \operatorname{MSE}(\hat{p}_{\text{new}}) &= \operatorname{Var}(\hat{p}_{\text{new}}) + \operatorname{Bias}(\hat{p}_{\text{new}})^2 \\[8pt]
       &= \frac{np(1 - p)}{(n + 2)^2} + \frac{(1 - 2p)^2}{(n + 2)^2} \\[8pt]
       &= \frac{np - np^2 + 1 - 4p + 4p^2}{(n + 2)^2} \\[8pt]
+      &= \frac{np(1 - p) + 4p^2 - 4p + 1}{(n + 2)^2} \\[8pt]
+      &= \frac{np(1 - p) - 4p(1 - p) + 1}{(n + 2)^2} \\[8pt]
       &= \mathbf{\frac{p(1 - p)(n - 4) + 1}{(n + 2)^2}}
+    \end{aligned}$$
+  </div>
+
+  <h3>Comparing the Two Estimators: The Crossover Points</h3>
+  <p>
+    To discover where the biased estimator outperforms Fisher's MVUE, let us equate their MSEs:
+  </p>
+
+  <div class="math-display">
+    $$\operatorname{MSE}(\hat{p}_{\text{new}}) = \operatorname{MSE}(\hat{p}_{ML}) \iff \frac{p(1 - p)(n - 4) + 1}{(n + 2)^2} = \frac{p(1 - p)}{n}$$
+  </div>
+
+  <p>
+    Let $u = p(1 - p)$ represent the parameter variance factor:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \frac{u(n - 4) + 1}{(n + 2)^2} &= \frac{u}{n} \\[8pt]
+      \implies n\big[ u(n - 4) + 1 \big] &= u(n + 2)^2 \\[6pt]
+      \implies n^2 u - 4nu + n &= u(n^2 + 4n + 4) \\[6pt]
+      \implies n^2 u - 4nu + n &= n^2 u + 4nu + 4u \\[6pt]
+      \implies n &= 8nu + 4u = u(8n + 4) \\[8pt]
+      \implies u &= \mathbf{\frac{n}{8n + 4}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    For a concrete sample size of $n = 10$:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      u &= \frac{10}{8(10) + 4} = \frac{10}{84} = \frac{5}{42} \approx 0.1190 \\[8pt]
+      p(1 - p) &= u \implies p^2 - p + \frac{5}{42} = 0 \\[8pt]
+      p &= \frac{1 \pm \sqrt{1 - 4\left(\frac{5}{42}\right)}}{2} = \frac{1 \pm \sqrt{\frac{11}{21}}}{2} \\[8pt]
+      \implies p_1 &\approx \mathbf{0.138}, \quad p_2 \approx \mathbf{0.862}
     \end{aligned}$$
   </div>
 
   <figure class="diagram-figure">
     <div class="svg-container">
       <svg viewBox="0 0 720 350" xmlns="http://www.w3.org/2000/svg">
-        <!-- Shaded Superior Region for Biased Estimator: p in [0.14, 0.86] -> x in [163, 597] -->
+        <!-- Shaded Superior Region for Biased Estimator: p in [0.138, 0.862] -> x in [163, 597] -->
         <rect x="163" y="50" width="434" height="250" fill="var(--surface)" fill-opacity="0.7" />
-        <text x="380" y="68" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)" text-anchor="middle">Biased Estimator Beats MVUE Across 72% of Parameter Space</text>
+        <text x="380" y="68" font-family="'Lora', serif" font-size="13" font-weight="bold" fill="var(--text)" text-anchor="middle">New estimator better (Lower MSE across 72.4% of parameter domain)</text>
 
         <!-- Axes -->
         <line x1="80" y1="300" x2="680" y2="300" stroke="var(--border)" stroke-width="2" />
         <line x1="80" y1="300" x2="80" y2="40" stroke="var(--border)" stroke-width="2" />
 
         <!-- Axis Labels -->
-        <text x="685" y="304" font-family="'Lora', serif" font-size="14" fill="var(--text)">p</text>
+        <text x="685" y="304" font-family="'Lora', serif" font-size="14" fill="var(--text)">True Bernoulli parameter p</text>
         <text x="80" y="25" font-family="'Lora', serif" font-size="14" fill="var(--text)" text-anchor="middle">Mean Squared Error (MSE)</text>
 
         <!-- Y ticks -->
@@ -579,40 +893,43 @@
         <text x="680" y="322" font-family="'Lora', serif" font-size="12" fill="var(--muted)" text-anchor="middle">1.0</text>
 
         <!-- Parabola 1: Unbiased MLE MSE = p(1-p)/10. Apex at p=0.5 -> MSE=0.025 (y=100) -->
-        <path d="M 80 300 Q 380 -100 680 300" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-dasharray="6,6" />
+        <path d="M 80 300 Q 380 -100 680 300" fill="none" stroke="var(--text)" stroke-width="2.5" />
 
         <!-- Parabola 2: Biased Laplace MSE = (6p(1-p)+1)/144. At p=0: 1/144 (y=244.5), apex at p=0.5: 2.5/144 (y=161.1) -->
-        <!-- Passes exactly through crossover dots (163, 205) and (597, 205) -->
         <path d="M 80 244.5 Q 380 77.7 680 244.5" fill="none" stroke="var(--accent)" stroke-width="3" />
 
-        <!-- Crossover Indicators & Lines at p=0.14 (x=163) and p=0.86 (x=597) -->
+        <!-- Crossover Indicators & Lines at p=0.138 (x=163) and p=0.862 (x=597) -->
         <line x1="163" y1="50" x2="163" y2="300" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="3,3" />
         <line x1="597" y1="50" x2="597" y2="300" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="3,3" />
         <circle cx="163" cy="205" r="4.5" fill="var(--text)" />
         <circle cx="597" cy="205" r="4.5" fill="var(--text)" />
 
-        <text x="163" y="336" font-family="'Lora', serif" font-size="11" font-weight="600" fill="var(--text)" text-anchor="middle">p = 0.14</text>
-        <text x="597" y="336" font-family="'Lora', serif" font-size="11" font-weight="600" fill="var(--text)" text-anchor="middle">p = 0.86</text>
+        <text x="163" y="336" font-family="'Lora', serif" font-size="11" font-weight="600" fill="var(--text)" text-anchor="middle">p ≈ 0.14</text>
+        <text x="597" y="336" font-family="'Lora', serif" font-size="11" font-weight="600" fill="var(--text)" text-anchor="middle">p ≈ 0.86</text>
+
+        <!-- Annotations for tail regions -->
+        <text x="120" y="270" font-family="'Lora', serif" font-size="11" font-weight="600" fill="var(--muted)" text-anchor="middle">MLE better</text>
+        <text x="640" y="270" font-family="'Lora', serif" font-size="11" font-weight="600" fill="var(--muted)" text-anchor="middle">MLE better</text>
 
         <!-- Legend / Curves -->
-        <line x1="430" y1="110" x2="470" y2="110" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5,5" />
-        <text x="480" y="114" font-family="'Lora', serif" font-size="12" fill="var(--muted)">MSE(p̂_ML) = p(1-p)/10 [MVUE]</text>
+        <line x1="430" y1="110" x2="470" y2="110" stroke="var(--text)" stroke-width="2.5" />
+        <text x="480" y="114" font-family="'Lora', serif" font-size="12" fill="var(--text)">p̂_ML (Sample Mean)</text>
 
         <line x1="430" y1="130" x2="470" y2="130" stroke="var(--accent)" stroke-width="3" />
-        <text x="480" y="134" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--text)">MSE(p̂_new) [Biased Laplace]</text>
+        <text x="480" y="134" font-family="'Lora', serif" font-size="12" font-weight="bold" fill="var(--accent)">p̂_new = (∑ Xᵢ + 1)/(n + 2)</text>
       </svg>
     </div>
     <figcaption class="figure-caption">
-      <strong>Figure 3:</strong> The Bias-Variance Tradeoff in action ($n = 10$). While $\hat{p}_{ML}$ is the best unbiased estimator, the biased estimator $\hat{p}_{\text{new}}$ achieves lower Mean Squared Error across 72% of the parameter space! By trading off a tiny amount of bias towards $0.5$, it drastically dampens sampling variance.
+      <strong>Figure 4:</strong> MSE Comparison of Two Estimators ($n = 10$). While $\hat{p}_{ML}$ is the best unbiased estimator (MVUE), the biased estimator $\hat{p}_{\text{new}}$ achieves lower Mean Squared Error across $72.4\%$ of the entire parameter space ($p \in [0.138, 0.862]$). By accepting a tiny amount of bias pulling estimates toward $0.5$, it dampens sampling variance enough to deliver superior overall predictive accuracy.
     </figcaption>
   </figure>
 
   <p>
-    Look at <strong>Figure 3</strong>: for a sample size of $n = 10$, across the entire middle range $p \in (0.14, 0.86)$, <strong>the biased estimator beats the MVUE!</strong>
+    Look closely at <strong>Figure 4</strong>: for $n = 10$, across the entire interior $p \in (0.138, 0.862)$, <strong>the biased estimator decisively beats the MVUE</strong>!
   </p>
 
   <p>
-    By relinquishing the requirement of zero bias, we shrink the variance so aggressively that our estimator is closer to the true value far more often than Fisher's pure MLE.
+    Only at the extreme boundary tails (where the true coin is almost always Heads $p > 0.86$ or almost always Tails $p < 0.14$) does the unbiased MLE attain lower MSE. Across over $72\%$ of the real world, relinquishing zero bias allows us to tame variance and achieve strictly superior accuracy.
   </p>
 </section>
 
@@ -623,17 +940,7 @@
   <h2>Connecting the Dots: The Frequentist Horizon</h2>
 
   <p>
-    We have traversed the foundational landscape of statistical parameter estimation under the <strong>Frequentist paradigm</strong>. By shifting our perspective from deterministic spatial geometry (as seen in PCA and K-Means) to generative probabilistic models, we unlocked the ability to reason about uncertainty, sampling variability, and the fundamental tradeoff between bias and variance.
-  </p>
-
-  <div class="math-box">
-    <div class="math-box-body" style="text-align: center;">
-      <p><em>"How do we choose the optimal parameter when an estimator with zero bias can produce inferior predictions?"</em></p>
-    </div>
-  </div>
-
-  <p>
-    The core principle of Maximum Likelihood is both simple and profound: <em>select the parameter values that make the observed data as probable as possible</em>. Yet, as our derivations revealed, this elegance carries subtle subtleties and stark limitations when confronted with finite samples.
+    We have traversed the foundational landscape of statistical parameter estimation under the <strong>Frequentist paradigm</strong>. By shifting our perspective from deterministic spatial geometry (as seen in PCA and $K$-means) to generative probabilistic models, we unlocked the ability to reason about uncertainty, sampling variability, and the fundamental tradeoff between bias and variance.
   </p>
 
   <table style="width:100%; margin: 2.5rem 0; border-collapse: collapse; font-size: 0.95rem;">
@@ -649,39 +956,51 @@
       <tr style="border-bottom: 1px solid var(--border);">
         <td style="padding: 10px;"><strong>Bernoulli MLE ($\hat{p}_{ML}$)</strong></td>
         <td style="padding: 10px;">$\frac{n_h}{n}$</td>
-        <td style="padding: 10px;">Unbiased ($\text{Bias} = 0$)</td>
-        <td style="padding: 10px;">Achieves Cramér-Rao lower bound (MVUE). Suffers from zero-frequency collapse on small samples ($3/3 \implies 1.0$).</td>
+        <td style="padding: 10px;">Unbiased ($\operatorname{Bias} = 0$)</td>
+        <td style="padding: 10px;">Achieves Cramér–Rao bound (MVUE). Suffers from zero-frequency collapse on small samples ($3/3 \implies 1.0$).</td>
       </tr>
       <tr style="border-bottom: 1px solid var(--border);">
         <td style="padding: 10px;"><strong>Laplace Smoothed ($\hat{p}_{\text{new}}$)</strong></td>
         <td style="padding: 10px;">$\frac{n_h + 1}{n + 2}$</td>
-        <td style="padding: 10px;">Biased ($\text{Bias} = \frac{1 - 2p}{n + 2}$)</td>
-        <td style="padding: 10px;">Dampens sampling variance so aggressively that it achieves lower MSE than MVUE for small samples ($n \le 4$).</td>
+        <td style="padding: 10px;">Biased ($\operatorname{Bias} = \frac{1 - 2p}{n + 2}$)</td>
+        <td style="padding: 10px;">Dampens sampling variance so aggressively that it beats MVUE across $72.4\%$ of the parameter domain for $n = 10$.</td>
       </tr>
       <tr style="border-bottom: 1px solid var(--border);">
         <td style="padding: 10px;"><strong>Gaussian Mean MLE ($\hat{\mu}_{ML}$)</strong></td>
-        <td style="padding: 10px;">$\frac{1}{n}\sum_{i=1}^n x_i$</td>
-        <td style="padding: 10px;">Unbiased ($\text{Bias} = 0$)</td>
-        <td style="padding: 10px;">Optimal MVUE; variance decays linearly with sample size as $\sigma^2/n$.</td>
+        <td style="padding: 10px;">$\frac{1}{n}\sum x_i$</td>
+        <td style="padding: 10px;">Unbiased ($\operatorname{Bias} = 0$)</td>
+        <td style="padding: 10px;">Optimal MVUE; sampling variance decays linearly as $\sigma^2/n$, attaining the Cramér–Rao lower bound.</td>
       </tr>
       <tr style="border-bottom: 1px solid var(--border);">
-        <td style="padding: 10px;"><strong>Gaussian Variance MLE ($\hat{\sigma}^2_{ML}$)</strong></td>
-        <td style="padding: 10px;">$\frac{1}{n}\sum_{i=1}^n (x_i - \hat{\mu})^2$</td>
+        <td style="padding: 10px;"><strong>First-Sample ($\hat{\mu}_{\text{another}}$)</strong></td>
+        <td style="padding: 10px;">$x_1$</td>
+        <td style="padding: 10px;">Unbiased ($\operatorname{Bias} = 0$)</td>
+        <td style="padding: 10px;">Proves unbiasedness is insufficient; discards $n-1$ data points, retaining high variance $\operatorname{Var} = \sigma^2$.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Gaussian Variance (Known $\mu$)</strong></td>
+        <td style="padding: 10px;">$\frac{1}{n}\sum (x_i - \mu)^2$</td>
+        <td style="padding: 10px;">Unbiased ($\mathbb{E}[\hat{\sigma}^2] = \sigma^2$)</td>
+        <td style="padding: 10px;">No degrees of freedom lost since deviations are measured around the true population center $\mu$.</td>
+      </tr>
+      <tr style="border-bottom: 1px solid var(--border);">
+        <td style="padding: 10px;"><strong>Gaussian Variance MLE (Unknown $\mu$)</strong></td>
+        <td style="padding: 10px;">$\frac{1}{n}\sum (x_i - \hat{\mu})^2$</td>
         <td style="padding: 10px;">Biased ($\mathbb{E}[\hat{\sigma}^2] = \frac{n-1}{n}\sigma^2$)</td>
-        <td style="padding: 10px;">Systematically underestimates true dispersion because sample deviations are measured around $\hat{\mu}$, not $\mu$.</td>
+        <td style="padding: 10px;">Systematically underestimates variance because sample deviations are measured around the sample centroid $\hat{\mu}$.</td>
       </tr>
       <tr>
         <td style="padding: 10px;"><strong>Bessel Sample Variance ($S^2$)</strong></td>
-        <td style="padding: 10px;">$\frac{1}{n-1}\sum_{i=1}^n (x_i - \hat{\mu})^2$</td>
-        <td style="padding: 10px;">Unbiased ($\text{Bias} = 0$)</td>
-        <td style="padding: 10px;">Restores unbiasedness by dividing by degrees of freedom $n - 1$, though MLE retains slightly lower MSE.</td>
+        <td style="padding: 10px;">$\frac{1}{n-1}\sum (x_i - \hat{\mu})^2$</td>
+        <td style="padding: 10px;">Unbiased ($\operatorname{Bias} = 0$)</td>
+        <td style="padding: 10px;">Restores unbiasedness by dividing by residual degrees of freedom $n - 1$.</td>
       </tr>
     </tbody>
   </table>
 
   <h3>Where Did the Plus One Come From?</h3>
   <p>
-    Notice what happened at the end of our comparison: Laplace's biased estimator $\hat{p}_{\text{new}} = \frac{n_h + 1}{n + 2}$ actually beat the "optimal" unbiased MLE when data was scarce.
+    Notice the remarkable outcome of our comparison: Laplace's biased estimator $\hat{p}_{\text{new}} = \frac{n_h + 1}{n + 2}$ outperformed the "optimal" unbiased MLE across most of the parameter space.
   </p>
 
   <p>
@@ -689,17 +1008,17 @@
   </p>
 
   <p>
-    In the frequentist world, this is often treated as an ad-hoc smoothing trick. But it isn't just a trick. It's the direct mathematical result of a completely different way of looking at the problem.
+    In the frequentist world, this is often introduced as an ad-hoc heuristic called "add-one smoothing". But it is not an arbitrary trick. It is the exact mathematical consequence of a completely different philosophical paradigm:
   </p>
 
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
-      <p><em>"What if the unknown parameter $\theta$ isn't a fixed constant in the sky, but a random variable with its own probability distribution?"</em></p>
+      <p><em>"What if the unknown parameter $\theta$ isn't a fixed unknown constant in the sky, but a random variable with its own prior probability distribution?"</em></p>
     </div>
   </div>
 
   <p>
-    In the next lesson, <strong>Bayesian Estimation</strong>, we explore this paradigm shift. We will see how to encode hunches as prior distributions, how Bayes' law systematically updates those hunches with data, and how the concept of "ghost samples" explains exactly where Laplace's $+1$ came from.
+    In the next lesson, <strong>Bayesian Estimation</strong>, we explore this profound transformation. We will see how to encode prior beliefs into probability distributions, how Bayes' theorem updates those beliefs with observed data, and how the concept of "ghost observations" proves that Laplace's $+1$ is simply a uniform prior belief in disguise.
   </p>
 </section>
 

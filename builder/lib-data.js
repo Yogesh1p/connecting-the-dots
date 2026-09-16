@@ -1349,8 +1349,8 @@ window.rawPages = [
     "part": "Estimation",
     "tier": "core",
     "keywords": "maximum likelihood estimation, MLE, bias-variance tradeoff, MVUE, cramer-rao lower bound, laplace smoothing, gaussian MLE, bessel correction, sampling distribution, parameter estimation, unsupervised learning, IITM FML",
-    "status": "draft",
-    "readingTime": 12
+    "status": "published",
+    "readingTime": 18
   },
   {
     "article_id": "c3a7e912",
