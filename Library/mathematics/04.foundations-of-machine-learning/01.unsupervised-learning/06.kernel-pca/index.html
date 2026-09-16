@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="ffc54033">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Foundations of Machine Learning">
+<meta name="chapter" content="Unsupervised Learning">
+<meta name="part" content="Representation Learning">
+<meta name="title" content="Kernel Principal Component Analysis">
+<meta name="description" content="Executing Principal Component Analysis in unseen Hilbert spaces: deriving the double-centering matrix H, solving the dual eigenvalue problem, and projecting non-linear data.">
+<meta name="keywords" content="kernel pca, non-linear dimensionality reduction, centering in hilbert space, double centering, centering matrix H, dual eigendecomposition, representation learning, Foundations of Machine Learning">
+<meta name="status" content="draft">
+<meta name="date" content="2026-09-02">
+<meta name="author" content="Yogesh">
+
+<title>Kernel Principal Component Analysis</title>
+  
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .diagram-figure {
+    margin: 2.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 740px;
+  }
+  .svg-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .svg-container svg {
+    width: 100%;
+    height: auto;
+  }
+  .figure-caption {
+    margin-top: 1rem;
+    color: var(--text);
+    font-size: 0.9em;
+    line-height: 1.5;
+    max-width: 90%;
+  }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+        const meta = document.getElementById("meta-theme-color");
+        if (meta) {
+            meta.setAttribute("content", theme === "dark" ? "#16100C" : "#FDFBF7");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<meta name="reading_time" content="13">
+<meta property="og:title" content="Kernel Principal Component Analysis">
+<meta property="og:description" content="Executing Principal Component Analysis in unseen Hilbert spaces: deriving the double-centering matrix H, solving the dual eigenvalue problem, and projecting non-linear data.">
+<meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-kernel-principal-component-analysis.png">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1 — The Quest to Eliminate Redundancy                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1 — The Dilemma: PCA on Points We Cannot See           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="unseen-pca-dilemma">
+  <h2>The Dilemma: Running PCA on Points We Cannot See</h2>
+
+  <p>
+    In <a href="../05.the-kernel-trick/">The Kernel Trick</a>, we unlocked an extraordinary geometric mechanism: we can compute Euclidean dot products between high-dimensional or infinite-dimensional feature vectors purely through scalar evaluations:
+  </p>
+
+  <div class="math-display">
+    $$k(x, x') = \langle \phi(x), \phi(x') \rangle$$
+  </div>
+
+  <p>
+    This allows us to measure geometric similarities and distances without ever computing or storing the explicit coordinates of $\phi(x)$. But now we face a profound obstacle: <strong>how do we perform unsupervised dimensionality reduction in this unseen feature space?</strong>
+  </p>
+
+  <p>
+    Recall how classical linear PCA operates. Given a dataset of centered observations $\{x_1, x_2, \dots, x_n\}$, linear PCA finds the directions of maximum variance by computing the eigenvectors of the $d \times d$ sample covariance matrix:
+  </p>
+
+  <div class="math-display">
+    $$C = \frac{1}{n}\sum_{i=1}^n x_i x_i^T = \frac{1}{n} X X^T$$
+  </div>
+
+  <p>
+    If we attempt to apply this primal formulation directly to our lifted feature vectors $\{\phi(x_1), \dots, \phi(x_n)\}$, the sample covariance matrix becomes:
+  </p>
+
+  <div class="math-display">
+    $$C_\phi = \frac{1}{n}\sum_{i=1}^n \phi(x_i)\phi(x_i)^T = \frac{1}{n} \Phi \Phi^T \in \mathbb{R}^{D \times D}$$
+  </div>
+
+  <p>
+    Here, the mathematical machinery breaks down completely:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Intractable Dimensionality ($D \times D$):</strong> If $\phi(x)$ maps into a polynomial feature space of degree $p = 5$ on 100 features, $D \approx 96\text{ million}$, making $C_\phi$ a $96\text{ million} \times 96\text{ million}$ matrix that requires petabytes of memory just to allocate. If we use the Gaussian RBF kernel, $D = \infty$, rendering $C_\phi$ mathematically incomputable!
+    </li>
+    <li>
+      <strong>The Centering Breakdown:</strong> Linear PCA strictly requires the data to be centered at the origin: $\sum_{i=1}^n \phi(x_i) = \mathbf{0}$. Even if your raw input data $x_i$ was perfectly centered in $\mathbb{R}^d$, higher-order combination features like squares $x^2$ or even powers are strictly non-negative, dragging the center of mass in Hilbert space away from zero.
+    </li>
+  </ul>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>The Central Question: How can we center data points whose coordinates we cannot see, and how can we diagonalize a covariance matrix that cannot be formed?</em></p>
+    </div>
+  </div>
+
+  <h3>The Dual Breakthrough: The Eigenvector Representation Theorem</h3>
+
+  <p>
+    To bypass the incomputable $D \times D$ covariance matrix, we return to the fundamental theorem of dual representations that we discovered in <a href="../04.high-dimensional-pca/">High-Dimensional PCA</a>:
+  </p>
+
+  <p>
+    Suppose $w_k \in \mathbb{R}^D$ is a genuine eigenvector of the covariance matrix $C_\phi$ with non-zero eigenvalue $\lambda_k > 0$:
+  </p>
+
+  <div class="math-display">
+    $$C_\phi w_k = \lambda_k w_k$$
+  </div>
+
+  <p>
+    Substitute the explicit definition of the covariance matrix $C_\phi = \frac{1}{n}\sum_{i=1}^n \phi(x_i)\phi(x_i)^T$ into this eigenvalue equation:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      \left(\frac{1}{n}\sum_{i=1}^n \phi(x_i)\phi(x_i)^T\right) w_k &= \lambda_k w_k \\[8pt]
+      \frac{1}{n}\sum_{i=1}^n \phi(x_i) \underbrace{\left(\phi(x_i)^T w_k\right)}_{\text{scalar projection}} &= \lambda_k w_k
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Dividing both sides by the scalar eigenvalue $\lambda_k > 0$ yields a stunning revelation:
+  </p>
+
+  <div class="math-display">
+    $$w_k = \sum_{i=1}^n \underbrace{\left(\frac{\phi(x_i)^T w_k}{n \lambda_k}\right)}_{\alpha_{ki}} \phi(x_i) = \sum_{i=1}^n \alpha_{ki} \phi(x_i) = \Phi \vec{\alpha}_k$$
+  </div>
+
+  <p>
+    Every principal component vector $w_k$ in the $D$-dimensional Hilbert space <strong>must lie strictly within the linear span of the $n$ training samples $\{\phi(x_1), \dots, \phi(x_n)\}$</strong>!
+  </p>
+
+  <p>
+    This collapses the problem entirely: instead of searching for an unknown, incomputable vector $w_k \in \mathbb{R}^D$ across infinite dimensions, we only need to solve for an $n$-dimensional weight vector:
+  </p>
+
+  <div class="math-display">
+    $$\vec{\alpha}_k = \begin{bmatrix} \alpha_{k1} \\[4pt] \alpha_{k2} \\[4pt] \vdots \\[4pt] \alpha_{kn} \end{bmatrix} \in \mathbb{R}^n$$
+  </div>
+
+  <p>
+    Before we can solve for $\vec{\alpha}_k$, however, we must solve the first half of the puzzle: <strong>how do we ensure the data is properly centered in Hilbert space?</strong>
+  </p>
+</section>
+
+<section id="centering-hilbert-space">
+  <h2>Centering in Hilbert Space: The $HKH$ Discovery</h2>
+
+  <p>
+    We now encounter a critical mathematical obstacle.
+  </p>
+
+  <p>
+    PCA strictly requires the dataset to be centered at the origin: $\sum_{i=1}^n \phi(x_i) = \mathbf{0}$. If the data cloud is not centered, the first principal component simply points from the origin toward the center of mass rather than capturing the direction of maximum variance.
+  </p>
+
+  <p>
+    Here is the problem: even if your raw input data $x_i$ was centered in $\mathbb{R}^d$ ($\sum x_i = \mathbf{0}$), the combination features $\phi(x_i)$ in Hilbert space are almost <strong>never centered</strong>. For example, if $x$ has zero mean, squared features like $x^2$ are strictly positive, shifting the center of mass away from zero.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>How can we center data points in an infinite-dimensional feature space when we cannot calculate or see the combination vectors $\phi(x_i)$?</em></p>
+    </div>
+  </div>
+
+  <h3>Deriving the Centered Gram Matrix $K_c$</h3>
+  <p>
+    Let the true, unobserved centered feature vector for sample $i$ be:
+  </p>
+
+  <div class="math-display">
+    $$\tilde{\phi}(x_i) = \phi(x_i) - \bar{\phi} = \phi(x_i) - \frac{1}{n}\sum_{r=1}^n \phi(x_r)$$
+  </div>
+
+  <p>
+    We want to compute the entry $(K_c)_{ij}$ at row $i$ and column $j$ of the centered kernel matrix, which is the inner product of these centered vectors:
+  </p>
+
+  <div class="math-display">
+    $$(K_c)_{ij} = \langle \tilde{\phi}(x_i), \tilde{\phi}(x_j) \rangle = \tilde{\phi}(x_i)^T \tilde{\phi}(x_j)$$
+  </div>
+
+  <p>
+    Substitute the definition of centered vectors into this inner product:
+  </p>
+
+  <div class="math-display">
+    $$(K_c)_{ij} = \left( \phi(x_i) - \frac{1}{n}\sum_{r=1}^n \phi(x_r) \right)^T \left( \phi(x_j) - \frac{1}{n}\sum_{s=1}^n \phi(x_s) \right)$$
+  </div>
+
+  <p>
+    Notice that this has the familiar algebraic form $(A - B)^T (C - D)$. Expanding this product using standard distributive multiplication yields four distinct terms:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      (A - B)^T (C - D) &= \underbrace{A^T C}_{\text{Term 1}} \;-\; \underbrace{A^T D}_{\text{Term 2}} \\[10pt]
+      &\quad\; -\; \underbrace{B^T C}_{\text{Term 3}} \;+\; \underbrace{B^T D}_{\text{Term 4}}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    To understand what these four terms mean, recall how our observable $n \times n$ Gram matrix $K$ is indexed:
+  </p>
+
+  <div class="math-display">
+    $$K = \begin{bmatrix}
+      K_{11} & K_{12} & \dots & K_{1j} & \dots & K_{1n} \\
+      K_{21} & K_{22} & \dots & K_{2j} & \dots & K_{2n} \\
+      \vdots & \vdots & \ddots & \vdots & \ddots & \vdots \\
+      K_{i1} & K_{i2} & \dots & K_{ij} & \dots & K_{in} \\
+      \vdots & \vdots & \ddots & \vdots & \ddots & \vdots \\
+      K_{n1} & K_{n2} & \dots & K_{nj} & \dots & K_{nn}
+    \end{bmatrix}, \qquad \text{where } K_{\text{row}, \text{col}} = \phi(x_{\text{row}})^T \phi(x_{\text{col}})$$
+  </div>
+
+  <p>
+    In any matrix entry $K_{a, b}$, the <strong>first index $a$ is the row number</strong>, and the <strong>second index $b$ is the column number</strong>. Now look at each of the four terms:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Term 1 ($A^T C$): The Original Point-to-Point Value</strong>
+      <div class="math-display">
+        $$\phi(x_i)^T \phi(x_j) = K_{ij}$$
+      </div>
+      This is simply the raw, uncentered kernel evaluation between sample $i$ and sample $j$—the single number at row $i$, column $j$ of our matrix $K$.
+    </li>
+    <li>
+      <strong>Term 2 ($A^T D$): The Average of Row $i$</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \phi(x_i)^T \left( \frac{1}{n}\sum_{s=1}^n \phi(x_s) \right) &= \frac{1}{n}\sum_{s=1}^n \phi(x_i)^T \phi(x_s) \\[6pt]
+          &= \frac{1}{n}\sum_{s=1}^n K_{is} \\[6pt]
+          &= \frac{K_{i1} + K_{i2} + \dots + K_{in}}{n} = \mu_i^{\text{row}}
+        \end{aligned}$$
+      </div>
+      Look at the indices: the <strong>row index is fixed at $i$</strong>, while the column index $s$ runs from $1$ to $n$. You are walking horizontally across <strong>row $i$</strong> from left to right, adding up all $n$ entries in that row, and dividing by $n$. This is the <strong>arithmetic mean of row $i$</strong> in $K$!
+    </li>
+    <li>
+      <strong>Term 3 ($B^T C$): The Average of Column $j$</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \left( \frac{1}{n}\sum_{r=1}^n \phi(x_r) \right)^T \phi(x_j) &= \frac{1}{n}\sum_{r=1}^n \phi(x_r)^T \phi(x_j) \\[6pt]
+          &= \frac{1}{n}\sum_{r=1}^n K_{rj} \\[6pt]
+          &= \frac{K_{1j} + K_{2j} + \dots + K_{nj}}{n} = \mu_j^{\text{col}}
+        \end{aligned}$$
+      </div>
+      Look at the indices: the <strong>column index is fixed at $j$</strong>, while the row index $r$ runs from $1$ to $n$. You are walking vertically down <strong>column $j$</strong> from top to bottom, adding up all $n$ entries in that column, and dividing by $n$. This is the <strong>arithmetic mean of column $j$</strong> in $K$!
+    </li>
+    <li>
+      <strong>Term 4 ($B^T D$): The Grand Matrix Average</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \left( \frac{1}{n}\sum_{r=1}^n \phi(x_r) \right)^T \left( \frac{1}{n}\sum_{s=1}^n \phi(x_s) \right) &= \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n \phi(x_r)^T \phi(x_s) \\[6pt]
+          &= \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n K_{rs} \\[6pt]
+          &= \mu^{\text{grand}}
+        \end{aligned}$$
+      </div>
+      Here, both $r$ and $s$ run from $1$ to $n$. You are summing every single entry across the entire $n \times n$ matrix $K$ and dividing by $n^2$. This is the <strong>overall grand average</strong> of the whole matrix $K$.
+    </li>
+  </ol>
+
+  <p>
+    Putting all four pieces together, the centered kernel value is:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      (K_c)_{ij} &= \underbrace{K_{ij}}_{\text{Original}} \;-\; \underbrace{\mu_i^{\text{row}}}_{\text{Row Average}} \;-\; \underbrace{\mu_j^{\text{col}}}_{\text{Column Average}} \;+\; \underbrace{\mu^{\text{grand}}}_{\text{Grand Average}} \\[12pt]
+      &= K_{ij} \;-\; \frac{1}{n}\sum_{s=1}^n K_{is} \;-\; \frac{1}{n}\sum_{r=1}^n K_{rj} \;+\; \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n K_{rs}
+    \end{aligned}$$
+  </div>
+
+  <p>
+    Why do we add the grand average back at the end? Because when you subtract the row average and subtract the column average, the overall matrix mean gets subtracted <em>twice</em>! Adding it back once corrects for this double-counting—the exact same principle used in classical table double-centering.
+  </p>
+
+  <h3>From Scalar Arithmetic to the Matrix Formula: $K_c = H K H$</h3>
+  <p>
+    Instead of calculating row and column averages one entry at a time in a loop, linear algebra allows us to perform this entire centering operation across the whole $n \times n$ matrix in a single step using the <strong>centering matrix</strong> $H$:
+  </p>
+
+  <div class="math-display">
+    $$H = I_n - \frac{1}{n}\mathbf{1}_n \mathbf{1}_n^T$$
+  </div>
+
+  <p>
+    where $I_n$ is the $n \times n$ identity matrix and $\mathbf{1}_n$ is an $n \times 1$ column vector of ones. Look at how multiplying by $H$ behaves:
+  </p>
+
+  <ul>
+    <li>
+      <strong>Multiplying on the Left ($H K$):</strong>
+      $$(H K) = \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) K = K - \frac{1}{n}\mathbf{1}(\mathbf{1}^T K)$$
+      Because $\mathbf{1}^T K$ computes the sum of each column, $\frac{1}{n}\mathbf{1}(\mathbf{1}^T K)$ creates a matrix where every row is the column means. Subtracting it subtracts the column averages from $K$.
+    </li>
+    <li>
+      <strong>Multiplying on the Right ($(H K) H$):</strong>
+      Multiplying the result on the right by $\left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right)$ subtracts the row averages from each row.
+    </li>
+  </ul>
+
+  <p>
+    Expanding the full matrix product $H K H$ algebraically reveals the exact same four terms:
+  </p>
+
+  <div class="math-display">
+    $$\begin{aligned}
+      H K H &= \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) K \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) \\[8pt]
+      &= K \;-\; \frac{1}{n} K \mathbf{1}\mathbf{1}^T \;-\; \frac{1}{n}\mathbf{1}\mathbf{1}^T K \;+\; \frac{1}{n^2}\mathbf{1}\mathbf{1}^T K \mathbf{1}\mathbf{1}^T
+    \end{aligned}$$
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Centered Kernel Matrix</div>
+    <div class="math-box-body">
+      <div class="math-display">
+        $$K_c = H K H$$
+      </div>
+      <p>
+        The matrix product $H K H$ centers the data in the unobservable, infinite-dimensional Hilbert space purely through $n \times n$ matrix multiplications on the observable Gram matrix $K$, without ever calculating the coordinates of $\phi(x)$.
+      </p>
+    </div>
+  </div>
+
+  <h3>Numerical Walkthrough: Centering the 3-House Kernel Matrix</h3>
+  <p>
+    Let us apply this centering operation directly to the $3 \times 3$ Kernel matrix $K$ we constructed for our housing dataset:
+  </p>
+
+  <div class="math-display">
+    $$K = \begin{bmatrix}
+      16 & 81 & 256 \\[6pt]
+      81 & 625 & 2401 \\[6pt]
+      256 & 2401 & 10{,}000
+    \end{bmatrix}$$
+  </div>
+
+  <p>
+    We compute the four components required for double-centering:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Row Averages ($\mu_i^{\text{row}}$):</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          \mu_1^{\text{row}} &= \frac{16 + 81 + 256}{3} = \frac{353}{3} \approx 117.67 \\[6pt]
+          \mu_2^{\text{row}} &= \frac{81 + 625 + 2401}{3} = \frac{3107}{3} \approx 1035.67 \\[6pt]
+          \mu_3^{\text{row}} &= \frac{256 + 2401 + 10{,}000}{3} = \frac{12{,}657}{3} = 4219.00
+        \end{aligned}$$
+      </div>
+    </li>
+    <li>
+      <strong>Column Averages ($\mu_j^{\text{col}}$):</strong>
+      Because the kernel matrix is symmetric ($K = K^T$), column averages equal the corresponding row averages:
+      <div class="math-display">
+        $$\begin{aligned}
+          \mu_1^{\text{col}} &= \mu_1^{\text{row}} \approx 117.67 \\[6pt]
+          \mu_2^{\text{col}} &= \mu_2^{\text{row}} \approx 1035.67 \\[6pt]
+          \mu_3^{\text{col}} &= \mu_3^{\text{row}} = 4219.00
+        \end{aligned}$$
+      </div>
+    </li>
+    <li>
+      <strong>Grand Matrix Average ($\mu^{\text{grand}}$):</strong>
+      Summing all 9 entries and dividing by $N^2 = 9$:
+      <div class="math-display">
+        $$\mu^{\text{grand}} = \frac{353 + 3107 + 12{,}657}{9} = \frac{16{,}117}{9} \approx 1790.78$$
+      </div>
+    </li>
+    <li>
+      <strong>Evaluate Centered Entries $(K_c)_{ij} = K_{ij} - \mu_i^{\text{row}} - \mu_j^{\text{col}} + \mu^{\text{grand}}$:</strong>
+      <div class="math-display">
+        $$\begin{aligned}
+          (K_c)_{11} &= 16 - 117.67 - 117.67 + 1790.78 \approx 1571.44 \\[6pt]
+          (K_c)_{12} &= 81 - 117.67 - 1035.67 + 1790.78 \approx 718.44 \\[6pt]
+          (K_c)_{13} &= 256 - 117.67 - 4219.00 + 1790.78 \approx -2289.89 \\[8pt]
+          (K_c)_{22} &= 625 - 1035.67 - 1035.67 + 1790.78 \approx 344.44 \\[6pt]
+          (K_c)_{23} &= 2401 - 1035.67 - 4219.00 + 1790.78 \approx -1062.89 \\[8pt]
+          (K_c)_{33} &= 10{,}000 - 4219.00 - 4219.00 + 1790.78 \approx 3352.78
+        \end{aligned}$$
+      </div>
+    </li>
+  </ol>
+
+  <p>
+    Putting these evaluations together gives the centered kernel matrix:
+  </p>
+
+  <div class="math-display">
+    $$K_c \approx \begin{bmatrix}
+      1571.44 & 718.44 & -2289.89 \\[6pt]
+      718.44 & 344.44 & -1062.89 \\[6pt]
+      -2289.89 & -1062.89 & 3352.78
+    \end{bmatrix}$$
+  </div>
+
+  <p>
+    Notice the verification check: sum across row 1:
+  </p>
+
+  <div class="math-display">
+    $$1571.44 + 718.44 - 2289.89 = 0.00$$
+  </div>
+
+  <p>
+    Every single row and column of $K_c$ sums identically to zero! Without ever calculating or observing the 10-dimensional combination feature coordinates $\phi(x)$, our $3 \times 3$ sample data points have been centered at the origin of Hilbert space.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8 — The Complete Kernel PCA Algorithm                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="complete-algorithm">
+  <h2>The Complete Kernel PCA Algorithm</h2>
+
+  <p>
+    Connecting all the pieces, we arrive at the complete, rigorous algorithm for non-linear dimensionality reduction:
+  </p>
+
+  <ol>
+    <li>
+      <strong>Step 1: Compute the Uncentered Gram Matrix:</strong> Choose a valid Mercer kernel (such as polynomial or Gaussian RBF) and compute the $n \times n$ matrix across all training pairs:
+      <div class="math-display">
+        $$K_{ij} = k(x_i, x_j)$$
+      </div>
+    </li>
+    <li>
+      <strong>Step 1.5: Center the Kernel Matrix ($K \leftarrow K_c$):</strong> Apply double-centering to ensure the unobserved points are centered in Hilbert space:
+      <div class="math-display">
+        $$K_c = H K H = \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right) K \left(I - \frac{1}{n}\mathbf{1}\mathbf{1}^T\right)$$
+      </div>
+    </li>
+    <li>
+      <strong>Step 2: Solve the Kernel Eigenvalue Problem:</strong> Perform eigendecomposition on $K_c$ to obtain eigenvalues $\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_k > 0$ and unit eigenvectors $\vec{\beta}_1, \dots, \vec{\beta}_k$:
+      <div class="math-display">
+        $$K_c \vec{\beta}_k = \lambda_k \vec{\beta}_k \qquad \text{with} \quad \|\vec{\beta}_k\| = 1$$
+      </div>
+      To guarantee that the unobserved primal principal components $w_k$ have unit norm ($\|w_k\|^2 = 1$), normalize each dual eigenvector:
+      <div class="math-display">
+        $$\vec{\alpha}_k = \frac{\vec{\beta}_k}{\sqrt{\lambda_k}}$$
+      </div>
+    </li>
+    <li>
+      <strong>Step 3: Extract Features Directly (Why Forming $w_k$ Defeats the Purpose):</strong>
+      <p>
+        In linear PCA, one typically stores the eigenvectors $w_k$ as explicit weight vectors. In Kernel PCA, attempting to reconstruct:
+      </p>
+      <div class="math-display">
+        $$w_k = \sum_{j=1}^n \alpha_{kj} \phi(x_j)$$
+      </div>
+      <p>
+        <strong>completely defeats the purpose</strong>! The vector $w_k$ lives in the $D$-dimensional or infinite-dimensional Hilbert space. Reconstructing it explicitly would re-introduce the exact combinatorial explosion we set out to bypass.
+      </p>
+      <p>
+        Instead, we <em>never form $w_k$</em>. For any training point $x_i$, its $k$-th non-linear coordinate is computed purely using the dual coefficients and kernel entries:
+      </p>
+      <div class="math-display">
+        $$y_k(x_i) = \phi(x_i)^T w_k = \phi(x_i)^T \left(\sum_{j=1}^n \alpha_{kj} \phi(x_j)\right) = \sum_{j=1}^n \alpha_{kj} K_{ij}$$
+      </div>
+      <p>
+        These projection coordinates $y_k(x_i)$ are passed directly into downstream supervised or clustering models.
+      </p>
+    </li>
+    <li>
+      <strong>Step 4: Project Unseen Query Points:</strong> To extract the $k$-th non-linear coordinate $y_k(x^*)$ of a new test point $x^*$:
+      <div class="math-display">
+        $$y_k(x^*) = \tilde{\phi}(x^*)^T w_k = \sum_{i=1}^n \alpha_{ki} \tilde{k}_i(x^*)$$
+      </div>
+      where $\tilde{k}_i(x^*)$ is the centered kernel evaluation between query point $x^*$ and training sample $x_i$:
+      <div class="math-display">
+        $$\begin{aligned}
+          \tilde{k}_i(x^*) &= k(x^*, x_i) - \frac{1}{n}\sum_{j=1}^n k(x^*, x_j) \\[6pt]
+          &\quad\; - \frac{1}{n}\sum_{r=1}^n K_{ri} + \frac{1}{n^2}\sum_{r=1}^n \sum_{s=1}^n K_{rs}
+        \end{aligned}$$
+      </div>
+    </li>
+  </ol>
+
+  <h3>The Neural Interpretation of Kernel PCA</h3>
+  <p>
+    In their seminal 1998 paper, Bernhard Schölkopf, Alexander Smola, and Klaus-Robert Müller illustrated that Kernel PCA can be interpreted as a feed-forward neural architecture with a single hidden layer of non-linear similarity comparators:
+  </p>
+
+  <figure class="diagram-figure">
+    <div class="svg-container">
+      <svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 740px; height: auto;">
+        <defs>
+          <marker id="fig1-arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="var(--dark)" />
+          </marker>
+        </defs>
+
+        <!-- ================= TOP: SUMMATION NODE ================= -->
+        <circle cx="340" cy="55" r="24" fill="var(--surface)" stroke="var(--dark)" stroke-width="2" />
+        <text x="340" y="63" font-family="'Lora', serif" font-size="22" font-weight="700" fill="var(--text)" text-anchor="middle">∑</text>
+
+        <!-- Top Output Arrow -->
+        <line x1="340" y1="31" x2="340" y2="12" stroke="var(--dark)" stroke-width="2" marker-end="url(#fig1-arrow)" />
+        <text x="385" y="22" font-family="'Lora', serif" font-size="14.5" font-weight="600" fill="var(--text)" text-anchor="start">yₖ(x) = ∑ᵢ αₖᵢ k(xᵢ, x)</text>
+        <text x="560" y="58" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Feature coordinate (wₖᵀϕ(x))</text>
+
+        <!-- ================= UPPER WEIGHTS (alpha_ki) ================= -->
+        <!-- Lines from kernel layer to summation node -->
+        <line x1="160" y1="140" x2="320" y2="72" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+        <line x1="280" y1="140" x2="332" y2="78" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+        <line x1="400" y1="140" x2="348" y2="78" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+        <line x1="520" y1="140" x2="360" y2="72" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+
+        <!-- Weight labels -->
+        <text x="215" y="98" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₁</text>
+        <text x="290" y="105" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₂</text>
+        <text x="382" y="105" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₃</text>
+        <text x="455" y="98" font-family="'Lora', serif" font-size="14.5" font-style="italic" font-weight="600" fill="var(--text)">αₖ₄</text>
+
+        <text x="560" y="100" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Eigenvector weights (αₖ)</text>
+
+        <!-- ================= MIDDLE LAYER: KERNEL COMPARATORS ================= -->
+        <!-- Box k1 -->
+        <rect x="135" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="160" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <!-- Box k2 -->
+        <rect x="255" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="280" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <!-- Box k3 -->
+        <rect x="375" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="400" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <!-- Box k4 -->
+        <rect x="495" y="140" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="1.8" />
+        <text x="520" y="164" font-family="'Lora', serif" font-size="16" font-style="italic" font-weight="600" fill="var(--text)" text-anchor="middle">k</text>
+
+        <text x="560" y="164" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Nonlinear similarity: k(xᵢ, x)</text>
+
+        <!-- ================= TRAINING PROTOTYPES ================= -->
+        <!-- Sample Box 1 -->
+        <rect x="135" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="160" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₁</text>
+
+        <!-- Sample Box 2 -->
+        <rect x="255" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="280" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₂</text>
+
+        <!-- Sample Box 3 -->
+        <rect x="375" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="400" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₃</text>
+
+        <!-- Sample Box 4 -->
+        <rect x="495" y="215" width="50" height="38" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5" />
+        <text x="520" y="239" font-family="'Lora', serif" font-size="15" font-style="italic" fill="var(--text)" text-anchor="middle">x₄</text>
+
+        <text x="560" y="239" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Training samples x₁, x₂, …</text>
+
+        <!-- Arrows from sample boxes to kernel comparators -->
+        <line x1="160" y1="215" x2="160" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+        <line x1="280" y1="215" x2="280" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+        <line x1="400" y1="215" x2="400" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+        <line x1="520" y1="215" x2="520" y2="182" stroke="var(--dark)" stroke-width="1.6" marker-end="url(#fig1-arrow)" />
+
+        <!-- ================= BOTTOM: INPUT VECTOR x ================= -->
+        <!-- Box x -->
+        <rect x="315" y="315" width="50" height="42" rx="4" fill="var(--surface)" stroke="var(--dark)" stroke-width="2" />
+        <text x="340" y="342" font-family="'Lora', serif" font-size="18" font-style="italic" font-weight="700" fill="var(--text)" text-anchor="middle">x</text>
+
+        <text x="380" y="342" font-family="'Lora', serif" font-size="13.5" font-weight="600" fill="var(--muted)">Input query vector x</text>
+
+        <!-- Fan-out lines from input x to all kernel comparators -->
+        <line x1="325" y1="315" x2="168" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig1-arrow)" />
+        <line x1="335" y1="315" x2="284" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig1-arrow)" />
+        <line x1="345" y1="315" x2="396" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig1-arrow)" />
+        <line x1="355" y1="315" x2="512" y2="182" stroke="var(--dark)" stroke-width="1.4" marker-end="url(#fig1-arrow)" />
+      </svg>
+    </div>
+    <figcaption class="figure-caption">
+      <strong>Figure 1:</strong> The neural architecture interpretation of Kernel PCA (Schölkopf, Smola, &amp; Müller, 1998). A new query observation $x$ is simultaneously compared against stored training samples $x_1, \dots, x_n$ via the non-linear kernel function $k(x_i, x)$. The resulting non-linear activations are weighted by the dual eigenvector coefficients $\alpha_{ki}$ and accumulated at a linear summation node $\sum$, outputting the projection coordinate $y_k(x) = \langle w_k, \phi(x) \rangle$ without ever calculating the coordinates of $\phi(x)$.
+    </figcaption>
+  </figure>
+
+  <h3>Real-World Benchmark: Face Recognition (Eigenfaces vs. Kernel PCA)</h3>
+  <p>
+    A classic real-world benchmark demonstrating the superiority of non-linear feature extraction is <strong>face recognition</strong>. In the 1990s, Turk and Pentland introduced "Eigenfaces"—applying linear PCA to raw pixel intensities. While revolutionary, linear PCA assumes facial variations (such as lighting shifts, expressions, and 3D head poses) lie on flat hyperplanes.
+  </p>
+
+  <p>
+    In their landmark study, Yang, Ahuja, and Kriegman (2000) evaluated Kernel PCA against standard Eigenfaces on a benchmark dataset of 400 facial images across 40 subjects under varied expressions and poses ($23 \times 28 = 644$ dimensions per image):
+  </p>
+
+  <div class="math-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Reduced Space Dimensions</th>
+          <th>Error Rate (%)</th>
+          <th>Relative Performance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Eigenface (Linear PCA)</strong></td>
+          <td>30</td>
+          <td>2.75%</td>
+          <td>Baseline (linear hyperplane assumption)</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 2$)</strong></td>
+          <td>50</td>
+          <td>2.50%</td>
+          <td>9.1% error reduction over Eigenface</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 3$)</strong></td>
+          <td>50</td>
+          <td><strong>2.00%</strong></td>
+          <td><strong>27.3% error reduction (Optimal feature depth)</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 4$)</strong></td>
+          <td>60</td>
+          <td>2.25%</td>
+          <td>Captures higher interactions; slight overfitting</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA ($p = 10$)</strong></td>
+          <td>80</td>
+          <td>2.25%</td>
+          <td>Diminishing returns on higher powers</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    By moving from linear Eigenfaces to degree-3 polynomial Kernel PCA ($p = 3$), the classification error rate dropped from <strong>2.75% down to 2.00%</strong>—a 27% error reduction! Higher-order combinations successfully linearize non-linear facial expressions and cast shadows, providing significantly cleaner features for downstream classifiers.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  9 — Connecting the Dots                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots: The Unified Landscape of PCA</h2>
+
+  <p>
+    Let us step back and appreciate the entire journey across the representations of Principal Component Analysis:
+  </p>
+
+  <div class="math-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Central Matrix</th>
+          <th>Matrix Size</th>
+          <th>When to Use</th>
+          <th>Core Geometric Breakthrough</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Primal Linear PCA</strong></td>
+          <td>Sample Covariance $C = \frac{1}{n} X X^T$</td>
+          <td>$d \times d$</td>
+          <td>$n \gg d$ (many samples, few features)</td>
+          <td>Maximizing preserved projection variance is mathematically identical to minimizing reconstruction error.</td>
+        </tr>
+        <tr>
+          <td><strong>Dual Linear PCA</strong></td>
+          <td>Linear Gram Matrix $K = X^T X$</td>
+          <td>$n \times n$</td>
+          <td>$d \gg n$ (high dimensions, images, genomics)</td>
+          <td>Principal components must live in the span of the data ($w = X\alpha$), collapsing $O(d^3) \to O(n^3)$.</td>
+        </tr>
+        <tr>
+          <td><strong>Kernel PCA</strong></td>
+          <td>Centered Gram Matrix $K_c = H K H$</td>
+          <td>$n \times n$</td>
+          <td>Non-linear manifolds (circles, Swiss rolls, spirals)</td>
+          <td>Higher-order combinations turn non-linear relationships into flat linear manifolds; the Kernel Trick evaluates infinite combinations in $O(d)$.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Every breakthrough in this journey emerged from a single fundamental desire: <strong>to eliminate redundant information</strong>:
+  </p>
+
+  <ul>
+    <li><strong>In standard Primal PCA</strong>, we eliminate linear redundancies among our raw features by diagonalizing the $d \times d$ covariance matrix.</li>
+    <li><strong>In high dimensions or infinite combinations</strong>, computing a $D \times D$ covariance matrix is physically impossible ($D = \infty$).</li>
+    <li><strong>In Kernel PCA</strong>, the dual representation rescues us: by computing scalar inner products through $k(x, x')$, we capture non-linear relationships across infinite combination dimensions using nothing more than an <strong>$n \times n$ sample matrix</strong>.</li>
+  </ul>
+
+  <p>
+    By uniting the <a href="../../../02.linear-algebra/03.eigenvalues-and-eigenvectors/02.diagonalisation-spectral-theorem/index.html">Spectral Theorem</a>, orthogonal projection matrices, and positive definiteness, linear algebra allows us to unravel complex non-linear geometry in infinite dimensions using pure $n \times n$ matrix arithmetic.
+  </p>
+</section>
+
+                    
+
+                    </section>
+                </article>
+                <div id="article-comments"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        if (typeof injectGiscusComments === 'function') {
+          injectGiscusComments('article-comments');
+        }
+      });
+    </script>
+</body>
+</html>

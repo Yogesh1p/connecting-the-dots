@@ -255,10 +255,24 @@
 
         .toc-section-group { padding: 0.5rem 0 0.9rem; }
         .toc-part {
-            margin: 1.2rem 1.6rem 0.6rem; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.7rem;
+            margin: 1.3rem 2rem 0.6rem 2.8rem; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.7rem;
             font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 1rem;
         }
-        .toc-part::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+        .toc-part-title { flex-shrink: 0; }
+        .toc-part-line { flex: 1; height: 1px; background: var(--border); }
+        .toc-part-time {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: none;
+            letter-spacing: normal;
+            opacity: 0.65;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: opacity 0.15s, color 0.15s;
+        }
+        .toc-part:hover .toc-part-time { opacity: 1; color: var(--accent); }
         .toc-row a {
             display: flex; align-items: baseline; gap: 0.7rem; padding: 0.85rem 2rem 0.85rem 2.8rem;
             width: 100%; box-sizing: border-box; text-decoration: none; color: inherit;
@@ -397,6 +411,7 @@
             .toc-row a { padding: 0.75rem 1rem; } 
             .row-title { font-size: 0.95rem; }
             .row-reading-time { font-size: 0.7rem; padding-left: 0.5rem; }
+            .toc-part { margin: 1rem 1rem 0.5rem 1rem; gap: 0.6rem; }
             .deep-dive-header { padding-left: 1rem; font-size: 0.6rem; }
         }
     </style>
@@ -739,6 +754,16 @@ document.addEventListener("DOMContentLoaded", () => {
         renderLibrary(library, !!currentSearchQuery);
     }
 
+    function formatReadingTime(minutes) {
+        if (!minutes || minutes <= 0) return "";
+        const hrs = Math.floor(minutes / 60);
+        const rem = minutes % 60;
+        if (hrs > 0) {
+            return rem > 0 ? `${hrs}h ${rem}m` : `${hrs}h`;
+        }
+        return `${rem}m`;
+    }
+
     function renderChapter(chapter, chapterMeta, isSearching) {
         const currentState = bookMemory[activeBook] || { openChapters: [] };
         const parts = chapterMeta.parts;
@@ -751,8 +776,19 @@ document.addEventListener("DOMContentLoaded", () => {
         Object.keys(parts)
             .sort((a, b) => (partPriority[a] ?? 999) - (partPriority[b] ?? 999))
             .forEach(part => {
+                const partPages = parts[part] || [];
+                const partMinutes = partPages.reduce((sum, p) => sum + (p.readingTime || 0), 0);
+                const partTimeFormatted = formatReadingTime(partMinutes);
+                const timeBadge = partMinutes > 0 ? `<span class="toc-part-time">${partTimeFormatted}</span>` : '';
+
                 if (part !== "Main" && part !== "undefined" && part.trim()) {
-                    coreRowsHtml += `<div class="toc-part">${part}</div>`;
+                    coreRowsHtml += `
+                        <div class="toc-part">
+                            <span class="toc-part-title">${part}</span>
+                            <span class="toc-part-line"></span>
+                            ${timeBadge}
+                        </div>
+                    `;
                 }
                 parts[part]
                     .sort((a, b) => {
@@ -1324,6 +1360,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+
+
+
+
+
+
 <div id="static-index" aria-hidden="true" style="display:none">
   <section data-book="AI">
     <h2>AI</h2>
@@ -1449,12 +1491,13 @@ document.addEventListener("DOMContentLoaded", () => {
         <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/02.principal-component-analysis/">Principal Component Analysis (PCA)</a></li>
         <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/03.pca-spectral-theorem-and-svd/">PCA ●─● Spectral Theorem & SVD</a></li>
         <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/04.high-dimensional-pca/">PCA for High-Dimensional Data</a></li>
-        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/05.kernel-pca/">Kernel PCA</a></li>
-        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/06.practice-problems-representation-learning/">Practice Problems: Representation Learning</a></li>
-        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/07.kmeans-clustering/">K-Means Clustering</a></li>
-        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/08.spectral-clustering/">Kernel K-Means & Spectral Clustering</a></li>
-        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/09.maximum-likelihood-estimation/">Maximum Likelihood Estimation</a></li>
-        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/10.bayesian-estimation/">Bayesian Estimation</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/05.the-kernel-trick/">The Kernel Trick</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/06.kernel-pca/">Kernel Principal Component Analysis</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/07.practice-problems-representation-learning/">Practice Problems: Representation Learning</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/08.kmeans-clustering/">K-Means Clustering</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/09.spectral-clustering/">Kernel K-Means & Spectral Clustering</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/10.maximum-likelihood-estimation/">Maximum Likelihood Estimation</a></li>
+        <li><a href="../Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/11.bayesian-estimation/">Bayesian Estimation</a></li>
       </ul>
     </section>
   </section>
