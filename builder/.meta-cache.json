@@ -41,14 +41,14 @@
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/05.singular-value-decomposition/04.Image_compression/index.html": "2cc432e6161ce95d19bd4d1a708e483c",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/06.solving-linear-systems/01.solving-linear-equations/index.html": "c9e641cc7f8681e02ccfca9e254d5560",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/06.solving-linear-systems/02.the-complete-solution/index.html": "d5fff28dd40561351ee0e758e84ed5bd",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/06.solving-linear-systems/03.exercises/index.html": "f1cf6e051112ed8269603a21c36c8d58",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/06.solving-linear-systems/03.exercises/index.html": "004e1184fa1c2ccb4b615b706185e44a",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/01.the-four-fundamental-subspaces/index.html": "6c23460e5ed0df644c59938890a52a16",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/02.null-space-from-block-rref/index.html": "8da10bdec751c2f4ee4e34c1b12b2128",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/03.independence-basis-and-dimension/index.html": "5b12992b0e19b24780d690bcc5111864",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/02.linear-algebra/07.vector-spaces-and-subspaces/04.vector-spaces-and-subspaces/index.html": "e9bd592f0d0c31d0088124b71df7c217",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/01.Hypothesis_test/01. Hypothesis_test/index.html": "6df355801aa25243c181e6f0fb032554",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/01.common-probability-distributions/index.html": "b7b0b328524fab1e76ee13a1bfd3556f",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/02.the-central-limit-theorem-and-maximum-entropy/index.html": "eae9df8cb4b128a4827c7987b1193291",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/01.common-probability-distributions/index.html": "1f62dd3fc0f9f798db89c25ff0c32d13",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/02.distributions/02.the-central-limit-theorem-and-maximum-entropy/index.html": "128142130f10c62f9d3bfdb01ef9f42f",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/03.foundations-of-probability/01.probability-and-counting/index.html": "a5b9fe506a7a586e50390c809b6d4673",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/01.introduction-to-unsupervised-and-representation-learning/index.html": "6cc4f70b96c2e2090ae5ce8adc15efbc",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/02.principal-component-analysis/index.html": "417baca6c7a12f4fb72135b8749ab34f",
@@ -68,5 +68,9 @@
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/10.maximum-likelihood-estimation/index.html": "a406e0b8dd9a31ac909ad22f2b1ed01c",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/11.bayesian-estimation/index.html": "76f180508584dba90c272a394d97dff6",
   "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/12.expectation-maximization/index.html": "d4dab7873c0d771235878356f4591b76",
-  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/05.the-kernel-trick/index.html": "f68d0992862eb56122c96539fcac5d6d"
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/04.foundations-of-machine-learning/01.unsupervised-learning/05.the-kernel-trick/index.html": "f68d0992862eb56122c96539fcac5d6d",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/01.foundations-of-probability/01.probability-and-counting/index.html": "27811e28fc1a9e66720a2a6f370fcf48",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/03.hypothesis-testing/01. Hypothesis_test/index.html": "12541e86e9c073f32c12b43a27e622dd",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/04.information-theory/01.Entropy, Cross-Entropy, Divergence/index.html": "163768c4cdc688014d5b1c25b2720a32",
+  "/Users/yogesh/Documents/connecting-the-dots/Library/mathematics/03.probability-statistics/05.practice/01.mfds-problem-playbook/index.html": "cd6e465a25c3dc102f64bd56d0ef8ac4"
 }

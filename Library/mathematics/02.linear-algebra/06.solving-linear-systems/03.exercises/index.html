@@ -13,7 +13,7 @@
 <meta name="status" content="draft">
 <meta name="date" content="2026-04-12">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="46">
+<meta name="reading_time" content="48">
 
 <meta property="og:title" content="Exercises: Solving Linear Systems & Subspaces">
 <meta property="og:description" content="A comprehensive masterclass through 22 fundamental linear algebra problems spanning elimination mechanics, matrix factorizations, LU decomposition, inverses, solvability conditions, and complete solutions.">
@@ -1167,41 +1167,72 @@
     </div>
 
     <div class="solution-step">
-      <h4>Method 2: Transposition Duality via Standard LU</h4>
+      <h4>Method 2: Row &amp; Column Reflection via the Exchange Matrix</h4>
       <p>
-        We can bypass reverse elimination entirely by exploiting matrix transposition:
+        A tempting first thought might be to transpose: if $A^T = L_1 U_1$, then $A = (L_1 U_1)^T = U_1^T L_1^T$. However, because transposing an upper triangular matrix yields a lower triangular matrix ($U_1^T$ is lower, $L_1^T$ is upper), $(L_1 U_1)^T$ simply yields another standard $LU$ factorization ($\text{Lower} \times \text{Upper}$), not $UL$.
+      </p>
+      <p>
+        To invert the structural direction without rewriting the elimination algorithm, we can reflect both rows and columns using the <strong>exchange matrix</strong> (the reversal permutation matrix) $J$:
       </p>
       <div class="math-display">
         $$\begin{aligned}
-          A^T &= L_1 U_1 \quad \text{(standard $LU$ factorization of $A^T$)}
+          J &= \begin{bmatrix}
+            0 & \dots & 0 & 1 \\
+            0 & \dots & 1 & 0 \\
+            \vdots & & \vdots & \vdots \\
+            1 & 0 & \dots & 0
+          \end{bmatrix}
         \end{aligned}$$
       </div>
       <p>
-        Transposing both sides of this identity:
+        Reversing indices twice returns to the identity, meaning $J$ is symmetric and its own inverse:
       </p>
       <div class="math-display">
         $$\begin{aligned}
-          A &= (A^T)^T \\[6pt]
-          &= (L_1 U_1)^T \\[6pt]
-          &= U_1^T L_1^T
+          J^T &= J \\[6pt]
+          J^2 &= I \implies J^{-1} = J
         \end{aligned}$$
       </div>
       <p>
-        Because the transpose of an upper triangular matrix is lower triangular and vice versa:
+        Conjugating any matrix $M$ by $J$ (that is, $J M J$) rotates its elements by $180^\circ$, which flips triangularity:
       </p>
-      <div class="math-display">
-        $$\begin{aligned}
-          U &\equiv U_1^T \quad (\text{upper triangular}) \\[6pt]
-          L &\equiv L_1^T \quad (\text{lower triangular})
-        \end{aligned}$$
-      </div>
+      <ul>
+        <li>If $L$ is lower triangular, then $J L J$ is <strong>upper triangular</strong>.</li>
+        <li>If $U$ is upper triangular, then $J U J$ is <strong>lower triangular</strong>.</li>
+      </ul>
       <p>
-        Thus $A = UL$ is produced directly from the standard $LU$ decomposition of its transpose.
+        We can therefore compute $A = UL$ directly using standard $LU$ factorization routines:
       </p>
+      <ol>
+        <li>Form the reflected matrix $B = J A J$ by reversing both the rows and the columns of $A$.</li>
+        <li>Compute the standard $LU$ factorization of $B$:
+          <div class="math-display">
+            $$\begin{aligned}
+              J A J &= L_B U_B
+            \end{aligned}$$
+          </div>
+        </li>
+        <li>Multiply both sides by $J$ from left and right (using $J = J^{-1}$):
+          <div class="math-display">
+            $$\begin{aligned}
+              A &= J (J A J) J \\[6pt]
+              &= J (L_B U_B) J \\[6pt]
+              &= (J L_B J)(J U_B J)
+            \end{aligned}$$
+          </div>
+        </li>
+        <li>Assign $U \equiv J L_B J$ (which is upper triangular) and $L \equiv J U_B J$ (which is lower triangular):
+          <div class="math-display">
+            $$\begin{aligned}
+              A &= U L
+            \end{aligned}$$
+          </div>
+        </li>
+      </ol>
     </div>
 
     <div class="takeaway">
-      <strong>Core Takeaway:</strong> Transposition acts as a mirror that inverts matrix triangularity: $(LU)^T = U^T L^T = \text{Upper} \times \text{Lower}$.
+      <strong>Core Takeaway:</strong> Transposition reverses product order but also flips triangularity, preserving the $LU$ structure: $(LU)^T = U^T L^T = \text{Lower} \times \text{Upper}$. To truly invert the factorization into $A = UL$, one must reverse the directional flow of elimination—either by bottom-up elimination or by row-and-column reflection using the exchange matrix $J$: $A = (J L_B J)(J U_B J) = \text{Upper} \times \text{Lower}$.
     </div>
   </div>
 
