@@ -16,7 +16,7 @@
 <meta name="status" content="draft">
 <meta name="date" content="2026-10-11">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="28">
+<meta name="reading_time" content="41">
 
 <title>The MFDS Problem Playbook</title>
 
@@ -204,6 +204,7 @@
   <div class="table-scroll">
   <table class="data-table">
     <tr><th>If the question says…</th><th>It is really asking for…</th><th>Section</th></tr>
+    <tr><td>"Discrete or continuous?", definitions, "why statistics?"</td><td>Vocabulary and the big picture</td><td>0</td></tr>
     <tr><td>"Is this a valid PMF/PDF?", "find the mean/variance of $f(x)$"</td><td>Moments of a distribution</td><td>1</td></tr>
     <tr><td>"Here is a data set, describe it"</td><td>Descriptive statistics</td><td>2</td></tr>
     <tr><td>A two-way table of probabilities, "given that"</td><td>Joint / marginal / conditional</td><td>3</td></tr>
@@ -217,6 +218,104 @@
     <tr><td>Three or more groups, "are the means equal?"</td><td>ANOVA</td><td>11</td></tr>
     <tr><td>Counts in a table of two categorical variables</td><td>Chi-square test of independence</td><td>12</td></tr>
   </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  0. Foundations                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="foundations">
+  <h2>0. The Big Picture and the Vocabulary</h2>
+  <p>
+    Before any recipe, the first lecture asked a bigger question: why does a data scientist need probability and statistics at all, when machine learning seems to do the heavy lifting? The answer given in class had two parts.
+  </p>
+  <ol>
+    <li><strong>Many real problems need nothing more.</strong> Describing data with numbers and graphs, drawing inferences from samples, and building univariate or multivariate models are all statistics. Even for prediction, statistical methods and ML are not two separate camps but points on a continuum (see Leo Breiman, <em>Statistical Modeling: The Two Cultures</em>, 2001).</li>
+    <li><strong>It is a pillar of machine learning.</strong> Three examples from the slides:
+      <ul>
+        <li>A prediction task with inputs $X$ and output $Y$ is really the problem of finding $E(Y \mid X = x)$: conditioning plus expectation.</li>
+        <li>Some data is a mixture of sources (heights of men and women in one class; a car bought as a primary or a second vehicle). Separating them assumes each source follows its own distribution with its own mean and variance: a Gaussian Mixture Model.</li>
+        <li>If you compare many models by cross-validation and keep the best score, that score is biased upwards, because you picked the luckiest one. That is why a separate test set is needed.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3>The landscape</h3>
+  <p>
+    On one side is the <strong>process</strong> (environment, phenomenon, population, variables). On the other side is the <strong>data</strong> it produces (outcomes, variates, samples). The three branches of the course are three ways of moving between them:
+  </p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Branch</th><th>Direction</th><th>Question it answers</th></tr>
+    <tr><td>Descriptive statistics</td><td>data → summary</td><td>What does this data look like?</td></tr>
+    <tr><td>Probabilistic modelling</td><td>process → data</td><td>If the process works like this, what data should we expect?</td></tr>
+    <tr><td>Inferential statistics</td><td>data → process</td><td>Given this sample, what can we say about the population?</td></tr>
+  </table>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Basic Definitions</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Random experiment (random process):</strong> a process that can give different outcomes even when repeated in exactly the same way. Examples: tossing a coin, dropping a ball from a window and timing it.</li>
+        <li><strong>Sample space:</strong> the set of all possible outcomes of a random experiment.</li>
+        <li><strong>Random variable</strong> (capital $X$): the uncertain numerical outcome of a random process. Small $x$ is one particular value it can take, so $P(X = x)$ reads "the probability that the random variable equals this value".</li>
+        <li><strong>CDF:</strong> every random variable has a cumulative distribution function $F(x) = P(X \le x)$.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Discrete versus continuous</h3>
+  <p>
+    Compare counting heads with timing a falling ball. The difference is not "integers versus decimals", and not "finite versus infinite". It is <strong>countable versus uncountable</strong>: you can list the possible numbers of heads one by one, but you cannot list every possible fall time.
+  </p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th></th><th>Discrete</th><th>Continuous</th></tr>
+    <tr><td>Described by</td><td>PMF, $f(x) = P(X = x)$</td><td>PDF, $f(x)$</td></tr>
+    <tr><td>What $f(x)$ means</td><td>An absolute probability</td><td>A relative likelihood (density), not a probability</td></tr>
+    <tr><td>Probability of a range</td><td>$\sum$ of $f(x)$ over the values</td><td>$\int_a^b f(x)\,dx$, the area under the curve</td></tr>
+    <tr><td>Probability of one exact value</td><td>Can be positive</td><td>Always $0$</td></tr>
+  </table>
+  </div>
+  <p>
+    In practice, a discrete variable with very many states is often treated as continuous (number of Covid cases, attrition in a large company), and a continuous variable is sometimes cut into categories (letter credit ratings).
+  </p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Drill 0.1: Discrete or Continuous?</h3>
+      <span class="problem-badge">Session 1 · Slide 11</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Classify each example from the slide:</p>
+      <ol>
+        <li>Whether a part is defective</li>
+        <li>Time to failure of a part</li>
+        <li>Number of units sold</li>
+        <li>ROI as a percentage</li>
+        <li>Grade in this course (A, B, C…)</li>
+        <li>Marks in this course</li>
+        <li>Rainfall in mm</li>
+        <li>Covid test result</li>
+        <li>Attrition in a team of 10 vs in a company of 50,000</li>
+      </ol>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <ol>
+        <li>Discrete (two states)</li>
+        <li>Continuous</li>
+        <li>Discrete</li>
+        <li>Continuous</li>
+        <li>Discrete</li>
+        <li>Continuous (treated so, even if marks are whole numbers)</li>
+        <li>Continuous</li>
+        <li>Discrete (+ve or −ve)</li>
+        <li>Small team: discrete. Large company: so many states that it is treated as continuous.</li>
+      </ol>
+    </details>
   </div>
 </section>
 
@@ -470,6 +569,107 @@
     Software uses slightly different interpolation rules, so its quartiles can differ a little from the hand method. For this data, Excel's <code>QUARTILE.INC</code> gives $Q_3 = 6.25$ instead of 6.5. In an exam, use the hand method above; it matches the slide.
   </p>
 
+  <h3>Mean, Median or Mode?</h3>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Situation</th><th>Use</th><th>Why</th></tr>
+    <tr><td>Outliers are errors or "bad" (typos, faulty sensor)</td><td>Median</td><td>The mean gets dragged and stops telling a realistic story</td></tr>
+    <tr><td>Outliers are "good": the story is in them (a few huge sales)</td><td>Mean</td><td>The median would hide what matters</td></tr>
+    <tr><td>Nominal (category) data</td><td>Mode</td><td>Categories have no order, so no mean or median exists</td></tr>
+    <tr><td>Multi-modal data (two or more peaks)</td><td>Mode(s)</td><td>A single mean can land in the valley where almost no data lies</td></tr>
+  </table>
+  </div>
+
+  <h3>Mean Absolute Deviation</h3>
+  <p>
+    Why square the deviations at all? The obvious alternative is to take their size and ignore the sign:
+  </p>
+  $$\text{MAD} = \frac{1}{n}\sum_{i=1}^{n} |x_i - \bar{x}|$$
+  <p>
+    MAD treats every unit of deviation equally, so it is less sensitive to outliers. Squaring gives large deviations extra weight and is much easier to work with algebraically (it is differentiable, and variances of independent variables add), which is why the variance became the standard. Variants use the median instead of the mean.
+  </p>
+
+  <h3>Empirical versus Theoretical</h3>
+  <p>
+    The same quantities appear in two forms: computed from <em>data</em> (empirical), or computed from a PMF/PDF (theoretical). Recognise which one a question wants.
+  </p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th></th><th>From data</th><th>From a PMF (discrete)</th><th>From a PDF (continuous)</th></tr>
+    <tr><td>Mean</td><td>$\bar{x} = \frac{1}{n}\sum x_i$</td><td>$\mu = \sum x_i\,p_i$</td><td>$\mu = \int x f(x)\,dx$</td></tr>
+    <tr><td>Variance</td><td>$s^2 = \frac{1}{n-1}\sum (x_i - \bar{x})^2$</td><td>$\sigma^2 = \sum p_i (x_i - \mu)^2$</td><td>$\sigma^2 = \int (x-\mu)^2 f(x)\,dx$</td></tr>
+  </table>
+  </div>
+  <p>
+    If the population mean $\mu$ is known and you have the whole population of $N$ values, divide by $N$: $\sigma^2 = \frac{1}{N}\sum (x_i - \mu)^2$. The $n-1$ is only for a sample, where $\bar{x}$ stands in for $\mu$. Theoretically, $\operatorname{Var}(X) = E\big[(X-\mu)^2\big] = E(X^2) - \mu^2$.
+  </p>
+
+  <h3>Skew and Kurtosis: The Third and Fourth Moments</h3>
+  <p>
+    Mean (centre) and variance (spread) are the first two of the <strong>four moments</strong>. Two distributions can share both and still look different. The next two moments describe shape:
+  </p>
+  <div class="math-box">
+    <div class="math-box-label">Skewness and Kurtosis</div>
+    <div class="math-box-body">
+      $$\begin{aligned}
+        \text{Skew} &= \frac{E\big[(X - \mu)^3\big]}{\sigma^3} \\[8pt]
+        \text{Kurtosis} &= \frac{E\big[(X - \mu)^4\big]}{\sigma^4}
+      \end{aligned}$$
+      <ul>
+        <li><strong>Skew</strong> measures asymmetry. Cubing keeps the sign, so a long right tail gives positive skew (right-skewed) and a long left tail gives negative skew. A symmetric distribution has skew $0$.</li>
+        <li><strong>Kurtosis</strong> measures how heavy the tails are. The normal distribution has kurtosis $3$ (so "excess kurtosis" = kurtosis $- 3$). Above 3 means fat tails: extreme values are more common than a normal would predict.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If I make the tails fatter, am I not just increasing the variance?</em></p>
+    </div>
+  </div>
+  <p>
+    No. Kurtosis divides by $\sigma^4$, so it is measured <em>after</em> scaling the spread away. Two distributions can have exactly the same variance while one puts more mass far out in the tails and, to compensate, more mass close to the centre and less on the "shoulders". Variance says how wide; kurtosis says how the width is made up. This matters in finance, where returns with the same variance can have very different chances of a crash.
+  </p>
+
+  <h3>Graphical Representation: Which Chart?</h3>
+  <p>The choice depends only on how many variables you have and whether each is categorical or quantitative:</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Variables</th><th>Chart</th></tr>
+    <tr><td>One categorical</td><td>Bar graph, pie chart</td></tr>
+    <tr><td>One quantitative</td><td>Histogram, box plot</td></tr>
+    <tr><td>Two quantitative</td><td>Scatter plot</td></tr>
+    <tr><td>One categorical + one quantitative</td><td>Side-by-side box plots (one box per category)</td></tr>
+    <tr><td>Two categorical</td><td>Contingency table (frequency of each combination)</td></tr>
+  </table>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Drill 2.2: Pick the Chart</h3>
+      <span class="problem-badge">Session 1 · Slides 21–23</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <ol>
+        <li>Market share of five phone brands.</li>
+        <li>Shape of the distribution of bag weights.</li>
+        <li>Advertising spend vs sales for 50 stores.</li>
+        <li>Salaries in each of four departments.</li>
+        <li>MBA admission (Y/N) vs work experience (Y/N).</li>
+      </ol>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <ol>
+        <li>Bar graph or pie chart</li>
+        <li>Histogram (or a box plot)</li>
+        <li>Scatter plot</li>
+        <li>Side-by-side box plots</li>
+        <li>Contingency table (it is the table in Problem 12.2)</li>
+      </ol>
+    </details>
+  </div>
+
   <div class="problem-item">
     <div class="problem-header">
       <h3>Problem 2.1: Twelve Numbers</h3>
@@ -530,6 +730,37 @@
         \text{Conditional: } & P(Y = y \mid X = x) = \frac{P(X = x, Y = y)}{P(X = x)} \\[6pt]
         \text{Independent iff: } & P(X = x, Y = y) = P(X = x)\,P(Y = y) \;\text{ for every cell}
       \end{aligned}$$
+    </div>
+  </div>
+
+  <p>
+    Why look at two variables jointly at all? Because their relationship is invisible if you study each one alone. Revenue and cost on the same day move together, and only the joint table shows how.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">From Tables to Formulas (Continuous Case)</div>
+    <div class="math-box-body">
+      <p>Replace sums with integrals. The joint PDF $f(x, y)$ gives probabilities of rectangles:</p>
+      $$\begin{aligned}
+        P(a \le X \le b,\; c \le Y \le d) &= \int_c^d \int_a^b f(x, y)\,dx\,dy \\[8pt]
+        f_X(x) &= \int_{-\infty}^{\infty} f(x, y)\,dy \\[8pt]
+        f_{X \mid Y}(x \mid y) &= \frac{f(x, y)}{f_Y(y)}
+      \end{aligned}$$
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Rules for Events</div>
+    <div class="math-box-body">
+      <p>Write $X = 3$ as event $A$ and $Y = 2$ as event $B$. Then $P(X=3, Y=2) = P(A \cap B)$, and:</p>
+      $$\begin{aligned}
+        \text{Conditional: } & P(A \mid B) = \frac{P(A \cap B)}{P(B)} \\[8pt]
+        \text{Multiplication rule: } & P(A \cap B) = P(B \mid A)\,P(A) \\[4pt]
+        & \phantom{P(A \cap B)} = P(A \mid B)\,P(B) \\[8pt]
+        \text{Independence: } & P(A \mid B) = P(A) \\[4pt]
+        & \iff P(A \cap B) = P(A)\,P(B)
+      \end{aligned}$$
+      <p>Bayes' theorem (Section 5) is just the two forms of the multiplication rule set equal to each other.</p>
     </div>
   </div>
 
@@ -859,6 +1090,33 @@
     <tr><td>Poisson process (time/space)</td><td>Poisson</td><td>Exponential</td></tr>
   </table>
   </div>
+  <p>
+    The Geometric is the "interarrival" counterpart of the Binomial: instead of counting successes in $n$ trials, it counts the trials until the next success. The Exponential plays the same role for the Poisson. Of these four, only the Exponential is continuous.
+  </p>
+
+  <h3>How the distributions connect</h3>
+  <ul>
+    <li><strong>Bernoulli is everywhere.</strong> Even an outcome with many values can be split into two: "return greater than 3% or not" turns any variable into a Bernoulli. A Binomial is the sum of $n$ independent Bernoullis, which is why its mean is $np$ and its variance $np(1-p)$.</li>
+    <li><strong>Negative binomial = several geometrics.</strong> Waiting for the $r$-th success is waiting for the first success $r$ times in a row. So it is the sum of $r$ independent geometrics, with mean $r \times \frac{1}{p}$.</li>
+    <li><strong>Hypergeometric = Binomial without replacement.</strong> The Binomial assumes each draw is independent (sampling with replacement). Drawing from a finite lot without replacement changes the odds after every draw. The two are close when the sample is a small fraction of the population, and differ when you sample a big chunk of it.</li>
+    <li><strong>Poisson = Binomial with huge $n$ and tiny $p$.</strong> Shown below.</li>
+  </ul>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Where does the Poisson formula come from? Cut a month into $n$ tiny slots, each with a small chance $p = \lambda/n$ of one failure, and let $n \to \infty$.</em></p>
+    </div>
+  </div>
+  $$\begin{aligned}
+    P(X = k) &= \binom{n}{k}\Big(\frac{\lambda}{n}\Big)^k \Big(1 - \frac{\lambda}{n}\Big)^{n-k} \\[8pt]
+    &= \underbrace{\frac{n(n-1)\cdots(n-k+1)}{n^k}}_{\to\, 1} \cdot \frac{\lambda^k}{k!} \\[4pt]
+    &\quad \cdot \underbrace{\Big(1 - \frac{\lambda}{n}\Big)^{n}}_{\to\, e^{-\lambda}} \cdot \underbrace{\Big(1 - \frac{\lambda}{n}\Big)^{-k}}_{\to\, 1} \\[8pt]
+    &\to \frac{e^{-\lambda}\lambda^k}{k!}
+  \end{aligned}$$
+
+  <p>
+    <strong>Why is the Normal so common?</strong> Because of the Central Limit Theorem (Section 9): anything that is the sum of many small independent effects (height, weight, characters on a page, steps per day) comes out approximately normal. For a continuous Normal, $P(X > \mu) = P(X < \mu) = 0.5$ and $P(X = \mu) = 0$. Any Normal can be turned into the <strong>standard normal</strong> $N(0, 1^2)$ with $Z = (X - \mu)/\sigma$, which is why one Z-table serves every Normal.
+  </p>
 
   <div class="math-box">
     <div class="math-box-label">Distributions from Session 3</div>
@@ -939,6 +1197,7 @@
   </p>
 
   <div class="spot"><strong>Spot it:</strong> a distribution whose parameters change with time, a hard limit (min/max), or several interacting random inputs.</div>
+  <p>Typical uses from class: uncertainty in supply, demand, weather, flight timings, loan defaults, stock prices and competitors' prices. Why not just use the distributions directly? Because once several of these interact, or depend on each other, no textbook distribution describes the outcome.</p>
 
   <h3>Recipe</h3>
   <ol class="recipe">
@@ -976,6 +1235,42 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="ci">
   <h2>9. Confidence Intervals</h2>
+
+  <h3>From describing to inferring</h3>
+  <p>
+    Descriptive statistics summarises the data you have. Inferential statistics uses a <strong>sample</strong> to say something about a <strong>population</strong>. The population can be a bigger data set (all customers) or a phenomenon (the process that generates ball-drop times, stock returns or bag weights). In the second case, the population is a random variable and the sample is a set of variates drawn from it.
+  </p>
+  <p>Class examples: sales calls (marketing, discrete), the ball drop (physical, continuous), weights of bags of chips (operations), stock returns (finance). Inference does two jobs:</p>
+  <ul>
+    <li><strong>Confidence intervals:</strong> given a statistic $\bar{x}$, what range is the parameter $\mu$ likely in?</li>
+    <li><strong>Hypothesis tests:</strong> given a sample, answer a pointed question about the parameter (Section 10).</li>
+  </ul>
+
+  <div class="math-box">
+    <div class="math-box-label">Central Limit Theorem</div>
+    <div class="math-box-body">
+      <p>The sum (or average) of a sufficiently large number of independent random variables is approximately normal, whatever the shape of the original distribution.</p>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Sampling Distribution of $\bar{X}$</div>
+    <div class="math-box-body">
+      <p>Take many samples of size $n$ from a population with mean $\mu$ and SD $\sigma$, and compute $\bar{x}$ for each. Those sample means have their own distribution:</p>
+      <ul>
+        <li><strong>Shape:</strong> approximately normal (by the CLT), even if the population is not.</li>
+        <li><strong>Mean:</strong> $\mu$, the same as the population.</li>
+        <li><strong>SD:</strong> $\sigma/\sqrt{n}$, the standard error. Bigger samples give tighter means.</li>
+      </ul>
+      $$\begin{aligned}
+        \bar{X} &\sim N\Big(\mu,\; \big(\tfrac{\sigma}{\sqrt{n}}\big)^2\Big) \\[8pt]
+        \bar{X} - \mu &\sim N\Big(0,\; \big(\tfrac{\sigma}{\sqrt{n}}\big)^2\Big) \\[8pt]
+        \frac{\bar{X} - \mu}{\sigma/\sqrt{n}} &\sim N(0, 1^2) = Z
+      \end{aligned}$$
+      <p>Sample standard deviations have a sampling distribution too. For a normal population, $\frac{(n-1)s^2}{\sigma^2} \sim \chi^2_{n-1}$, which is why the CI for a variance uses the $\chi^2$ table.</p>
+    </div>
+  </div>
+
   <p>
     We see $\bar{x}$ but want $\mu$. The bridge is the Central Limit Theorem: sample means are approximately normal, centred on $\mu$, with spread $\sigma/\sqrt{n}$. That spread, the standard deviation of $\bar{X}$ itself, is called the <strong>standard error</strong> (SE). So $\bar{X}$ rarely lands more than about two standard errors from $\mu$. Turn that around and you get a range for $\mu$.
   </p>
@@ -992,7 +1287,7 @@
     \bar{X} - z_{\alpha/2}\frac{\sigma}{\sqrt{n}} \;\le\; \mu \;&\le\; \bar{X} + z_{\alpha/2}\frac{\sigma}{\sqrt{n}}
   \end{aligned}$$
 
-  <div class="spot"><strong>Spot it:</strong> "estimate", "range", "95% confident", "interval for the mean / proportion / variance".</div>
+  <div class="spot"><strong>Spot it:</strong> "estimate", "range", "95% confident", "interval for the mean / proportion / variance". Class examples: average waiting time at a doctor's office, average diameter of a manufactured part, average rating of a dish, average weight of a bag of chips, proportion of successful sales calls, variance of bag weights.</div>
 
   <div class="math-box">
     <div class="math-box-label">The Four Single-Sample Intervals</div>
@@ -1072,6 +1367,13 @@
     </div>
   </div>
 
+  <p>
+    <strong>What is $\alpha$?</strong> It is the line you draw, before seeing the data, between "unlikely enough to reject" and "not unlikely enough". It is also the Type I error rate you are willing to accept: the chance of rejecting $H_0$ when it is actually true. <strong>What is $\beta$?</strong> The chance of failing to reject a false $H_0$; see Section 11.
+  </p>
+  <p>
+    You may also see the p-value defined as <em>"the smallest level of significance that would lead to rejection of $H_0$ with the given data."</em> It is the same idea from the other side: you reject whenever $\alpha$ is larger than the p-value, so the p-value is exactly the boundary $\alpha$.
+  </p>
+
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
       <p><em>Which tail is "extreme"? The tail that points towards $H_1$.</em></p>
@@ -1106,8 +1408,11 @@
         \text{Means, unequal variance: } & t = \frac{(\bar{x}_1 - \bar{x}_2) - d_0}{\sqrt{s_1^2/n_1 + s_2^2/n_2}} \sim t_k \\[8pt]
         k &= \frac{\big(s_1^2/n_1 + s_2^2/n_2\big)^2}{\frac{(s_1^2/n_1)^2}{n_1-1} + \frac{(s_2^2/n_2)^2}{n_2-1}} \\[8pt]
         \text{Paired (pre/post): } & t = \frac{\bar{d} - d_0}{s_d/\sqrt{n}} \sim t_{n-1} \\[8pt]
-        \text{Two variances: } & F = \frac{s_1^2}{s_2^2} \sim F_{n_1-1,\,n_2-1}
+        \text{Two variances: } & F = \frac{s_1^2}{s_2^2} \sim F_{n_1-1,\,n_2-1} \\[8pt]
+        \text{Two proportions: } & z = \frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}(1-\hat{p})\big(\frac{1}{n_1} + \frac{1}{n_2}\big)}} \\[8pt]
+        \hat{p} &= \frac{x_1 + x_2}{n_1 + n_2} \quad \text{(pooled)}
       \end{aligned}$$
+      <p>Moving from one sample to two is moving from one variable to two: the group label (ball A or ball B, agent 1 or agent 2) becomes an input variable with two states. With three or more states, use ANOVA (Section 11); for proportions across many groups, use $\chi^2$ (Section 12).</p>
     </div>
   </div>
 
@@ -1167,6 +1472,49 @@
       <p>$0.0299 < 0.05$, so reject $H_0$ at the 5% level: the data contradict the claim of a 2000-visitor lift. At $\alpha = 0.01$ we would not reject.</p>
     </details>
   </div>
+
+  <h3>Confidence intervals and tests are the same thing</h3>
+  <p>
+    Each of the four single-sample intervals (Section 9) has a matching test. A two-sided test at level $\alpha$ rejects $H_0: \mu = \mu_0$ exactly when $\mu_0$ falls outside the $(1-\alpha)$ confidence interval. A one-sided test matches a one-sided bound. In the two-sample case, the interval is for the difference $\mu_1 - \mu_2$: if it excludes $0$, the test rejects "no difference".
+  </p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Drill 10.3: Which Test?</h3>
+      <span class="problem-badge">Session 5 · Slides 10–13</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Name the test for each example from the slides:</p>
+      <ol>
+        <li>Is the mean bag weight 100 g? $\sigma$ is not known.</li>
+        <li>Is the variance of bag weights at most 4?</li>
+        <li>Is the fraction of successful sales calls above 20%?</li>
+        <li>We drop two different balls many times. Does one take longer on average?</li>
+        <li>Two settings of the same machine, tested on separate units. Same mean output? (Assume equal variances.)</li>
+        <li>Do Mac users spend more than PC users on average? (Variances differ.)</li>
+        <li>The same employees are measured before and after training.</li>
+        <li>Two machines both average 100 g. Do they have the same variability?</li>
+        <li>Two sales agents: which one converts a higher fraction of calls? Are Mac users more likely to buy than PC users?</li>
+        <li>Comparing two means when both population variances are known.</li>
+      </ol>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <ol>
+        <li>One-sample $t$-test, $t_{n-1}$</li>
+        <li>One-sample $\chi^2$ test for variance, $\chi^2_{n-1}$</li>
+        <li>One-sample $z$-proportion test</li>
+        <li>Two-sample $t$-test (independent samples)</li>
+        <li>Two-sample pooled $t$-test (equal variance), $t_{n_1+n_2-2}$</li>
+        <li>Two-sample $t$-test with unequal variances (Welch), $t_k$</li>
+        <li>Paired $t$-test on the differences, $t_{n-1}$</li>
+        <li>$F$-test for two variances, $F_{n_1-1,\,n_2-1}$</li>
+        <li>Two-sample $z$-proportion test</li>
+        <li>Two-sample $z$-test</li>
+      </ol>
+    </details>
+  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -1186,7 +1534,22 @@
   </table>
   </div>
   <p>
-    $\beta$ depends on four things: the true shift $\delta = |\mu - \mu_0|$, the spread $\sigma$ (combined as $d = \delta/\sigma$), the sample size $n$, and $\alpha$. A plot of $\beta$ against $d$ for fixed $n$ is the <strong>OC curve</strong>.
+    <strong>Type I error</strong> is easy to pin down: before you collect data it can be as high as $\alpha$, and after the analysis it is exactly your p-value (the chance you'd see data this extreme if $H_0$ were true).
+  </p>
+  <p>
+    <strong>Type II error ($\beta$)</strong> is harder. Why? Because it depends on the true value of $\mu$, which you don't know. "$H_0$ is false" covers infinitely many possibilities, and a tiny departure is much harder to detect than a large one. $\beta$ depends on four things:
+  </p>
+  <ul>
+    <li>the true shift $\delta = |\mu - \mu_0|$,</li>
+    <li>the spread $\sigma$ (usually combined as $d = \delta/\sigma$),</li>
+    <li>the sample size $n$,</li>
+    <li>the Type I level $\alpha$ (a stricter $\alpha$ means a larger $\beta$).</li>
+  </ul>
+  <p>
+    A graph of $\beta$ against $d$ for a given $n$ is an <strong>OC (operating characteristic) curve</strong>. It starts near $1 - \alpha$ at $d = 0$ and falls towards $0$ as $d$ grows; a larger $n$ makes it fall faster. Use it backwards to choose a sample size: "to catch a shift of $d = 1$ with $\beta \le 0.1$, I need $n$ of at least…".
+  </p>
+  <p>
+    So far tests had either no input variable (one sample) or an input with two states (two samples). <strong>ANOVA</strong> handles one input variable with three or more states (treatments A, B, C, D, with $n$ observations $y_{i,j}$ each).
   </p>
 
   <div class="math-box">
@@ -1198,16 +1561,24 @@
   <div class="math-box">
     <div class="math-box-label">One-Way ANOVA ($a$ groups, $n$ per group, $N = an$)</div>
     <div class="math-box-body">
+      <p>$H_0: \mu_A = \mu_B = \mu_C = \mu_D$. Sums of squares, each with its degrees of freedom:</p>
       $$\begin{aligned}
-        SSB &= n\sum_{i=1}^{a}(\bar{y}_{i\cdot} - \bar{y}_{\cdot\cdot})^2, & \text{df} &= a - 1 \\[8pt]
-        SSE &= \sum_{i=1}^{a}\sum_{j=1}^{n}(y_{ij} - \bar{y}_{i\cdot})^2, & \text{df} &= N - a \\[8pt]
-        SST &= SSB + SSE, & \text{df} &= N - 1 \\[8pt]
-        F &= \frac{SSB/(a-1)}{SSE/(N-a)} = \frac{MSB}{MSE} \sim F_{a-1,\,N-a}
+        SSB &= n\sum_{i=1}^{a}(\bar{y}_{i\cdot} - \bar{y}_{\cdot\cdot})^2 \quad (a - 1) \\[8pt]
+        SSE &= \sum_{i=1}^{a}\sum_{j=1}^{n}(y_{ij} - \bar{y}_{i\cdot})^2 \quad (N - a) \\[8pt]
+        SST &= \sum_{i=1}^{a}\sum_{j=1}^{n}(y_{ij} - \bar{y}_{\cdot\cdot})^2 \quad (N - 1)
       \end{aligned}$$
+      <p>$SST = SSB + SSE$. Divide each by its degrees of freedom to get a mean square:</p>
+      $$\begin{aligned}
+        MSB &= SSB/(a-1) \\[6pt]
+        MSE &= SSE/(N-a) \\[6pt]
+        MST &= SST/(N-1) \\[8pt]
+        F &= \frac{MSB}{MSE} \sim F_{a-1,\,N-a}
+      \end{aligned}$$
+      <p>Here $\bar{y}_{i\cdot}$ is the mean of group $i$ and $\bar{y}_{\cdot\cdot}$ is the grand mean of all $N$ observations.</p>
     </div>
   </div>
   <p>
-    Why does a ratio of <em>variances</em> test <em>means</em>? MSE estimates $\sigma^2$ from spread inside each group. MSB estimates $\sigma^2$ from how far the group means are scattered. If $H_0$ is true, both estimate the same thing and $F \approx 1$. If the means differ, MSB is inflated and $F$ grows. After rejecting, use Tukey, Bonferroni or Scheffé to find which groups differ.
+    Why does a ratio of <em>variances</em> test <em>means</em>? MSE estimates $\sigma^2$ from spread inside each group. MSB estimates $\sigma^2$ from how far the group means are scattered. The $F$ distribution is exactly the distribution of a ratio of two such variance estimates from normal samples when they estimate the same variance. If $H_0$ is true, MSB, MST and MSE all estimate the same $\sigma^2$, so they are roughly equal and $F \approx 1$. If the means differ, the group means are pushed apart, so $MSB > MST > MSE$ and $F$ grows. After rejecting, use Tukey, Bonferroni or Scheffé to find which groups differ.
   </p>
 
   <h3>Recipe</h3>

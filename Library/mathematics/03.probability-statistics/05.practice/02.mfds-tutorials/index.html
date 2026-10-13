@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="4e6a0774">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Probability & Statistics">
+<meta name="chapter" content="Practice Problems">
+<meta name="chapterorder" content="5">
+<meta name="lessonorder" content="2">
+<meta name="title" content="MFDS Tutorials 1–3, Worked">
+<meta name="description" content="All 27 problems from DA5000 tutorials 1, 2 and 3: which tool each one needs, how to set it up, and a checked solution to compare against.">
+<meta name="keywords" content="DA5000, MFDS, tutorial, Bayes, joint pdf, expectation, Poisson, exponential, Markov chain, Welch t-test, pooled t-test, paired t-test, F-test, two-proportion z-test, power, goodness of fit, chi-square">
+<meta name="status" content="draft">
+<meta name="date" content="2026-10-13">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="28">
+
+<title>MFDS Tutorials 1–3, Worked</title>
+
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .problem-item {
+    margin: 2.6rem 0 2rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--border);
+  }
+  .problem-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .problem-header h3 { margin: 0; font-size: 1.25rem; }
+  .problem-badge {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .question-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    margin: 1rem 0 1.4rem;
+  }
+  .question-tag, .solution-heading {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+  }
+  .solution-heading { margin: 1.4rem 0 0.6rem; }
+  .question-canvas p { font-size: 1.05rem; line-height: 1.75; margin-bottom: 0.8rem; }
+  .question-canvas > :first-child { margin-top: 0; }
+  .question-canvas > :last-child { margin-bottom: 0; }
+  .solution-step {
+    margin: 1.2rem 0;
+    padding-left: 1.2rem;
+    border-left: 2px solid var(--border);
+  }
+  .solution-step h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.02rem;
+    color: var(--dark);
+    font-family: 'Lora', serif;
+    font-weight: 600;
+  }
+  .takeaway {
+    margin-top: 1.4rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--accent);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .recipe { counter-reset: step; list-style: none; padding-left: 0 !important; }
+  .recipe > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.2rem;
+    margin-bottom: 0.7rem;
+  }
+  .recipe > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.15rem;
+    width: 1.5rem; height: 1.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--dark);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spot {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 1rem 0 1.2rem;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--accent);
+    background: var(--highlight);
+    border-radius: 0 8px 8px 0;
+  }
+  .spot strong { color: var(--dark); }
+  .toggle summary {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .toggle > :not(summary) { margin-top: 0.8rem; }
+  .data-table { border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; margin: 0.6rem 0; }
+  .data-table th, .data-table td { border: 1px solid var(--border); padding: 0.35rem 0.75rem; text-align: center; }
+  .data-table th { background: var(--surface); font-weight: 600; color: var(--dark); }
+  .data-table td:first-child, .data-table th:first-child { text-align: left; }
+  .table-scroll { overflow-x: auto; max-width: 100%; }
+</style>
+
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <meta property="og:title" content="MFDS Tutorials 1–3, Worked">
+    <meta property="og:description" content="All 27 problems from DA5000 tutorials 1, 2 and 3: which tool each one needs, how to set it up, and a checked solution to compare against.">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-mfds-tutorials-1-3-worked.png">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Introduction                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="introduction">
+  <p>
+    Lectures show you a method once. Tutorials are where you find out whether you can pick the right method on your own, when the question doesn't tell you which chapter it belongs to. This page works through all 27 problems from the three DA5000 tutorials in that spirit.
+  </p>
+  <p>
+    Every problem follows the same pattern. First, <strong>which tool</strong>: the clue in the question that tells you what to reach for. Then <strong>set it up</strong>: the formula with the problem's numbers plugged in, ready for you to finish. The full solution sits under <em>Check your work</em>, so try before you open it. Wherever the handwritten tutorial solutions contain a slip, it is pointed out, so you don't copy it into an exam.
+  </p>
+  <p>
+    The problem statements below are reconstructed from the worked tutorial notes. All numerical answers were re-checked by computer.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Before you calculate anything: what is random, what distribution does it follow, and is the question asking for a probability, an expectation, an interval or a decision?</em></p>
+    </div>
+  </div>
+
+  <h3>The 27 problems at a glance</h3>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Problem</th><th>Topic</th><th>Tool</th></tr>
+    <tr><td>T1 Q1</td><td>Covid test</td><td>Bayes' theorem</td></tr>
+    <tr><td>T1 Q2</td><td>PDF $k/x^3$</td><td>Normalising a PDF, CDF</td></tr>
+    <tr><td>T1 Q3</td><td>Joint PDF expectation</td><td>Linearity of expectation, double integrals</td></tr>
+    <tr><td>T1 Q4</td><td>Rods to reach length 100</td><td>Poisson process</td></tr>
+    <tr><td>T1 Q5</td><td>Hat-check problem</td><td>Indicator variables</td></tr>
+    <tr><td>T1 Q6</td><td>Connection time</td><td>Continuous uniform</td></tr>
+    <tr><td>T1 Q7</td><td>$X_2 = Z X_1$</td><td>Covariance vs independence</td></tr>
+    <tr><td>T1 Q8</td><td>Web visitors $N(8000 - t^2, 800^2)$</td><td>Time-varying normal</td></tr>
+    <tr><td>T1 Q9</td><td>Up-to-date or behind</td><td>Markov chain</td></tr>
+    <tr><td>T2 Q1</td><td>Two fitness apps</td><td>Welch two-sample $t$</td></tr>
+    <tr><td>T2 Q2</td><td>Blood-pressure claim</td><td>One-sample $t$</td></tr>
+    <tr><td>T2 Q3</td><td>Noisy $\pm 1$ signal</td><td>Normal probability</td></tr>
+    <tr><td>T2 Q4</td><td>Binomial test</td><td>Significance level and power</td></tr>
+    <tr><td>T2 Q5</td><td>Joint PDF $c x^2 y$</td><td>Marginals, conditional probability</td></tr>
+    <tr><td>T2 Q6</td><td>Bessel's correction</td><td>Proof that $E(S^2) = \sigma^2$</td></tr>
+    <tr><td>T2 Q7</td><td>Arrivals every 10 days</td><td>Exponential</td></tr>
+    <tr><td>T2 Q8</td><td>Calls with $\lambda = 10$</td><td>Poisson, Binomial</td></tr>
+    <tr><td>T3 Q1</td><td>Bulb lifetime improvement</td><td>Two-sample $z$ with $d_0 \ne 0$</td></tr>
+    <tr><td>T3 Q2</td><td>Defect-free rates</td><td>Two-proportion $z$, CI</td></tr>
+    <tr><td>T3 Q3</td><td>Failure stress</td><td>Welch CI</td></tr>
+    <tr><td>T3 Q4</td><td>Two vendors' resistance</td><td>$F$-test, then pooled $t$</td></tr>
+    <tr><td>T3 Q5</td><td>Drug before/after</td><td>Paired $t$</td></tr>
+    <tr><td>T3 Q6</td><td>Two variances</td><td>$F$-test</td></tr>
+    <tr><td>T3 Q7</td><td>Maricopa vs Pima</td><td>Two-proportion $z$, CI</td></tr>
+    <tr><td>T3 Q8</td><td>Assembly-time repeatability</td><td>$F$-test</td></tr>
+    <tr><td>T3 Q9</td><td>Flower colours</td><td>$\chi^2$ goodness of fit</td></tr>
+    <tr><td>T3 Q10</td><td>Nausea vs drug type</td><td>$\chi^2$ test of independence</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Tutorial 1                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="tutorial-1">
+  <h2>Tutorial 1: Probability, Random Variables and Expectation</h2>
+  <p>
+    Tutorial 1 is about the machinery underneath statistics: updating beliefs with Bayes, turning a density into probabilities, taking expectations over joint distributions, and recognising the classic processes (Poisson, uniform, Markov). No hypothesis tests yet.
+  </p>
+
+  <!-- T1 Q1 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q1: How Worrying Is a Positive Covid Test?</h3>
+      <span class="problem-badge">Tutorial 1 · Q1</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>1% of the population has Covid. The test is positive for 96% of people who have Covid, and (falsely) positive for 2% of people who don't.</p>
+      <p>(a) A person tests positive. What is the probability they actually have Covid? (b) A person tests negative. What is the probability they have Covid anyway?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> you are given $P(\text{test} \mid \text{disease})$ and asked for $P(\text{disease} \mid \text{test})$. Reversing a conditional is Bayes' theorem.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      P(C) &= 0.01, \quad P(C^c) = 0.99 \\[6pt]
+      P(+ \mid C) &= 0.96, \quad P(+ \mid C^c) = 0.02 \\[6pt]
+      P(- \mid C) &= 1 - 0.96 = 0.04 \\[6pt]
+      P(- \mid C^c) &= 1 - 0.02 = 0.98
+    \end{aligned}$$
+    <p>The test's two error rates have names. $P(+ \mid C^c)$ is the <strong>false-positive rate</strong>; $P(- \mid C)$ is the <strong>false-negative rate</strong>.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(+) &= 0.96(0.01) + 0.02(0.99) \\[4pt]
+        &= 0.0096 + 0.0198 = 0.0294 \\[8pt]
+        P(C \mid +) &= \frac{0.0096}{0.0294} \approx 0.327
+      \end{aligned}$$
+      $$\begin{aligned}
+        P(-) &= 0.04(0.01) + 0.98(0.99) \\[4pt]
+        &= 0.0004 + 0.9702 = 0.9706 \\[8pt]
+        P(C \mid -) &= \frac{0.0004}{0.9706} \approx 0.00041
+      \end{aligned}$$
+      <p>(a) Only about <strong>32.7%</strong>. Because the disease is rare, most positives come from the 99% of healthy people. (b) About <strong>0.04%</strong>: a negative result is very reassuring.</p>
+    </details>
+  </div>
+
+  <!-- T1 Q2 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q2: The Density $k/x^3$</h3>
+      <span class="problem-badge">Tutorial 1 · Q2</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>$f(x) = 0$ for $x < 1$ and $f(x) = k/x^3$ for $x \ge 1$.</p>
+      <p>(a) Find $k$. (b) Find $P(1.5 \le X \le 3)$. (c) Find $P(X = 3)$. (d) Find the CDF of $X$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> "find the constant" always means "make the total probability 1". After that, probabilities of ranges are areas under $f$, and the CDF is the area from the left up to $x$.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \int_1^\infty \frac{k}{x^3}\,dx &= 1 \\[8pt]
+      P(a \le X \le b) &= \int_a^b f(x)\,dx \\[8pt]
+      F(x) &= P(X \le x) = \int_{-\infty}^{x} f(t)\,dt
+    \end{aligned}$$
+    <p>Useful antiderivative: $\int x^{-3}\,dx = -\dfrac{1}{2x^2}$.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{(a)} \quad k \Big[-\frac{1}{2x^2}\Big]_1^\infty &= k\Big(0 + \frac{1}{2}\Big) = \frac{k}{2} = 1 \\[4pt]
+        k &= 2 \\[10pt]
+        \text{(b)} \quad \int_{1.5}^{3} \frac{2}{x^3}\,dx &= \Big[-\frac{1}{x^2}\Big]_{1.5}^{3} \\[4pt]
+        &= \frac{1}{2.25} - \frac{1}{9} = \frac{1}{3}
+      \end{aligned}$$
+      <p>(c) $P(X = 3) = 0$. For a continuous variable, a single point has no width, so it has no area.</p>
+      $$\begin{aligned}
+        \text{(d)} \quad F(x) &= 0, \quad x < 1 \\[6pt]
+        F(x) &= \int_1^x \frac{2}{t^3}\,dt = 1 - \frac{1}{x^2}, \quad x \ge 1
+      \end{aligned}$$
+      <p>Check: $F(1) = 0$, $F(\infty) = 1$, and $F(3) - F(1.5) = \frac{8}{9} - \frac{5}{9} = \frac{1}{3}$, matching (b).</p>
+    </details>
+  </div>
+
+  <!-- T1 Q3 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q3: An Expectation Over a Joint Density</h3>
+      <span class="problem-badge">Tutorial 1 · Q3</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>$f_{X,Y}(x, y) = \frac{5x^2}{2}$ for $-1 \le x \le 1$ and $0 \le y \le x^2$, and $0$ otherwise. Find $E\big[7X^2 + 8Y^2 + 2X + 8Y\big]$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> an expectation of a sum. <strong>Linearity of expectation</strong> says $E[aU + bV] = aE[U] + bE[V]$, always (no independence needed). So split the big expectation into four small ones.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      E[\,\cdot\,] &= 7E[X^2] + 8E[Y^2] + 2E[X] + 8E[Y] \\[8pt]
+      E[g(X,Y)] &= \int_{-1}^{1}\int_{0}^{x^2} g(x,y)\,\frac{5x^2}{2}\,dy\,dx
+    \end{aligned}$$
+    <p>Do the inner $dy$ integral first: its upper limit $x^2$ depends on $x$.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        E[X] &= \int_{-1}^{1} x \cdot \frac{5x^2}{2} \cdot x^2\,dx = \frac{5}{2}\int_{-1}^{1} x^5\,dx = 0 \\[8pt]
+        E[X^2] &= \frac{5}{2}\int_{-1}^{1} x^6\,dx = \frac{5}{2}\cdot\frac{2}{7} = \frac{5}{7} \\[8pt]
+        E[Y] &= \int_{-1}^{1} \frac{x^4}{2}\cdot\frac{5x^2}{2}\,dx = \frac{5}{4}\cdot\frac{2}{7} = \frac{5}{14} \\[8pt]
+        E[Y^2] &= \int_{-1}^{1} \frac{x^6}{3}\cdot\frac{5x^2}{2}\,dx = \frac{5}{6}\cdot\frac{2}{9} = \frac{5}{27}
+      \end{aligned}$$
+      $$\begin{aligned}
+        E[\,\cdot\,] &= 7\cdot\frac{5}{7} + 8\cdot\frac{5}{27} + 0 + 8\cdot\frac{5}{14} \\[6pt]
+        &= 5 + \frac{40}{27} + \frac{20}{7} \\[6pt]
+        &= \frac{945 + 280 + 540}{189} = \frac{1765}{189} \approx 9.339
+      \end{aligned}$$
+      <p><em>Note on the tutorial notes:</em> they reach 1765/189 correctly but then mis-simplify it to 588/63 ≈ 9.333. 1765/189 does not reduce; the answer is ≈ 9.339.</p>
+      <p>$E[X] = 0$ because $x^5$ is an odd function on a symmetric interval: positive and negative halves cancel.</p>
+    </details>
+  </div>
+
+  <!-- T1 Q4 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q4: How Many Rods to Reach Length 100?</h3>
+      <span class="problem-badge">Tutorial 1 · Q4</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Rod lengths $X_1, X_2, \dots$ are independent and Exponential with mean 20 ($\lambda = 1/20$). Rods are laid end to end until the total length first reaches $t = 100$. Let $N$ be the number of rods used. Find the distribution of $N$, $E[N]$ and $\operatorname{Var}(N)$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> exponential gaps laid end to end <em>are</em> a Poisson process. The rod ends are "events" along a line, at rate $\lambda$ per unit length. Counting events in a stretch of length $t$ gives a Poisson($\lambda t$) count.</div>
+    <span class="solution-heading">Set it up</span>
+    <p>The number of rod ends that fall <em>before</em> 100 is Poisson with mean $\lambda t$. You need one more rod to cross 100, so:</p>
+    $$\begin{aligned}
+      \lambda t &= \frac{1}{20}\times 100 = 5 \\[6pt]
+      N - 1 &\sim \text{Poisson}(5)
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(N = n) &= \frac{e^{-5}\,5^{\,n-1}}{(n-1)!}, \quad n = 1, 2, \dots \\[8pt]
+        E[N] &= 1 + 5 = 6 \\[6pt]
+        \operatorname{Var}(N) &= \operatorname{Var}(N - 1) = 5
+      \end{aligned}$$
+      <p>Adding the constant 1 shifts the mean but not the variance.</p>
+    </details>
+  </div>
+
+  <!-- T1 Q5 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q5: The Hat-Check Problem</h3>
+      <span class="problem-badge">Tutorial 1 · Q5</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>$n$ people throw their hats in a pile, and each picks up a hat at random. Let $X$ be the number of people who get their own hat back. Find $E[X]$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> "expected number of …" with messy dependence between people. Write the count as a sum of <strong>indicator variables</strong>, each 1 if something happens and 0 if not, then use linearity. The dependence between people doesn't matter for the mean.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      I_i &= \begin{cases} 1 & \text{person } i \text{ gets their own hat} \\ 0 & \text{otherwise} \end{cases} \\[8pt]
+      X &= I_1 + I_2 + \dots + I_n \\[6pt]
+      E[I_i] &= P(I_i = 1)
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Person $i$ is equally likely to get any of the $n$ hats, so $P(I_i = 1) = 1/n$.</p>
+      $$E[X] = \sum_{i=1}^{n} \frac{1}{n} = n \cdot \frac{1}{n} = 1$$
+      <p>On average exactly one person gets their own hat back, whether there are 3 people or 3,000.</p>
+    </details>
+  </div>
+
+  <!-- T1 Q6 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q6: Connection Time and a Maintenance Window</h3>
+      <span class="problem-badge">Tutorial 1 · Q6</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>A user connects at a time $X$ hours after 8 pm, with $X \sim \text{Uniform}(0, 2)$. (a) Write the PDF. (b) Find the mean and variance. (c) There is a 15-minute maintenance window somewhere inside the two hours. What is the probability the user connects during it?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> "equally likely at any time in an interval" is the continuous uniform. Probability is length of the window divided by length of the interval.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      f(x) &= \frac{1}{b-a} \text{ on } [a, b] \\[6pt]
+      E[X] &= \frac{a+b}{2}, \quad \operatorname{Var}(X) = \frac{(b-a)^2}{12} \\[6pt]
+      15 \text{ min} &= 0.25 \text{ hours}
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        f(x) &= \tfrac{1}{2}, \quad 0 \le x \le 2 \\[6pt]
+        E[X] &= 1 \text{ hour (9 pm)} \\[6pt]
+        \operatorname{Var}(X) &= \frac{4}{12} = \frac{1}{3} \text{ hours}^2 \\[8pt]
+        P(a \le X \le a + 0.25) &= \int_a^{a+0.25}\frac{1}{2}\,dx = \frac{0.25}{2} = 0.125
+      \end{aligned}$$
+      <p>12.5%, wherever the window sits inside the two hours. Note the variance's unit is hours², not hours.</p>
+    </details>
+  </div>
+
+  <!-- T1 Q7 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q7: Uncorrelated but Not Independent</h3>
+      <span class="problem-badge">Tutorial 1 · Q7</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>$X_1 \sim N(0, 1)$. $Z$ is independent of $X_1$ and takes values $+1$ and $-1$ with probability $\tfrac{1}{2}$ each. Let $X_2 = Z X_1$. (a) What is the distribution of $X_2$? (b) Find $\operatorname{Cov}(X_1, X_2)$. Are $X_1$ and $X_2$ independent?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> <strong>covariance</strong> measures how two variables move together linearly: $\operatorname{Cov}(X, Y) = E[XY] - E[X]E[Y]$. Independence is a much stronger statement: knowing one tells you nothing about the other.</div>
+    <span class="solution-heading">Set it up</span>
+    <p>(a) Flipping the sign of a standard normal gives a standard normal, because $N(0,1)$ is symmetric. (b) Use independence of $Z$ and $X_1$ to split the expectation:</p>
+    $$\begin{aligned}
+      E[X_1 X_2] &= E[Z X_1^2] = E[Z]\,E[X_1^2]
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        X_2 &\sim N(0, 1) \\[6pt]
+        E[Z] &= \tfrac{1}{2}(1) + \tfrac{1}{2}(-1) = 0 \\[6pt]
+        \operatorname{Cov}(X_1, X_2) &= E[Z]\,E[X_1^2] - 0 \cdot 0 = 0 \cdot 1 = 0
+      \end{aligned}$$
+      <p>Zero covariance, yet they are <strong>not independent</strong>: $|X_2| = |X_1|$ always. If you know $X_1 = 2$, then $X_2$ must be $2$ or $-2$. Every point $(X_1, X_2)$ lies on one of the two lines in Figure 1, which has no linear trend overall.</p>
+      <figure style="margin: 1.5rem 0;">
+        <svg viewBox="0 0 400 400" width="100%" role="img" aria-label="All points of X1 and X2 lie on the lines X2 = X1 and X2 = minus X1" style="max-width: 360px; display: block; margin: 0 auto;">
+          <line x1="40" y1="200" x2="360" y2="200" stroke="var(--muted)" stroke-width="1.5"/>
+          <line x1="200" y1="40" x2="200" y2="360" stroke="var(--muted)" stroke-width="1.5"/>
+          <line x1="60" y1="340" x2="340" y2="60" stroke="var(--accent)" stroke-width="3"/>
+          <line x1="60" y1="60" x2="340" y2="340" stroke="var(--accent)" stroke-width="3" stroke-dasharray="8 6"/>
+          <g fill="var(--text)" font-size="20" font-family="-apple-system, BlinkMacSystemFont, sans-serif">
+            <text x="365" y="206">X₁</text>
+            <text x="208" y="36">X₂</text>
+            <text x="268" y="168">Z = +1</text>
+            <text x="268" y="250">Z = −1</text>
+          </g>
+        </svg>
+        <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 1:</strong> When $Z = +1$ the point lies on $X_2 = X_1$ (solid); when $Z = -1$ it lies on $X_2 = -X_1$ (dashed). The two lines cancel each other's slope, so the covariance is 0, but $X_2$ is completely determined by $X_1$ up to sign.</figcaption>
+      </figure>
+      <p><strong>Lesson:</strong> independence implies zero covariance, but zero covariance does not imply independence.</p>
+    </details>
+  </div>
+
+  <!-- T1 Q8 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q8: Visitors With a Falling Mean</h3>
+      <span class="problem-badge">Tutorial 1 · Q8</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Visitors in minute $t$ of a one-hour offer, $X_t$, are Normal with mean $\mu_t = 8000 - t^2$ and SD $\sigma = 800$. Write down the distribution and find the mean at $t = 0$, $30$ and $60$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> this is the same set-up as the simulation problem from session 3. A random variable whose parameter is a function of time: plug each $t$ into the mean formula. Variance is $\sigma^2$, not $\sigma$.</div>
+    <span class="solution-heading">Set it up</span>
+    $$X_t \sim N\big(8000 - t^2,\; 800^2\big)$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \sigma^2 &= 800^2 = 640{,}000 \\[6pt]
+        \mu_0 &= 8000 \\[6pt]
+        \mu_{30} &= 8000 - 900 = 7100 \\[6pt]
+        \mu_{60} &= 8000 - 3600 = 4400
+      \end{aligned}$$
+      <p>The spread stays the same all hour, while the centre slides down. With a 9000-per-minute capacity cap, overflow is plausible only early in the hour (9000 is $1.25\sigma$ above $\mu_0$ but $2.4\sigma$ above $\mu_{30}$).</p>
+    </details>
+  </div>
+
+  <!-- T1 Q9 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T1 Q9: Up to Date or Behind? A Markov Chain</h3>
+      <span class="problem-badge">Tutorial 1 · Q9</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Each week a student is either Up to date (U) or Behind (B). If U this week: next week U with probability 0.8, B with 0.2. If B this week: next week U with 0.6, B with 0.4. The student starts up to date. What is the probability of being up to date after 1, 2 and 3 weeks?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> next week depends only on this week. That is a <strong>Markov chain</strong>. Put the probabilities in a <strong>transition matrix</strong> $P$ (row = current state, column = next state, each row sums to 1) and multiply the current probability vector by $P$ once per week.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      P &= \begin{pmatrix} 0.8 & 0.2 \\ 0.6 & 0.4 \end{pmatrix} \\[8pt]
+      v_0 &= (1,\; 0) \\[6pt]
+      v_{k+1} &= v_k\,P
+    \end{aligned}$$
+    <p>Each new entry is "probability of being in each state now" times "chance of moving to the target state", summed: the law of total probability.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        v_1 &= (0.8,\; 0.2) \\[6pt]
+        v_2 &= (0.8 \cdot 0.8 + 0.2 \cdot 0.6,\; 0.8 \cdot 0.2 + 0.2 \cdot 0.4) \\[4pt]
+        &= (0.76,\; 0.24) \\[6pt]
+        v_3 &= (0.76 \cdot 0.8 + 0.24 \cdot 0.6,\; 0.76 \cdot 0.2 + 0.24 \cdot 0.4) \\[4pt]
+        &= (0.752,\; 0.248)
+      \end{aligned}$$
+      <p>Up to date after 3 weeks: <strong>0.752</strong>. The numbers are settling down. In the long run the chain reaches a <strong>steady state</strong> $\pi$ with $\pi P = \pi$: solving $\pi_U = 0.8\pi_U + 0.6\pi_B$ with $\pi_U + \pi_B = 1$ gives $\pi_U = 0.75$.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Tutorial 2                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="tutorial-2">
+  <h2>Tutorial 2: First Tests, Power, and More Distributions</h2>
+  <p>
+    Tutorial 2 brings in hypothesis testing ($t$-tests and a binomial test with its power) and mixes it with more probability: a noisy communication channel, joint densities, Bessel's correction and the Poisson/exponential pair.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Vocabulary for This Tutorial</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Significance level $\alpha$:</strong> $P(\text{reject } H_0 \mid H_0 \text{ true})$, the Type I error rate.</li>
+        <li><strong>Power:</strong> $P(\text{reject } H_0 \mid H_0 \text{ false})$ $= 1 - \beta$. The chance the test catches a real effect.</li>
+        <li><strong>Critical value:</strong> the cut-off for the test statistic. Beyond it, you reject. Comparing to the critical value and comparing the p-value to $\alpha$ always give the same decision.</li>
+        <li><strong>Degrees of freedom (df):</strong> the parameter that picks which $t$ (or $\chi^2$, $F$) curve to use. Fewer df means heavier tails and bigger critical values.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- T2 Q1 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q1: Do Two Fitness Apps Give Different Step Counts?</h3>
+      <span class="problem-badge">Tutorial 2 · Q1</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Users of App X: $n_x = 30$, mean 8150 steps/day, SD 900. Users of App Y: $n_y = 25$, mean 7600, SD 1100. At $\alpha = 0.05$, do average daily steps differ?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> two independent groups, compare means, population SDs unknown and not assumed equal → <strong>Welch's two-sample $t$-test</strong>. "Differ" (no direction) → two-tailed.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \mu_x = \mu_y, \quad H_1: \mu_x \ne \mu_y \\[8pt]
+      SE &= \sqrt{\frac{s_x^2}{n_x} + \frac{s_y^2}{n_y}} = \sqrt{\frac{900^2}{30} + \frac{1100^2}{25}} \\[8pt]
+      t &= \frac{\bar{x} - \bar{y}}{SE} \\[8pt]
+      \nu &= \frac{\big(\frac{s_x^2}{n_x} + \frac{s_y^2}{n_y}\big)^2}{\frac{(s_x^2/n_x)^2}{n_x - 1} + \frac{(s_y^2/n_y)^2}{n_y - 1}}
+    \end{aligned}$$
+    <p>$\nu$ (the Welch–Satterthwaite degrees of freedom) is usually not a whole number. That's fine.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        SE &= \sqrt{27000 + 48400} = \sqrt{75400} = 274.6 \\[6pt]
+        t &= \frac{550}{274.6} = 2.003 \\[6pt]
+        \nu &\approx 46.3 \\[6pt]
+        p &= 2\,P(T_{46.3} > 2.003) \approx 0.051
+      \end{aligned}$$
+      <p>$p = 0.051 > 0.05$: fail to reject. Not enough evidence that the apps differ, though it is right on the edge.</p>
+      <p><em>Note:</em> the tutorial notes write $n_x = 360$ at the top but use 30 in every calculation; 30 is what gives $\nu = 46.3$.</p>
+    </details>
+  </div>
+
+  <!-- T2 Q2 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q2: Does the Drug Lower Blood Pressure by More Than 15?</h3>
+      <span class="problem-badge">Tutorial 2 · Q2</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>A company claims its drug lowers blood pressure by more than 15 mmHg on average. In a sample of $n = 25$ patients the mean reduction is 17 mmHg with SD 6 mmHg. Test the claim at $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> one sample, one mean, $\sigma$ unknown (only the sample SD) → <strong>one-sample $t$-test</strong> with $n - 1$ df. The claim "more than 15" has no equality, so it goes in $H_1$ → right-tailed.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \mu = 15, \quad H_1: \mu > 15 \\[6pt]
+      SE &= \frac{s}{\sqrt{n}} = \frac{6}{\sqrt{25}} \\[6pt]
+      t &= \frac{\bar{x} - 15}{SE}, \quad \nu = 24
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        SE &= 1.2 \\[6pt]
+        t &= \frac{2}{1.2} = 1.667 \\[6pt]
+        t_{0.05,\,24} &= 1.711 \\[6pt]
+        p &= P(T_{24} > 1.667) \approx 0.054
+      \end{aligned}$$
+      <p>$1.667 < 1.711$ (equivalently $p = 0.054 > 0.05$): fail to reject. The sample is suggestive, but not strong enough to back the claim at the 5% level.</p>
+    </details>
+  </div>
+
+  <!-- T2 Q3 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q3: Error Probability of a Noisy Signal</h3>
+      <span class="problem-badge">Tutorial 2 · Q3</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>A transmitter sends $X = +1$ or $X = -1$ (equally likely). The receiver gets $Y = X + N$, where noise $N \sim N(0, \sigma^2)$. It decides $+1$ if $Y \ge 0$ and $-1$ if $Y < 0$. Find the probability of error.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> a normal probability. Translate "error" into an inequality on $N$, then standardise with $Z = N/\sigma$ and use $\Phi$, the standard normal CDF.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \text{Send } +1: \text{ error if } Y < 0 &\iff 1 + N < 0 \iff N < -1 \\[6pt]
+      \text{Send } -1: \text{ error if } Y \ge 0 &\iff -1 + N \ge 0 \iff N \ge 1
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(N < -1) &= P\Big(Z < -\frac{1}{\sigma}\Big) = \Phi\Big(-\frac{1}{\sigma}\Big) \\[8pt]
+        P(N \ge 1) &= 1 - \Phi\Big(\frac{1}{\sigma}\Big) = \Phi\Big(-\frac{1}{\sigma}\Big)
+      \end{aligned}$$
+      <p>Both errors have the same probability (the noise is symmetric), so with equal priors:</p>
+      $$P_{\text{error}} = \Phi\Big(-\frac{1}{\sigma}\Big) = 1 - \Phi\Big(\frac{1}{\sigma}\Big)$$
+      <p>Sanity check: as $\sigma \to 0$ the error goes to 0; as $\sigma \to \infty$ it goes to $\tfrac{1}{2}$ (pure guessing).</p>
+    </details>
+  </div>
+
+  <!-- T2 Q4 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q4: Significance Level and Power of a Binomial Test</h3>
+      <span class="problem-badge">Tutorial 2 · Q4</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>$X \sim \text{Binomial}(20, p)$. We test $H_0: p = 0.75$ against $H_1: p < 0.75$, and reject $H_0$ if $X \le 10$. (a) Find the significance level $\alpha$. (b) Find the power if in fact $p = 0.6$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> the rejection rule is already given, so there is no test statistic to compute. $\alpha$ and power are both just "probability the rule fires", under two different values of $p$.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \alpha &= P(X \le 10 \mid p = 0.75) = \sum_{k=0}^{10}\binom{20}{k}0.75^k\,0.25^{20-k} \\[8pt]
+      \text{Power} &= P(X \le 10 \mid p = 0.6) = \sum_{k=0}^{10}\binom{20}{k}0.6^k\,0.4^{20-k}
+    \end{aligned}$$
+    <p>Use a binomial CDF: Excel <code>=BINOM.DIST(10, 20, p, TRUE)</code>, R <code>pbinom(10, 20, p)</code>.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \alpha &\approx 0.0139 \\[6pt]
+        \text{Power} &\approx 0.245 \\[6pt]
+        \beta &= 1 - 0.245 = 0.755
+      \end{aligned}$$
+      <p>The test rarely raises a false alarm (1.4%), but it only catches a true $p = 0.6$ about a quarter of the time. With $n = 20$, 0.6 and 0.75 are hard to tell apart. A bigger sample would raise the power.</p>
+    </details>
+  </div>
+
+  <!-- T2 Q5 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q5: The Joint Density $c\,x^2 y$ on a Triangle</h3>
+      <span class="problem-badge">Tutorial 2 · Q5</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>$f_{X,Y}(x, y) = c\,x^2 y$ for $0 \le y \le x \le 1$, and 0 otherwise.</p>
+      <p>(a) Describe the region $R_{XY}$. (b) Find $c$. (c) Find the marginal PDFs. (d) Find $P(Y \le X/2)$. (e) Find $P(Y \le X/4 \mid Y \le X/2)$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> joint densities on a non-rectangular region. Draw the region first: it fixes the limits of every integral. Marginal = integrate out the other variable; probability of an event = integrate the density over that part of the region.</div>
+    <figure style="margin: 1.5rem 0;">
+      <svg viewBox="0 0 470 380" width="100%" role="img" aria-label="Triangle with vertices (0,0), (1,0), (1,1), split by the lines y = x/2 and y = x/4" style="max-width: 470px; display: block; margin: 0 auto;">
+        <polygon points="60,330 340,330 340,50" fill="var(--highlight)" stroke="var(--text)" stroke-width="2"/>
+        <polygon points="60,330 340,330 340,190" fill="var(--accent)" fill-opacity="0.25"/>
+        <polygon points="60,330 340,330 340,260" fill="var(--accent)" fill-opacity="0.35"/>
+        <line x1="60" y1="330" x2="340" y2="190" stroke="var(--accent)" stroke-width="2.5"/>
+        <line x1="60" y1="330" x2="340" y2="260" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="7 5"/>
+        <line x1="40" y1="330" x2="400" y2="330" stroke="var(--muted)" stroke-width="1.5"/>
+        <line x1="60" y1="350" x2="60" y2="30" stroke="var(--muted)" stroke-width="1.5"/>
+        <g fill="var(--text)" font-size="19" font-family="-apple-system, BlinkMacSystemFont, sans-serif">
+          <text x="150" y="190">y = x</text>
+          <text x="350" y="196">y = x/2</text>
+          <text x="350" y="266">y = x/4</text>
+          <text x="405" y="336">x</text>
+          <text x="52" y="24">y</text>
+          <text x="334" y="356">1</text>
+          <text x="38" y="56">1</text>
+          <text x="48" y="356">0</text>
+        </g>
+      </svg>
+      <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 2:</strong> The support $0 \le y \le x \le 1$ is the triangle below the line $y = x$. Part (d) integrates over the region under $y = x/2$; part (e) asks what fraction of that region's probability lies under $y = x/4$.</figcaption>
+    </figure>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \int_0^1\!\int_0^x c\,x^2 y\,dy\,dx &= 1 \\[8pt]
+      f_X(x) &= \int_0^x f(x,y)\,dy \\[8pt]
+      f_Y(y) &= \int_y^1 f(x,y)\,dx \\[8pt]
+      P(Y \le X/2) &= \int_0^1\!\int_0^{x/2} f(x,y)\,dy\,dx
+    \end{aligned}$$
+    <p>For (e), use the definition of conditional probability: $P(A \mid B) = P(A \cap B)/P(B)$. Here $A$ ("under $x/4$") sits inside $B$ ("under $x/2$"), so $A \cap B = A$.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{(b)} \quad \int_0^1 c\,x^2\cdot\frac{x^2}{2}\,dx &= \frac{c}{2}\cdot\frac{1}{5} = \frac{c}{10} = 1 \\[4pt]
+        c &= 10 \\[10pt]
+        \text{(c)} \quad f_X(x) &= \int_0^x 10x^2 y\,dy = 5x^4, \quad 0 \le x \le 1 \\[8pt]
+        f_Y(y) &= \int_y^1 10x^2 y\,dx = \frac{10}{3}\,y\,(1 - y^3), \quad 0 \le y \le 1
+      \end{aligned}$$
+      $$\begin{aligned}
+        \text{(d)} \quad \int_0^1 10x^2\cdot\frac{(x/2)^2}{2}\,dx &= \int_0^1 \frac{5}{4}x^4\,dx = \frac{1}{4} \\[10pt]
+        P(Y \le X/4) &= \int_0^1 10x^2\cdot\frac{(x/4)^2}{2}\,dx = \int_0^1 \frac{5}{16}x^4\,dx = \frac{1}{16} \\[8pt]
+        \text{(e)} \quad P(Y \le X/4 \mid Y \le X/2) &= \frac{1/16}{1/4} = \frac{1}{4}
+      \end{aligned}$$
+      <p>Check (c): $\int_0^1 5x^4\,dx = 1$ ✓.</p>
+    </details>
+  </div>
+
+  <!-- T2 Q6 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q6: Why Divide by $n - 1$? Bessel's Correction</h3>
+      <span class="problem-badge">Tutorial 2 · Q6</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>$X_1, \dots, X_n$ is an i.i.d. sample (independent, identically distributed) with mean $\mu$ and variance $\sigma^2$. Show that $S^2 = \frac{1}{n-1}\sum (X_i - \bar{X})^2$ satisfies $E[S^2] = \sigma^2$, i.e. it is an <strong>unbiased</strong> estimator (right on average).</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> a proof with expectations. The trick is to rewrite deviations from $\bar{X}$ in terms of deviations from $\mu$, whose expectations you know.</div>
+    <span class="solution-heading">Set it up</span>
+    <p>Add and subtract $\mu$ inside the square and expand. The cross term collapses because $\sum (X_i - \mu) = n(\bar{X} - \mu)$:</p>
+    $$\sum_{i=1}^{n}(X_i - \bar{X})^2 = \sum_{i=1}^{n}(X_i - \mu)^2 - n(\bar{X} - \mu)^2$$
+    <p>Two facts you need: $E[(X_i - \mu)^2] = \sigma^2$ and $E[(\bar{X} - \mu)^2] = \operatorname{Var}(\bar{X}) = \sigma^2/n$.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        E\Big[\sum (X_i - \bar{X})^2\Big] &= \sum E[(X_i - \mu)^2] - n\,E[(\bar{X} - \mu)^2] \\[6pt]
+        &= n\sigma^2 - n\cdot\frac{\sigma^2}{n} \\[6pt]
+        &= (n - 1)\,\sigma^2 \\[8pt]
+        E[S^2] &= \frac{1}{n-1}(n-1)\,\sigma^2 = \sigma^2
+      \end{aligned}$$
+      <p>Dividing by $n$ instead would give $\frac{n-1}{n}\sigma^2$: always a little too small, because $\bar{X}$ sits closer to the data than $\mu$ does.</p>
+    </details>
+  </div>
+
+  <!-- T2 Q7 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q7: One Event Every 10 Days</h3>
+      <span class="problem-badge">Tutorial 2 · Q7</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Events occur as a Poisson process with an average interarrival time of 10 days. (a) What is the expected waiting time until the next event? (b) What is the probability of at least one event in the next half day?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> "time between events" in a Poisson process is Exponential with rate $\lambda = 1/\text{mean}$. "At least one event by time $t$" is the same as "waiting time $\le t$", which is the exponential CDF.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \lambda &= \frac{1}{10} = 0.1 \text{ per day} \\[6pt]
+      f(t) &= \lambda e^{-\lambda t}, \quad E[T] = \frac{1}{\lambda} \\[6pt]
+      P(T \le t) &= 1 - e^{-\lambda t}
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{(a)} \quad E[T] &= 10 \text{ days} \\[6pt]
+        \text{(b)} \quad P(T \le 0.5) &= 1 - e^{-0.05} \approx 0.0488
+      \end{aligned}$$
+      <p>About 4.9%. Because the exponential is memoryless, this is true no matter how long you've already waited.</p>
+    </details>
+  </div>
+
+  <!-- T2 Q8 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T2 Q8: Calls Arriving at Rate 10</h3>
+      <span class="problem-badge">Tutorial 2 · Q8</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Calls arrive as a Poisson process with an average of $\lambda = 10$ per hour. (a) Find the probability of exactly 8 calls in an hour. (b) Given that 8 calls arrived, and each call independently is of a particular type (say, urgent) with probability 0.2, find the probability that exactly 2 of them are urgent.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> (a) count of events in a fixed window → Poisson. (b) Once the number of calls is fixed at 8, each is a yes/no trial with $p = 0.2$ → Binomial(8, 0.2).</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      P(X = 8) &= \frac{e^{-10}\,10^8}{8!} \\[8pt]
+      P(Y = 2) &= \binom{8}{2}(0.2)^2(0.8)^6
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{(a)} \quad P(X = 8) &\approx 0.1126 \\[6pt]
+        \text{(b)} \quad P(Y = 2) &= 28 \times 0.04 \times 0.2621 \approx 0.2936
+      \end{aligned}$$
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Tutorial 3                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="tutorial-3">
+  <h2>Tutorial 3: Two-Sample Tests, Variances and $\chi^2$</h2>
+  <p>
+    Tutorial 3 is a tour of every two-sample situation: means with known $\sigma$, proportions, unequal and equal variances, paired data, comparing variances directly, and finally counts with $\chi^2$. The hard part is rarely the arithmetic. It's choosing the right test, so the decision path comes first.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Choosing a Two-Sample Test</div>
+    <div class="math-box-body">
+      <ol>
+        <li><strong>Same subjects measured twice</strong> (before/after)? → Paired $t$ on the differences.</li>
+        <li><strong>Comparing proportions</strong> (fraction defect-free, fraction who buy)? → Two-proportion $z$.</li>
+        <li><strong>Comparing variability</strong> (consistency, repeatability)? → $F$-test, $F = s_1^2/s_2^2$.</li>
+        <li><strong>Comparing means, $\sigma$'s known</strong>? → Two-sample $z$.</li>
+        <li><strong>Comparing means, $\sigma$'s unknown</strong>? Run an $F$-test first (or use judgement). Equal variances → pooled $t$ ($n_1 + n_2 - 2$ df). Unequal → Welch $t$.</li>
+        <li><strong>Counts in categories</strong>? One categorical variable vs a claimed distribution → $\chi^2$ goodness of fit. Two categorical variables → $\chi^2$ test of independence.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Pooled vs Unpooled, and the Margin of Error</div>
+    <div class="math-box-body">
+      <p>For two proportions, the test and the interval use different standard errors:</p>
+      $$\begin{aligned}
+        \text{Test (assumes } p_1 = p_2\text{): } SE &= \sqrt{\hat{p}(1-\hat{p})\Big(\frac{1}{n_1} + \frac{1}{n_2}\Big)} \\[8pt]
+        \hat{p} &= \frac{x_1 + x_2}{n_1 + n_2} \\[8pt]
+        \text{CI (no assumption): } SE &= \sqrt{\frac{\hat{p}_1(1-\hat{p}_1)}{n_1} + \frac{\hat{p}_2(1-\hat{p}_2)}{n_2}}
+      \end{aligned}$$
+      <p>Why? A test is computed <em>as if $H_0$ were true</em>, so it pools both samples into one shared $p$. An interval makes no such assumption. Every interval has the form: point estimate $\pm$ <strong>margin of error</strong>, where margin of error = critical value × SE.</p>
+      <p>For a two-sided $F$-test: p-value $= 2 \times \min\{P(F \le f),\, P(F \ge f)\}$.</p>
+    </div>
+  </div>
+
+  <!-- T3 Q1 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q1: Does the New Process Add 25 Hours of Lifetime?</h3>
+      <span class="problem-badge">Tutorial 3 · Q1</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Old process: $n = 16$, mean lifetime 5000 h, $\sigma = 40$. New process: $n = 25$, mean 5050 h, $\sigma = 30$. At $\alpha = 0.01$, is there evidence that the new process increases mean lifetime by more than 25 hours?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> two means, population $\sigma$'s known → two-sample $z$. The twist: the hypothesised difference is $d_0 = 25$, not 0. "More than 25" → right-tailed.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \mu_{\text{new}} - \mu_{\text{old}} \le 25 \\[4pt]
+      H_1 &: \mu_{\text{new}} - \mu_{\text{old}} > 25 \\[8pt]
+      z &= \frac{(\bar{x}_{\text{new}} - \bar{x}_{\text{old}}) - 25}{\sqrt{\frac{30^2}{25} + \frac{40^2}{16}}}
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        z &= \frac{50 - 25}{\sqrt{36 + 100}} = \frac{25}{11.66} = 2.144 \\[6pt]
+        z_{0.01} &= 2.326 \\[6pt]
+        p &= P(Z > 2.144) \approx 0.016
+      \end{aligned}$$
+      <p>$2.144 < 2.326$ (and $p = 0.016 > 0.01$): fail to reject at the 1% level. It would be significant at 5%.</p>
+      <p><em>Note on the tutorial notes:</em> they give the p-value as 0.1603. The correct value is 0.016 (a misplaced decimal). The conclusion is unchanged.</p>
+    </details>
+  </div>
+
+  <!-- T3 Q2 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q2: Which Solution Gives More Defect-Free Units?</h3>
+      <span class="problem-badge">Tutorial 3 · Q2</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Solution A: 253 of 300 units defect-free. Solution B: 196 of 300. (a) Test whether the defect-free proportions differ ($\alpha = 0.05$). (b) Give a 95% CI for $p_A - p_B$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> two proportions → two-proportion $z$-test with the pooled SE; CI with the unpooled SE.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \hat{p}_A &= \tfrac{253}{300} = 0.8433, \quad \hat{p}_B = \tfrac{196}{300} = 0.6533 \\[6pt]
+      \hat{p} &= \tfrac{449}{600} = 0.7483 \\[6pt]
+      H_0 &: p_A = p_B, \quad H_1: p_A \ne p_B
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        SE_{\text{pooled}} &= \sqrt{0.7483(0.2517)\tfrac{2}{300}} = 0.0354 \\[6pt]
+        z &= \frac{0.19}{0.0354} = 5.36, \quad p < 0.0001 \\[10pt]
+        SE_{\text{unpooled}} &= \sqrt{\tfrac{0.1321}{300} + \tfrac{0.2265}{300}} = 0.0346 \\[6pt]
+        \text{CI} &= 0.19 \pm 1.96(0.0346) \\[4pt]
+        &= 0.19 \pm 0.068 \;\Rightarrow\; (0.122,\; 0.258)
+      \end{aligned}$$
+      <p>Reject $H_0$. Solution A's defect-free rate is between about 12 and 26 percentage points higher. The interval excludes 0, consistent with rejecting.</p>
+      <p><em>Note:</em> the tutorial notes write the lower limit as 0.132; it is 0.122.</p>
+    </details>
+  </div>
+
+  <!-- T3 Q3 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q3: Failure Stress Under Two Conditions</h3>
+      <span class="problem-badge">Tutorial 3 · Q3</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Failure stress under condition 1: $n_1 = 9$, $\bar{x}_1 = 16.356$, $s_1 = 2.070$. Under condition 2: $n_2 = 6$, $\bar{x}_2 = 11.483$, $s_2 = 2.370$. (a) What assumptions are needed for inference? (b) Find a 99% CI for $\mu_1 - \mu_2$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> small samples, $\sigma$'s unknown, no reason to assume equal variances → Welch interval: $(\bar{x}_1 - \bar{x}_2) \pm t_{\alpha/2,\nu}\cdot SE$.</div>
+    <span class="solution-heading">Set it up</span>
+    <p>(a) Assumptions: <strong>independence</strong> (the two samples are independent of each other, and observations within each sample are independent) and <strong>normality</strong> (failure stress under each condition is normally distributed; with $n = 9$ and $6$ the CLT can't rescue us).</p>
+    $$\begin{aligned}
+      SE &= \sqrt{\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}} \\[6pt]
+      \nu &= \text{Welch df (formula in T2 Q1)} \\[6pt]
+      \text{CI} &= (\bar{x}_1 - \bar{x}_2) \pm t_{0.005,\,\nu}\cdot SE
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \bar{x}_1 - \bar{x}_2 &= 4.872 \\[6pt]
+        SE &= \sqrt{0.476 + 0.936} = 1.188 \\[6pt]
+        \nu &\approx 9.79 \\[6pt]
+        t_{0.005,\,9.79} &\approx 3.18 \\[6pt]
+        \text{MOE} &= 3.18 \times 1.188 = 3.78 \\[6pt]
+        \text{CI} &\approx (1.09,\; 8.66)
+      \end{aligned}$$
+      <p>We are 99% confident that mean failure stress under condition 1 exceeds condition 2 by between about 1.1 and 8.7 units. The tutorial notes use 3.169 (the value for 10 df) and get (1.11, 8.64); essentially the same.</p>
+    </details>
+  </div>
+
+  <!-- T3 Q4 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q4: Two Vendors, Equal Variances, Different Means?</h3>
+      <span class="problem-badge">Tutorial 3 · Q4</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Resistance of parts from vendor 1: $n_1 = 25$, $\bar{x}_1 = 98$, $s_1 = 2.1$. Vendor 2: $n_2 = 35$, $\bar{x}_2 = 104$, $s_2 = 1.9$. (1) Test whether the variances are equal. (2) Test whether the mean resistances differ. Use $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> a two-step problem. Step 1 is an $F$-test; its result decides step 2: pooled $t$ if variances look equal, Welch if not.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      F &= \frac{s_1^2}{s_2^2}, \quad \text{df} = (24,\; 34) \\[8pt]
+      s_p^2 &= \frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} \\[8pt]
+      t &= \frac{\bar{x}_1 - \bar{x}_2}{s_p\sqrt{\frac{1}{n_1} + \frac{1}{n_2}}}, \quad \text{df} = 58
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        F &= \frac{4.41}{3.61} = 1.222 \\[6pt]
+        p_F &= 2\min\{0.709,\; 0.291\} = 0.582
+      \end{aligned}$$
+      <p>Fail to reject equal variances → use the pooled $t$-test.</p>
+      $$\begin{aligned}
+        s_p^2 &= \frac{24(4.41) + 34(3.61)}{58} = 3.941 \\[6pt]
+        s_p &= 1.985 \\[6pt]
+        SE &= 1.985\sqrt{\tfrac{1}{25} + \tfrac{1}{35}} = 0.520 \\[6pt]
+        t &= \frac{98 - 104}{0.520} = -11.54
+      \end{aligned}$$
+      <p>p-value is essentially 0. Reject $H_0$: the mean resistances differ, with vendor 2 higher.</p>
+      <p>Be careful with wording: failing to reject equal variances doesn't <em>prove</em> they are equal; it means the data give no reason to doubt it.</p>
+    </details>
+  </div>
+
+  <!-- T3 Q5 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q5: Blood Pressure Before and After</h3>
+      <span class="problem-badge">Tutorial 3 · Q5</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>15 patients' blood pressure is measured before and after a drug. The mean reduction is $\bar{d} = 10$ mmHg and the SD of the reductions is $s_d = 4$ mmHg. At $\alpha = 0.01$, does the drug reduce blood pressure?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> the same people measured twice → <strong>paired $t$-test</strong>. Work with the 15 differences as if they were one sample; the two raw samples are not independent, so a two-sample test would be wrong.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \mu_d = 0, \quad H_1: \mu_d > 0 \\[6pt]
+      t &= \frac{\bar{d} - 0}{s_d/\sqrt{n}}, \quad \text{df} = n - 1 = 14
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        t &= \frac{10}{4/\sqrt{15}} = \frac{10}{1.033} = 9.68 \\[6pt]
+        t_{0.01,\,14} &= 2.624 \\[6pt]
+        p &\approx 7 \times 10^{-8}
+      \end{aligned}$$
+      <p>Reject $H_0$: strong evidence the drug reduces blood pressure.</p>
+      <p><em>Note:</em> the notes label the critical value "$t_{0.995,14}$". For a one-sided test at $\alpha = 0.01$ you need the 99th percentile, $t_{0.99,14} = 2.624$; the number used is right but the label is wrong ($t_{0.995,14}$ is 2.977).</p>
+    </details>
+  </div>
+
+  <!-- T3 Q6 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q6: Are Two Variances Equal?</h3>
+      <span class="problem-badge">Tutorial 3 · Q6</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Sample 1: $n = 10$, $\bar{x} = 50.2$, $s = 6.3$. Sample 2: $n = 8$, $\bar{x} = 48.1$, $s = 4.6$. At $\alpha = 0.01$, test whether the population variances are equal.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> compare variances → $F$-test. The means are a distraction here.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \sigma_1^2 = \sigma_2^2, \quad H_1: \sigma_1^2 \ne \sigma_2^2 \\[6pt]
+      F &= \frac{6.3^2}{4.6^2}, \quad \text{df} = (9,\; 7)
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        F &= \frac{39.69}{21.16} = 1.876 \\[6pt]
+        p &= 2\min\{P(F \le 1.876),\; P(F \ge 1.876)\} \approx 0.42
+      \end{aligned}$$
+      <p>$0.42 > 0.01$: fail to reject. No evidence the variances differ.</p>
+    </details>
+  </div>
+
+  <!-- T3 Q7 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q7: Maricopa vs Pima</h3>
+      <span class="problem-badge">Tutorial 3 · Q7</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>In Maricopa county, 385 of 500 sampled people have a certain characteristic; in Pima county, 267 of 400. At 95% confidence, test whether the proportions differ and give a CI for the difference.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> same as T3 Q2: two-proportion $z$, pooled SE for the test and unpooled for the CI. $\alpha = 1 - \text{confidence} = 0.05$.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \hat{p}_1 &= 0.770, \quad \hat{p}_2 = 0.6675 \\[6pt]
+      \hat{p}_1 - \hat{p}_2 &= 0.1025 \\[6pt]
+      \hat{p} &= \tfrac{652}{900} = 0.7244
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        SE_{\text{pooled}} &= \sqrt{0.7244(0.2756)\big(\tfrac{1}{500} + \tfrac{1}{400}\big)} = 0.0300 \\[6pt]
+        z &= \frac{0.1025}{0.0300} = 3.42, \quad p \approx 0.0006 \\[10pt]
+        SE_{\text{unpooled}} &= \sqrt{\tfrac{0.77(0.23)}{500} + \tfrac{0.6675(0.3325)}{400}} = 0.0302 \\[6pt]
+        \text{CI} &= 0.1025 \pm 1.96(0.0302) \\[4pt]
+        &= 0.1025 \pm 0.059 \;\Rightarrow\; (0.043,\; 0.162)
+      \end{aligned}$$
+      <p>Reject $H_0$: the proportion is between about 4.3 and 16.2 percentage points higher in Maricopa. (The notes write the interval with the endpoints in reverse order; the lower limit comes first.)</p>
+    </details>
+  </div>
+
+  <!-- T3 Q8 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q8: Repeatability of Assembly Times</h3>
+      <span class="problem-badge">Tutorial 3 · Q8</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Assembly times: men $n_1 = 25$, $s_1 = 0.98$; women $n_2 = 21$, $s_2 = 1.02$. At $\alpha = 0.02$, is there a difference in repeatability?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> <strong>repeatability</strong> means how consistent repeated measurements are: high repeatability = low variability. So "difference in repeatability" is a question about variances → $F$-test.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \sigma_1^2 = \sigma_2^2, \quad H_1: \sigma_1^2 \ne \sigma_2^2 \\[6pt]
+      F &= \frac{0.98^2}{1.02^2}, \quad \text{df} = (24,\; 20)
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        F &= \frac{0.9604}{1.0404} = 0.923 \\[6pt]
+        p &\approx 0.84
+      \end{aligned}$$
+      <p>Critical values at $\alpha = 0.02$ are $F_{0.99} = 2.86$ and $F_{0.01} = 0.365$; 0.923 lies between them. Fail to reject: no significant difference in repeatability. An $F$ close to 1 always gives a large p-value.</p>
+    </details>
+  </div>
+
+  <!-- T3 Q9 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q9: Do the Flower Colours Fit the Expected Ratio?</h3>
+      <span class="problem-badge">Tutorial 3 · Q9</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Observed flower colours: red 62, white 38, pink 23. Expected under the theory: red 60, white 40, pink 23. At $\alpha = 0.05$, do the data fit?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> one categorical variable compared against a claimed distribution → <strong>$\chi^2$ goodness-of-fit test</strong>. Same $\sum (O - E)^2/E$ statistic as the independence test, but df = (number of categories − 1).</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \text{the colours follow the expected distribution} \\[6pt]
+      \chi^2 &= \sum \frac{(O - E)^2}{E}, \quad \text{df} = 3 - 1 = 2
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \chi^2 &= \frac{(62-60)^2}{60} + \frac{(38-40)^2}{40} + \frac{0^2}{23} \\[6pt]
+        &= 0.067 + 0.100 + 0 = 0.167 \\[6pt]
+        \chi^2_{0.05,\,2} &= 5.99 \\[6pt]
+        p &\approx 0.92
+      \end{aligned}$$
+      <p>Fail to reject: the observed colours are consistent with the expected distribution.</p>
+    </details>
+  </div>
+
+  <!-- T3 Q10 -->
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>T3 Q10: Is Nausea Independent of Drug Type?</h3>
+      <span class="problem-badge">Tutorial 3 · Q10</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th></th><th>Nausea</th><th>No nausea</th><th>Total</th></tr>
+        <tr><td>Drug A</td><td>15</td><td>45</td><td>60</td></tr>
+        <tr><td>Drug B</td><td>10</td><td>30</td><td>40</td></tr>
+        <tr><td>Total</td><td>25</td><td>75</td><td>100</td></tr>
+      </table>
+      </div>
+      <p>At $\alpha = 0.05$, is nausea independent of drug type?</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> two categorical variables in a contingency table → $\chi^2$ test of independence with $E = \frac{\text{row total} \times \text{column total}}{\text{grand total}}$.</div>
+    <span class="solution-heading">Set it up</span>
+    $$E_{A,\text{nausea}} = \frac{60 \times 25}{100} = 15$$
+    <p>Compute the other three expected counts the same way and compare with the observed table.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Expected counts: A: 15 and 45; B: 10 and 30. They equal the observed counts exactly.</p>
+      $$\begin{aligned}
+        \chi^2 &= 0, \quad \text{df} = (2-1)(2-1) = 1 \\[6pt]
+        p &= 1
+      \end{aligned}$$
+      <p>Fail to reject. Both drugs give nausea to exactly 25% of patients, the textbook picture of independence.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Connecting the Dots                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots</h2>
+  <p>
+    Look across the three tutorials and the same few ideas carry every problem. Bayes (T1 Q1), Markov chains (T1 Q9), the conditional probability in T2 Q5 and the error probability in T2 Q3 all come from conditioning and the law of total probability. Linearity of expectation does the heavy lifting in the joint-density expectation (T1 Q3), the hat-check problem (T1 Q5) and Bessel's correction (T2 Q6). And every test in tutorials 2 and 3 is the same move: an estimate minus its hypothesised value, divided by a standard error, compared to a known distribution.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Trigger → Tool → First Line</div>
+    <div class="math-box-body">
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>If you see…</th><th>Use</th><th>Write first</th></tr>
+        <tr><td>Test accuracy + rare condition</td><td>Bayes</td><td>$P(+) = \sum P(+ \mid \cdot)P(\cdot)$</td></tr>
+        <tr><td>"Find $k$" in a density</td><td>Normalise</td><td>$\int f = 1$</td></tr>
+        <tr><td>$E$ of a sum</td><td>Linearity</td><td>Split into separate expectations</td></tr>
+        <tr><td>"Expected number of…"</td><td>Indicators</td><td>$X = \sum I_i$</td></tr>
+        <tr><td>Exponential gaps, counts</td><td>Poisson process</td><td>Rate $\lambda$, count $\sim$ Poisson$(\lambda t)$</td></tr>
+        <tr><td>Next state depends on current</td><td>Markov chain</td><td>Transition matrix $P$, $v_{k+1} = v_k P$</td></tr>
+        <tr><td>Fixed rejection rule</td><td>$\alpha$ and power</td><td>$P(\text{rule fires} \mid p)$</td></tr>
+        <tr><td>Before/after on same units</td><td>Paired $t$</td><td>Differences $d_i$</td></tr>
+        <tr><td>Two proportions</td><td>Two-proportion $z$</td><td>Pooled $\hat{p}$ for test, unpooled for CI</td></tr>
+        <tr><td>Consistency, repeatability</td><td>$F$-test</td><td>$F = s_1^2/s_2^2$</td></tr>
+        <tr><td>Two means, $\sigma$ unknown</td><td>Pooled or Welch $t$</td><td>$F$-test first</td></tr>
+        <tr><td>Counts vs a claimed ratio</td><td>$\chi^2$ goodness of fit</td><td>df = categories − 1</td></tr>
+        <tr><td>Counts in a two-way table</td><td>$\chi^2$ independence</td><td>$E = RC/N$</td></tr>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
