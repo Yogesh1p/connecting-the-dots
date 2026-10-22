@@ -14,7 +14,7 @@
 <meta name="status" content="live">
 <meta name="date" content="2026-04-10">
 <meta name="author" content="Yogesh">
-<meta name="reading_time" content="4">
+<meta name="reading_time" content="10">
 
 <meta property="og:title" content="Common Probability Distributions">
 <meta property="og:description" content="A comprehensive guide to discrete and continuous probability distributions, including PMF, PDF, CDF, means, and variances.">
@@ -166,8 +166,18 @@
                         
                         <p>This means $X$ follows the distribution $\mathcal{D}$ with parameter(s) $\theta$. The symbol " $\sim$ " is read as "is distributed as" or "follows".</p>
 
+                        <p>Each distribution below also comes with a <strong>story</strong>: a concrete experiment that produces it. The stories follow the approach of Blitzstein &amp; Hwang, <em>Introduction to Probability</em>. A story is often more useful than the formula. If a word problem matches the story, you know the distribution, and you get its PMF, mean and variance without deriving anything.</p>
+
                         <div class="dist-section">
                             <h2>1. $X \sim \text{Bernoulli}(p)$</h2>
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Bernoulli</div>
+                                <div class="math-box-body">
+                                    <p>Perform one experiment that ends in either success, with probability $p$, or failure, with probability $1-p$. Let $X = 1$ on success and $X = 0$ on failure. Then $X \sim \text{Bern}(p)$.</p>
+                                    <p>Every event has a Bernoulli hidden inside it: the <strong>indicator</strong> $I_A$, which equals 1 if $A$ happens and 0 if not, is $\text{Bern}(P(A))$. So $E[I_A] = P(A)$, and that one fact turns many "expected number of…" questions into adding up probabilities.</p>
+                                </div>
+                            </div>
+
                             <p><strong>(Bernoulli trial).</strong> An experiment that can result in either a "success" or a "failure" (but not both). A Bernoulli random variable can be thought of as the indicator of success: it equals 1 if success occurs and 0 if failure occurs. It is a discrete random variable that can take on only two possible values, 0 and 1.</p>
                             
                             <div class="stats-grid">
@@ -203,6 +213,15 @@
 
                         <div class="dist-section">
                             <h2>2. $X \sim \text{Binomial}(n,p)$</h2>
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Binomial</div>
+                                <div class="math-box-body">
+                                    <p>Perform $n$ independent Bernoulli trials, each with the same success probability $p$, and count the successes. That count is $\text{Bin}(n, p)$. The same thing in urn language: an urn has a fraction $p$ of white balls, you draw $n$ balls <strong>with replacement</strong> (so the urn never changes), and $X$ counts the white ones.</p>
+                                    <p>Why $\binom{n}{k}p^k(1-p)^{n-k}$: any one particular arrangement of $k$ successes and $n-k$ failures has probability $p^k(1-p)^{n-k}$ by independence, and there are $\binom{n}{k}$ ways to choose which trials are the successes. Writing $X = I_1 + \dots + I_n$ as a sum of indicators gives $E[X] = np$ at once.</p>
+                                    <p>Examples: heads in $n$ coin tosses, defective parts in a batch of $n$ from a stable process, purchases from $n$ demo invites.</p>
+                                </div>
+                            </div>
+
                             <p>Suppose that $n$ independent Bernoulli trials are performed, each with the same success probability $p$. Let $X$ be the number of successes. We write $X \sim \text{Bin}(n,p)$, where $n$ is a positive integer and $0 &lt; p &lt; 1$.</p>
 
                             <div class="stats-grid">
@@ -235,8 +254,67 @@
                             </div>
                         </div>
 
+
                         <div class="dist-section">
-                            <h2>3. Uniform Distributions</h2>
+                            <h2>3. $X \sim \text{HGeom}(w, b, n)$</h2>
+
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Hypergeometric</div>
+                                <div class="math-box-body">
+                                    <p>An urn holds $w$ white balls and $b$ black balls. Draw $n$ of them <strong>without replacement</strong>, so that every set of $n$ balls is equally likely. Let $X$ be the number of white balls in your sample. Then $X \sim \text{HGeom}(w, b, n)$.</p>
+                                    <p>It is the binomial story with one change. Drawing with replacement keeps the urn the same every time, so the draws are independent and $X \sim \text{Bin}\big(n, \tfrac{w}{w+b}\big)$. Drawing without replacement changes the urn after each draw: taking a white ball makes the next white ball less likely. The draws are dependent, so the binomial formula no longer applies, and we count instead.</p>
+                                </div>
+                            </div>
+
+                            <p><strong>Counting the PMF.</strong> Think of the $n$ draws as one handful. There are $\binom{w+b}{n}$ equally likely handfuls. A handful with exactly $k$ white balls is built by choosing which $k$ of the $w$ white balls you got, and which $n-k$ of the $b$ black balls fill the rest.</p>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>PMF</strong>
+                                    $$ P(X=k)=\frac{\binom{w}{k}\binom{b}{n-k}}{\binom{w+b}{n}} $$
+                                    <small>for integers $k$ with $0 \le k \le w$ and $0 \le n-k \le b$; otherwise $0$</small>
+                                </div>
+                                <div class="stat-item">
+                                    <strong>CDF</strong> (No closed-form)
+                                    $$ F(x)=\sum_{k \le x}\frac{\binom{w}{k}\binom{b}{n-k}}{\binom{w+b}{n}} $$
+                                </div>
+                            </div>
+
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <strong>Mean & Variance</strong>
+                                    With $N = w+b$ and $p = \frac{w}{N}$:<br>
+                                    $E[X] = np$<br>
+                                    $\operatorname{Var}(X) = np(1-p)\,\frac{N-n}{N-1}$
+                                </div>
+                                <div class="stat-item">
+                                    <strong>Compared with the Binomial</strong>
+                                    Same mean. The variance is smaller by the <em>finite population correction</em> $\frac{N-n}{N-1}$, because sampling without replacement cannot produce the extreme runs that independent draws can. When $N \gg n$ the correction is close to 1 and $\text{HGeom} \approx \text{Bin}(n, p)$.
+                                </div>
+                            </div>
+
+                            <p><strong>The same story in other clothes.</strong> "White" is whatever you are counting, "black" is everything else:</p>
+                            <ul>
+                                <li><strong>Cards:</strong> the number of aces in a 5-card hand is $\text{HGeom}(4, 48, 5)$.</li>
+                                <li><strong>Quality inspection:</strong> a lot of 50 items has 3 defectives; inspecting 10 without replacement, the defectives found are $\text{HGeom}(3, 47, 10)$.</li>
+                                <li><strong>Capture–recapture:</strong> a forest has $N$ elk. Catch $m$, tag them and release them. Later catch $n$ elk. The number of tagged elk in the second catch is $\text{HGeom}(m, N-m, n)$, which is how ecologists estimate $N$ from the tagged fraction.</li>
+                            </ul>
+
+                            <div class="chart-wrapper">
+                                <canvas id="chart-hypergeom"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dist-section">
+                            <h2>4. Uniform Distributions</h2>
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Uniform</div>
+                                <div class="math-box-body">
+                                    <p><strong>Discrete:</strong> write each element of a finite set $C$ on a slip of paper, put the slips in a hat, shake it, and draw one. The value drawn is $\text{DUnif}(C)$, and $P(X \in A) = \frac{|A|}{|C|}$: probability is counting.</p>
+                                    <p><strong>Continuous:</strong> pick a point "completely at random" from the interval $(a, b)$, meaning the chance of landing in any sub-interval depends only on its length: $P(c \le X \le d) = \frac{d-c}{b-a}$. Probability is length. Its special role: from a single $\text{Unif}(0,1)$ draw you can build a draw from <em>any</em> continuous distribution by plugging it into the inverse CDF, which is how computers simulate random numbers.</p>
+                                </div>
+                            </div>
+
                             <p><strong>Discrete Uniform ($X \sim \text{DUnif}(C)$):</strong> Choose one number uniformly at random from a finite, nonempty set $C$. All values are equally likely.</p>
                             <p><strong>Continuous Uniform ($X \sim \text{Uniform}(a,b)$):</strong> A random variable $X$ has equal probability density over every point in the continuous interval $[a, b]$.</p>
 
@@ -270,7 +348,15 @@
                         </div>
 
                         <div class="dist-section">
-                            <h2>4. $X \sim \text{Exponential}(\lambda)$</h2>
+                            <h2>5. $X \sim \text{Exponential}(\lambda)$</h2>
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Exponential</div>
+                                <div class="math-box-body">
+                                    <p>You are waiting for the first arrival (a customer, a phone call, a failure) when arrivals happen at a constant average rate $\lambda$ per unit time, and the process has no memory. The waiting time is $\text{Expo}(\lambda)$.</p>
+                                    <p>It is the <strong>continuous version of the geometric</strong>: chop time into tiny slots of length $\Delta$, and let each slot independently contain an arrival with probability $\lambda\Delta$. The number of slots until the first arrival is geometric, and as $\Delta \to 0$ the waiting time becomes exponential. That is why it inherits memorylessness: a slot never knows how many empty slots came before it.</p>
+                                </div>
+                            </div>
+
                             <p>A continuous distribution used for modeling <strong>waiting times</strong> between independent events that occur at a constant average rate $\lambda \gt 0$. It is uniquely characterized by its memoryless property.</p>
 
                             <div class="stats-grid">
@@ -309,7 +395,15 @@
                         </div>
 
                         <div class="dist-section">
-                            <h2>5. $X \sim \text{Poisson}(\lambda)$</h2>
+                            <h2>6. $X \sim \text{Poisson}(\lambda)$</h2>
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Poisson</div>
+                                <div class="math-box-body">
+                                    <p>There are a very large number of opportunities for something to happen, each one rare and roughly independent of the others, and $X$ counts how many happen: emails in an hour, typos on a page, earthquakes in a year. If there are $n$ opportunities each with probability $p$, the count is approximately $\text{Pois}(\lambda)$ with $\lambda = np$, the expected number. This is the <em>Poisson paradigm</em>.</p>
+                                    <p>In a Poisson process with rate $\lambda$, the number of arrivals in a window of length $t$ is $\text{Pois}(\lambda t)$, and the gaps between arrivals are $\text{Expo}(\lambda)$: the count and the waiting time are two views of the same process.</p>
+                                </div>
+                            </div>
+
                             <p>A discrete distribution used to model the <strong>number of events</strong> occurring in a fixed interval of time or space, when events happen independently and with a constant average rate $\lambda \gt 0$.</p>
 
                             <div class="stats-grid">
@@ -347,7 +441,15 @@
                         </div>
 
                         <div class="dist-section">
-                            <h2>6 & 7. The Normal Distributions</h2>
+                            <h2>7 & 8. The Normal Distributions</h2>
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Normal</div>
+                                <div class="math-box-body">
+                                    <p>Add up many small, independent contributions, none of which dominates. Whatever the individual pieces look like, the total is approximately normal: this is the Central Limit Theorem. Heights (many genes and environmental factors), measurement error (many small disturbances) and averages of large samples all follow this story.</p>
+                                    <p>Every normal is a stretched and shifted standard normal: if $Z \sim \mathcal{N}(0,1)$ then $X = \mu + \sigma Z \sim \mathcal{N}(\mu, \sigma^2)$. That is why one $z$-table is enough for all of them.</p>
+                                </div>
+                            </div>
+
                             <p>A continuous, symmetric, bell-shaped distribution widely used due to the Central Limit Theorem. $X \sim \mathcal{N}(\mu, \sigma^2)$ where $\mu$ is the mean and $\sigma^2$ is the variance.</p>
 
                             <div class="stats-grid">
@@ -375,13 +477,25 @@
                         </div>
 
                         <div class="dist-section">
-                            <h2>8. T-distribution & 9. Chi-squared</h2>
+                            <h2>9. T-distribution & 10. Chi-squared</h2>
                             
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Student t</div>
+                                <div class="math-box-body">
+                                    <p>Divide a standard normal by an independent, estimated scale: $T = \dfrac{Z}{\sqrt{V/n}}$ with $Z \sim \mathcal{N}(0,1)$ independent of $V \sim \chi^2_n$. Then $T \sim t_n$. It appears whenever you standardise a sample mean with the <em>sample</em> standard deviation instead of the true one: $\dfrac{\bar{X} - \mu}{S/\sqrt{n}} \sim t_{n-1}$ for normal data. The randomness in $S$ is what fattens the tails.</p>
+                                </div>
+                            </div>
                             <p><strong>T-distribution:</strong> Used instead of normal when the sample size is small and variance is unknown. It has heavier tails to account for extra uncertainty.</p>
                             <div class="chart-wrapper">
                                 <canvas id="chart-t"></canvas>
                             </div>
 
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Chi-squared</div>
+                                <div class="math-box-body">
+                                    <p>Take $n$ independent standard normals, square each one, and add: $V = Z_1^2 + \dots + Z_n^2 \sim \chi^2_n$. It is a sum of squared errors, which is why it governs variances: for normal data, $\dfrac{(n-1)S^2}{\sigma^2} \sim \chi^2_{n-1}$. It is never negative and is skewed to the right, with mean $n$.</p>
+                                </div>
+                            </div>
                             <p style="margin-top: 2rem;"><strong>Chi-squared distribution:</strong> Models the variability of squared normal deviations. Used to study variance, goodness of fit, and independence.</p>
                             <div class="chart-wrapper">
                                 <canvas id="chart-chi"></canvas>
@@ -390,6 +504,14 @@
 
                         <div class="dist-section">
                             <h2>Geometric & First Success Distributions</h2>
+                            <div class="math-box">
+                                <div class="math-box-label">Story: Geometric and First Success</div>
+                                <div class="math-box-body">
+                                    <p>Perform independent Bernoulli trials with success probability $p$, one after another, until the first success. The number of <strong>failures before</strong> the first success is $\text{Geom}(p)$; the number of <strong>trials including</strong> the success is $\text{FS}(p)$. Examples: sales calls until the first sale, rolls until the first 6.</p>
+                                    <p>The PMF $q^k p$ reads straight off the story: $k$ failures in a row (probability $q^k$), then one success ($p$). The means are $E[\text{Geom}] = \frac{q}{p}$ and $E[\text{FS}] = \frac{1}{p}$. Like the exponential, it is memoryless: a run of failures does not make success any more "due".</p>
+                                </div>
+                            </div>
+
                             <p><strong>Geometric ($X \sim \text{Geom}(p)$):</strong> The number of failures before the first successful trial. PMF is $P(X=k) = q^k p$ for $k=0,1,2,\dots$, where $q = 1-p$.</p>
                             <p><strong>First Success ($Y \sim \text{FS}(p)$):</strong> The number of trials until the first successful trial, <em>including</em> the success. If $X \sim \text{Geom}(p)$, then $X + 1 \sim \text{FS}(p)$.</p>
 
@@ -426,7 +548,7 @@
             };
 
             const factorial = (n) => n === 0 || n === 1 ? 1 : n * factorial(n - 1);
-            const choose = (n, k) => factorial(n) / (factorial(k) * factorial(n - k));
+            const choose = (n, k) => (k < 0 || k > n) ? 0 : factorial(n) / (factorial(k) * factorial(n - k));
 
             const baseChartOptions = {
                 responsive: true,
@@ -483,7 +605,34 @@
                 options: baseChartOptions
             });
 
-            // 3. Uniform
+            // 3. Hypergeometric vs Binomial
+            const hgLabels = Array.from({length: 11}, (_, i) => i);
+            const hgData = hgLabels.map(k => choose(8, k) * choose(12, 10 - k) / choose(20, 10));
+            const hgBin = hgLabels.map(k => choose(10, k) * Math.pow(0.4, k) * Math.pow(0.6, 10 - k));
+            new Chart(document.getElementById('chart-hypergeom').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: hgLabels,
+                    datasets: [{
+                        label: 'HGeom(w=8, b=12, n=10): without replacement',
+                        data: hgData,
+                        backgroundColor: colors.fill,
+                        borderColor: colors.accent,
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }, {
+                        label: 'Bin(10, 0.4): with replacement',
+                        data: hgBin,
+                        backgroundColor: 'rgba(0, 0, 0, 0)',
+                        borderColor: colors.altLine,
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: baseChartOptions
+            });
+
+            // 4. Uniform
             new Chart(document.getElementById('chart-uniform').getContext('2d'), {
                 type: 'line',
                 data: {

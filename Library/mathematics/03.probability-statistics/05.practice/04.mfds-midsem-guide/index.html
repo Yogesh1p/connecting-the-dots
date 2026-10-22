@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="ce0df3bd">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Probability & Statistics">
+<meta name="chapter" content="Practice Problems">
+<meta name="chapterorder" content="5">
+<meta name="lessonorder" content="4">
+<meta name="title" content="The MFDS Midsem Guide">
+<meta name="description" content="DA5000 sessions 1–6 built up from first principles: why each idea is needed, what every term means, the formulas with real numbers, and practice problems with hidden answers.">
+<meta name="keywords" content="DA5000, MFDS, midsem, random variables, moments, Bayes theorem, EVPI, EVSI, distributions, central limit theorem, confidence intervals, hypothesis testing, type II error, ANOVA, chi-square">
+<meta name="status" content="draft">
+<meta name="date" content="2026-10-15">
+<meta name="author" content="Yogesh">
+
+<title>The MFDS Midsem Guide</title>
+
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .problem-item {
+    margin: 2.2rem 0 1.8rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--border);
+  }
+  .problem-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+  .problem-header h3 { margin: 0; font-size: 1.2rem; }
+  .problem-badge {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .question-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.4rem;
+    margin: 0.8rem 0 1.2rem;
+  }
+  .question-canvas > :first-child { margin-top: 0; }
+  .question-canvas > :last-child { margin-bottom: 0; }
+  .recipe { counter-reset: step; list-style: none; padding-left: 0 !important; }
+  .recipe > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.2rem;
+    margin-bottom: 0.7rem;
+  }
+  .recipe > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.15rem;
+    width: 1.5rem; height: 1.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--dark);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spot {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 1rem 0 1.2rem;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--accent);
+    background: var(--highlight);
+    border-radius: 0 8px 8px 0;
+  }
+  .spot strong { color: var(--dark); }
+  .toggle summary {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .toggle > :not(summary) { margin-top: 0.8rem; }
+  .data-table { border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; margin: 0.6rem 0; }
+  .data-table th, .data-table td { border: 1px solid var(--border); padding: 0.35rem 0.75rem; text-align: center; }
+  .data-table th { background: var(--surface); font-weight: 600; color: var(--dark); }
+  .data-table td:first-child, .data-table th:first-child { text-align: left; }
+  .data-table.left td, .data-table.left th { text-align: left; }
+  .table-scroll { overflow-x: auto; max-width: 100%; }
+  .fig { margin: 1.6rem 0; }
+  .fig > svg { display: block; margin: 0 auto; max-width: 640px; width: 100%; height: auto; }
+  .fig > svg text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+  .fig figcaption { text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem; }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <meta name="reading_time" content="44">
+    <meta property="og:title" content="The MFDS Midsem Guide">
+    <meta property="og:description" content="DA5000 sessions 1–6 built up from first principles: why each idea is needed, what every term means, the formulas with real numbers, and practice problems with hidden answers.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-the-mfds-midsem-guide.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Introduction                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="introduction">
+  <p>
+    A machine fills bags of chips. Every bag is meant to weigh 100 g, but no two come out exactly the same: one is 99 g, the next 101 g. You cannot weigh every bag the machine will ever fill, so you weigh ten. Here is what they say: 99, 100, 102, 101, 100, 101, 100, 99, 100, 101.
+  </p>
+  <p>
+    Is the machine set correctly? How sure can you be from only ten bags? And how would you even put a number on "sure"?
+  </p>
+  <p>
+    The first six sessions of DA5000 answer exactly this kind of question. They seem to cover a long list of separate topics, from PMFs and Bayes to ANOVA, but they form one chain. Each topic exists because the one before it could not answer the next question. This guide follows that chain. Every term is defined the first time it appears, every formula is shown with real numbers plugged in, and each section ends with practice problems whose answers stay hidden until you open <em>Check your work</em>.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>How do we go from ten bags we can see to millions of bags we cannot?</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1. Landscape                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="landscape">
+  <h2>1. The Landscape: Process, Data and the Arrows Between Them</h2>
+  <p>
+    There are two worlds. One is the <strong>process</strong>: the machine and every bag it will ever fill. The other is the <strong>data</strong>: the ten bags you actually weighed. Statistics is the set of ways to move between them.
+  </p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Branch</th><th>Direction</th><th>Question it answers</th><th>Sessions</th></tr>
+    <tr><td>Descriptive statistics</td><td>data → summary</td><td>What do my ten bags look like?</td><td>1</td></tr>
+    <tr><td>Probability modelling</td><td>process → data</td><td>If the machine works like this, what bags should I expect?</td><td>1–3</td></tr>
+    <tr><td>Inferential statistics</td><td>data → process</td><td>Given these ten bags, what is the machine really doing?</td><td>4–6</td></tr>
+  </table>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Population, Sample, Parameter, Statistic</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Population:</strong> the whole process or phenomenon you care about (every bag the machine will fill).</li>
+        <li><strong>Sample:</strong> the part of it you actually observe (the ten bags).</li>
+        <li><strong>Parameter:</strong> a true, fixed, usually unknown number describing the population. Written in Greek: $\mu$ (true mean), $\sigma$ (true standard deviation), $p$ (true proportion).</li>
+        <li><strong>Statistic:</strong> a number computed from the sample. Written in Latin letters or with a hat: $\bar{x}$ (sample mean), $s$ (sample standard deviation), $\hat{p}$ (sample proportion).</li>
+      </ul>
+    </div>
+  </div>
+  <p>
+    Every inference question has the same shape: use a statistic you can compute to say something about a parameter you cannot see. Before we can do that, we need a language for "uncertain numbers".
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2. Random variables                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="random-variables">
+  <h2>2. Random Variables: Writing Uncertainty as a Formula</h2>
+  <p>
+    Toss a coin 5 times and count the heads. You could list the probabilities in a table: 0 heads 3%, 1 head 16%, 2 heads 31%, 3 heads 31%, 4 heads 16%, 5 heads 3%. But a table gets unwieldy for 500 tosses. Can one expression produce the whole table?
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Random Experiment and Random Variable</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Random experiment:</strong> a process that can give different outcomes even when repeated in exactly the same way (tossing a coin, timing a ball dropped from a window).</li>
+        <li><strong>Sample space:</strong> the set of all possible outcomes.</li>
+        <li><strong>Random variable</strong> $X$ (capital): a number attached to each outcome, such as "number of heads". Small $x$ is one particular value it can take, so $P(X = x)$ reads "the probability that the number of heads turns out to be $x$".</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Discrete versus continuous</h3>
+  <p>
+    Counting heads and timing a falling ball feel different. Why? It is not integers versus decimals. It is <strong>countable versus uncountable</strong>: you can list the possible numbers of heads one by one, but no list can contain every possible fall time.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">PMF, PDF and CDF</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>PMF</strong> (probability mass function), for a discrete $X$: $f(x) = P(X = x)$. Rules: $0 \le f(x_i) \le 1$ and $\sum_i f(x_i) = 1$.</li>
+        <li><strong>PDF</strong> (probability density function), for a continuous $X$: probability is the <em>area</em> under $f$. Rules: $f(x) \ge 0$ and $\int_{-\infty}^{\infty} f(x)\,dx = 1$.</li>
+        <li><strong>CDF</strong> (cumulative distribution function), for every $X$: $F(x) = P(X \le x)$, the probability of landing at or below $x$.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>For a continuous variable, probability comes from integrating over a range:</p>
+  $$P(a \le X \le b) = \int_a^b f(x)\,dx$$
+  <p>
+    The coin table above comes from one formula, the binomial PMF, $f(x) = \binom{5}{x}(0.5)^x(0.5)^{5-x}$. Here $\binom{n}{x}$, read "n choose x", is the number of ways to pick which $x$ of the $n$ tosses are heads.
+  </p>
+
+  <div class="spot">
+    <strong>Two facts that catch people out.</strong> A PDF value is not a probability. It is a density, a <em>relative</em> likelihood, and it can be bigger than 1. And for a continuous variable, the probability of any single exact value is 0: only ranges have probability. The PDF is the derivative of the CDF, $f(x) = F'(x)$.
+  </div>
+
+  <h3>Recipe: checking a PMF or PDF</h3>
+  <ol class="recipe">
+    <li>Check every value of $f$ is non-negative.</li>
+    <li>Set the total (sum or integral over every allowed $x$) equal to 1, and solve for any unknown constant.</li>
+    <li>For a range probability, add the PMF values inside the range, or integrate the PDF across it.</li>
+  </ol>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2.1: A Small PMF</h3>
+      <span class="problem-badge">Session 1 · Slide 12</span>
+    </div>
+    <div class="question-canvas">
+      <p>$f(x) = \frac{2x+1}{25}$ for $x = 0, 1, 2, 3, 4$. Is this a valid PMF? Find $P(X \le 2)$ and $P(X > 2)$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>The values are $\tfrac{1}{25}, \tfrac{3}{25}, \tfrac{5}{25}, \tfrac{7}{25}, \tfrac{9}{25}$: all non-negative, and they sum to $\tfrac{25}{25} = 1$. Valid.</p>
+      $$\begin{aligned}
+        P(X \le 2) &= \frac{1 + 3 + 5}{25} \\[6pt]
+        &= 0.36 \\[8pt]
+        P(X > 2) &= 1 - 0.36 \\[6pt]
+        &= 0.64
+      \end{aligned}$$
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2.2: Find the Constant</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>$f(x) = kx^2$ for $0 \le x \le 3$, and 0 elsewhere. Find $k$, then $P(1 \le X \le 2)$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \int_0^3 kx^2\,dx &= k \cdot \frac{27}{3} \\[6pt]
+        &= 9k = 1 \;\Rightarrow\; k = \tfrac{1}{9} \\[8pt]
+        P(1 \le X \le 2) &= \frac{1}{9}\int_1^2 x^2\,dx \\[6pt]
+        &= \frac{1}{9}\cdot\frac{8 - 1}{3} \\[6pt]
+        &= \frac{7}{27} \approx 0.259
+      \end{aligned}$$
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3. Moments                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="moments">
+  <h2>3. Four Numbers That Describe a Distribution</h2>
+  <p>
+    A whole PMF or a histogram of data is a lot to carry around. Can we squeeze it into a few numbers? The course uses four, called the <strong>moments</strong>: the <strong>mean</strong> (where the centre is), the <strong>variance</strong> (how spread out it is), the <strong>skew</strong> (whether it is lopsided) and the <strong>kurtosis</strong> (how heavy the tails are). Each can be computed two ways: <em>empirically</em> from data, or <em>theoretically</em> from a PMF or PDF.
+  </p>
+
+  <h3>From data: centre</h3>
+  <p>The slide's data set is 3, 4, 3, 1, 2, 3, 9, 5, 6, 7, 4, 8 (so $n = 12$). Sorted: 1, 2, 3, 3, 3, 4, 4, 5, 6, 7, 8, 9.</p>
+  <ul>
+    <li><strong>Mean</strong> (the average): $\bar{x} = \frac{55}{12} = 4.583$.</li>
+    <li><strong>Median</strong> (the middle of the sorted list): with 12 values, average the 6th and 7th, giving $\frac{4+4}{2} = 4$.</li>
+    <li><strong>Mode</strong> (the most frequent value): 3, which appears three times.</li>
+  </ul>
+  <p>
+    Which one should you report? The mean is pulled toward <strong>outliers</strong> (values far from the rest); the median is not. If an outlier is a <em>bad</em> one, such as a typo or a measurement error, prefer the median. If it is a <em>good</em> one, such as one enormous customer, the outlier is the story and should not be hidden. The mode is the only one of the three that works for <strong>nominal</strong> data (categories with no order, such as a car brand), and it is the one that reveals a <strong>multimodal</strong> distribution (one with more than one peak).
+  </p>
+
+  <h3>From data: spread</h3>
+  <ul>
+    <li><strong>Range</strong> = max − min = 9 − 1 = 8. Simple, but it depends entirely on the two most extreme points.</li>
+    <li>A <strong>percentile</strong>: the $k$th percentile is the value with $k\%$ of the data below it. <strong>Quartiles</strong> are the quarter-way cuts: $Q_1$ is the 25th percentile, $Q_2$ the median, $Q_3$ the 75th percentile.</li>
+    <li><strong>IQR</strong> (inter-quartile range) = $Q_3 - Q_1$, the width of the middle half of the data. The lower half (1, 2, 3, 3, 3, 4) has median $Q_1 = 3$, and the upper half (4, 5, 6, 7, 8, 9) has median $Q_3 = 6.5$, so IQR = 3.5. Outliers cannot move it.</li>
+    <li><strong>Sample variance</strong> $s^2$ and <strong>standard deviation</strong> $s$: the typical distance of a value from the mean.</li>
+  </ul>
+  $$\begin{aligned}
+    s^2 &= \frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2 \\[6pt]
+    &= \frac{66.92}{11} \\[6pt]
+    &= 6.08 \\[8pt]
+    s &= \sqrt{6.08} \approx 2.47
+  \end{aligned}$$
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Why square the deviations, why take the square root afterwards, and why divide by $n - 1$ instead of $n$?</em></p>
+    </div>
+  </div>
+  <ul>
+    <li><strong>Squaring:</strong> the raw deviations $x_i - \bar{x}$ always sum to exactly zero, because the positive and negative ones cancel. Squaring makes them all positive and punishes large misses more. Using $|x_i - \bar{x}|$ instead gives the <strong>mean absolute deviation</strong> (MAD).</li>
+    <li><strong>Square root:</strong> variance is in squared units (g²). The standard deviation brings it back to grams, the units of the data.</li>
+    <li><strong>$n - 1$:</strong> $\bar{x}$ is calculated from the same data, so the data sit a little closer to $\bar{x}$ than to the true $\mu$, and dividing by $n$ would underestimate the spread. Dividing by $n - 1$ corrects for that. We say one <strong>degree of freedom</strong> (df) was used up in estimating the mean.</li>
+  </ul>
+
+  <h3>From a PMF or PDF: the theoretical moments</h3>
+  <div class="math-box">
+    <div class="math-box-label">Expected Value and Variance</div>
+    <div class="math-box-body">
+      <p>The <strong>expected value</strong> $E(X) = \mu$ is the long-run average: each value weighted by its probability.</p>
+      $$\begin{aligned}
+        \text{Discrete: }\; E(X) &= \sum_i x_i\,p_i \\[6pt]
+        \text{Continuous: }\; E(X) &= \int x\,f(x)\,dx \\[8pt]
+        \operatorname{Var}(X) &= E\big[(X-\mu)^2\big] \\[6pt]
+        &= E(X^2) - \big(E(X)\big)^2
+      \end{aligned}$$
+      <p>The last line, "the mean of the squares minus the square of the mean", is almost always the fastest way to compute a variance.</p>
+    </div>
+  </div>
+
+  <h3>Shifting and scaling</h3>
+  <p>If every bag gains 5 g, the average goes up by 5 g, but are the bags any more spread out? No. If every weight is doubled, the spread doubles and the variance quadruples:</p>
+  $$\begin{aligned}
+    E(a + bX) &= a + b\,E(X) \\[6pt]
+    \operatorname{Var}(a + bX) &= b^2\operatorname{Var}(X) \\[6pt]
+    \operatorname{SD}(a + bX) &= |b|\,\operatorname{SD}(X)
+  \end{aligned}$$
+
+  <h3>Skew and kurtosis</h3>
+  <p>
+    <strong>Skew</strong> measures lopsidedness. A right-skewed (positively skewed) distribution has a long tail on the right, as incomes do, and its mean sits above its median because the tail pulls it. <strong>Kurtosis</strong> measures tail weight: "fat tails" mean extreme values happen more often than a Normal curve would predict. The slide asks whether fattening the tails just increases the variance. It does not: kurtosis compares shapes <em>at the same variance</em>, so fatter tails come with a narrower, peakier middle.
+  </p>
+
+  <h3>Which chart?</h3>
+  <p>A <strong>categorical</strong> variable takes labels (Yes/No, brand). A <strong>quantitative</strong> variable takes measured numbers (weight, time).</p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>You have</th><th>Chart</th></tr>
+    <tr><td>One categorical variable</td><td>Bar graph, pie chart</td></tr>
+    <tr><td>One quantitative variable</td><td>Histogram (counts in bins), box plot (box from $Q_1$ to $Q_3$, line at the median, whiskers to the extremes)</td></tr>
+    <tr><td>Two quantitative variables</td><td>Scatter plot</td></tr>
+    <tr><td>One categorical + one quantitative</td><td>Side-by-side box plots</td></tr>
+    <tr><td>Two categorical variables</td><td>Contingency table of counts</td></tr>
+  </table>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 3.1: Moments of a PMF</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>For $f(x) = \frac{2x+1}{25}$, $x = 0, \dots, 4$, find $E(X)$ and $\operatorname{Var}(X)$. Then for $Y = 3 - 2X$ find $E(Y)$ and $\operatorname{SD}(Y)$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        E(X) &= \frac{0\cdot1 + 1\cdot3 + 2\cdot5 + 3\cdot7 + 4\cdot9}{25} \\[6pt]
+        &= \frac{70}{25} = 2.8 \\[8pt]
+        E(X^2) &= \frac{0 + 3 + 20 + 63 + 144}{25} \\[6pt]
+        &= 9.2 \\[8pt]
+        \operatorname{Var}(X) &= 9.2 - 2.8^2 \\[6pt]
+        &= 1.36 \\[8pt]
+        E(Y) &= 3 - 2(2.8) \\[6pt]
+        &= -2.6 \\[8pt]
+        \operatorname{SD}(Y) &= |-2|\sqrt{1.36} \\[6pt]
+        &\approx 2.33
+      \end{aligned}$$
+      <p>The constant 3 has no effect on the spread, and the minus sign disappears in the variance because it is squared.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 3.2: Moments by Integration</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>$X$ is uniform on $[0, 4]$, so $f(x) = \tfrac14$ there. Find its mean and variance by integration.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        E(X) &= \int_0^4 \frac{x}{4}\,dx \\[6pt]
+        &= 2 \\[8pt]
+        E(X^2) &= \int_0^4 \frac{x^2}{4}\,dx \\[6pt]
+        &= \frac{16}{3} \\[8pt]
+        \operatorname{Var}(X) &= \frac{16}{3} - 4 \\[6pt]
+        &= \frac{4}{3}
+      \end{aligned}$$
+      <p>This matches the uniform formula $\frac{(b-a)^2}{12} = \frac{16}{12}$.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4. Joint                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="joint">
+  <h2>4. Two Random Variables at Once</h2>
+  <p>
+    A photocopy shop's daily revenue $X$ and its cost $Y$ are both random. Busy days bring both higher revenue and higher cost, so they move together. Studying each one alone throws that link away. How do we keep it?
+  </p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th></th><th>$x = 3$</th><th>$x = 5$</th><th>$x = 7$</th><th>$p(y)$</th></tr>
+    <tr><th>$y = 2$</th><td>0.08</td><td>0.07</td><td>0.00</td><td><strong>0.13</strong></td></tr>
+    <tr><th>$y = 4$</th><td>0.01</td><td>0.62</td><td>0.02</td><td><strong>0.65</strong></td></tr>
+    <tr><th>$y = 6$</th><td>0.00</td><td>0.11</td><td>0.09</td><td><strong>0.20</strong></td></tr>
+    <tr><th>$p(x)$</th><td><strong>0.09</strong></td><td><strong>0.80</strong></td><td><strong>0.11</strong></td><td>1</td></tr>
+  </table>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Joint, Marginal and Conditional</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Joint probability</strong>: one cell of the table, $P(X = x, Y = y)$.</li>
+        <li><strong>Marginal probability</strong>: a row or column total, found by summing out the other variable. The name comes from where it is written, in the margin. $P(X = x) = \sum_y P(X = x, Y = y)$.</li>
+        <li><strong>Conditional probability</strong>: the probability of one variable once the other is known. "$\mid$" reads "given". $P(Y = y \mid X = x) = \dfrac{P(X = x, Y = y)}{P(X = x)}$.</li>
+        <li><strong>Independence</strong>: $X$ and $Y$ are independent if knowing one tells you nothing about the other, i.e. <em>every</em> cell equals its row total times its column total.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>Knowing $X = 3$ restricts you to the first column, so you divide by that column's total:</p>
+  $$\begin{aligned}
+    P(Y = 2 \mid X = 3) &= \frac{0.08}{0.09} \\[6pt]
+    &\approx 0.889
+  \end{aligned}$$
+  <p>
+    Are revenue and cost independent? Check one cell: $P(X=3)\,P(Y=2) = 0.09 \times 0.13 = 0.0117$, but the table says 0.08. One failing cell is enough to show they are dependent.
+  </p>
+  <p>For continuous variables the table becomes a joint PDF $f(x, y)$, and sums become integrals:</p>
+  $$\begin{aligned}
+    P(a \le X \le b,\; c \le Y \le d) &= \int_c^d \int_a^b f(x, y)\,dx\,dy \\[8pt]
+    f_X(x) &= \int_{-\infty}^{\infty} f(x, y)\,dy \\[8pt]
+    f_{X \mid Y}(x \mid y) &= \frac{f(x, y)}{f_Y(y)}
+  \end{aligned}$$
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4.1: The Photocopy Shop</h3>
+      <span class="problem-badge">Session 2</span>
+    </div>
+    <div class="question-canvas">
+      <p>From the table, find $P(X = 5 \mid Y = 4)$, $P(Y = 6 \mid X = 7)$ and the expected daily profit $E(X - Y)$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(X = 5 \mid Y = 4) &= \frac{0.62}{0.65} \approx 0.954 \\[8pt]
+        P(Y = 6 \mid X = 7) &= \frac{0.09}{0.11} \approx 0.818 \\[8pt]
+        E(X) &= 3(0.09) + 5(0.80) + 7(0.11) \\[6pt]
+        &= 5.04 \\[8pt]
+        E(Y) &= 2(0.13) + 4(0.65) + 6(0.20) \\[6pt]
+        &= 4.06 \\[8pt]
+        E(X - Y) &= 5.04 - 4.06 \\[6pt]
+        &= 0.98
+      \end{aligned}$$
+      <p>Expectation splits across a sum or difference even when the variables are dependent. Variance does not.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4.2: A Continuous Marginal</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>$f(x, y) = x + y$ on $0 \le x \le 1$, $0 \le y \le 1$. Find the marginal $f_X(x)$ and $P(X \le \tfrac12)$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        f_X(x) &= \int_0^1 (x + y)\,dy \\[6pt]
+        &= x + \tfrac12 \\[8pt]
+        P(X \le \tfrac12) &= \int_0^{1/2} \big(x + \tfrac12\big)\,dx \\[6pt]
+        &= \tfrac18 + \tfrac14 \\[6pt]
+        &= \tfrac38
+      \end{aligned}$$
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5. Functions                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="functions">
+  <h2>5. Functions of a Random Variable</h2>
+  <p>
+    If the number of shop visitors $X$ is random, revenue $Y = g(X)$ is random too. If the oil price is random, so is the petrol price. We know the distribution of $X$. What is the distribution of $Y$?
+  </p>
+  <p>If all you need is the mean, there is a shortcut: weight $g(x)$ by the <em>original</em> density, without finding the new one.</p>
+  $$E\big(g(X)\big) = \int_{-\infty}^{\infty} g(x)\,f_X(x)\,dx$$
+  <p>For the full PDF of $Y$, go through the CDF, because probabilities of events carry over directly from $X$ to $Y$.</p>
+
+  <div class="math-box">
+    <div class="math-box-label">The CDF Method</div>
+    <div class="math-box-body">
+      $$\begin{aligned}
+        F_Y(y) &= P(Y \le y) \\[6pt]
+        &= P\big(g(X) \le y\big) \\[6pt]
+        &= P\big(X \le g^{-1}(y)\big) \quad \text{(for increasing } g\text{)} \\[8pt]
+        f_Y(y) &= \frac{d}{dy}F_Y(y)
+      \end{aligned}$$
+      <p>If $g$ is decreasing, the inequality flips when you solve for $X$.</p>
+    </div>
+  </div>
+
+  <p>Slide example: $X$ is uniform on $[0, 1]$ and $Y = \sqrt{X}$.</p>
+  $$\begin{aligned}
+    F_Y(y) &= P(\sqrt{X} \le y) \\[6pt]
+    &= P(X \le y^2) \\[6pt]
+    &= y^2 \\[8pt]
+    f_Y(y) &= 2y, \quad 0 \le y \le 1
+  \end{aligned}$$
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 5.1: Squaring a Uniform</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>$X$ is uniform on $[0, 1]$. Find the PDF of $Y = X^2$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        F_Y(y) &= P(X^2 \le y) \\[6pt]
+        &= P(X \le \sqrt{y}) \\[6pt]
+        &= \sqrt{y} \\[8pt]
+        f_Y(y) &= \frac{1}{2\sqrt{y}}, \quad 0 < y \le 1
+      \end{aligned}$$
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 5.2: From Uniform to Exponential</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>$X$ is uniform on $[0, 1]$ and $Y = -\ln X$. Show that $Y$ is exponential with $\lambda = 1$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>$-\ln x$ is decreasing, so the inequality flips:</p>
+      $$\begin{aligned}
+        F_Y(y) &= P(-\ln X \le y) \\[6pt]
+        &= P(X \ge e^{-y}) \\[6pt]
+        &= 1 - e^{-y} \\[8pt]
+        f_Y(y) &= e^{-y}, \quad y \ge 0
+      \end{aligned}$$
+      <p>Simulations use exactly this trick to turn uniform random numbers into exponential waiting times.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6. Bayes                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="bayes">
+  <h2>6. Bayes' Theorem: Turning a Condition Around</h2>
+  <p>
+    Data usually arrive as "how likely is this evidence, given the cause?": insured customers file repair requests 30% of the time. The question you actually care about runs the other way: given that a request has arrived, how likely is it that the customer is insured?
+  </p>
+  <p>
+    Call $X = 3$ the event $A$ and $Y = 2$ the event $B$. The joint probability $P(X=3, Y=2)$ is then $P(A \cap B)$, "A and B both happen". Rearranging the definition of conditional probability gives two ways to write it, and setting them equal gives the flip.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Multiplication Rule, Total Probability and Bayes' Theorem</div>
+    <div class="math-box-body">
+      $$\begin{aligned}
+        P(A \cap B) &= P(B \mid A)\,P(A) \\[6pt]
+        &= P(A \mid B)\,P(B) \\[8pt]
+        P(A) &= P(A \mid B)\,P(B) + P(A \mid B^c)\,P(B^c) \\[8pt]
+        P(B \mid A) &= \frac{P(A \mid B)\,P(B)}{P(A)}
+      \end{aligned}$$
+      <p>$B^c$, the <strong>complement</strong> of $B$, means "$B$ does not happen". $P(B)$ is the <strong>prior</strong> (what you believed before the evidence), $P(A \mid B)$ is the <strong>likelihood</strong> (how probable the evidence is if $B$ is the cause), and $P(B \mid A)$ is the <strong>posterior</strong> (the updated belief).</p>
+    </div>
+  </div>
+
+  <h3>Recipe</h3>
+  <ol class="recipe">
+    <li>Name the hidden cause $B$ and the evidence you observed $A$.</li>
+    <li>Write down the priors $P(B)$ and $P(B^c)$.</li>
+    <li>Write down the likelihoods $P(A \mid B)$ and $P(A \mid B^c)$.</li>
+    <li>The answer is the branch you want divided by the sum of all branches that produce the evidence.</li>
+  </ol>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6.1: Who Files Repair Requests?</h3>
+      <span class="problem-badge">Session 2 · Slide 29</span>
+    </div>
+    <div class="question-canvas">
+      <p>10% of customers buy insurance. Insured customers file a repair request 30% of the time; uninsured customers, 5%. A request arrives. What is the probability it came from an insured customer?</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(\text{ins} \mid \text{req}) &= \frac{0.3 \times 0.1}{0.3 \times 0.1 + 0.05 \times 0.9} \\[6pt]
+        &= \frac{0.030}{0.075} \\[6pt]
+        &= 0.40
+      \end{aligned}$$
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6.2: The Merger Informant</h3>
+      <span class="problem-badge">Session 2 · Slide 30</span>
+    </div>
+    <div class="question-canvas">
+      <p>Your research gives the merger an 80% chance. An informant who hears correctly 90% of the time tells you it is <em>not</em> happening. What is the probability she is right?</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(\text{no merger} \mid \text{"no"}) &= \frac{0.9 \times 0.2}{0.9 \times 0.2 + 0.1 \times 0.8} \\[6pt]
+        &= \frac{0.18}{0.26} \\[6pt]
+        &\approx 0.69
+      \end{aligned}$$
+      <p>A 90%-accurate source is right only 69% of the time here, because she is contradicting a strong prior.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6.3: Inspection Alarms</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>2% of parts are defective. An inspection flags 95% of defective parts, and also flags 10% of good parts by mistake. A part is flagged. What is the probability it is defective?</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(\text{def} \mid \text{flag}) &= \frac{0.95 \times 0.02}{0.95 \times 0.02 + 0.10 \times 0.98} \\[6pt]
+        &= \frac{0.019}{0.117} \\[6pt]
+        &\approx 0.162
+      \end{aligned}$$
+      <p>Only about 16%. When something is rare, most alarms are false alarms.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7. Value of information                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="value-of-information">
+  <h2>7. What Is Information Worth? EMV, EVPI and EVSI</h2>
+  <p>
+    You must decide whether to buy a stock <em>before</em> you know whether it will go up. Someone offers to sell you a forecast. How much is it worth paying? Bayes' theorem tells you how to update a belief. This section puts a money value on the update.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Payoff Matrix, EMV, EVPI and EVSI</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Payoff matrix:</strong> one row per decision, one column per state of the world, money in each cell.</li>
+        <li><strong>EMV</strong> (expected monetary value): the probability-weighted average payoff of a decision. Without extra information, pick the decision with the best EMV.</li>
+        <li><strong>EV|PI</strong> (expected value <em>with</em> perfect information): an oracle reveals the state first, you pick the best decision in each state, and you average over states.</li>
+        <li><strong>EVPI</strong> (expected value of perfect information) = EV|PI − EMV. The most you should ever pay for any information.</li>
+        <li><strong>EV|SI</strong> and <strong>EVSI</strong> (expected value of sample information): the same thing for an imperfect forecast. EVSI = EV|SI − EMV, and EVSI ≤ EVPI always.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p>The slide's stock goes up with probability 0.8 and down with probability 0.2:</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Decision</th><th>Up (0.8)</th><th>Down (0.2)</th></tr>
+    <tr><td>Buy</td><td>+10</td><td>−20</td></tr>
+    <tr><td>Don't buy</td><td>0</td><td>0</td></tr>
+  </table>
+  </div>
+  $$\begin{aligned}
+    \text{EMV(buy)} &= 0.8(10) + 0.2(-20) \\[6pt]
+    &= 4 \quad (\text{beats } 0, \text{ so buy}) \\[8pt]
+    \text{EV|PI} &= 0.8(10) + 0.2(0) \\[6pt]
+    &= 8 \quad (\text{buy if up, skip if down}) \\[8pt]
+    \text{EVPI} &= 8 - 4 \\[6pt]
+    &= 4
+  \end{aligned}$$
+  <p>
+    Now take a forecast that is right 90% of the time: it says "up" with probability 0.9 when the stock really goes up, and with probability 0.1 when it really goes down. The policy is to buy only when the forecast says "up". You earn +10 when it says up and the stock is up, and lose 20 when it says up but the stock goes down:
+  </p>
+  $$\begin{aligned}
+    \text{EV|SI} &= \underbrace{0.8 \times 0.9 \times 10}_{\text{says up, is up}} + \underbrace{0.2 \times 0.1 \times (-20)}_{\text{says up, is down}} \\[6pt]
+    &= 7.2 - 0.4 \\[6pt]
+    &= 6.8 \\[8pt]
+    \text{EVSI} &= 6.8 - 4 \\[6pt]
+    &= 2.8
+  \end{aligned}$$
+  <p>With a weaker forecast (says up with probability 0.7 when up, 0.2 when down), the slide gets EV|SI = 5.6 − 0.8 = 4.8 and EVSI = 0.8. A worse forecast is worth less.</p>
+
+  <div class="spot">
+    <strong>Check the policy.</strong> "Buy only on an up signal" is right only if buying after a <em>down</em> signal loses money on average. For the 90% forecast that is $0.8(0.1)(10) + 0.2(0.9)(-20) = -2.8$, so skipping is right. If that came out positive you would buy on both signals, and the forecast would be worth nothing.
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 7.1: A New Stock</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>P(up) = 0.6. Buying earns +15 if up and −10 if down; not buying earns 0. Find the EMV, the EVPI, and the EVSI of a forecast that is 90% accurate both ways.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{EMV} &= 0.6(15) + 0.4(-10) \\[6pt]
+        &= 5 \\[8pt]
+        \text{EV|PI} &= 0.6(15) \\[6pt]
+        &= 9 \\[8pt]
+        \text{EVPI} &= 9 - 5 \\[6pt]
+        &= 4 \\[8pt]
+        \text{EV|SI} &= 0.6(0.9)(15) + 0.4(0.1)(-10) \\[6pt]
+        &= 7.7 \\[8pt]
+        \text{EVSI} &= 7.7 - 5 \\[6pt]
+        &= 2.7
+      \end{aligned}$$
+      <p>On a down signal, buying gives $0.6(0.1)(15) + 0.4(0.9)(-10) = -2.7$, so skipping is correct.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8. Distributions                                       -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="distributions">
+  <h2>8. The Named Distributions and the Stories Behind Them</h2>
+  <p>
+    Writing a fresh PMF for every problem would be exhausting. Luckily, most random situations are one of a few standard stories, and each story has a ready-made distribution. Learn the story and you know which formula a word problem needs. The full derivations are in <a href="../../02.distributions/01.common-probability-distributions/">Common Probability Distributions</a>; here the focus is on telling them apart.
+  </p>
+  <p>Almost all of them come from two basic processes:</p>
+  <ul>
+    <li>A <strong>Bernoulli process</strong>: separate trials, each a success with the same probability $p$, independent of one another (sales calls, coin tosses, parts off a line).</li>
+    <li>A <strong>Poisson process</strong>: events arrive at random through continuous time or space at an average rate $\lambda$ per unit (failures per month, purchases per km², calls per hour).</li>
+  </ul>
+  <p>Ask each process two questions: <em>how many</em> events happen in a fixed window, and <em>how long</em> until the next one (the <strong>inter-arrival</strong> time)?</p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Process</th><th>How many? (count)</th><th>How long until the next? (inter-arrival)</th></tr>
+    <tr><td>Bernoulli</td><td>Binomial (discrete)</td><td>Geometric (discrete)</td></tr>
+    <tr><td>Poisson</td><td>Poisson (discrete)</td><td>Exponential (continuous)</td></tr>
+  </table>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Session 3 Distributions</div>
+    <div class="math-box-body">
+      <div class="table-scroll">
+      <table class="data-table left">
+        <tr><th>Name</th><th>Story</th><th>PMF / PDF</th><th>Mean</th><th>Variance</th></tr>
+        <tr><td>Bernoulli$(p)$</td><td>One trial, 1 or 0</td><td>$P(1) = p$</td><td>$p$</td><td>$p(1-p)$</td></tr>
+        <tr><td>Uniform$(a, b)$</td><td>Every value in $[a, b]$ equally likely</td><td>$\frac{1}{b-a}$</td><td>$\frac{a+b}{2}$</td><td>$\frac{(b-a)^2}{12}$</td></tr>
+        <tr><td>Binomial$(n, p)$</td><td>Successes in $n$ trials</td><td>$\binom{n}{k}p^k(1-p)^{n-k}$</td><td>$np$</td><td>$np(1-p)$</td></tr>
+        <tr><td>Poisson$(\lambda)$</td><td>Events in a window</td><td>$\frac{e^{-\lambda}\lambda^k}{k!}$</td><td>$\lambda$</td><td>$\lambda$</td></tr>
+        <tr><td>Geometric$(p)$</td><td>Trial of the first success</td><td>$(1-p)^{k-1}p$</td><td>$\frac1p$</td><td>$\frac{1-p}{p^2}$</td></tr>
+        <tr><td>Exponential$(\lambda)$</td><td>Wait until the next event</td><td>$\lambda e^{-\lambda x}$</td><td>$\frac1\lambda$</td><td>$\frac{1}{\lambda^2}$</td></tr>
+        <tr><td>HGeom$(w, b, n)$</td><td>White balls in $n$ draws without replacement from $w$ white and $b$ black</td><td>$\frac{\binom{w}{k}\binom{b}{n-k}}{\binom{w+b}{n}}$</td><td>$\frac{nw}{w+b}$</td><td>$np(1-p)\frac{N-n}{N-1}$</td></tr>
+        <tr><td>Negative binomial</td><td>Trial of the $r$th success</td><td>$\binom{k-1}{r-1}p^r(1-p)^{k-r}$</td><td>$\frac rp$</td><td>$\frac{r(1-p)}{p^2}$</td></tr>
+        <tr><td>Normal$(\mu, \sigma^2)$</td><td>Sums of many small effects</td><td>$\frac{1}{\sigma\sqrt{2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}$</td><td>$\mu$</td><td>$\sigma^2$</td></tr>
+      </table>
+      </div>
+      <p>Useful CDFs: exponential $F(x) = 1 - e^{-\lambda x}$; geometric $F(k) = 1 - (1-p)^k$; uniform $F(x) = \frac{x-a}{b-a}$.</p>
+    </div>
+  </div>
+
+  <ul>
+    <li><strong>Binomial vs hypergeometric.</strong> Same story, one change: whether you put each item back before the next draw. The urn below makes this concrete.</li>
+    <li><strong>Negative binomial.</strong> It is a geometric distribution repeated $r$ times, which is why its mean is $r \times \frac1p$.</li>
+    <li><strong>Memoryless.</strong> The geometric and the exponential are <strong>memoryless</strong>: having already waited 10 minutes does not change how much longer you expect to wait.</li>
+  </ul>
+
+  <h3>The urn: binomial and hypergeometric are one story</h3>
+  <p>
+    Picture an urn holding $w$ white balls and $b$ black balls, $N = w + b$ in total. You draw $n$ balls and count the white ones; call that count $X$. "White" stands for whatever you are counting: a defective part, an ace, a woman on a committee. "Black" is everything else.
+  </p>
+  <p>
+    <strong>With replacement.</strong> Put each ball back and shake the urn before the next draw. Every draw then faces the same urn, so each one is white with the same probability $\frac{w}{w+b}$, regardless of what came before. That is $n$ independent Bernoulli trials, so $X \sim \text{Bin}\!\left(n, \frac{w}{w+b}\right)$.
+  </p>
+  <p>
+    <strong>Without replacement.</strong> Now keep each ball out. If the first draw is white, the urn has one white fewer, so the second draw is less likely to be white. The draws are no longer independent, and the binomial formula, which multiplies the same $p$ over and over, no longer applies.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If each draw depends on the ones before it, how can we get $P(X = k)$ without tracking every draw in order?</em></p>
+    </div>
+  </div>
+
+  <p>
+    Stop thinking draw by draw. Drawing $n$ balls one at a time without replacement ends in exactly the same place as grabbing a handful of $n$ balls at once. Every handful of $n$ is equally likely, so the probability is just counting: (handfuls with exactly $k$ white) ÷ (all possible handfuls).
+  </p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 280" role="img" aria-label="An urn with 6 white and 4 black balls; an arrow leads to a sample of 5 balls containing 3 white and 2 black">
+      <path d="M78,44 L222,44 M86,44 C30,96 34,214 96,236 L204,236 C266,214 270,96 214,44" fill="none" stroke="var(--muted)" stroke-width="2.4" stroke-linecap="round"/>
+      <g stroke="var(--text)" stroke-width="1.6">
+        <circle cx="100" cy="200" r="17" fill="var(--bg)"/>
+        <circle cx="140" cy="205" r="17" fill="var(--muted)"/>
+        <circle cx="180" cy="200" r="17" fill="var(--bg)"/>
+        <circle cx="210" cy="168" r="17" fill="var(--bg)"/>
+        <circle cx="88" cy="160" r="17" fill="var(--muted)"/>
+        <circle cx="128" cy="166" r="17" fill="var(--bg)"/>
+        <circle cx="170" cy="162" r="17" fill="var(--muted)"/>
+        <circle cx="105" cy="122" r="17" fill="var(--bg)"/>
+        <circle cx="148" cy="126" r="17" fill="var(--bg)"/>
+        <circle cx="192" cy="124" r="17" fill="var(--muted)"/>
+      </g>
+      <text x="150" y="266" font-size="16" text-anchor="middle" fill="var(--text)">w = 6 white, b = 4 black</text>
+      <line x1="276" y1="150" x2="352" y2="150" stroke="var(--accent)" stroke-width="2.4"/>
+      <path d="M352,142 L366,150 L352,158 Z" fill="var(--accent)"/>
+      <text x="320" y="132" font-size="16" text-anchor="middle" fill="var(--muted)">n = 5</text>
+      <g stroke="var(--text)" stroke-width="1.6">
+        <circle cx="402" cy="150" r="17" fill="var(--bg)"/>
+        <circle cx="444" cy="150" r="17" fill="var(--muted)"/>
+        <circle cx="486" cy="150" r="17" fill="var(--bg)"/>
+        <circle cx="528" cy="150" r="17" fill="var(--bg)"/>
+        <circle cx="570" cy="150" r="17" fill="var(--muted)"/>
+      </g>
+      <text x="486" y="200" font-size="16" text-anchor="middle" fill="var(--text)">sample without replacement</text>
+      <text x="486" y="224" font-size="16" text-anchor="middle" fill="var(--text)">X = 3 white</text>
+    </svg>
+    <figcaption><strong>Figure 1:</strong> The hypergeometric story (hollow = white, filled = black). An urn holds $w = 6$ white and $b = 4$ black balls. Drawing $n = 5$ without replacement gave $X = 3$ white. Every handful of 5 from the 10 balls is equally likely.</figcaption>
+  </figure>
+
+  <div class="math-box">
+    <div class="math-box-label">The Hypergeometric Distribution</div>
+    <div class="math-box-body">
+      <p>An urn holds $w$ white and $b$ black balls. Draw $n$ without replacement, so that all $\binom{w+b}{n}$ handfuls are equally likely, and let $X$ be the number of white balls drawn. Then $X \sim \text{HGeom}(w, b, n)$, with</p>
+      $$P(X = k) = \frac{\dbinom{w}{k}\dbinom{b}{n-k}}{\dbinom{w+b}{n}}$$
+      <p>for whole numbers $k$ with $0 \le k \le w$ and $0 \le n - k \le b$, and $P(X = k) = 0$ otherwise.</p>
+    </div>
+  </div>
+
+  <p>Each piece of the formula answers one counting question:</p>
+  $$\begin{aligned}
+    \underbrace{\binom{w+b}{n}}_{\text{all handfuls of } n} &\quad \text{every way to pick } n \text{ balls from } w + b \\[8pt]
+    \underbrace{\binom{w}{k}}_{\text{the whites}} &\quad \text{which } k \text{ of the } w \text{ white balls you got} \\[8pt]
+    \underbrace{\binom{b}{n-k}}_{\text{the blacks}} &\quad \text{which } n - k \text{ of the } b \text{ black balls fill the rest}
+  \end{aligned}$$
+  <p>
+    Any choice of whites can be paired with any choice of blacks, so the two counts multiply. The support conditions say you cannot draw more white balls than the urn has ($k \le w$), or more black balls than it has ($n - k \le b$).
+  </p>
+
+  <h3>The urn in numbers</h3>
+  <p>Take Figure 1: $w = 6$, $b = 4$, $n = 5$. What is the chance of exactly 3 white?</p>
+  $$\begin{aligned}
+    P(X = 3) &= \frac{\binom{6}{3}\binom{4}{2}}{\binom{10}{5}} \\[8pt]
+    &= \frac{20 \times 6}{252} \\[8pt]
+    &= \frac{120}{252} \\[8pt]
+    &\approx 0.476
+  \end{aligned}$$
+  <p>With replacement, the same question is binomial with $p = 6/10 = 0.6$:</p>
+  $$\begin{aligned}
+    P(X = 3) &= \binom{5}{3}(0.6)^3(0.4)^2 \\[8pt]
+    &= 10 \times 0.216 \times 0.16 \\[8pt]
+    &\approx 0.346
+  \end{aligned}$$
+  <p>Here are the two full PMFs side by side:</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>$k$ white</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+    <tr><td>Without replacement, HGeom(6, 4, 5)</td><td>0</td><td>0.024</td><td>0.238</td><td>0.476</td><td>0.238</td><td>0.024</td></tr>
+    <tr><td>With replacement, Bin(5, 0.6)</td><td>0.010</td><td>0.077</td><td>0.230</td><td>0.346</td><td>0.259</td><td>0.078</td></tr>
+  </table>
+  </div>
+  <p>
+    Two things stand out. First, $P(X = 0) = 0$ without replacement: there are only 4 black balls, so a handful of 5 must contain at least one white. That is the support condition $n - k \le b$ at work. Second, the hypergeometric piles up more tightly around 3. Each white ball you take out makes the next white less likely, and each black makes the next white more likely, so extreme samples get pushed back toward the middle.
+  </p>
+
+  <h3>Mean, variance, and when the two agree</h3>
+  <p>Write $N = w + b$ and $p = \frac{w}{N}$ for the fraction of white balls.</p>
+  $$\begin{aligned}
+    E(X) &= n\,\frac{w}{w+b} = np \\[8pt]
+    \operatorname{Var}(X) &= np(1-p)\cdot\underbrace{\frac{N - n}{N - 1}}_{\text{finite population correction}}
+  \end{aligned}$$
+  <p>
+    The mean is the same as the binomial's. By symmetry, any single draw, say the 3rd, is equally likely to be any of the $N$ balls, so it is white with probability $p$. Expectation adds up even when the draws are dependent. The variance is smaller by the <strong>finite population correction</strong> $\frac{N-n}{N-1}$, because drawing without replacement can't produce the extreme runs that independent draws can. For the urn: binomial variance $5(0.6)(0.4) = 1.2$, hypergeometric variance $1.2 \times \frac{5}{9} \approx 0.67$.
+  </p>
+  <p>
+    When the urn is huge compared with the sample ($N \gg n$), removing a few balls barely changes the mix, the correction $\frac{N-n}{N-1}$ is close to 1, and the binomial is a fine approximation. A common rule of thumb is $n$ at most 5–10% of $N$. That is why polls of 1000 people out of millions are treated as binomial, while 4 parts drawn from a box of 20 are not.
+  </p>
+
+  <div class="spot">
+    <strong>Spotting it in a word problem.</strong> Look for a <em>fixed, finite</em> collection split into two kinds, a sample drawn <em>without putting items back</em>, and a question about how many of one kind are in the sample. Then decide which kind is "white", and read off $w$, $b$ and $n$.
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8.1: Aces in a Poker Hand</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>You are dealt 5 cards from a standard 52-card deck. What is the probability of exactly 2 aces? Identify $w$, $b$ and $n$ first.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Aces are "white": $w = 4$, $b = 48$, $n = 5$, $k = 2$.</p>
+      $$\begin{aligned}
+        P(X = 2) &= \frac{\binom{4}{2}\binom{48}{3}}{\binom{52}{5}} \\[8pt]
+        &\approx 0.040
+      \end{aligned}$$
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8.2: Accepting a Lot</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>A lot of 50 items contains 3 defectives. An inspector checks 10 items without replacement and accepts the lot if none of them is defective. What is P(accept)? Compare it with the binomial answer you would get by (wrongly) assuming replacement.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Defectives are "white": $w = 3$, $b = 47$, $n = 10$, $k = 0$.</p>
+      $$\begin{aligned}
+        P(X = 0) &= \frac{\binom{3}{0}\binom{47}{10}}{\binom{50}{10}} \\[8pt]
+        &= \frac{40 \times 39 \times 38}{50 \times 49 \times 48} \\[8pt]
+        &\approx 0.504 \\[10pt]
+        \text{Binomial: } (0.94)^{10} &\approx 0.539
+      \end{aligned}$$
+      <p>The sample is 20% of the lot, too large for the binomial shortcut, which overstates the chance of accepting by about 3.5 percentage points.</p>
+    </details>
+  </div>
+
+  <h3>The Normal curve and the z-score</h3>
+  <p>
+    Every Normal curve has the same shape, only shifted and stretched. So one table is enough, as long as you first convert to the <strong>z-score</strong>, the number of standard deviations a value lies from the mean. The result follows the <strong>standard Normal</strong> $N(0, 1^2)$, whose CDF is written $\Phi(z)$. In Excel it is <code>=NORM.S.DIST(z, TRUE)</code>; in R, <code>pnorm(z)</code>.
+  </p>
+  $$Z = \frac{X - \mu}{\sigma} \sim N(0, 1^2)$$
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 250" role="img" aria-label="Normal curve with nested bands covering 68.27, 95.45 and 99.73 percent of the area">
+      <path d="M50.0,220 L50.0,218.0 L54.5,217.7 L59.0,217.4 L63.5,217.0 L68.0,216.5 L72.5,216.0 L77.0,215.4 L81.5,214.8 L86.0,214.0 L90.5,213.2 L95.0,212.3 L99.5,211.3 L104.0,210.1 L108.5,208.9 L113.0,207.5 L117.5,206.0 L122.0,204.4 L126.5,202.6 L131.0,200.6 L135.5,198.5 L140.0,196.2 L144.5,193.8 L149.0,191.1 L153.5,188.3 L158.0,185.3 L162.5,182.0 L167.0,178.6 L171.5,175.0 L176.0,171.2 L180.5,167.2 L185.0,163.0 L189.5,158.7 L194.0,154.1 L198.5,149.4 L203.0,144.6 L207.5,139.6 L212.0,134.6 L216.5,129.4 L221.0,124.1 L225.5,118.9 L230.0,113.5 L234.5,108.2 L239.0,102.9 L243.5,97.7 L248.0,92.5 L252.5,87.5 L257.0,82.6 L261.5,77.9 L266.0,73.4 L270.5,69.1 L275.0,65.1 L279.5,61.4 L284.0,58.0 L288.5,54.9 L293.0,52.2 L297.5,49.9 L302.0,47.9 L306.5,46.4 L311.0,45.3 L315.5,44.7 L320.0,44.5 L324.5,44.7 L329.0,45.3 L333.5,46.4 L338.0,47.9 L342.5,49.9 L347.0,52.2 L351.5,54.9 L356.0,58.0 L360.5,61.4 L365.0,65.1 L369.5,69.1 L374.0,73.4 L378.5,77.9 L383.0,82.6 L387.5,87.5 L392.0,92.5 L396.5,97.7 L401.0,102.9 L405.5,108.2 L410.0,113.5 L414.5,118.9 L419.0,124.1 L423.5,129.4 L428.0,134.6 L432.5,139.6 L437.0,144.6 L441.5,149.4 L446.0,154.1 L450.5,158.7 L455.0,163.0 L459.5,167.2 L464.0,171.2 L468.5,175.0 L473.0,178.6 L477.5,182.0 L482.0,185.3 L486.5,188.3 L491.0,191.1 L495.5,193.8 L500.0,196.2 L504.5,198.5 L509.0,200.6 L513.5,202.6 L518.0,204.4 L522.5,206.0 L527.0,207.5 L531.5,208.9 L536.0,210.1 L540.5,211.3 L545.0,212.3 L549.5,213.2 L554.0,214.0 L558.5,214.8 L563.0,215.4 L567.5,216.0 L572.0,216.5 L576.5,217.0 L581.0,217.4 L585.5,217.7 L590.0,218.0 L590.0,220 Z" fill="var(--accent)" fill-opacity="0.12"/>
+      <path d="M140.0,220 L140.0,196.2 L144.5,193.8 L149.0,191.1 L153.5,188.3 L158.0,185.3 L162.5,182.0 L167.0,178.6 L171.5,175.0 L176.0,171.2 L180.5,167.2 L185.0,163.0 L189.5,158.7 L194.0,154.1 L198.5,149.4 L203.0,144.6 L207.5,139.6 L212.0,134.6 L216.5,129.4 L221.0,124.1 L225.5,118.9 L230.0,113.5 L234.5,108.2 L239.0,102.9 L243.5,97.7 L248.0,92.5 L252.5,87.5 L257.0,82.6 L261.5,77.9 L266.0,73.4 L270.5,69.1 L275.0,65.1 L279.5,61.4 L284.0,58.0 L288.5,54.9 L293.0,52.2 L297.5,49.9 L302.0,47.9 L306.5,46.4 L311.0,45.3 L315.5,44.7 L320.0,44.5 L324.5,44.7 L329.0,45.3 L333.5,46.4 L338.0,47.9 L342.5,49.9 L347.0,52.2 L351.5,54.9 L356.0,58.0 L360.5,61.4 L365.0,65.1 L369.5,69.1 L374.0,73.4 L378.5,77.9 L383.0,82.6 L387.5,87.5 L392.0,92.5 L396.5,97.7 L401.0,102.9 L405.5,108.2 L410.0,113.5 L414.5,118.9 L419.0,124.1 L423.5,129.4 L428.0,134.6 L432.5,139.6 L437.0,144.6 L441.5,149.4 L446.0,154.1 L450.5,158.7 L455.0,163.0 L459.5,167.2 L464.0,171.2 L468.5,175.0 L473.0,178.6 L477.5,182.0 L482.0,185.3 L486.5,188.3 L491.0,191.1 L495.5,193.8 L500.0,196.2 L500.0,220 Z" fill="var(--accent)" fill-opacity="0.2"/>
+      <path d="M230.0,220 L230.0,113.5 L234.5,108.2 L239.0,102.9 L243.5,97.7 L248.0,92.5 L252.5,87.5 L257.0,82.6 L261.5,77.9 L266.0,73.4 L270.5,69.1 L275.0,65.1 L279.5,61.4 L284.0,58.0 L288.5,54.9 L293.0,52.2 L297.5,49.9 L302.0,47.9 L306.5,46.4 L311.0,45.3 L315.5,44.7 L320.0,44.5 L324.5,44.7 L329.0,45.3 L333.5,46.4 L338.0,47.9 L342.5,49.9 L347.0,52.2 L351.5,54.9 L356.0,58.0 L360.5,61.4 L365.0,65.1 L369.5,69.1 L374.0,73.4 L378.5,77.9 L383.0,82.6 L387.5,87.5 L392.0,92.5 L396.5,97.7 L401.0,102.9 L405.5,108.2 L410.0,113.5 L410.0,220 Z" fill="var(--accent)" fill-opacity="0.32"/>
+      <path d="M14.0,219.5 L18.5,219.4 L23.0,219.2 L27.5,219.1 L32.0,219.0 L36.5,218.8 L41.0,218.6 L45.5,218.3 L50.0,218.0 L54.5,217.7 L59.0,217.4 L63.5,217.0 L68.0,216.5 L72.5,216.0 L77.0,215.4 L81.5,214.8 L86.0,214.0 L90.5,213.2 L95.0,212.3 L99.5,211.3 L104.0,210.1 L108.5,208.9 L113.0,207.5 L117.5,206.0 L122.0,204.4 L126.5,202.6 L131.0,200.6 L135.5,198.5 L140.0,196.2 L144.5,193.8 L149.0,191.1 L153.5,188.3 L158.0,185.3 L162.5,182.0 L167.0,178.6 L171.5,175.0 L176.0,171.2 L180.5,167.2 L185.0,163.0 L189.5,158.7 L194.0,154.1 L198.5,149.4 L203.0,144.6 L207.5,139.6 L212.0,134.6 L216.5,129.4 L221.0,124.1 L225.5,118.9 L230.0,113.5 L234.5,108.2 L239.0,102.9 L243.5,97.7 L248.0,92.5 L252.5,87.5 L257.0,82.6 L261.5,77.9 L266.0,73.4 L270.5,69.1 L275.0,65.1 L279.5,61.4 L284.0,58.0 L288.5,54.9 L293.0,52.2 L297.5,49.9 L302.0,47.9 L306.5,46.4 L311.0,45.3 L315.5,44.7 L320.0,44.5 L324.5,44.7 L329.0,45.3 L333.5,46.4 L338.0,47.9 L342.5,49.9 L347.0,52.2 L351.5,54.9 L356.0,58.0 L360.5,61.4 L365.0,65.1 L369.5,69.1 L374.0,73.4 L378.5,77.9 L383.0,82.6 L387.5,87.5 L392.0,92.5 L396.5,97.7 L401.0,102.9 L405.5,108.2 L410.0,113.5 L414.5,118.9 L419.0,124.1 L423.5,129.4 L428.0,134.6 L432.5,139.6 L437.0,144.6 L441.5,149.4 L446.0,154.1 L450.5,158.7 L455.0,163.0 L459.5,167.2 L464.0,171.2 L468.5,175.0 L473.0,178.6 L477.5,182.0 L482.0,185.3 L486.5,188.3 L491.0,191.1 L495.5,193.8 L500.0,196.2 L504.5,198.5 L509.0,200.6 L513.5,202.6 L518.0,204.4 L522.5,206.0 L527.0,207.5 L531.5,208.9 L536.0,210.1 L540.5,211.3 L545.0,212.3 L549.5,213.2 L554.0,214.0 L558.5,214.8 L563.0,215.4 L567.5,216.0 L572.0,216.5 L576.5,217.0 L581.0,217.4 L585.5,217.7 L590.0,218.0 L594.5,218.3 L599.0,218.6 L603.5,218.8 L608.0,219.0 L612.5,219.1 L617.0,219.2 L621.5,219.4 L626.0,219.5" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+      <line x1="10" y1="220" x2="630" y2="220" stroke="var(--muted)" stroke-width="1"/>
+      <g fill="var(--muted)" font-size="16" text-anchor="middle">
+        <text x="50" y="242">μ−3σ</text><text x="140" y="242">μ−2σ</text><text x="230" y="242">μ−σ</text>
+        <text x="320" y="242">μ</text>
+        <text x="410" y="242">μ+σ</text><text x="500" y="242">μ+2σ</text><text x="590" y="242">μ+3σ</text>
+      </g>
+      <g fill="var(--text)" text-anchor="middle">
+        <text x="320" y="130" font-size="18" font-weight="600">68.27%</text>
+        <text x="320" y="168" font-size="16">95.45%</text>
+        <text x="320" y="204" font-size="16" fill="var(--muted)">99.73%</text>
+      </g>
+    </svg>
+    <figcaption><strong>Figure 2:</strong> The empirical rule. 68.27% of a Normal distribution lies within one $\sigma$ of the mean, 95.45% within two, and 99.73% within three. Also $P(X > \mu) = 0.5$ and $P(X = \mu) = 0$.</figcaption>
+  </figure>
+
+  <h3>Approximations: why the course bothers</h3>
+  <p>
+    Binomial probabilities for 10,000 sales calls involve enormous factorials and adding up thousands of terms. So when $n$ is large, we swap in an easier distribution with the same mean and variance:
+  </p>
+  <ul>
+    <li><strong>Normal for binomial:</strong> when $np > 5$ and $n(1-p) > 5$. Use $\mu = np$ and $\sigma^2 = np(1-p)$.</li>
+    <li><strong>Poisson for binomial:</strong> when $n > 100$ but $np < 10$ (rare events). Use $\lambda = np$.</li>
+    <li><strong>Normal for Poisson:</strong> when $\lambda > 5$. Use $\mu = \sigma^2 = \lambda$.</li>
+  </ul>
+  <p>
+    An optional refinement is the <strong>continuity correction</strong>: a whole number $k$ covers the stretch from $k - 0.5$ to $k + 0.5$ on the continuous scale, so for "more than 530" you would use 530.5.
+  </p>
+  <p>
+    When even approximations fail, because of caps, rules that change over time, or tangled dependencies, we <strong>simulate</strong>. Draw thousands of random values from each distribution, push them through the business logic, and count the outcomes. The slide's example has visitors per minute that are Normal with a mean of $8000 - t^2$ and an SD of 800, with a server cap of 9000. A few thousand simulated hours answer questions that no formula reaches.
+  </p>
+
+  <h3>Recipe: naming the distribution</h3>
+  <ol class="recipe">
+    <li>Are you counting events or timing them?</li>
+    <li>Counting in a fixed number of trials → binomial; without replacement from a small batch → hypergeometric.</li>
+    <li>Counting per hour, per month or per km², with no fixed number of trials → Poisson.</li>
+    <li>Tries until the first success → geometric; until the $r$th success → negative binomial.</li>
+    <li>Time until the next arrival → exponential. Measurements, sums or averages → Normal.</li>
+  </ol>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8.3: Five Quick Draws</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <ol>
+        <li>Each of 10 deep-sea drills fails independently with probability 0.2. Find P(exactly 4 fail).</li>
+        <li>Machine failures average 3 per month. Find P(no failures) and P(at most 2).</li>
+        <li>Each sales call succeeds with $p = 0.1$. Find P(the first sale is on call 3) and the expected number of calls.</li>
+        <li>Calls arrive at 4 per hour. Find P(you wait more than 30 minutes for the next one).</li>
+        <li>A box holds 20 parts, 5 of them defective. You draw 4 without replacement. Find P(exactly 1 defective). (Defectives are the "white" balls.)</li>
+      </ol>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{1. } P(X = 4) &= \binom{10}{4}(0.2)^4(0.8)^6 \\[6pt]
+        &\approx 0.088 \\[10pt]
+        \text{2. } P(X = 0) &= e^{-3} \\[6pt]
+        &\approx 0.050 \\[6pt]
+        P(X \le 2) &= e^{-3}\left(1 + 3 + \tfrac{9}{2}\right) \\[6pt]
+        &\approx 0.423 \\[10pt]
+        \text{3. } P(K = 3) &= (0.9)^2(0.1) \\[6pt]
+        &= 0.081 \\[6pt]
+        E(K) &= \tfrac{1}{0.1} = 10 \\[10pt]
+        \text{4. } P(T > 0.5\text{ h}) &= e^{-4 \times 0.5} \\[6pt]
+        &\approx 0.135 \\[10pt]
+        \text{5. } P(X = 1) &= \frac{\binom{5}{1}\binom{15}{3}}{\binom{20}{4}} \\[6pt]
+        &= \frac{5 \times 455}{4845} \\[6pt]
+        &\approx 0.470
+      \end{aligned}$$
+      <p>In 4, keep the units consistent: the rate is per hour, so 30 minutes is 0.5 h.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8.4: Normal and Its Approximation</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <ol>
+        <li>Heights are $N(170, 8^2)$ cm. Find P(height &gt; 186).</li>
+        <li>You make 10,000 calls, each succeeding with $p = 0.05$. Approximate P(more than 530 sales).</li>
+      </ol>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{1. } z &= \frac{186 - 170}{8} = 2 \\[6pt]
+        P(Z > 2) &= 1 - 0.9772 \\[6pt]
+        &= 0.0228 \\[10pt]
+        \text{2. } \mu &= 10000 \times 0.05 = 500 \\[6pt]
+        \sigma &= \sqrt{10000 \times 0.05 \times 0.95} \approx 21.79 \\[6pt]
+        z &= \frac{530 - 500}{21.79} \approx 1.38 \\[6pt]
+        P(Z > 1.38) &\approx 0.084
+      \end{aligned}$$
+      <p>Both $np = 500$ and $n(1-p) = 9500$ exceed 5, so the Normal approximation is allowed. With the continuity correction (530.5), $z \approx 1.40$ and the answer is about 0.081.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  9. CLT                                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="clt">
+  <h2>9. The Central Limit Theorem: Why Averages Behave</h2>
+  <p>
+    Back to the chips. Our ten bags averaged $\bar{x} = 100.3$ g. Weigh another ten and the average would be slightly different. So $\bar{X}$ is itself a random variable. Before we can say anything about $\mu$, we need to know how $\bar{X}$ behaves.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If I repeated the whole experiment many times, how would the sample averages be distributed?</em></p>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The Sampling Distribution of the Mean and the Central Limit Theorem</div>
+    <div class="math-box-body">
+      <p>Take independent samples of size $n$ from any population with mean $\mu$ and standard deviation $\sigma$. The distribution of $\bar{X}$ across samples (its <strong>sampling distribution</strong>) has:</p>
+      <ul>
+        <li><strong>Centre</strong> $\mu$: on average, $\bar{X}$ hits the target.</li>
+        <li><strong>Spread</strong> $\sigma / \sqrt{n}$, called the <strong>standard error</strong> (SE): averages vary less than single values.</li>
+        <li><strong>Shape</strong> approximately Normal once $n$ is large (rule of thumb $n \ge 30$), <em>whatever</em> the shape of the population. This is the <strong>Central Limit Theorem</strong> (CLT): adding up many independent random variables produces an approximately Normal one.</li>
+      </ul>
+      $$\bar{X} \sim N\!\left(\mu,\ \Big(\frac{\sigma}{\sqrt{n}}\Big)^2\right)$$
+    </div>
+  </div>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 250" role="img" aria-label="A wide population curve and a much narrower curve for the sample mean, both centred on mu">
+      <path d="M40.0,219.7 L44.0,219.6 L48.0,219.5 L52.0,219.4 L56.0,219.3 L60.0,219.2 L64.0,219.0 L68.0,218.9 L72.0,218.7 L76.0,218.5 L80.0,218.2 L84.0,217.9 L88.0,217.6 L92.0,217.3 L96.0,216.8 L100.0,216.4 L104.0,215.8 L108.0,215.2 L112.0,214.6 L116.0,213.8 L120.0,213.0 L124.0,212.1 L128.0,211.0 L132.0,209.9 L136.0,208.7 L140.0,207.3 L144.0,205.8 L148.0,204.2 L152.0,202.4 L156.0,200.5 L160.0,198.4 L164.0,196.2 L168.0,193.8 L172.0,191.2 L176.0,188.4 L180.0,185.5 L184.0,182.4 L188.0,179.1 L192.0,175.6 L196.0,172.0 L200.0,168.2 L204.0,164.2 L208.0,160.1 L212.0,155.8 L216.0,151.5 L220.0,146.9 L224.0,142.3 L228.0,137.6 L232.0,132.9 L236.0,128.0 L240.0,123.2 L244.0,118.4 L248.0,113.6 L252.0,108.8 L256.0,104.1 L260.0,99.5 L264.0,95.1 L268.0,90.8 L272.0,86.7 L276.0,82.8 L280.0,79.2 L284.0,75.8 L288.0,72.7 L292.0,69.9 L296.0,67.4 L300.0,65.3 L304.0,63.6 L308.0,62.2 L312.0,61.2 L316.0,60.6 L320.0,60.4 L324.0,60.6 L328.0,61.2 L332.0,62.2 L336.0,63.6 L340.0,65.3 L344.0,67.4 L348.0,69.9 L352.0,72.7 L356.0,75.8 L360.0,79.2 L364.0,82.8 L368.0,86.7 L372.0,90.8 L376.0,95.1 L380.0,99.5 L384.0,104.1 L388.0,108.8 L392.0,113.6 L396.0,118.4 L400.0,123.2 L404.0,128.0 L408.0,132.9 L412.0,137.6 L416.0,142.3 L420.0,146.9 L424.0,151.5 L428.0,155.8 L432.0,160.1 L436.0,164.2 L440.0,168.2 L444.0,172.0 L448.0,175.6 L452.0,179.1 L456.0,182.4 L460.0,185.5 L464.0,188.4 L468.0,191.2 L472.0,193.8 L476.0,196.2 L480.0,198.4 L484.0,200.5 L488.0,202.4 L492.0,204.2 L496.0,205.8 L500.0,207.3 L504.0,208.7 L508.0,209.9 L512.0,211.0 L516.0,212.1 L520.0,213.0 L524.0,213.8 L528.0,214.6 L532.0,215.2 L536.0,215.8 L540.0,216.4 L544.0,216.8 L548.0,217.3 L552.0,217.6 L556.0,217.9 L560.0,218.2 L564.0,218.5 L568.0,218.7 L572.0,218.9 L576.0,219.0 L580.0,219.2 L584.0,219.3 L588.0,219.4 L592.0,219.5 L596.0,219.6 L600.0,219.7" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 5"/>
+      <path d="M224.0,219.8 L224.8,219.8 L225.6,219.8 L226.4,219.8 L227.2,219.7 L228.0,219.7 L228.8,219.7 L229.6,219.6 L230.4,219.6 L231.2,219.6 L232.0,219.5 L232.8,219.4 L233.6,219.4 L234.4,219.3 L235.2,219.2 L236.0,219.1 L236.8,219.1 L237.6,218.9 L238.4,218.8 L239.2,218.7 L240.0,218.6 L240.8,218.4 L241.6,218.3 L242.4,218.1 L243.2,217.9 L244.0,217.7 L244.8,217.4 L245.6,217.2 L246.4,216.9 L247.2,216.6 L248.0,216.3 L248.8,216.0 L249.6,215.6 L250.4,215.2 L251.2,214.7 L252.0,214.3 L252.8,213.8 L253.6,213.2 L254.4,212.7 L255.2,212.0 L256.0,211.4 L256.8,210.6 L257.6,209.9 L258.4,209.1 L259.2,208.2 L260.0,207.3 L260.8,206.3 L261.6,205.2 L262.4,204.1 L263.2,203.0 L264.0,201.7 L264.8,200.4 L265.6,199.0 L266.4,197.5 L267.2,196.0 L268.0,194.4 L268.8,192.7 L269.6,190.9 L270.4,189.0 L271.2,187.0 L272.0,185.0 L272.8,182.8 L273.6,180.6 L274.4,178.2 L275.2,175.8 L276.0,173.3 L276.8,170.7 L277.6,168.0 L278.4,165.2 L279.2,162.3 L280.0,159.3 L280.8,156.2 L281.6,153.0 L282.4,149.8 L283.2,146.4 L284.0,143.0 L284.8,139.5 L285.6,135.9 L286.4,132.3 L287.2,128.5 L288.0,124.8 L288.8,120.9 L289.6,117.0 L290.4,113.1 L291.2,109.1 L292.0,105.1 L292.8,101.1 L293.6,97.0 L294.4,93.0 L295.2,88.9 L296.0,84.9 L296.8,80.8 L297.6,76.8 L298.4,72.8 L299.2,68.8 L300.0,64.9 L300.8,61.1 L301.6,57.3 L302.4,53.6 L303.2,50.0 L304.0,46.5 L304.8,43.1 L305.6,39.8 L306.4,36.6 L307.2,33.5 L308.0,30.6 L308.8,27.8 L309.6,25.2 L310.4,22.8 L311.2,20.5 L312.0,18.4 L312.8,16.5 L313.6,14.7 L314.4,13.2 L315.2,11.8 L316.0,10.7 L316.8,9.7 L317.6,9.0 L318.4,8.5 L319.2,8.2 L320.0,8.1 L320.8,8.2 L321.6,8.5 L322.4,9.0 L323.2,9.7 L324.0,10.7 L324.8,11.8 L325.6,13.2 L326.4,14.7 L327.2,16.5 L328.0,18.4 L328.8,20.5 L329.6,22.8 L330.4,25.2 L331.2,27.8 L332.0,30.6 L332.8,33.5 L333.6,36.6 L334.4,39.8 L335.2,43.1 L336.0,46.5 L336.8,50.0 L337.6,53.6 L338.4,57.3 L339.2,61.1 L340.0,64.9 L340.8,68.8 L341.6,72.8 L342.4,76.8 L343.2,80.8 L344.0,84.9 L344.8,88.9 L345.6,93.0 L346.4,97.0 L347.2,101.1 L348.0,105.1 L348.8,109.1 L349.6,113.1 L350.4,117.0 L351.2,120.9 L352.0,124.8 L352.8,128.5 L353.6,132.3 L354.4,135.9 L355.2,139.5 L356.0,143.0 L356.8,146.4 L357.6,149.8 L358.4,153.0 L359.2,156.2 L360.0,159.3 L360.8,162.3 L361.6,165.2 L362.4,168.0 L363.2,170.7 L364.0,173.3 L364.8,175.8 L365.6,178.2 L366.4,180.6 L367.2,182.8 L368.0,185.0 L368.8,187.0 L369.6,189.0 L370.4,190.9 L371.2,192.7 L372.0,194.4 L372.8,196.0 L373.6,197.5 L374.4,199.0 L375.2,200.4 L376.0,201.7 L376.8,203.0 L377.6,204.1 L378.4,205.2 L379.2,206.3 L380.0,207.3 L380.8,208.2 L381.6,209.1 L382.4,209.9 L383.2,210.6 L384.0,211.4 L384.8,212.0 L385.6,212.7 L386.4,213.2 L387.2,213.8 L388.0,214.3 L388.8,214.7 L389.6,215.2 L390.4,215.6 L391.2,216.0 L392.0,216.3 L392.8,216.6 L393.6,216.9 L394.4,217.2 L395.2,217.4 L396.0,217.7 L396.8,217.9 L397.6,218.1 L398.4,218.3 L399.2,218.4 L400.0,218.6 L400.8,218.7 L401.6,218.8 L402.4,218.9 L403.2,219.1 L404.0,219.1 L404.8,219.2 L405.6,219.3 L406.4,219.4 L407.2,219.4 L408.0,219.5 L408.8,219.6 L409.6,219.6 L410.4,219.6 L411.2,219.7 L412.0,219.7 L412.8,219.7 L413.6,219.8 L414.4,219.8 L415.2,219.8 L416.0,219.8" fill="var(--accent)" fill-opacity="0.15" stroke="var(--accent)" stroke-width="2.4"/>
+      <line x1="20" y1="220" x2="620" y2="220" stroke="var(--muted)" stroke-width="1"/>
+      <line x1="320" y1="220" x2="320" y2="228" stroke="var(--muted)"/>
+      <text x="320" y="244" font-size="16" text-anchor="middle" fill="var(--muted)">μ</text>
+      <text x="470" y="150" font-size="16" fill="var(--text)">one bag: SD σ</text>
+      <text x="352" y="50" font-size="16" fill="var(--text)">average of n = 10: SD σ/√10</text>
+    </svg>
+    <figcaption><strong>Figure 3:</strong> The spread of single values (dashed) against the spread of averages of 10 (solid). Both are centred on $\mu$, but the average is $\sqrt{10} \approx 3.2$ times tighter.</figcaption>
+  </figure>
+
+  <p>Subtract the centre and divide by the standard error, and we get a quantity whose distribution we know completely:</p>
+  $$\frac{\bar{X} - \mu}{\sigma / \sqrt{n}} \sim N(0, 1^2)$$
+  <p>
+    Every confidence interval and z-test in the rest of the course is built on this line. The CLT also explains why the Normal appears everywhere: heights, weights and large counts are sums of many small independent effects. The theorem itself is developed in <a href="../../02.distributions/02.the-central-limit-theorem-and-maximum-entropy/">The Central Limit Theorem and Maximum Entropy</a>.
+  </p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 9.1: One Bag versus Sixteen</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>Bags have $\mu = 100$ g and $\sigma = 2$ g. Find P(one bag weighs under 99 g) and P(the average of 16 bags is under 99 g).</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{One bag: } z &= \frac{99 - 100}{2} = -0.5 \\[6pt]
+        P(Z < -0.5) &\approx 0.309 \\[10pt]
+        \text{SE} &= \frac{2}{\sqrt{16}} = 0.5 \\[6pt]
+        \text{Average: } z &= \frac{99 - 100}{0.5} = -2 \\[6pt]
+        P(Z < -2) &\approx 0.0228
+      \end{aligned}$$
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  10. CIs                                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="confidence-intervals">
+  <h2>10. Confidence Intervals: Turning the Statement Around</h2>
+  <p>
+    The CLT says how far $\bar{X}$ usually lands from $\mu$. Read that the other way round: if $\bar{X}$ rarely lands more than a certain distance from $\mu$, then $\mu$ rarely lies more than that distance from the $\bar{x}$ we observed. That turns one observed number into a range of plausible values for the parameter.
+  </p>
+  <p>Choose a small error rate $\alpha$ (say 0.05). Let $z_{\alpha/2}$ be the point that cuts off $\alpha/2$ in each tail of the standard Normal. Then:</p>
+  $$\begin{aligned}
+    P\left(-z_{\alpha/2} \le \frac{\bar{X} - \mu}{\sigma/\sqrt{n}} \le z_{\alpha/2}\right) &= 1 - \alpha \\[8pt]
+    -z_{\alpha/2}\frac{\sigma}{\sqrt{n}} \le \bar{X} - \mu &\le z_{\alpha/2}\frac{\sigma}{\sqrt{n}} \\[8pt]
+    \bar{X} - z_{\alpha/2}\frac{\sigma}{\sqrt{n}} \le \mu &\le \bar{X} + z_{\alpha/2}\frac{\sigma}{\sqrt{n}}
+  \end{aligned}$$
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 230" role="img" aria-label="Standard normal curve with the central 1 minus alpha shaded and two tails of alpha over 2">
+      <path d="M163.2,190 L163.2,167.8 L167.2,165.5 L171.2,163.1 L175.2,160.5 L179.2,157.8 L183.2,154.9 L187.2,151.8 L191.2,148.5 L195.2,145.1 L199.2,141.5 L203.2,137.8 L207.2,133.9 L211.2,129.9 L215.2,125.7 L219.2,121.5 L223.2,117.1 L227.2,112.6 L231.2,108.1 L235.2,103.6 L239.2,99.0 L243.2,94.4 L247.2,89.8 L251.2,85.3 L255.2,80.8 L259.2,76.4 L263.2,72.2 L267.2,68.1 L271.2,64.1 L275.2,60.4 L279.2,56.9 L283.2,53.6 L287.2,50.6 L291.2,47.9 L295.2,45.5 L299.2,43.4 L303.2,41.7 L307.2,40.3 L311.2,39.3 L315.2,38.7 L319.2,38.4 L323.2,38.5 L327.2,39.0 L331.2,39.9 L335.2,41.1 L339.2,42.7 L343.2,44.6 L347.2,46.9 L351.2,49.5 L355.2,52.4 L359.2,55.6 L363.2,59.0 L367.2,62.6 L371.2,66.5 L375.2,70.5 L379.2,74.7 L383.2,79.0 L387.2,83.5 L391.2,88.0 L395.2,92.5 L399.2,97.1 L403.2,101.7 L407.2,106.3 L411.2,110.8 L415.2,115.3 L419.2,119.7 L423.2,124.0 L427.2,128.2 L431.2,132.3 L435.2,136.2 L439.2,140.0 L443.2,143.7 L447.2,147.2 L451.2,150.5 L455.2,153.7 L459.2,156.6 L463.2,159.5 L467.2,162.1 L471.2,164.6 L475.2,166.9 L476.8,190 Z" fill="var(--accent)" fill-opacity="0.14"/>
+      <path d="M32.0,190 L32.0,189.8 L36.0,189.7 L40.0,189.7 L44.0,189.6 L48.0,189.5 L52.0,189.4 L56.0,189.3 L60.0,189.2 L64.0,189.1 L68.0,188.9 L72.0,188.8 L76.0,188.6 L80.0,188.3 L84.0,188.0 L88.0,187.7 L92.0,187.4 L96.0,187.0 L100.0,186.5 L104.0,186.0 L108.0,185.5 L112.0,184.8 L116.0,184.1 L120.0,183.3 L124.0,182.5 L128.0,181.5 L132.0,180.4 L136.0,179.2 L140.0,177.9 L144.0,176.5 L148.0,175.0 L152.0,173.3 L156.0,171.5 L160.0,169.5 L163.2,190 Z" fill="var(--accent)" fill-opacity="0.5"/>
+      <path d="M476.8,190 L476.8,167.8 L480.8,169.9 L484.8,171.8 L488.8,173.6 L492.8,175.3 L496.8,176.8 L500.8,178.2 L504.8,179.5 L508.8,180.6 L512.8,181.7 L516.8,182.6 L520.8,183.5 L524.8,184.3 L528.8,185.0 L532.8,185.6 L536.8,186.1 L540.8,186.6 L544.8,187.1 L548.8,187.5 L552.8,187.8 L556.8,188.1 L560.8,188.4 L564.8,188.6 L568.8,188.8 L572.8,189.0 L576.8,189.1 L580.8,189.3 L584.8,189.4 L588.8,189.5 L592.8,189.5 L596.8,189.6 L600.8,189.7 L604.8,189.7 L608.0,190 Z" fill="var(--accent)" fill-opacity="0.5"/>
+      <path d="M32.0,189.8 L36.0,189.7 L40.0,189.7 L44.0,189.6 L48.0,189.5 L52.0,189.4 L56.0,189.3 L60.0,189.2 L64.0,189.1 L68.0,188.9 L72.0,188.8 L76.0,188.6 L80.0,188.3 L84.0,188.0 L88.0,187.7 L92.0,187.4 L96.0,187.0 L100.0,186.5 L104.0,186.0 L108.0,185.5 L112.0,184.8 L116.0,184.1 L120.0,183.3 L124.0,182.5 L128.0,181.5 L132.0,180.4 L136.0,179.2 L140.0,177.9 L144.0,176.5 L148.0,175.0 L152.0,173.3 L156.0,171.5 L160.0,169.5 L164.0,167.4 L168.0,165.1 L172.0,162.6 L176.0,160.0 L180.0,157.2 L184.0,154.3 L188.0,151.1 L192.0,147.9 L196.0,144.4 L200.0,140.8 L204.0,137.0 L208.0,133.1 L212.0,129.1 L216.0,124.9 L220.0,120.6 L224.0,116.2 L228.0,111.7 L232.0,107.2 L236.0,102.6 L240.0,98.1 L244.0,93.5 L248.0,88.9 L252.0,84.4 L256.0,79.9 L260.0,75.6 L264.0,71.3 L268.0,67.3 L272.0,63.4 L276.0,59.7 L280.0,56.2 L284.0,53.0 L288.0,50.1 L292.0,47.4 L296.0,45.1 L300.0,43.1 L304.0,41.4 L308.0,40.1 L312.0,39.2 L316.0,38.6 L320.0,38.4 L324.0,38.6 L328.0,39.2 L332.0,40.1 L336.0,41.4 L340.0,43.1 L344.0,45.1 L348.0,47.4 L352.0,50.1 L356.0,53.0 L360.0,56.2 L364.0,59.7 L368.0,63.4 L372.0,67.3 L376.0,71.3 L380.0,75.6 L384.0,79.9 L388.0,84.4 L392.0,88.9 L396.0,93.5 L400.0,98.1 L404.0,102.6 L408.0,107.2 L412.0,111.7 L416.0,116.2 L420.0,120.6 L424.0,124.9 L428.0,129.1 L432.0,133.1 L436.0,137.0 L440.0,140.8 L444.0,144.4 L448.0,147.9 L452.0,151.1 L456.0,154.3 L460.0,157.2 L464.0,160.0 L468.0,162.6 L472.0,165.1 L476.0,167.4 L480.0,169.5 L484.0,171.5 L488.0,173.3 L492.0,175.0 L496.0,176.5 L500.0,177.9 L504.0,179.2 L508.0,180.4 L512.0,181.5 L516.0,182.5 L520.0,183.3 L524.0,184.1 L528.0,184.8 L532.0,185.5 L536.0,186.0 L540.0,186.5 L544.0,187.0 L548.0,187.4 L552.0,187.7 L556.0,188.0 L560.0,188.3 L564.0,188.6 L568.0,188.8 L572.0,188.9 L576.0,189.1 L580.0,189.2 L584.0,189.3 L588.0,189.4 L592.0,189.5 L596.0,189.6 L600.0,189.7 L604.0,189.7 L608.0,189.8" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+      <line x1="20" y1="190" x2="620" y2="190" stroke="var(--muted)" stroke-width="1"/>
+      <g stroke="var(--muted)"><line x1="163.2" y1="190" x2="163.2" y2="197"/><line x1="320" y1="190" x2="320" y2="197"/><line x1="476.8" y1="190" x2="476.8" y2="197"/></g>
+      <g font-size="16" text-anchor="middle" fill="var(--text)">
+        <text x="163.2" y="216">−z<tspan baseline-shift="sub" font-size="12">α/2</tspan></text><text x="320" y="216">0</text><text x="476.8" y="216">+z<tspan baseline-shift="sub" font-size="12">α/2</tspan></text>
+        <text x="320" y="130" font-size="18" font-weight="600">1 − α</text>
+        <text x="110" y="166">α/2</text><text x="530" y="166">α/2</text>
+      </g>
+    </svg>
+    <figcaption><strong>Figure 4:</strong> The middle $1 - \alpha$ of the standard Normal lies between $-z_{\alpha/2}$ and $+z_{\alpha/2}$. The two dark tails, $\alpha/2$ each, are the chance of the interval missing.</figcaption>
+  </figure>
+
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Confidence $1 - \alpha$</th><th>90%</th><th>95%</th><th>99%</th></tr>
+    <tr><td>$z_{\alpha/2}$ (two-sided)</td><td>1.645</td><td>1.96</td><td>2.576</td></tr>
+    <tr><td>$z_{\alpha}$ (one-sided)</td><td>1.282</td><td>1.645</td><td>2.326</td></tr>
+  </table>
+  </div>
+
+  <p>For the chips, $\sigma = 2$ g, $n = 10$ and $\bar{x} = 100.3$:</p>
+  $$\begin{aligned}
+    \bar{x} \pm z_{0.025}\frac{\sigma}{\sqrt{n}} &= 100.3 \pm 1.96 \times \frac{2}{\sqrt{10}} \\[6pt]
+    &= 100.3 \pm 1.24 \\[8pt]
+    99.06 \le \;&\mu \le 101.54
+  \end{aligned}$$
+
+  <div class="spot">
+    <strong>What "95% confident" means.</strong> $\mu$ is a fixed number; it does not move. The interval is what changes from sample to sample. If you repeated the sampling many times, 95% of the intervals built this way would contain $\mu$. It does <em>not</em> mean "there is a 95% chance that $\mu$ lies in this particular interval."
+  </div>
+
+  <p>A <strong>one-sided bound</strong> puts all of $\alpha$ in one tail, for when only one direction matters: $\mu \ge \bar{x} - z_\alpha\,\sigma/\sqrt{n}$.</p>
+
+  <h3>When $\sigma$ is unknown, and other parameters</h3>
+  <p>
+    In practice we rarely know $\sigma$, so we use the sample's $s$ instead. Estimating it adds extra uncertainty, and the Normal is replaced by the <strong>t-distribution</strong>: a bell curve with fatter tails, whose exact shape depends on the <strong>degrees of freedom</strong> $n - 1$. As $n$ grows, t becomes Normal. To estimate a variance we need the <strong>chi-square distribution</strong> $\chi^2$, the distribution of a sum of squared standard Normals. It is never negative and is skewed to the right, and $(n-1)s^2/\sigma^2$ follows $\chi^2_{n-1}$.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The Four Single-Sample Intervals</div>
+    <div class="math-box-body">
+      $$\begin{aligned}
+        \text{Mean, } \sigma \text{ known: } &\quad \bar{x} \pm z_{\alpha/2}\,\frac{\sigma}{\sqrt{n}} \\[8pt]
+        \text{Mean, } \sigma \text{ unknown: } &\quad \bar{x} \pm t_{\alpha/2,\,n-1}\,\frac{s}{\sqrt{n}} \\[8pt]
+        \text{Proportion (large } n\text{): } &\quad \hat{p} \pm z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}} \\[8pt]
+        \text{Variance: } &\quad \frac{(n-1)s^2}{\chi^2_{\alpha/2,\,n-1}} \le \sigma^2 \le \frac{(n-1)s^2}{\chi^2_{1-\alpha/2,\,n-1}}
+      \end{aligned}$$
+      <p>$\hat{p}$ ("p-hat") is the sample proportion, successes ÷ $n$. $\chi^2_{\alpha/2}$ is the larger cut-off (it has $\alpha/2$ of the area to its right), so it goes under the <em>lower</em> limit.</p>
+    </div>
+  </div>
+
+  <h3>Recipe</h3>
+  <ol class="recipe">
+    <li>What are you estimating: a mean, a proportion or a variance? For a mean, is $\sigma$ known?</li>
+    <li>Compute the point estimate ($\bar{x}$, $\hat{p}$ or $s^2$).</li>
+    <li>Look up the critical value: $z$, $t$ with $n - 1$ df, or the two $\chi^2$ values.</li>
+    <li>Compute the interval: estimate ± critical value × standard error.</li>
+    <li>State the result in words, with units.</li>
+  </ol>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 10.1: The Chips Without $\sigma$</h3>
+      <span class="problem-badge">Session 4 · Slide 11</span>
+    </div>
+    <div class="question-canvas">
+      <p>Use the same ten bags, but now treat $\sigma$ as unknown. Build a 95% CI for $\mu$ and a 95% CI for $\sigma^2$. Use $t_{0.025,9} = 2.262$, $\chi^2_{0.025,9} = 19.02$ and $\chi^2_{0.975,9} = 2.70$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>The squared deviations from 100.3 sum to 8.1.</p>
+      $$\begin{aligned}
+        s^2 &= \frac{8.1}{9} = 0.9 \\[6pt]
+        s &\approx 0.949 \\[8pt]
+        \text{Mean: }\; 100.3 &\pm 2.262 \times \frac{0.949}{\sqrt{10}} \\[6pt]
+        &= 100.3 \pm 0.68 \\[6pt]
+        99.62 \le \;&\mu \le 100.98 \\[10pt]
+        \text{Variance: }\; \frac{9 \times 0.9}{19.02} \le \;&\sigma^2 \le \frac{9 \times 0.9}{2.70} \\[6pt]
+        0.43 \le \;&\sigma^2 \le 3.00
+      \end{aligned}$$
+      <p>The variance interval is lopsided around $s^2 = 0.9$ because the chi-square distribution is skewed.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 10.2: Sales-Call Success Rate</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>120 of 1000 sales calls succeed. Build a 95% CI for the true success rate $p$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \hat{p} &= 0.12 \\[6pt]
+        \text{SE} &= \sqrt{\frac{0.12 \times 0.88}{1000}} \approx 0.0103 \\[6pt]
+        0.12 &\pm 1.96 \times 0.0103 \\[6pt]
+        0.100 \le \;&p \le 0.140
+      \end{aligned}$$
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  11. Hypothesis tests                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="hypothesis-tests">
+  <h2>11. Hypothesis Tests: Answering Yes-or-No Questions</h2>
+  <p>
+    A confidence interval answers "where is $\mu$?". Often the question is sharper: does the new ad really bring in 2000 extra visitors? Is this machine overfilling? A hypothesis test is the confidence-interval idea aimed at one specific claim. For a fuller treatment, see <a href="../../03.hypothesis-testing/01.%20Hypothesis_test/">Hypothesis Testing</a>.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">The General Rubric (Every Test, Every Time)</div>
+    <div class="math-box-body">
+      <ol>
+        <li>State a <strong>null hypothesis</strong> $H_0$ and an <strong>alternative</strong> $H_1$. They must be mutually exclusive and collectively exhaustive (no overlap, and every possibility belongs to one of them). The equals sign always goes in $H_0$.</li>
+        <li>Reduce the data to one number, the <strong>test statistic</strong>, e.g. $z = \dfrac{\bar{x} - \mu_0}{\sigma/\sqrt{n}}$, where $\mu_0$ is the value claimed under $H_0$.</li>
+        <li>If $H_0$ were true, the statistic would behave like one random draw from a known distribution ($Z$, $t$, $\chi^2$ or $F$).</li>
+        <li>The <strong>p-value</strong> is the probability, assuming $H_0$ is true, of getting a statistic at least as extreme as the one observed.</li>
+        <li>If the p-value is below the <strong>significance level</strong> $\alpha$ (usually 0.05), <strong>reject</strong> $H_0$. Otherwise <strong>fail to reject</strong> it.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="spot">
+    <strong>The professor's emphasis:</strong> the p-value is $P(\text{data} \mid H_0)$, not $P(H_0 \mid \text{data})$. A p-value of 0.03 does not mean a 3% chance that $H_0$ is true. An equivalent definition: the p-value is the smallest $\alpha$ at which this data would lead you to reject $H_0$.
+  </div>
+
+  <h3>Which tail?</h3>
+  <p>"Extreme" means "in the direction that argues against $H_0$". The alternative points to the tail. Say the statistic came out at $z = 1.2$:</p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Null</th><th>Alternative</th><th>Tail</th><th>p-value</th></tr>
+    <tr><td>$\mu \le 210$</td><td>$\mu > 210$</td><td>right</td><td>$P(Z \ge 1.2) = 0.115$</td></tr>
+    <tr><td>$\mu \ge 210$</td><td>$\mu < 210$</td><td>left</td><td>$P(Z \le 1.2) = 0.885$</td></tr>
+    <tr><td>$\mu = 210$</td><td>$\mu \ne 210$</td><td>both</td><td>$2 \times 0.115 = 0.230$</td></tr>
+  </table>
+  </div>
+
+  <h3>The menu of tests</h3>
+  <p><strong>One sample</strong> compares one group against a fixed number:</p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Test</th><th>When</th><th>Statistic</th><th>Distribution under $H_0$</th></tr>
+    <tr><td>z-test</td><td>Mean, $\sigma$ known</td><td>$\frac{\bar{x} - \mu_0}{\sigma/\sqrt{n}}$</td><td>$Z$</td></tr>
+    <tr><td>t-test</td><td>Mean, $\sigma$ unknown</td><td>$\frac{\bar{x} - \mu_0}{s/\sqrt{n}}$</td><td>$t_{n-1}$</td></tr>
+    <tr><td>$\chi^2$ test</td><td>Variance</td><td>$\frac{(n-1)s^2}{\sigma_0^2}$</td><td>$\chi^2_{n-1}$</td></tr>
+    <tr><td>z-proportion</td><td>Proportion</td><td>$\frac{\hat{p} - p_0}{\sqrt{p_0(1-p_0)/n}}$</td><td>$Z$</td></tr>
+  </table>
+  </div>
+  <p><strong>Two samples</strong> compare two groups (two balls, two sales agents, two machines):</p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Test</th><th>When</th><th>Distribution</th></tr>
+    <tr><td>Two-sample z</td><td>Both $\sigma$ known</td><td>$Z$</td></tr>
+    <tr><td>Pooled t</td><td>Independent groups, $\sigma$ unknown but assumed equal</td><td>$t_{n_1 + n_2 - 2}$</td></tr>
+    <tr><td>Welch t</td><td>Independent groups, unequal variances (Mac vs PC users)</td><td>$t_k$</td></tr>
+    <tr><td>Paired t</td><td>Before and after on the <em>same</em> units</td><td>$t_{n-1}$ on the differences</td></tr>
+    <tr><td>F-test</td><td>Compare two variances</td><td>$F_{n_1-1,\,n_2-1}$</td></tr>
+    <tr><td>Two-proportion z</td><td>Compare two proportions</td><td>$Z$</td></tr>
+  </table>
+  </div>
+  $$\begin{aligned}
+    z &= \frac{(\bar{x}_1 - \bar{x}_2) - d_0}{\sqrt{\sigma_1^2/n_1 + \sigma_2^2/n_2}} \\[10pt]
+    s_p^2 &= \frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} \\[10pt]
+    k &= \frac{\left(\frac{s_1^2}{n_1} + \frac{s_2^2}{n_2}\right)^2}{\frac{(s_1^2/n_1)^2}{n_1 - 1} + \frac{(s_2^2/n_2)^2}{n_2 - 1}} \\[10pt]
+    t_{\text{paired}} &= \frac{\bar{d} - d_0}{s_d/\sqrt{n}}
+  \end{aligned}$$
+  <p>
+    $d_0$ is the difference claimed under $H_0$, usually 0. $s_p^2$, the <strong>pooled variance</strong>, is a weighted average of the two sample variances. $k$ is the Welch degrees of freedom (round down). In a paired test you first compute each unit's difference $d_i$, which turns it into a one-sample t-test and removes person-to-person variation.
+  </p>
+
+  <div class="spot">
+    <strong>Confidence intervals and tests are the same calculation.</strong> A two-sided test at level $\alpha$ rejects $H_0: \mu = \mu_0$ exactly when $\mu_0$ falls outside the $(1-\alpha)$ confidence interval. For two groups: if the CI for $\mu_1 - \mu_2$ contains 0, you cannot call the means different.
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 11.1: Does the Ad Deliver?</h3>
+      <span class="problem-badge">Session 5 · Slide 9</span>
+    </div>
+    <div class="question-canvas">
+      <p>The site historically gets 5000 visitors a day, with $\sigma = 200$. A new ad claims to add <em>at least</em> 2000. Over 10 days with the ad: 6719, 6834, 6808, 7092, 7100, 7011, 6744, 6933, 6809, 6760. Test the claim at $\alpha = 0.05$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Give the claim the benefit of the doubt: $H_0: \mu \ge 7000$, $H_1: \mu < 7000$.</p>
+      $$\begin{aligned}
+        \bar{x} &= 6881 \\[6pt]
+        z &= \frac{6881 - 7000}{200/\sqrt{10}} \\[6pt]
+        &\approx -1.88 \\[8pt]
+        p &= P(Z \le -1.88) \\[6pt]
+        &\approx 0.030
+      \end{aligned}$$
+      <p>$0.030 < 0.05$, so reject $H_0$. The ad helped, but by less than the claimed 2000.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 11.2: A Conversion-Rate Claim</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>A vendor says your conversion rate is at most 10%. You see 120 sales in 1000 calls. Is the true rate higher than 10%? Use $\alpha = 0.05$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>$H_0: p \le 0.10$, $H_1: p > 0.10$. The standard error uses $p_0$, the value under $H_0$.</p>
+      $$\begin{aligned}
+        z &= \frac{0.12 - 0.10}{\sqrt{0.1 \times 0.9/1000}} \\[6pt]
+        &\approx 2.11 \\[8pt]
+        p &= P(Z \ge 2.11) \\[6pt]
+        &\approx 0.0175
+      \end{aligned}$$
+      <p>Reject $H_0$: the rate is above 10%.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 11.3: Before and After Training</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>Five employees' scores improve by 2, 4, 1, 3 and 5 points after a training course. Is there a real improvement? Use a two-sided test at $\alpha = 0.05$, with $t_{0.025,4} = 2.776$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>The same people are measured twice, so use a paired t-test on the differences.</p>
+      $$\begin{aligned}
+        \bar{d} &= 3 \\[6pt]
+        s_d^2 &= \frac{1 + 1 + 4 + 0 + 4}{4} = 2.5 \\[6pt]
+        s_d &\approx 1.58 \\[8pt]
+        t &= \frac{3 - 0}{1.58/\sqrt{5}} \\[6pt]
+        &\approx 4.24
+      \end{aligned}$$
+      <p>$4.24 > 2.776$ (p ≈ 0.013), so reject $H_0$.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  12. Errors and power                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="errors">
+  <h2>12. Two Ways to Be Wrong: Type I and Type II Errors</h2>
+  <p>
+    A test makes a yes-or-no call from noisy data, so it can be wrong. The two kinds of mistake are not symmetric, and they cost different things.
+  </p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Reality ↓ / Decision →</th><th>Reject $H_0$</th><th>Fail to reject $H_0$</th></tr>
+    <tr><td>$H_0$ true</td><td><strong>Type I error</strong>: false positive, producer's risk, $\alpha$-risk</td><td>Correct ($1 - \alpha$)</td></tr>
+    <tr><td>$H_1$ true</td><td>Correct: <strong>power</strong> $= 1 - \beta$</td><td><strong>Type II error</strong>: false negative, consumer's risk, $\beta$-risk</td></tr>
+  </table>
+  </div>
+  <p>
+    $\alpha$ = P(reject $H_0$ | $H_0$ true), and you fix it in advance. Before data collection, the Type I risk is at most $\alpha$; after the analysis, the risk you took by rejecting equals your p-value. $\beta$ = P(fail to reject | $H_1$ true), and <strong>power</strong>, $1 - \beta$, is the chance of catching a real effect.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Why is $\beta$ so much harder to pin down than $\alpha$? Because "$H_1$ is true" is not one situation: it covers every possible true value of $\mu$.</em></p>
+    </div>
+  </div>
+
+  <p>β depends on four things:</p>
+  <ul>
+    <li><strong>$\delta = |\mu - \mu_0|$</strong>: how far the truth is from the null value. A bigger gap is easier to detect.</li>
+    <li><strong>$\sigma$</strong>: more noise hides the effect. The combination $d = \delta/\sigma$ is the effect size measured in standard deviations.</li>
+    <li><strong>$n$</strong>: more data means smaller $\beta$.</li>
+    <li><strong>$\alpha$</strong>: a stricter $\alpha$ makes you harder to convince, so $\beta$ rises. The two trade off against each other.</li>
+  </ul>
+  <p>For a one-sided z-test of $H_1: \mu > \mu_0$, when the true mean is $\mu_0 + \delta$:</p>
+  $$\beta = \Phi\!\left(z_\alpha - \frac{\delta\sqrt{n}}{\sigma}\right)$$
+  <p>An <strong>OC curve</strong> (operating characteristic curve) plots $\beta$ against $d$ for a fixed $n$.</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 290" role="img" aria-label="OC curves of beta versus d for sample sizes 5, 10 and 25">
+      <line x1="80" y1="230" x2="600" y2="230" stroke="var(--muted)"/>
+      <line x1="80" y1="30" x2="80" y2="230" stroke="var(--muted)"/>
+      <path d="M80.0,40.0 L88.7,41.2 L97.3,42.5 L106.0,44.0 L114.7,45.5 L123.3,47.2 L132.0,49.0 L140.7,51.0 L149.3,53.1 L158.0,55.4 L166.7,57.7 L175.3,60.3 L184.0,63.0 L192.7,65.8 L201.3,68.8 L210.0,72.0 L218.7,75.3 L227.3,78.7 L236.0,82.3 L244.7,86.0 L253.3,89.8 L262.0,93.8 L270.7,97.8 L279.3,101.9 L288.0,106.2 L296.7,110.5 L305.3,114.8 L314.0,119.2 L322.7,123.6 L331.3,128.1 L340.0,132.6 L348.7,137.0 L357.3,141.4 L366.0,145.8 L374.7,150.2 L383.3,154.5 L392.0,158.7 L400.7,162.8 L409.3,166.8 L418.0,170.7 L426.7,174.6 L435.3,178.2 L444.0,181.8 L452.7,185.2 L461.3,188.5 L470.0,191.6 L478.7,194.6 L487.3,197.4 L496.0,200.1 L504.7,202.6 L513.3,205.0 L522.0,207.2 L530.7,209.3 L539.3,211.2 L548.0,213.0 L556.7,214.7 L565.3,216.3 L574.0,217.7 L582.7,219.0 L591.3,220.2 L600.0,221.3" fill="none" stroke="var(--accent)" stroke-opacity="0.4" stroke-width="2.4"/>
+      <path d="M80.0,40.0 L88.7,41.7 L97.3,43.7 L106.0,45.9 L114.7,48.4 L123.3,51.1 L132.0,54.2 L140.7,57.5 L149.3,61.1 L158.0,65.1 L166.7,69.3 L175.3,73.8 L184.0,78.6 L192.7,83.7 L201.3,89.0 L210.0,94.6 L218.7,100.4 L227.3,106.3 L236.0,112.4 L244.7,118.6 L253.3,124.9 L262.0,131.2 L270.7,137.5 L279.3,143.8 L288.0,149.9 L296.7,156.0 L305.3,161.9 L314.0,167.6 L322.7,173.0 L331.3,178.3 L340.0,183.3 L348.7,188.0 L357.3,192.4 L366.0,196.5 L374.7,200.3 L383.3,203.8 L392.0,207.0 L400.7,209.9 L409.3,212.6 L418.0,215.0 L426.7,217.1 L435.3,219.0 L444.0,220.6 L452.7,222.1 L461.3,223.3 L470.0,224.4 L478.7,225.4 L487.3,226.2 L496.0,226.8 L504.7,227.4 L513.3,227.9 L522.0,228.3 L530.7,228.6 L539.3,228.9 L548.0,229.1 L556.7,229.3 L565.3,229.5 L574.0,229.6 L582.7,229.7 L591.3,229.7 L600.0,229.8" fill="none" stroke="var(--accent)" stroke-opacity="0.7" stroke-width="2.4"/>
+      <path d="M80.0,40.0 L88.7,42.9 L97.3,46.3 L106.0,50.4 L114.7,55.2 L123.3,60.8 L132.0,67.1 L140.7,74.1 L149.3,81.9 L158.0,90.3 L166.7,99.3 L175.3,108.7 L184.0,118.5 L192.7,128.4 L201.3,138.4 L210.0,148.2 L218.7,157.7 L227.3,166.9 L236.0,175.5 L244.7,183.5 L253.3,190.7 L262.0,197.3 L270.7,203.1 L279.3,208.1 L288.0,212.5 L296.7,216.1 L305.3,219.2 L314.0,221.6 L322.7,223.6 L331.3,225.2 L340.0,226.5 L348.7,227.4 L357.3,228.1 L366.0,228.7 L374.7,229.1 L383.3,229.4 L392.0,229.6 L400.7,229.7 L409.3,229.8 L418.0,229.9 L426.7,229.9 L435.3,229.9 L444.0,230.0 L452.7,230.0 L461.3,230.0 L470.0,230.0 L478.7,230.0 L487.3,230.0 L496.0,230.0 L504.7,230.0 L513.3,230.0 L522.0,230.0 L530.7,230.0 L539.3,230.0 L548.0,230.0 L556.7,230.0 L565.3,230.0 L574.0,230.0 L582.7,230.0 L591.3,230.0 L600.0,230.0" fill="none" stroke="var(--accent)" stroke-width="2.4"/>
+      <g font-size="16" fill="var(--text)">
+        <text x="417.3" y="158.8">n = 5</text>
+        <text x="302.9" y="146.8">n = 10</text>
+        <text x="226.7" y="149.7">n = 25</text>
+      </g>
+      <g font-size="16" fill="var(--muted)" text-anchor="middle">
+        <text x="80" y="252">0</text><text x="253.3" y="252">0.5</text><text x="426.7" y="252">1</text><text x="600" y="252">1.5</text>
+      </g>
+      <g font-size="16" fill="var(--muted)" text-anchor="end">
+        <text x="70" y="235">0</text><text x="70" y="135">0.5</text><text x="70" y="35">1</text>
+      </g>
+      <text x="340" y="280" font-size="16" text-anchor="middle" fill="var(--text)">d = δ / σ</text>
+      <text x="28" y="135" font-size="18" text-anchor="middle" fill="var(--text)">β</text>
+    </svg>
+    <figcaption><strong>Figure 5:</strong> OC curves for a one-sided z-test at $\alpha = 0.05$. Each starts at $1 - \alpha = 0.95$ when $d = 0$. At $d = 0.5$, $\beta \approx 0.70$ with $n = 5$ but only $\approx 0.20$ with $n = 25$.</figcaption>
+  </figure>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 12.1: How Often Would We Miss It?</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>Test $H_0: \mu \le 210$ against $H_1: \mu > 210$ with $\sigma = 20$, $n = 25$, $\alpha = 0.05$. If the true mean is 218, what are $\beta$ and the power?</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \frac{\delta\sqrt{n}}{\sigma} &= \frac{8 \times 5}{20} = 2 \\[6pt]
+        \beta &= \Phi(1.645 - 2) \\[6pt]
+        &= \Phi(-0.355) \\[6pt]
+        &\approx 0.36 \\[8pt]
+        \text{Power} &\approx 0.64
+      \end{aligned}$$
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  13. ANOVA                                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="anova">
+  <h2>13. ANOVA: Three or More Means at Once</h2>
+  <p>
+    Every test so far compared at most two groups. A machine with four settings A, B, C and D raises a new question: are all four means equal?
+  </p>
+  $$\begin{aligned}
+    H_0 &: \mu_A = \mu_B = \mu_C = \mu_D \\[6pt]
+    H_1 &: \text{at least one mean differs}
+  \end{aligned}$$
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Why not just run a t-test on every pair?</em></p>
+    </div>
+  </div>
+  <p>
+    Four groups give six pairs. If each test has a 5% false-alarm rate, the chance of at least one false alarm across six tests is $1 - 0.95^6 \approx 26.5\%$. <strong>ANOVA</strong> (analysis of variance) answers the question in a single test at a true 5%.
+  </p>
+
+  <h3>The insight: two estimates of the same noise</h3>
+  <ul>
+    <li><strong>MSE</strong> (mean square error, <em>within</em> groups): how much values vary inside each group. It measures pure noise whether or not $H_0$ is true.</li>
+    <li><strong>MSB</strong> (mean square <em>between</em> groups): how much the group means vary around the grand mean, scaled by $n$. If $H_0$ is true, the means differ only by noise and MSB ≈ MSE. If $H_0$ is false, real differences inflate MSB.</li>
+  </ul>
+  <p>
+    So we compare them as a ratio, $F = \text{MSB}/\text{MSE}$. It is near 1 when $H_0$ is true and much bigger when it is false. The <strong>F-distribution</strong> is the distribution of a ratio of two independent variance estimates, and it has two degrees of freedom, one for the top and one for the bottom. That is why a test about <em>means</em> uses a ratio of <em>variances</em>. The slides also note that when $H_0$ is false, MSB &gt; MST &gt; MSE.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">One-Way ANOVA ($a$ groups, $n$ per group, $N = an$)</div>
+    <div class="math-box-body">
+      <p>$\bar{y}_{i\cdot}$ is the mean of group $i$, and $\bar{y}_{\cdot\cdot}$ is the grand mean of all $N$ values.</p>
+      <div class="table-scroll">
+      <table class="data-table left">
+        <tr><th>Source</th><th>Sum of squares</th><th>df</th><th>Mean square</th></tr>
+        <tr><td>Between</td><td>$\text{SSB} = n\sum_i(\bar{y}_{i\cdot} - \bar{y}_{\cdot\cdot})^2$</td><td>$a - 1$</td><td>$\text{MSB} = \frac{\text{SSB}}{a-1}$</td></tr>
+        <tr><td>Within</td><td>$\text{SSE} = \sum_i\sum_j(y_{ij} - \bar{y}_{i\cdot})^2$</td><td>$N - a$</td><td>$\text{MSE} = \frac{\text{SSE}}{N-a}$</td></tr>
+        <tr><td>Total</td><td>$\text{SST} = \sum_i\sum_j(y_{ij} - \bar{y}_{\cdot\cdot})^2$</td><td>$N - 1$</td><td></td></tr>
+      </table>
+      </div>
+      <p>$F = \text{MSB}/\text{MSE}$ is compared with $F_{a-1,\,N-a}$. As checks, SST = SSB + SSE, and the degrees of freedom add up the same way.</p>
+    </div>
+  </div>
+  <p>
+    Rejecting $H_0$ tells you that <em>some</em> mean differs, not <em>which</em>. To find out, run a <strong>post-hoc test</strong>: <strong>Tukey</strong> (all pairs), <strong>Bonferroni</strong> (divide $\alpha$ by the number of comparisons), or <strong>Scheffé</strong> (the most conservative, for any comparison).
+  </p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 13.1: Three Fertilisers</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>Yields: A: 4, 5, 6. B: 6, 7, 8. C: 8, 9, 10. Build the ANOVA table and test at $\alpha = 0.05$, with $F_{0.05,2,6} = 5.14$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>The group means are 5, 7 and 9, and the grand mean is 7, with $n = 3$, $a = 3$, $N = 9$.</p>
+      $$\begin{aligned}
+        \text{SSB} &= 3\big[(5-7)^2 + (7-7)^2 + (9-7)^2\big] \\[6pt]
+        &= 24 \\[8pt]
+        \text{SSE} &= 3 \times (1 + 0 + 1) \\[6pt]
+        &= 6 \\[8pt]
+        \text{MSB} &= \frac{24}{2} = 12 \\[6pt]
+        \text{MSE} &= \frac{6}{6} = 1 \\[6pt]
+        F &= 12
+      \end{aligned}$$
+      <p>$12 > 5.14$ (p ≈ 0.008), so reject $H_0$: at least one fertiliser differs. Check: SST = 30 = 24 + 6.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  14. Chi-square                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="chi-square">
+  <h2>14. Chi-Square Test of Independence</h2>
+  <p>
+    ANOVA needs a numeric output. What if both variables are categories, such as smoking habit and exercise level? Then there are no means to compare, only counts. We ask instead: do these counts look like what independence would produce?
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Expected Counts and the $\chi^2$ Statistic</div>
+    <div class="math-box-body">
+      <p>For an $r \times c$ contingency table of observed counts $O_{ij}$ ($r$ rows, $c$ columns):</p>
+      $$\begin{aligned}
+        E_{ij} &= \frac{(\text{row } i \text{ total}) \times (\text{column } j \text{ total})}{\text{grand total}} \\[10pt]
+        \chi^2 &= \sum_{i=1}^{r}\sum_{j=1}^{c}\frac{(O_{ij} - E_{ij})^2}{E_{ij}} \\[10pt]
+        \text{df} &= (r - 1)(c - 1)
+      \end{aligned}$$
+      <p>The expected count is the independence rule $P(\text{row and column}) = P(\text{row})\,P(\text{column})$ applied to counts. A large $\chi^2$ means the observed counts are far from that, so the p-value comes from the right tail.</p>
+    </div>
+  </div>
+
+  <p>The slide's table (smoking habit by exercise level):</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Exercise</th><th>Heavy</th><th>Regular</th><th>Occasional</th><th>Never</th><th>Total</th></tr>
+    <tr><td>Frequent</td><td>7</td><td>9</td><td>12</td><td>87</td><td>115</td></tr>
+    <tr><td>Some</td><td>3</td><td>7</td><td>4</td><td>84</td><td>98</td></tr>
+    <tr><td>None</td><td>1</td><td>1</td><td>3</td><td>18</td><td>23</td></tr>
+    <tr><td>Total</td><td>11</td><td>17</td><td>19</td><td>189</td><td>236</td></tr>
+  </table>
+  </div>
+  <p>
+    For example, $E(\text{Frequent, Heavy}) = 115 \times 11 / 236 \approx 5.36$, against 7 observed. Summing over all 12 cells gives $\chi^2 \approx 5.49$ with $(3-1)(4-1) = 6$ df. The critical value is 12.59 (p ≈ 0.48), so we fail to reject: there is no evidence that exercise and smoking are linked. Several expected counts are below 5, which weakens the test; in practice you would merge sparse categories.
+  </p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 14.1: MBA Result and Work Experience</h3>
+      <span class="problem-badge">Session 1 · Slide 23</span>
+    </div>
+    <div class="question-canvas">
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th></th><th>Work-ex: Yes</th><th>Work-ex: No</th></tr>
+        <tr><td>MBA: Yes</td><td>22</td><td>7</td></tr>
+        <tr><td>MBA: No</td><td>32</td><td>17</td></tr>
+      </table>
+      </div>
+      <p>Is the MBA result independent of work experience? Use $\alpha = 0.05$, with $\chi^2_{0.05,1} = 3.84$.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Row totals 29 and 49, column totals 54 and 24, grand total 78. The expected counts are 20.08, 8.92, 33.92 and 15.08, so every cell is off by 1.92.</p>
+      $$\begin{aligned}
+        \chi^2 &= 1.92^2\left(\frac{1}{20.08} + \frac{1}{8.92} + \frac{1}{33.92} + \frac{1}{15.08}\right) \\[6pt]
+        &\approx 0.95
+      \end{aligned}$$
+      <p>With 1 df, $0.95 < 3.84$ (p ≈ 0.33): fail to reject. There is no evidence of an association.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  15. Exam                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="exam-strategy">
+  <h2>15. In the Exam: Choosing the Test and Writing It Up</h2>
+  <p>Most of the marks on an inference question come from choosing the right tool. Answer three questions: what is the output, how many groups are there, and what do you know?</p>
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Output</th><th>Groups</th><th>Condition</th><th>Use</th></tr>
+    <tr><td>Mean</td><td>1 vs a number</td><td>$\sigma$ known / unknown</td><td>z-test / t-test ($n-1$ df)</td></tr>
+    <tr><td>Mean</td><td>2</td><td>$\sigma$ known / equal / unequal / same units</td><td>2-sample z / pooled t / Welch t / paired t</td></tr>
+    <tr><td>Mean</td><td>3 or more</td><td></td><td>ANOVA ($F$)</td></tr>
+    <tr><td>Variance</td><td>1 / 2</td><td></td><td>$\chi^2$ test / F-test</td></tr>
+    <tr><td>Proportion</td><td>1 / 2</td><td>large $n$</td><td>z-proportion / 2-proportion z</td></tr>
+    <tr><td>Category vs category</td><td>any</td><td>counts in a table</td><td>$\chi^2$ test of independence</td></tr>
+  </table>
+  </div>
+
+  <h3>Five lines for every test answer</h3>
+  <ol class="recipe">
+    <li>$H_0$ and $H_1$, and whether the test is one- or two-tailed.</li>
+    <li>The test you chose, and why ($\sigma$ known? paired? how many groups?).</li>
+    <li>The test statistic, with numbers plugged in.</li>
+    <li>The p-value or critical value, with its degrees of freedom.</li>
+    <li>The decision (reject or fail to reject) and one line of conclusion in context.</li>
+  </ol>
+
+  <h3>Traps to avoid</h3>
+  <ul>
+    <li>$P(X = x) = 0$ for a continuous variable, and a PDF value is not a probability.</li>
+    <li>$\operatorname{Var}(a + bX) = b^2\operatorname{Var}(X)$: the constant disappears and $b$ is squared.</li>
+    <li>Divide by $n - 1$ for a sample SD.</li>
+    <li>The Bayes denominator includes <em>every</em> branch that produces the evidence.</li>
+    <li>EVSI ≤ EVPI. If yours is bigger, recheck the policy for each signal.</li>
+    <li>Keep rate units consistent in Poisson and exponential problems.</li>
+    <li>Use the standard error $\sigma/\sqrt{n}$, not $\sigma$, for questions about $\bar{X}$.</li>
+    <li>Unknown $\sigma$ means a t-test, not a z-test.</li>
+    <li>Write "fail to reject", never "accept $H_0$".</li>
+    <li>The same subjects measured twice call for a paired t-test.</li>
+    <li>Rejecting in ANOVA does not say which group differs.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Connecting the Dots                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots</h2>
+  <p>
+    Look back at the chain. Random variables gave uncertainty a formula. Moments summarised that formula in a few numbers. Joint distributions let two uncertain things interact, and <strong>conditioning</strong> on one of them, restricting attention to what was observed and renormalising, produced Bayes' theorem and then the value of information. The named distributions saved us from writing a new PMF for every problem, and the Normal stood out because the CLT makes every average approximately Normal.
+  </p>
+  <p>
+    From there, inference uses one move over and over: <strong>standardising</strong>. Subtract what $H_0$ (or the parameter) says the centre is, divide by the standard error, and compare the result with a known distribution. A confidence interval reads that comparison as a range; a test reads it as a yes or no; the two are the same calculation. When the question involves three or more groups, the comparison becomes a ratio of variances (ANOVA). When the data are counts in categories, it becomes a sum of squared gaps between observed and expected counts (chi-square). Ten bags of chips, and the whole first half of the course, rest on those two moves.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Summary: One Line per Idea</div>
+    <div class="math-box-body">
+      <div class="table-scroll">
+      <table class="data-table left">
+        <tr><th>Idea</th><th>Question it answers</th><th>Key formula</th></tr>
+        <tr><td>PMF / PDF / CDF</td><td>How is probability spread over values?</td><td>$F(x) = P(X \le x)$</td></tr>
+        <tr><td>Moments</td><td>Where is the centre, and how wide is it?</td><td>$\operatorname{Var} = E(X^2) - \mu^2$</td></tr>
+        <tr><td>Joint / conditional</td><td>How do two variables interact?</td><td>$P(Y \mid X) = \frac{P(X, Y)}{P(X)}$</td></tr>
+        <tr><td>Function of an RV</td><td>What is the distribution of $g(X)$?</td><td>$f_Y = \frac{d}{dy}P(g(X) \le y)$</td></tr>
+        <tr><td>Bayes</td><td>How likely is the cause, given the evidence?</td><td>$\frac{P(A \mid B)P(B)}{P(A)}$</td></tr>
+        <tr><td>EVPI / EVSI</td><td>What is information worth?</td><td>EV with information − EMV</td></tr>
+        <tr><td>Distributions</td><td>Which standard story fits?</td><td>Count or wait? Trials or time?</td></tr>
+        <tr><td>CLT</td><td>How do averages behave?</td><td>$\bar{X} \sim N(\mu, \sigma^2/n)$</td></tr>
+        <tr><td>Confidence interval</td><td>Where is the parameter?</td><td>estimate ± critical × SE</td></tr>
+        <tr><td>Hypothesis test</td><td>Is this claim believable?</td><td>(estimate − null) / SE</td></tr>
+        <tr><td>Type II error</td><td>How often do we miss a real effect?</td><td>$\beta = \Phi(z_\alpha - \delta\sqrt{n}/\sigma)$</td></tr>
+        <tr><td>ANOVA</td><td>Are three or more means equal?</td><td>$F = \text{MSB}/\text{MSE}$</td></tr>
+        <tr><td>$\chi^2$ independence</td><td>Are two categories related?</td><td>$\sum (O - E)^2/E$</td></tr>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="247850e7">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Probability & Statistics">
+<meta name="chapter" content="Practice Problems">
+<meta name="chapterorder" content="5">
+<meta name="lessonorder" content="5">
+<meta name="title" content="2024 Mini-Quizzes, Solved">
+<meta name="description" content="Four 2024 mini-quizzes worked step by step: poker counting, conditioning on coins, Bayes for a COVID test, min/max of random variables, Markov chains, transformations, Markov's inequality, Gaussian conditioning and KKT.">
+<meta name="keywords" content="DA5000, MFDS, mini-quiz, 2024, poker probability, Bayes theorem, stationary distribution, Markov chain, exponential minimum, CDF method, covariance, independence, Markov inequality, multivariate normal, KKT conditions">
+<meta name="status" content="draft">
+<meta name="date" content="2026-10-15">
+<meta name="author" content="Yogesh">
+
+<title>2024 Mini-Quizzes, Solved</title>
+
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .problem-item {
+    margin: 2.2rem 0 1.8rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--border);
+  }
+  .problem-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+  .problem-header h3 { margin: 0; font-size: 1.2rem; }
+  .problem-badge {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .question-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.4rem;
+    margin: 0.8rem 0 1.2rem;
+  }
+  .question-canvas > :first-child { margin-top: 0; }
+  .question-canvas > :last-child { margin-bottom: 0; }
+  .recipe { counter-reset: step; list-style: none; padding-left: 0 !important; }
+  .recipe > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.2rem;
+    margin-bottom: 0.7rem;
+  }
+  .recipe > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.15rem;
+    width: 1.5rem; height: 1.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--dark);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spot {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 1rem 0 1.2rem;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--accent);
+    background: var(--highlight);
+    border-radius: 0 8px 8px 0;
+  }
+  .spot strong { color: var(--dark); }
+  .solution-heading {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 1rem 0 0.4rem;
+  }
+  .sub-q {
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    margin: 1.4rem 0 0.4rem;
+    padding: 0.7rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .sub-q > div { min-width: 0; }
+  .sub-label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    color: var(--dark);
+    flex: none;
+  }
+  .toggle summary {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .toggle > :not(summary) { margin-top: 0.8rem; }
+  .data-table { border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; margin: 0.6rem 0; }
+  .data-table th, .data-table td { border: 1px solid var(--border); padding: 0.35rem 0.75rem; text-align: center; }
+  .data-table th { background: var(--surface); font-weight: 600; color: var(--dark); }
+  .data-table td:first-child, .data-table th:first-child { text-align: left; }
+  .data-table.left td, .data-table.left th { text-align: left; }
+  .table-scroll { overflow-x: auto; max-width: 100%; }
+  .fig { margin: 1.6rem 0; }
+  .fig > svg { display: block; margin: 0 auto; max-width: 640px; width: 100%; height: auto; }
+  .fig > svg text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+  .fig figcaption { text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem; }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <meta name="reading_time" content="24">
+    <meta property="og:title" content="2024 Mini-Quizzes, Solved">
+    <meta property="og:description" content="Four 2024 mini-quizzes worked step by step: poker counting, conditioning on coins, Bayes for a COVID test, min/max of random variables, Markov chains, transformations, Markov's inequality, Gaussian conditioning and KKT.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-2024-mini-quizzes-solved.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Introduction                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="introduction">
+  <p>
+    A mini-quiz gives you about fifteen minutes and a box for each answer. There is no time to rediscover a method. You have to recognise, within a few seconds of reading, which tool the question wants, and then run it without slipping. These four quizzes from 2024 are good training for exactly that, because together they touch almost every tool in the course: counting, conditioning, Bayes, distributions of functions of random variables, Markov chains, the multivariate normal, inequalities and even constrained optimisation.
+  </p>
+  <p>
+    Each problem below is set out the same way. First the question as it appeared on the paper. Then the <strong>tools</strong> it needs, with every term defined. Then a short <strong>set-up</strong> that gets you started. The full worked solution stays hidden in <em>Check your work</em>, so try it yourself first. (Two of the papers carry the CS6015 header; they are included because the questions are the same material.)
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Before writing anything, ask: what is random, what do I know about it, and which single tool turns that into the number the box wants?</em></p>
+    </div>
+  </div>
+
+  <div class="table-scroll">
+  <table class="data-table left">
+    <tr><th>Quiz</th><th>Question</th><th>Tool</th></tr>
+    <tr><td rowspan="4">Mini-Quiz 4 (MQ5)</td><td>1. Poker hands</td><td>Counting: multiplication rule and combinations</td></tr>
+    <tr><td>2. Three coins, conditional probabilities</td><td>List the sample space, then $P(A \mid B) = P(A \cap B)/P(B)$</td></tr>
+    <tr><td>2′. Exclusive, exhaustive, independent pairs</td><td>Set definitions on the same sample space</td></tr>
+    <tr><td>3. COVID test</td><td>Bayes' theorem</td></tr>
+    <tr><td rowspan="3">Mini-Quiz 6 (MQ6)</td><td>1. min, max, sum of two dice-like variables</td><td>CDF trick for min/max, counting diagonals for the sum</td></tr>
+    <tr><td>2. Rolling until two 6s in a row</td><td>Law of total expectation (first-step analysis)</td></tr>
+    <tr><td>3. Stationary distribution</td><td>Solve $T\pi = \pi$ with $\sum \pi_i = 1$</td></tr>
+    <tr><td rowspan="3">Mini-Quiz 7 (MQ7)</td><td>1. Minimum of two exponentials</td><td>Survival function $P(Z > z)$</td></tr>
+    <tr><td>2. $Y = e^X$</td><td>CDF method</td></tr>
+    <tr><td>3. $X_2 = Z X_1$</td><td>Symmetry, covariance, and why uncorrelated ≠ independent</td></tr>
+    <tr><td rowspan="3">Mini-Quiz 8 (MQ8)</td><td>1. Bound on $P(X > 200)$</td><td>Markov's inequality</td></tr>
+    <tr><td>2. Conditional of a 2D Gaussian</td><td>Conditional mean and variance formulas</td></tr>
+    <tr><td>3. Checking KKT conditions</td><td>Stationarity, feasibility, sign of multipliers</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  MQ5                                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="mq5">
+  <h2>Mini-Quiz 4 (MQ5): Counting, Conditioning and Bayes</h2>
+
+  <div class="math-box">
+    <div class="math-box-label">Counting Tools</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Equally likely outcomes:</strong> if every outcome in the sample space $S$ is equally likely, then $P(E) = \dfrac{|E|}{|S|}$, where $|E|$ is the number of outcomes in $E$.</li>
+        <li><strong>Multiplication rule:</strong> if a choice is made in stages, with $m_1$ options at stage 1, $m_2$ at stage 2, and so on, the number of complete choices is $m_1 \times m_2 \times \cdots$.</li>
+        <li><strong>Combinations:</strong> $\binom{n}{k} = \frac{n!}{k!\,(n-k)!}$ ("n choose k") counts the ways to pick $k$ items from $n$ when order does not matter.</li>
+      </ul>
+    </div>
+  </div>
+  <p>
+    A 5-card hand is an unordered set of 5 cards from 52, so $|S| = \binom{52}{5}$, and every hand is equally likely. Every poker question is then "count the hands of this type, divide by $\binom{52}{5}$". Leave the answer as a ratio of combinations; there is no need to multiply out. The counting trick is to <strong>build</strong> one hand of the type in stages: first choose the ranks, then choose the suits.
+  </p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 1: Poker Hands</h3>
+      <span class="problem-badge">MQ5 · Q1 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>You are dealt 5 cards from the top of a thoroughly shuffled deck of 52 cards – 4 suits (Spades, Clubs, Hearts, and Diamonds) and 13 cards with values or ranks ranging from 2 to 10 plus J,Q,K,A per suit. A card is denoted as {suit}{value}. E.g. DK corresponding to the King in the Diamonds suit. A always has a value/rank above K for simplicity. You may write your answer as a ratio of product of integers.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>For each type, ask: how many ways to choose the rank(s)? Then how many ways to choose the suits for those ranks? Multiply the stages together and divide by $\binom{52}{5}$.</p>
+
+    <div class="sub-q"><span class="sub-label">i.</span><div>What is the probability that your hand is a Royal Flush? (Royal flush corresponds to you getting A,K,Q,J,10 from the same suit. e.g. SA, SK, SQ, SJ, S10 ).</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>The ranks are fixed (A, K, Q, J, 10), so only the suit is a choice: 4 hands.</p>
+      $$P = \frac{4}{\binom{52}{5}}$$
+    </details>
+
+    <div class="sub-q"><span class="sub-label">ii.</span><div>What is the probability that your hand is a Straight Flush ?(Straight flush corresponds to you getting 5 consecutive ranks from the same suit, that is not a Royal Flush. e.g. C8, C7, C6, C5, C4).</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>A run of 5 can start at 2, 3, …, 10 (A is only high), so 9 runs per suit. Remove the royal run (10 to A): 8 per suit.</p>
+      $$P = \frac{4 \times 8}{\binom{52}{5}}$$
+    </details>
+
+    <div class="sub-q"><span class="sub-label">iii.</span><div>What is the probability that your hand is a Four of Kind ? (Four of a kind corresponds to 4 out of the five cards being the same value, and the fifth can be any card. e.g. H3,D3,C3,S3,HJ)</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$P = \frac{\overbrace{13}^{\text{rank}}\;\overbrace{\binom{4}{4}}^{\text{all 4 suits}}\;\overbrace{\binom{48}{1}}^{\text{fifth card}}}{\binom{52}{5}}$$
+    </details>
+
+    <div class="sub-q"><span class="sub-label">iv.</span><div>What is the probability that your hand is a Full House ? (Full House corresponds to 3 out of the 5 cards having same value and the other two also have same value. e.g S4, C4, H4, H6,C6. ). (4 points)</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$P = \frac{\overbrace{13\binom{4}{3}}^{\text{the triple}}\;\overbrace{12\binom{4}{2}}^{\text{the pair}}}{\binom{52}{5}}$$
+      <p>The triple's rank and the pair's rank play different roles, so choose them in order: 13 options, then 12. Using $\binom{13}{2}$ instead would undercount by half.</p>
+    </details>
+
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Conditional Probability and Three Relations Between Events</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Conditional probability:</strong> $P(A \mid B) = \dfrac{P(A \cap B)}{P(B)}$. Knowing $B$ happened shrinks the sample space to $B$.</li>
+        <li><strong>Mutually exclusive:</strong> $A$ and $B$ cannot both happen, $A \cap B = \varnothing$.</li>
+        <li><strong>Exhaustive:</strong> between them they cover every outcome, $A \cup B = S$. At least one must happen.</li>
+        <li><strong>Independent:</strong> knowing one does not change the chance of the other, $P(A \cap B) = P(A)\,P(B)$.</li>
+      </ul>
+    </div>
+  </div>
+  <p>With three coins there are only $2^3 = 8$ equally likely outcomes, so the safest method is to write them all down and mark which events each one belongs to. Every question then becomes counting rows.</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Outcome</th><th>A: ≥1 H</th><th>B: ≥1 T</th><th>C: ≥2 H</th><th>D: ≥2 T</th><th>E: all same</th></tr>
+    <tr><td>HHH</td><td>✓</td><td></td><td>✓</td><td></td><td>✓</td></tr>
+    <tr><td>HHT</td><td>✓</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>HTH</td><td>✓</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>THH</td><td>✓</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+    <tr><td>HTT</td><td>✓</td><td>✓</td><td></td><td>✓</td><td></td></tr>
+    <tr><td>THT</td><td>✓</td><td>✓</td><td></td><td>✓</td><td></td></tr>
+    <tr><td>TTH</td><td>✓</td><td>✓</td><td></td><td>✓</td><td></td></tr>
+    <tr><td>TTT</td><td></td><td>✓</td><td></td><td>✓</td><td>✓</td></tr>
+    <tr><th>Count / 8</th><th>7</th><th>7</th><th>4</th><th>4</th><th>2</th></tr>
+  </table>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2: Three Coins, Conditioned</h3>
+      <span class="problem-badge">MQ5 · Q2 · 3 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>3 fair coins are thrown independently. Consider the five events A, B, C, D and E below. A is the event that at least one of the coins show heads. B is the event that at least one of the coins show tails. C is the event that 2 or more coins show heads. D is the event that 2 or more coins show tails. E is the event that all three coins show the same face. Give the probabilities of the following: $P(A)P(A|B)$, $P(A|C)$, $P(A|D)$, $P(A|E)$. . (3 points)</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>For $P(A \mid X)$, restrict the table to the rows where X has a tick, and count how many of those rows also have A ticked.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(A) &= \tfrac{7}{8} \\[8pt]
+        P(A \mid B) &= \frac{|A \cap B|}{|B|} = \frac{6}{7} \\[8pt]
+        P(A \mid C) &= \frac{4}{4} = 1 \quad (C \subset A) \\[8pt]
+        P(A \mid D) &= \frac{3}{4} \quad (\text{only TTT in } D \text{ has no head}) \\[8pt]
+        P(A \mid E) &= \frac{1}{2} \quad (E = \{HHH, TTT\})
+      \end{aligned}$$
+      <p>For $P(A \mid B)$: B has 7 rows (everything except HHH), and among them A fails only on TTT, leaving 6.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2′: Exclusive, Exhaustive, Independent</h3>
+      <span class="problem-badge">MQ5 · Q2 (variant) · 3 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>3 fair coins are thrown independently. (The probability function, is given by the counting function with $P(S) = |S|/8$). Consider the five events A, B, C, D and E below. A is the event that at least one of the coins show heads. B is the event that at least one of the coins show tails. C is the event that 2 or more coins show heads. D is the event that 2 or more coins show tails. E is the event that all three coins show the same face.</p>
+      <p>(3 points)</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>Use the table of 8 outcomes above. Exclusive: no row ticks both. Exhaustive: every row ticks at least one. Independent: (rows ticking both)/8 equals (count₁/8)(count₂/8).</p>
+
+    <div class="sub-q"><span class="sub-label">i.</span><div>Give all pairs of events (among the 5 choose 2 pairs) that are mutually exclusive.</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p><strong>{C, D}</strong> only. No outcome has both 2+ heads and 2+ tails with only 3 coins. Every other pair shares at least one row (A and E share HHH, B and E share TTT, and so on).</p>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">ii.</span><div>Give all pairs of events (among the 5 choose 2 pairs) that are exhaustive.</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p><strong>{A, B}, {A, D}, {A, E}, {B, C}, {B, E}, {C, D}</strong>.</p>
+      <p>Quick check: A misses only TTT, so A is exhaustive with any event containing TTT (B, D, E). B misses only HHH, so B pairs with C and E (B with A is already listed). C and D split the 8 rows between them. The pairs that fail: {A, C} misses TTT, {B, D} misses HHH, {C, E} misses HTT, {D, E} misses HHT.</p>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">iii.</span><div>Give all pairs of events (among the 5 choose 2 pairs) that are independent.</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p><strong>{C, E}, {D, E}</strong>.</p>
+      $$\begin{aligned}
+        P(C \cap E) &= P(\{HHH\}) = \tfrac18 \\[6pt]
+        P(C)\,P(E) &= \tfrac12 \times \tfrac14 = \tfrac18 \;\checkmark
+      \end{aligned}$$
+      <p>D with E works the same way through TTT. Every other pair fails, e.g. $P(A \cap B) = \tfrac68$ but $P(A)P(B) = \tfrac{49}{64}$. Exclusive events with positive probability, like C and D, are never independent: knowing one happened tells you the other did not.</p>
+    </details>
+
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Bayes' Theorem with Total Probability</div>
+    <div class="math-box-body">
+      $$P(D \mid +) = \frac{P(+ \mid D)\,P(D)}{P(+ \mid D)\,P(D) + P(+ \mid D^c)\,P(D^c)}$$
+      <p>$D$ = has the disease, $D^c$ = does not. The <strong>true positive rate</strong> (sensitivity) is $P(+ \mid D)$. The <strong>false positive rate</strong> is $P(+ \mid D^c)$. The <strong>prevalence</strong> $P(D)$ is the prior.</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 3: Reading a COVID Test</h3>
+      <span class="problem-badge">MQ5 · Q3 · 2 + 2 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>COVID is present in a given population with a probability of 0.01. One person is chosen at random from this population and administered an RT-PCR test. The PCR test has a true positive rate of 96% and a false positive rate of 2% – i.e. on truly COVID infected people the test correctly shows positive with probability 0.96 and on people with no COVID it wrongly outputs positive with probability 0.02.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>Draw the four branches: infected & positive, infected & negative, healthy & positive, healthy & negative. The false negative rate is $1 - 0.96 = 0.04$ and the true negative rate is $1 - 0.02 = 0.98$.</p>
+
+    <div class="sub-q"><span class="sub-label">i.</span><div>Given that the chosen person had a positive test result, what is the probability that they truly have COVID?</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(D \mid +) &= \frac{0.96 \times 0.01}{0.96 \times 0.01 + 0.02 \times 0.99} \\[6pt]
+        &= \frac{0.0096}{0.0294} \\[6pt]
+        &\approx 0.327
+      \end{aligned}$$
+      <p>Only a third of positives are real: healthy people outnumber infected ones 99 to 1, so even a 2% false alarm rate produces twice as many false positives as true ones.</p>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">ii.</span><div>Given that the chosen person had a negative test result, what is the probability that they truly have COVID? (2+2 points)</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(D \mid -) &= \frac{0.04 \times 0.01}{0.04 \times 0.01 + 0.98 \times 0.99} \\[6pt]
+        &= \frac{0.0004}{0.9706} \\[6pt]
+        &\approx 0.00041
+      \end{aligned}$$
+      <p>A negative result is very reassuring.</p>
+    </details>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  MQ6                                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="mq6">
+  <h2>Mini-Quiz 6 (MQ6): Functions of Two Variables, Expectation, Markov Chains</h2>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4: min, max and Sum of Two Uniforms</h3>
+      <span class="problem-badge">MQ6 · Q1 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Let $X_1$ and $X_2$ be two independent, discrete random variables that are uniformly distributed over $\{-3, -2, -1, 0, 1, 2, 3\}$. Give the PMF of the following random variables:</p>
+    </div>
+
+    <div class="math-box">
+      <div class="math-box-label">The CDF Trick for max and min</div>
+      <div class="math-box-body">
+        <p>"The max is at most $y$" means "<em>both</em> are at most $y$". "The min is at least $w$" means "<em>both</em> are at least $w$". With independence, "both" is a product:</p>
+        $$\begin{aligned}
+          P(\max \le y) &= P(X_1 \le y)\,P(X_2 \le y) \\[6pt]
+          P(\min \ge w) &= P(X_1 \ge w)\,P(X_2 \ge w)
+        \end{aligned}$$
+        <p>Then get the PMF by differencing: $P(Y = y) = P(Y \le y) - P(Y \le y - 1)$.</p>
+      </div>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>There are $7 \times 7 = 49$ equally likely pairs. $P(X_1 \ge w) = \frac{4 - w}{7}$ and $P(X_1 \le y) = \frac{y + 4}{7}$. For the sum, picture the 7 × 7 grid of pairs: the pairs with a fixed sum lie on one diagonal.</p>
+
+    <div class="sub-q"><span class="sub-label">i.</span><div>$W = \min(X_1, X_2)$</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(W = w) &= P(W \ge w) - P(W \ge w + 1) \\[6pt]
+        &= \frac{(4-w)^2 - (3-w)^2}{49} \\[6pt]
+        &= \frac{7 - 2w}{49}, \quad w = -3, \dots, 3
+      \end{aligned}$$
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>$w$</th><th>−3</th><th>−2</th><th>−1</th><th>0</th><th>1</th><th>2</th><th>3</th></tr>
+        <tr><td>$49 \cdot P(W = w)$</td><td>13</td><td>11</td><td>9</td><td>7</td><td>5</td><td>3</td><td>1</td></tr>
+      </table>
+      </div>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">ii.</span><div>$Y = \max(X_1, X_2)$</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(Y = y) &= P(Y \le y) - P(Y \le y - 1) \\[6pt]
+        &= \frac{(y+4)^2 - (y+3)^2}{49} \\[6pt]
+        &= \frac{2y + 7}{49}, \quad y = -3, \dots, 3
+      \end{aligned}$$
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>$y$</th><th>−3</th><th>−2</th><th>−1</th><th>0</th><th>1</th><th>2</th><th>3</th></tr>
+        <tr><td>$49 \cdot P(Y = y)$</td><td>1</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td><td>13</td></tr>
+      </table>
+      </div>
+      <p>It is the min's PMF mirrored, as symmetry demands: $\max(X_1, X_2) = -\min(-X_1, -X_2)$.</p>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">iii.</span><div>$Z = X_1 + X_2$</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$P(Z = z) = \frac{7 - |z|}{49}, \quad z = -6, \dots, 6$$
+      <p>A triangle: 1/49 at $\pm 6$ rising to 7/49 at 0, because the main diagonal of the 7 × 7 grid has 7 cells and the corner diagonals have 1. Check: $7 + 2(6 + 5 + 4 + 3 + 2 + 1) = 49$.</p>
+    </details>
+
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Law of Total Expectation (First-Step Analysis)</div>
+    <div class="math-box-body">
+      <p>If $A$ and $A^c$ split the possibilities, then</p>
+      $$E[X] = E[X \mid A]\,P(A) + E[X \mid A^c]\,P(A^c)$$
+      <p>For "how long until…" problems, condition on what happens in the first step. If the first step sends you back to the start, the remaining wait looks exactly like the original, so $E[X]$ appears on both sides of the equation, and you solve for it.</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 5: Waiting for Two 6s in a Row</h3>
+      <span class="problem-badge">MQ6 · Q2 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>A fair 6-sided die is thrown repeatedly till you get two consecutive 6s. Let $X$ be the number of times the dice is thrown. What is $E[X]$? Give some steps.</p>
+      <p>(Hint: Let $A$ denote the event that the first roll is a 6. Think about what is $E[X|A^c]$?. Express both $E[X]$ and $E[X|A]$ in terms of $E[X]$ and $E[X|A]$ and solve for both.)</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <ul>
+      <li>If the first roll is not a 6, one throw is wasted and you are back at the start: $E[X \mid A^c] = 1 + E[X]$.</li>
+      <li>If it is a 6, look at the second roll. Another 6 finishes in exactly 2 throws. Anything else wastes 2 throws and resets.</li>
+    </ul>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Write $E = E[X]$ and $E_A = E[X \mid A]$.</p>
+      $$\begin{aligned}
+        E_A &= \tfrac16 \cdot 2 + \tfrac56\,(2 + E) \\[6pt]
+        &= 2 + \tfrac56 E \\[10pt]
+        E &= \tfrac16\,E_A + \tfrac56\,(1 + E) \\[6pt]
+        &= \tfrac16\left(2 + \tfrac56 E\right) + \tfrac56 + \tfrac56 E \\[6pt]
+        &= \tfrac76 + \tfrac{35}{36}E \\[10pt]
+        \tfrac{1}{36}E &= \tfrac76 \\[6pt]
+        E &= 42 \\[6pt]
+        E_A &= 2 + 35 = 37
+      \end{aligned}$$
+      <p>Compare: waiting for a single 6 takes $1/p = 6$ throws on average. Needing two in a row is far more than double, because every near-miss sends you back to the beginning.</p>
+    </details>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Markov Chain and Stationary Distribution</div>
+    <div class="math-box-body">
+      <ul>
+        <li>A <strong>Markov chain</strong> is a sequence $X_0, X_1, \dots$ where the next state depends only on the current state, not on the history.</li>
+        <li>The <strong>transition matrix</strong> here is written column-wise: $T_{ij} = P(X_t = i \mid X_{t-1} = j)$. Each <em>column</em> sums to 1, and if $p_t$ is the column vector of state probabilities at time $t$, then $p_t = T p_{t-1}$.</li>
+        <li>A <strong>stationary distribution</strong> $\pi$ is one that does not change after a step: $T\pi = \pi$, with $\pi_i \ge 0$ and $\sum_i \pi_i = 1$. In linear-algebra terms, $\pi$ is the eigenvector of $T$ for eigenvalue 1, scaled to sum to 1, the same object behind <a href="../../../02.linear-algebra/03.eigenvalues-and-eigenvectors/04.google-search/">PageRank</a>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6: A Three-State Chain</h3>
+      <span class="problem-badge">MQ6 · Q3 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Consider a Markov chain, where at each timestep $t$ each $X_t$ takes values in $\{1, 2, 3\}$, with the following transition probability matrix</p>
+      $$T = \begin{pmatrix} 1/3 & 1/3 & 0 \\ 2/3 & 1/3 & 2/3 \\ 0 & 1/3 & 1/3 \end{pmatrix}$$
+      <p>where $T_{ij} = P(X_t = i|X_{t-1} = j)$. What is the stationary distribution of this Markov chain?</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>Write $T\pi = \pi$ one row at a time. Row 1 and row 3 each involve only two unknowns, so they give ratios directly. Then normalise.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{Row 1: } \tfrac13\pi_1 + \tfrac13\pi_2 &= \pi_1 \;\Rightarrow\; \pi_2 = 2\pi_1 \\[8pt]
+        \text{Row 3: } \tfrac13\pi_2 + \tfrac13\pi_3 &= \pi_3 \;\Rightarrow\; \pi_2 = 2\pi_3 \\[8pt]
+        \pi_1 + 2\pi_1 + \pi_1 &= 1 \;\Rightarrow\; \pi_1 = \tfrac14 \\[8pt]
+        \pi &= \left(\tfrac14,\ \tfrac12,\ \tfrac14\right)
+      \end{aligned}$$
+      <p>Check row 2: $\tfrac23 \cdot \tfrac14 + \tfrac13 \cdot \tfrac12 + \tfrac23 \cdot \tfrac14 = \tfrac16 + \tfrac16 + \tfrac16 = \tfrac12$. ✓ The middle state gets half the time, since both outer states feed into it with probability 2/3.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  MQ7                                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="mq7">
+  <h2>Mini-Quiz 7 (MQ7): Continuous Transformations and Dependence</h2>
+
+  <div class="math-box">
+    <div class="math-box-label">Survival Function and the Exponential</div>
+    <div class="math-box-body">
+      <p>The <strong>survival function</strong> is $P(X > x) = 1 - F(x)$, the probability of lasting beyond $x$. For $X \sim \text{Exp}(\lambda)$ (density $\lambda e^{-\lambda x}$, $x \ge 0$; see <a href="../../02.distributions/01.common-probability-distributions/">Common Probability Distributions</a>), it is simply $P(X > x) = e^{-\lambda x}$.</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 7: The First of Two Exponential Clocks</h3>
+      <span class="problem-badge">MQ7 · Q1 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Let $X, Y$ be independent random variables with distribution as exponential with parameter $\lambda$. Let $Z = \min(X, Y)$. Give the probability density function of $Z$.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>"The minimum is bigger than $z$" means both are bigger than $z$. Use the survival function, then differentiate.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(Z > z) &= P(X > z)\,P(Y > z) \\[6pt]
+        &= e^{-\lambda z} \cdot e^{-\lambda z} \\[6pt]
+        &= e^{-2\lambda z} \\[8pt]
+        F_Z(z) &= 1 - e^{-2\lambda z} \\[6pt]
+        f_Z(z) &= 2\lambda e^{-2\lambda z}, \quad z \ge 0
+      \end{aligned}$$
+      <p>So $Z \sim \text{Exp}(2\lambda)$: two independent clocks running together ring at the combined rate. In general, the minimum of exponentials with rates $\lambda_1, \lambda_2, \dots$ is exponential with rate $\lambda_1 + \lambda_2 + \cdots$.</p>
+    </details>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">The CDF Method for $Y = g(X)$</div>
+    <div class="math-box-body">
+      $$\begin{aligned}
+        F_Y(y) &= P(g(X) \le y) \\[6pt]
+        &= P\big(X \le g^{-1}(y)\big) \quad (g \text{ increasing}) \\[6pt]
+        f_Y(y) &= \frac{d}{dy}F_Y(y)
+      \end{aligned}$$
+      <p>Always work out the range of $Y$ first: it is where $g$ sends the range of $X$.</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8: Exponentiating a Uniform</h3>
+      <span class="problem-badge">MQ7 · Q2 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Let $X$ be continuous random variable distributed as $\text{Unif}(-1, 1)$. Let $Y = e^X$. Give the probability density function of $Y$ and plot it approximately.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>$X$ ranges over $(-1, 1)$, so $Y = e^X$ ranges over $(e^{-1}, e)$. The CDF of $X$ is $\frac{x + 1}{2}$ on that interval. $e^x$ is increasing, so $e^X \le y$ is the same as $X \le \ln y$.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        F_Y(y) &= P(X \le \ln y) \\[6pt]
+        &= \frac{\ln y + 1}{2} \\[8pt]
+        f_Y(y) &= \frac{1}{2y}, \quad \frac1e \le y \le e
+      \end{aligned}$$
+      <p>Check it integrates to 1: $\int_{1/e}^{e} \frac{1}{2y}\,dy = \frac12\big(1 - (-1)\big) = 1$. ✓</p>
+      <figure class="fig">
+        <svg viewBox="0 0 640 290" role="img" aria-label="Graph of f(y) = 1/(2y) from y = 1/e to y = e, decreasing from about 1.36 to about 0.18">
+      <path d="M145.0,230 L145.0,48.8 L147.1,54.4 L149.1,59.7 L151.2,64.6 L153.3,69.3 L155.4,73.7 L157.4,77.9 L159.5,81.9 L161.6,85.7 L163.7,89.2 L165.8,92.7 L167.8,95.9 L169.9,99.0 L172.0,102.0 L174.1,104.8 L176.1,107.5 L178.2,110.1 L180.3,112.6 L182.4,114.9 L184.4,117.2 L186.5,119.4 L188.6,121.5 L190.7,123.6 L192.7,125.5 L194.8,127.4 L196.9,129.2 L199.0,131.0 L201.0,132.7 L203.1,134.3 L205.2,135.9 L207.3,137.5 L209.4,138.9 L211.4,140.4 L213.5,141.8 L215.6,143.1 L217.7,144.4 L219.7,145.7 L221.8,146.9 L223.9,148.1 L226.0,149.3 L228.0,150.4 L230.1,151.5 L232.2,152.6 L234.3,153.7 L236.3,154.7 L238.4,155.7 L240.5,156.6 L242.6,157.6 L244.6,158.5 L246.7,159.4 L248.8,160.2 L250.9,161.1 L253.0,161.9 L255.0,162.7 L257.1,163.5 L259.2,164.3 L261.3,165.0 L263.3,165.8 L265.4,166.5 L267.5,167.2 L269.6,167.9 L271.6,168.5 L273.7,169.2 L275.8,169.8 L277.9,170.5 L279.9,171.1 L282.0,171.7 L284.1,172.3 L286.2,172.9 L288.2,173.4 L290.3,174.0 L292.4,174.5 L294.5,175.1 L296.6,175.6 L298.6,176.1 L300.7,176.6 L302.8,177.1 L304.9,177.6 L306.9,178.1 L309.0,178.6 L311.1,179.0 L313.2,179.5 L315.2,179.9 L317.3,180.4 L319.4,180.8 L321.5,181.2 L323.5,181.6 L325.6,182.0 L327.7,182.5 L329.8,182.8 L331.8,183.2 L333.9,183.6 L336.0,184.0 L338.1,184.4 L340.2,184.7 L342.2,185.1 L344.3,185.4 L346.4,185.8 L348.5,186.1 L350.5,186.5 L352.6,186.8 L354.7,187.1 L356.8,187.4 L358.8,187.8 L360.9,188.1 L363.0,188.4 L365.1,188.7 L367.1,189.0 L369.2,189.3 L371.3,189.6 L373.4,189.9 L375.4,190.1 L377.5,190.4 L379.6,190.7 L381.7,191.0 L383.8,191.2 L385.8,191.5 L387.9,191.7 L390.0,192.0 L392.1,192.3 L394.1,192.5 L396.2,192.8 L398.3,193.0 L400.4,193.2 L402.4,193.5 L404.5,193.7 L406.6,193.9 L408.7,194.2 L410.7,194.4 L412.8,194.6 L414.9,194.8 L417.0,195.0 L419.0,195.3 L421.1,195.5 L423.2,195.7 L425.3,195.9 L427.4,196.1 L429.4,196.3 L431.5,196.5 L433.6,196.7 L435.7,196.9 L437.7,197.1 L439.8,197.3 L441.9,197.5 L444.0,197.6 L446.0,197.8 L448.1,198.0 L450.2,198.2 L452.3,198.4 L454.3,198.5 L456.4,198.7 L458.5,198.9 L460.6,199.1 L462.6,199.2 L464.7,199.4 L466.8,199.6 L468.9,199.7 L471.0,199.9 L473.0,200.0 L475.1,200.2 L477.2,200.3 L479.3,200.5 L481.3,200.7 L483.4,200.8 L485.5,201.0 L487.6,201.1 L489.6,201.2 L491.7,201.4 L493.8,201.5 L495.9,201.7 L497.9,201.8 L500.0,202.0 L502.1,202.1 L504.2,202.2 L506.2,202.4 L508.3,202.5 L510.4,202.6 L512.5,202.8 L514.6,202.9 L516.6,203.0 L518.7,203.2 L520.8,203.3 L522.9,203.4 L524.9,203.5 L527.0,203.7 L529.1,203.8 L531.2,203.9 L533.2,204.0 L535.3,204.1 L537.4,204.3 L539.5,204.4 L541.5,204.5 L543.6,204.6 L545.7,204.7 L547.8,204.8 L549.8,204.9 L551.9,205.0 L554.0,205.2 L556.1,205.3 L558.2,205.4 L560.2,205.5 L560.2,230 Z" fill="var(--accent)" fill-opacity="0.15"/>
+      <path d="M145.0,48.8 L147.1,54.4 L149.1,59.7 L151.2,64.6 L153.3,69.3 L155.4,73.7 L157.4,77.9 L159.5,81.9 L161.6,85.7 L163.7,89.2 L165.8,92.7 L167.8,95.9 L169.9,99.0 L172.0,102.0 L174.1,104.8 L176.1,107.5 L178.2,110.1 L180.3,112.6 L182.4,114.9 L184.4,117.2 L186.5,119.4 L188.6,121.5 L190.7,123.6 L192.7,125.5 L194.8,127.4 L196.9,129.2 L199.0,131.0 L201.0,132.7 L203.1,134.3 L205.2,135.9 L207.3,137.5 L209.4,138.9 L211.4,140.4 L213.5,141.8 L215.6,143.1 L217.7,144.4 L219.7,145.7 L221.8,146.9 L223.9,148.1 L226.0,149.3 L228.0,150.4 L230.1,151.5 L232.2,152.6 L234.3,153.7 L236.3,154.7 L238.4,155.7 L240.5,156.6 L242.6,157.6 L244.6,158.5 L246.7,159.4 L248.8,160.2 L250.9,161.1 L253.0,161.9 L255.0,162.7 L257.1,163.5 L259.2,164.3 L261.3,165.0 L263.3,165.8 L265.4,166.5 L267.5,167.2 L269.6,167.9 L271.6,168.5 L273.7,169.2 L275.8,169.8 L277.9,170.5 L279.9,171.1 L282.0,171.7 L284.1,172.3 L286.2,172.9 L288.2,173.4 L290.3,174.0 L292.4,174.5 L294.5,175.1 L296.6,175.6 L298.6,176.1 L300.7,176.6 L302.8,177.1 L304.9,177.6 L306.9,178.1 L309.0,178.6 L311.1,179.0 L313.2,179.5 L315.2,179.9 L317.3,180.4 L319.4,180.8 L321.5,181.2 L323.5,181.6 L325.6,182.0 L327.7,182.5 L329.8,182.8 L331.8,183.2 L333.9,183.6 L336.0,184.0 L338.1,184.4 L340.2,184.7 L342.2,185.1 L344.3,185.4 L346.4,185.8 L348.5,186.1 L350.5,186.5 L352.6,186.8 L354.7,187.1 L356.8,187.4 L358.8,187.8 L360.9,188.1 L363.0,188.4 L365.1,188.7 L367.1,189.0 L369.2,189.3 L371.3,189.6 L373.4,189.9 L375.4,190.1 L377.5,190.4 L379.6,190.7 L381.7,191.0 L383.8,191.2 L385.8,191.5 L387.9,191.7 L390.0,192.0 L392.1,192.3 L394.1,192.5 L396.2,192.8 L398.3,193.0 L400.4,193.2 L402.4,193.5 L404.5,193.7 L406.6,193.9 L408.7,194.2 L410.7,194.4 L412.8,194.6 L414.9,194.8 L417.0,195.0 L419.0,195.3 L421.1,195.5 L423.2,195.7 L425.3,195.9 L427.4,196.1 L429.4,196.3 L431.5,196.5 L433.6,196.7 L435.7,196.9 L437.7,197.1 L439.8,197.3 L441.9,197.5 L444.0,197.6 L446.0,197.8 L448.1,198.0 L450.2,198.2 L452.3,198.4 L454.3,198.5 L456.4,198.7 L458.5,198.9 L460.6,199.1 L462.6,199.2 L464.7,199.4 L466.8,199.6 L468.9,199.7 L471.0,199.9 L473.0,200.0 L475.1,200.2 L477.2,200.3 L479.3,200.5 L481.3,200.7 L483.4,200.8 L485.5,201.0 L487.6,201.1 L489.6,201.2 L491.7,201.4 L493.8,201.5 L495.9,201.7 L497.9,201.8 L500.0,202.0 L502.1,202.1 L504.2,202.2 L506.2,202.4 L508.3,202.5 L510.4,202.6 L512.5,202.8 L514.6,202.9 L516.6,203.0 L518.7,203.2 L520.8,203.3 L522.9,203.4 L524.9,203.5 L527.0,203.7 L529.1,203.8 L531.2,203.9 L533.2,204.0 L535.3,204.1 L537.4,204.3 L539.5,204.4 L541.5,204.5 L543.6,204.6 L545.7,204.7 L547.8,204.8 L549.8,204.9 L551.9,205.0 L554.0,205.2 L556.1,205.3 L558.2,205.4 L560.2,205.5" fill="none" stroke="var(--accent)" stroke-width="2.6"/>
+      <line x1="80" y1="230" x2="610" y2="230" stroke="var(--muted)"/><line x1="80" y1="230" x2="80" y2="30" stroke="var(--muted)"/>
+      <line x1="80.0" y1="230" x2="80.0" y2="236" stroke="var(--muted)"/><text x="80.0" y="256" font-size="16" text-anchor="middle" fill="var(--muted)">0</text>
+      <line x1="145.0" y1="230" x2="145.0" y2="236" stroke="var(--muted)"/><text x="145.0" y="256" font-size="16" text-anchor="middle" fill="var(--muted)">1/e</text>
+      <line x1="256.7" y1="230" x2="256.7" y2="236" stroke="var(--muted)"/><text x="256.7" y="256" font-size="16" text-anchor="middle" fill="var(--muted)">1</text>
+      <line x1="433.3" y1="230" x2="433.3" y2="236" stroke="var(--muted)"/><text x="433.3" y="256" font-size="16" text-anchor="middle" fill="var(--muted)">2</text>
+      <line x1="560.2" y1="230" x2="560.2" y2="236" stroke="var(--muted)"/><text x="560.2" y="256" font-size="16" text-anchor="middle" fill="var(--muted)">e</text>
+      <line x1="74" y1="163.3" x2="80" y2="163.3" stroke="var(--muted)"/><text x="68" y="168.3" font-size="16" text-anchor="end" fill="var(--muted)">0.5</text>
+      <line x1="74" y1="96.7" x2="80" y2="96.7" stroke="var(--muted)"/><text x="68" y="101.7" font-size="16" text-anchor="end" fill="var(--muted)">1</text>
+      <line x1="74" y1="30.0" x2="80" y2="30.0" stroke="var(--muted)"/><text x="68" y="35.0" font-size="16" text-anchor="end" fill="var(--muted)">1.5</text>
+      <circle cx="145.0" cy="48.8" r="4" fill="var(--accent)"/><text x="157.0" y="44.8" font-size="16" fill="var(--text)">e/2 ≈ 1.36</text>
+      <circle cx="560.2" cy="205.5" r="4" fill="var(--accent)"/><text x="552.2" y="191.5" font-size="16" text-anchor="end" fill="var(--text)">1/(2e) ≈ 0.18</text>
+      <text x="318.5" y="147.3" font-size="18" fill="var(--text)">f(y) = 1/(2y)</text>
+      <text x="345.0" y="282" font-size="16" text-anchor="middle" fill="var(--text)">y</text>
+        </svg>
+        <figcaption><strong>Figure 1:</strong> The density of $Y = e^X$. The flat density of $X$ gets squeezed where $e^x$ is flat (near $1/e$, so the density is high) and stretched where $e^x$ is steep (near $e$, so the density is low).</figcaption>
+      </figure>
+    </details>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Covariance, Independence and the Multivariate Normal</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Covariance:</strong> $\operatorname{Cov}(X_1, X_2) = E[X_1 X_2] - E[X_1]\,E[X_2]$. It measures <em>linear</em> association only.</li>
+        <li><strong>Independent</strong> means the joint distribution factors, $P(X_1 \in A, X_2 \in B) = P(X_1 \in A)\,P(X_2 \in B)$ for all sets. Independence implies zero covariance, but zero covariance does <em>not</em> imply independence.</li>
+        <li><strong>Multivariate normal (MVN):</strong> a vector is MVN when <em>every</em> linear combination $a_1 X_1 + a_2 X_2$ is normally distributed. Having normal marginals is not enough.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 9: A Random Sign Flip</h3>
+      <span class="problem-badge">MQ7 · Q3 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Let $X_1$ be a random variable distributed distributed as a Gaussian with mean 0 and variance 1. Let $Z$ be an independent discrete random variable taking values $+1$ and $-1$ with equal probability. Let $X_2 = Z * X_1$.</p>
+    </div>
+
+    <div class="sub-q"><span class="sub-label">i.</span><div>How is $X_2$ distributed?</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Condition on $Z$ and use the symmetry of $N(0, 1)$, i.e. $-X_1$ has the same distribution as $X_1$.</p>
+      $$\begin{aligned}
+        P(X_2 \le x) &= \tfrac12 P(X_1 \le x) + \tfrac12 P(-X_1 \le x) \\[6pt]
+        &= \tfrac12\Phi(x) + \tfrac12\Phi(x) \\[6pt]
+        &= \Phi(x)
+      \end{aligned}$$
+      <p>So $X_2 \sim N(0, 1)$.</p>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">ii.</span><div>What is the covariance between $X_1$ and $X_2$ ?</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Write $X_1 X_2 = Z X_1^2$ and use the independence of $Z$ and $X_1$.</p>
+      $$\begin{aligned}
+        \operatorname{Cov}(X_1, X_2) &= E[Z X_1^2] - E[X_1]\,E[X_2] \\[6pt]
+        &= E[Z]\,E[X_1^2] - 0 \\[6pt]
+        &= 0 \times 1 = 0
+      \end{aligned}$$
+    </details>
+
+    <div class="sub-q"><span class="sub-label">iii.</span><div>Are $X_1$ and $X_2$ independent?</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p><strong>No.</strong> $|X_2| = |X_1|$ always, so knowing $X_1$ pins $X_2$ down to two values. For example, $P(|X_2| > 2 \mid |X_1| < 1) = 0$, but $P(|X_2| > 2) \approx 0.046$.</p>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">iv.</span><div>If you have several independent samples of $(X_1, X_2)$ how would the scatter plot of the points look like? Draw an approximate diagram.</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>All points fall on the two diagonals $x_2 = x_1$ and $x_2 = -x_1$, roughly half on each, bunched near the origin.</p>
+      <figure class="fig">
+        <svg viewBox="0 0 640 400" role="img" aria-label="Scatter plot where all points lie on the two diagonal lines x2 = x1 and x2 = -x1">
+      <line x1="133.0" y1="200" x2="507.0" y2="200" stroke="var(--muted)"/>
+      <line x1="320" y1="13.0" x2="320" y2="387.0" stroke="var(--muted)"/>
+      <line x1="144.0" y1="376.0" x2="496.0" y2="24.0" stroke="var(--border)" stroke-dasharray="4 5"/>
+      <line x1="144.0" y1="24.0" x2="496.0" y2="376.0" stroke="var(--border)" stroke-dasharray="4 5"/>
+      <g fill="var(--accent)" fill-opacity="0.55"><circle cx="305.9" cy="214.1" r="3.2"/><circle cx="348.1" cy="171.9" r="3.2"/><circle cx="330.6" cy="189.4" r="3.2"/><circle cx="298.0" cy="222.0" r="3.2"/><circle cx="377.0" cy="143.0" r="3.2"/><circle cx="333.7" cy="186.3" r="3.2"/><circle cx="368.7" cy="151.3" r="3.2"/><circle cx="351.2" cy="168.8" r="3.2"/><circle cx="270.4" cy="249.6" r="3.2"/><circle cx="266.8" cy="146.8" r="3.2"/><circle cx="357.0" cy="163.0" r="3.2"/><circle cx="331.9" cy="211.9" r="3.2"/><circle cx="260.1" cy="140.1" r="3.2"/><circle cx="353.4" cy="166.6" r="3.2"/><circle cx="377.1" cy="142.9" r="3.2"/><circle cx="363.2" cy="243.2" r="3.2"/><circle cx="391.0" cy="129.0" r="3.2"/><circle cx="369.9" cy="150.1" r="3.2"/><circle cx="252.3" cy="132.3" r="3.2"/><circle cx="321.5" cy="201.5" r="3.2"/><circle cx="268.1" cy="148.1" r="3.2"/><circle cx="289.1" cy="230.9" r="3.2"/><circle cx="343.5" cy="176.5" r="3.2"/><circle cx="238.1" cy="281.9" r="3.2"/><circle cx="260.1" cy="140.1" r="3.2"/><circle cx="289.7" cy="169.7" r="3.2"/><circle cx="283.6" cy="236.4" r="3.2"/><circle cx="469.7" cy="349.7" r="3.2"/><circle cx="345.6" cy="225.6" r="3.2"/><circle cx="363.3" cy="243.3" r="3.2"/><circle cx="399.2" cy="279.2" r="3.2"/><circle cx="339.9" cy="219.9" r="3.2"/><circle cx="295.1" cy="175.1" r="3.2"/><circle cx="250.4" cy="269.6" r="3.2"/><circle cx="390.9" cy="270.9" r="3.2"/><circle cx="208.3" cy="311.7" r="3.2"/><circle cx="399.4" cy="279.4" r="3.2"/><circle cx="351.8" cy="231.8" r="3.2"/><circle cx="296.1" cy="176.1" r="3.2"/><circle cx="207.7" cy="312.3" r="3.2"/><circle cx="368.0" cy="152.0" r="3.2"/><circle cx="301.2" cy="181.2" r="3.2"/><circle cx="407.7" cy="112.3" r="3.2"/><circle cx="354.0" cy="166.0" r="3.2"/><circle cx="221.7" cy="101.7" r="3.2"/><circle cx="393.4" cy="126.6" r="3.2"/><circle cx="348.0" cy="228.0" r="3.2"/><circle cx="368.2" cy="151.8" r="3.2"/><circle cx="366.3" cy="246.3" r="3.2"/><circle cx="220.4" cy="100.4" r="3.2"/><circle cx="403.0" cy="283.0" r="3.2"/><circle cx="312.9" cy="207.1" r="3.2"/><circle cx="340.0" cy="180.0" r="3.2"/><circle cx="347.8" cy="172.2" r="3.2"/><circle cx="423.4" cy="96.6" r="3.2"/><circle cx="327.9" cy="207.9" r="3.2"/><circle cx="313.8" cy="193.8" r="3.2"/><circle cx="350.2" cy="230.2" r="3.2"/><circle cx="400.6" cy="119.4" r="3.2"/><circle cx="295.5" cy="175.5" r="3.2"/><circle cx="397.3" cy="277.3" r="3.2"/><circle cx="263.5" cy="143.5" r="3.2"/><circle cx="299.3" cy="179.3" r="3.2"/><circle cx="335.2" cy="184.8" r="3.2"/><circle cx="378.0" cy="258.0" r="3.2"/><circle cx="468.0" cy="52.0" r="3.2"/><circle cx="377.4" cy="142.6" r="3.2"/><circle cx="367.5" cy="152.5" r="3.2"/><circle cx="257.7" cy="137.7" r="3.2"/><circle cx="292.2" cy="227.8" r="3.2"/><circle cx="354.0" cy="234.0" r="3.2"/><circle cx="336.1" cy="183.9" r="3.2"/><circle cx="228.9" cy="108.9" r="3.2"/><circle cx="217.4" cy="97.4" r="3.2"/><circle cx="396.6" cy="276.6" r="3.2"/><circle cx="394.6" cy="274.6" r="3.2"/><circle cx="296.8" cy="223.2" r="3.2"/><circle cx="322.4" cy="202.4" r="3.2"/><circle cx="316.2" cy="203.8" r="3.2"/><circle cx="257.3" cy="262.7" r="3.2"/><circle cx="357.6" cy="237.6" r="3.2"/><circle cx="450.2" cy="69.8" r="3.2"/><circle cx="275.2" cy="155.2" r="3.2"/><circle cx="206.7" cy="313.3" r="3.2"/><circle cx="305.8" cy="185.8" r="3.2"/><circle cx="279.6" cy="240.4" r="3.2"/><circle cx="295.9" cy="175.9" r="3.2"/><circle cx="350.8" cy="169.2" r="3.2"/><circle cx="246.6" cy="273.4" r="3.2"/><circle cx="256.7" cy="263.3" r="3.2"/><circle cx="357.6" cy="162.4" r="3.2"/><circle cx="237.9" cy="282.1" r="3.2"/><circle cx="268.8" cy="251.2" r="3.2"/><circle cx="314.3" cy="205.7" r="3.2"/><circle cx="335.5" cy="184.5" r="3.2"/><circle cx="259.8" cy="139.8" r="3.2"/><circle cx="197.7" cy="77.7" r="3.2"/><circle cx="362.1" cy="242.1" r="3.2"/><circle cx="342.3" cy="222.3" r="3.2"/><circle cx="332.4" cy="187.6" r="3.2"/><circle cx="286.9" cy="233.1" r="3.2"/><circle cx="373.8" cy="253.8" r="3.2"/><circle cx="362.5" cy="157.5" r="3.2"/><circle cx="292.7" cy="227.3" r="3.2"/><circle cx="401.0" cy="119.0" r="3.2"/><circle cx="268.4" cy="148.4" r="3.2"/><circle cx="365.0" cy="245.0" r="3.2"/><circle cx="282.3" cy="237.7" r="3.2"/><circle cx="366.1" cy="246.1" r="3.2"/><circle cx="180.6" cy="60.6" r="3.2"/><circle cx="211.5" cy="308.5" r="3.2"/><circle cx="397.4" cy="122.6" r="3.2"/><circle cx="333.0" cy="213.0" r="3.2"/><circle cx="319.4" cy="200.6" r="3.2"/><circle cx="263.4" cy="143.4" r="3.2"/><circle cx="272.2" cy="152.2" r="3.2"/><circle cx="358.6" cy="161.4" r="3.2"/><circle cx="377.6" cy="142.4" r="3.2"/><circle cx="347.0" cy="173.0" r="3.2"/><circle cx="235.7" cy="284.3" r="3.2"/><circle cx="218.0" cy="302.0" r="3.2"/><circle cx="365.0" cy="155.0" r="3.2"/><circle cx="319.5" cy="200.5" r="3.2"/><circle cx="365.8" cy="245.8" r="3.2"/><circle cx="316.6" cy="203.4" r="3.2"/><circle cx="377.2" cy="142.8" r="3.2"/><circle cx="363.4" cy="243.4" r="3.2"/><circle cx="292.5" cy="172.5" r="3.2"/><circle cx="372.6" cy="147.4" r="3.2"/><circle cx="220.1" cy="299.9" r="3.2"/><circle cx="309.4" cy="189.4" r="3.2"/><circle cx="318.4" cy="201.6" r="3.2"/><circle cx="246.1" cy="273.9" r="3.2"/><circle cx="260.0" cy="260.0" r="3.2"/><circle cx="368.1" cy="151.9" r="3.2"/><circle cx="379.4" cy="140.6" r="3.2"/><circle cx="289.5" cy="169.5" r="3.2"/><circle cx="379.0" cy="141.0" r="3.2"/><circle cx="334.0" cy="186.0" r="3.2"/><circle cx="307.4" cy="187.4" r="3.2"/><circle cx="344.1" cy="224.1" r="3.2"/><circle cx="326.5" cy="193.5" r="3.2"/><circle cx="327.6" cy="207.6" r="3.2"/><circle cx="198.8" cy="78.8" r="3.2"/><circle cx="270.4" cy="249.6" r="3.2"/><circle cx="277.6" cy="157.6" r="3.2"/><circle cx="255.1" cy="135.1" r="3.2"/><circle cx="340.0" cy="180.0" r="3.2"/><circle cx="284.7" cy="164.7" r="3.2"/><circle cx="213.2" cy="306.8" r="3.2"/><circle cx="336.0" cy="184.0" r="3.2"/><circle cx="294.8" cy="174.8" r="3.2"/><circle cx="300.1" cy="219.9" r="3.2"/><circle cx="327.6" cy="207.6" r="3.2"/><circle cx="393.4" cy="126.6" r="3.2"/><circle cx="356.3" cy="163.7" r="3.2"/><circle cx="393.4" cy="273.4" r="3.2"/><circle cx="290.7" cy="229.3" r="3.2"/><circle cx="319.4" cy="199.4" r="3.2"/><circle cx="349.9" cy="170.1" r="3.2"/><circle cx="319.5" cy="199.5" r="3.2"/><circle cx="295.5" cy="224.5" r="3.2"/><circle cx="423.8" cy="96.2" r="3.2"/><circle cx="313.4" cy="193.4" r="3.2"/><circle cx="375.9" cy="255.9" r="3.2"/><circle cx="317.9" cy="202.1" r="3.2"/><circle cx="305.0" cy="185.0" r="3.2"/><circle cx="339.0" cy="181.0" r="3.2"/><circle cx="288.0" cy="232.0" r="3.2"/><circle cx="371.9" cy="251.9" r="3.2"/><circle cx="282.3" cy="237.7" r="3.2"/><circle cx="387.1" cy="132.9" r="3.2"/><circle cx="416.5" cy="103.5" r="3.2"/><circle cx="310.9" cy="209.1" r="3.2"/><circle cx="318.5" cy="201.5" r="3.2"/><circle cx="335.6" cy="215.6" r="3.2"/><circle cx="323.7" cy="203.7" r="3.2"/><circle cx="218.2" cy="98.2" r="3.2"/><circle cx="392.9" cy="272.9" r="3.2"/><circle cx="419.5" cy="299.5" r="3.2"/><circle cx="336.0" cy="184.0" r="3.2"/><circle cx="330.1" cy="210.1" r="3.2"/><circle cx="354.4" cy="165.6" r="3.2"/><circle cx="293.4" cy="226.6" r="3.2"/><circle cx="327.3" cy="192.7" r="3.2"/><circle cx="298.2" cy="221.8" r="3.2"/><circle cx="317.5" cy="202.5" r="3.2"/><circle cx="347.9" cy="227.9" r="3.2"/><circle cx="377.2" cy="257.2" r="3.2"/><circle cx="318.0" cy="202.0" r="3.2"/><circle cx="403.3" cy="116.7" r="3.2"/><circle cx="343.2" cy="176.8" r="3.2"/><circle cx="317.4" cy="197.4" r="3.2"/><circle cx="354.7" cy="234.7" r="3.2"/><circle cx="283.4" cy="163.4" r="3.2"/><circle cx="312.8" cy="207.2" r="3.2"/><circle cx="307.2" cy="187.2" r="3.2"/><circle cx="418.4" cy="101.6" r="3.2"/><circle cx="409.0" cy="111.0" r="3.2"/><circle cx="328.6" cy="208.6" r="3.2"/><circle cx="321.6" cy="201.6" r="3.2"/><circle cx="379.8" cy="259.8" r="3.2"/><circle cx="209.5" cy="89.5" r="3.2"/><circle cx="287.2" cy="232.8" r="3.2"/><circle cx="370.1" cy="149.9" r="3.2"/><circle cx="314.5" cy="194.5" r="3.2"/><circle cx="475.4" cy="44.6" r="3.2"/><circle cx="309.7" cy="210.3" r="3.2"/><circle cx="401.6" cy="281.6" r="3.2"/><circle cx="358.9" cy="238.9" r="3.2"/><circle cx="332.0" cy="212.0" r="3.2"/><circle cx="339.8" cy="219.8" r="3.2"/><circle cx="251.3" cy="268.7" r="3.2"/><circle cx="270.9" cy="150.9" r="3.2"/><circle cx="337.2" cy="182.8" r="3.2"/><circle cx="360.0" cy="240.0" r="3.2"/><circle cx="287.7" cy="167.7" r="3.2"/><circle cx="357.0" cy="163.0" r="3.2"/><circle cx="431.1" cy="88.9" r="3.2"/><circle cx="344.4" cy="224.4" r="3.2"/></g>
+      <text x="509.75" y="222" font-size="16" text-anchor="end" fill="var(--text)">X₁</text>
+      <text x="330" y="26.75" font-size="16" fill="var(--text)">X₂</text>
+      <text x="430.0" y="65.25" font-size="16" fill="var(--text)">X₂ = X₁ (Z = +1)</text>
+      <text x="430.0" y="351.25" font-size="16" fill="var(--text)">X₂ = −X₁ (Z = −1)</text>
+        </svg>
+        <figcaption><strong>Figure 2:</strong> 220 samples of $(X_1, Z X_1)$. Each marginal is a perfect $N(0, 1)$, and the covariance is 0, yet the points live on an X shape: strongly dependent, and nothing like the elliptical cloud of a bivariate normal.</figcaption>
+      </figure>
+    </details>
+
+    <div class="sub-q"><span class="sub-label">v.</span><div>Is the vector $X = [X_1, X_2]$ distributed according to the multivariate normal distribution?</div></div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p><strong>No.</strong> A vector is multivariate normal only if <em>every</em> linear combination is normal. But $X_1 + X_2 = (1 + Z)X_1$ equals exactly 0 with probability ½ (whenever $Z = -1$), and is $2X_1$ otherwise. A distribution with a point mass of ½ at 0 is not normal.</p>
+      <p>This is the classic warning: normal marginals plus zero covariance do not give independence. That implication holds only when the pair is <em>jointly</em> normal.</p>
+    </details>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  MQ8                                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="mq8">
+  <h2>Mini-Quiz 8 (MQ8): Inequalities, Gaussian Conditioning and KKT</h2>
+
+  <div class="math-box">
+    <div class="math-box-label">Markov's Inequality</div>
+    <div class="math-box-body">
+      <p>If $X \ge 0$ and $a > 0$, then</p>
+      $$P(X \ge a) \le \frac{E[X]}{a}$$
+      <p>Why: $X \ge a \cdot \mathbf{1}\{X \ge a\}$ always (the right side is $a$ when $X \ge a$ and 0 otherwise). Take expectations of both sides: $E[X] \ge a\,P(X \ge a)$. The bound is tight only when $X$ puts all its mass at 0 and at $a$.</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 10: How Likely Is 20 Times the Mean?</h3>
+      <span class="problem-badge">MQ8 · Q1 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Let $X$ be a positive random variable with $E[X] = 10$. Give an upper bound on the probability of the event $X > 200$. Give an example distribution for $X$ where this bound is satisfied with equality.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>All you know is the mean and the sign, which is exactly Markov's setting. For equality, put as much mass as possible at 200 while keeping the mean at 10, and put the rest at the lowest allowed value.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        P(X > 200) \le P(X \ge 200) &\le \frac{10}{200} \\[6pt]
+        &= 0.05
+      \end{aligned}$$
+      <p>Equality example: $X = 200$ with probability $0.05$, and $X = 0$ with probability $0.95$. Then $E[X] = 0.05 \times 200 = 10$ and $P(X \ge 200) = 0.05$.</p>
+      <p>A fine point worth one line in your answer: with the strict inequality "$X > 200$" and a strictly positive $X$, the bound can be approached but not reached exactly. The intended answer is the two-point distribution above, which gives equality for $P(X \ge 200)$.</p>
+    </details>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Conditioning a Bivariate Normal</div>
+    <div class="math-box-body">
+      <p>If $(X_1, X_2)$ is bivariate normal with means $\mu_1, \mu_2$, variances $\sigma_{11}, \sigma_{22}$ and covariance $\sigma_{12}$, then $X_2 \mid X_1 = a$ is normal with</p>
+      $$\begin{aligned}
+        E[X_2 \mid X_1 = a] &= \mu_2 + \frac{\sigma_{12}}{\sigma_{11}}(a - \mu_1) \\[8pt]
+        \operatorname{Var}(X_2 \mid X_1 = a) &= \sigma_{22} - \frac{\sigma_{12}^2}{\sigma_{11}}
+      \end{aligned}$$
+      <p>Read it as a regression: the mean shifts by the slope $\sigma_{12}/\sigma_{11}$ times how far $a$ is from its average, and the variance shrinks by the part of $X_2$ that $X_1$ explains. Note the variance does not depend on $a$.</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 11: Conditioning a 2D Gaussian</h3>
+      <span class="problem-badge">MQ8 · Q2 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Let $X = [X_1, X_2]$ be a 2-dimensional multivariate normal vector with mean parameter $\mu = [2, 3]$ and covariance parameter $\Sigma = \begin{bmatrix} 4 & 3 \\ 3 & 9 \end{bmatrix}$. Give the distribution of $X_2$ conditioned on $X_1 = a$ for some $a \in \mathbb{R}$.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>Read off $\mu_1 = 2$, $\mu_2 = 3$, $\sigma_{11} = 4$, $\sigma_{12} = 3$, $\sigma_{22} = 9$ and plug into the two formulas.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        E[X_2 \mid X_1 = a] &= 3 + \frac{3}{4}(a - 2) \\[6pt]
+        &= \frac{3}{4}a + \frac{3}{2} \\[8pt]
+        \operatorname{Var}(X_2 \mid X_1 = a) &= 9 - \frac{3^2}{4} \\[6pt]
+        &= \frac{27}{4} \\[8pt]
+        X_2 \mid X_1 = a \;&\sim\; N\!\left(\tfrac34 a + \tfrac32,\ \tfrac{27}{4}\right)
+      \end{aligned}$$
+      <p>The correlation is $\rho = 3/\sqrt{4 \cdot 9} = 0.5$, and the variance shrinks by the factor $1 - \rho^2 = 0.75$: $9 \times 0.75 = 6.75$. ✓</p>
+    </details>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">KKT Conditions for $\min f(x)$ subject to $g_i(x) \le 0$</div>
+    <div class="math-box-body">
+      <p>A point $x^*$ is a <strong>KKT point</strong> if there are multipliers $\mu_i$ (one per constraint) such that all four hold:</p>
+      <ol>
+        <li><strong>Primal feasibility:</strong> $g_i(x^*) \le 0$ for every $i$.</li>
+        <li><strong>Stationarity:</strong> $\nabla f(x^*) + \sum_i \mu_i \nabla g_i(x^*) = 0$.</li>
+        <li><strong>Dual feasibility:</strong> $\mu_i \ge 0$ for every $i$.</li>
+        <li><strong>Complementary slackness:</strong> $\mu_i\,g_i(x^*) = 0$. A constraint that is not <strong>active</strong> (not satisfied with equality) must have $\mu_i = 0$.</li>
+      </ol>
+      <p>Geometrically: at a constrained minimum, the downhill direction $-\nabla f$ points straight out of the feasible set, so it must be a non-negative combination of the outward normals $\nabla g_i$ of the active walls. For a convex problem, KKT is both necessary and sufficient for a global minimum.</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 12: Checking KKT on a Diamond</h3>
+      <span class="problem-badge">MQ8 · Q3 · 4 points</span>
+    </div>
+    <div class="question-canvas">
+      <p>Consider the following optimisation problem over a 2-dimensional vector $x$ with 4 inequality constraints.</p>
+      $$\begin{aligned}
+        \min_{x \in \mathbb{R}^2}\;\; & (x_1 - 2)^2 + (x_2 - 2)^2 \\[6pt]
+        \text{s.t. }\;\; & x_1 + x_2 \le 1; \quad -x_1 - x_2 \le 1 \\[6pt]
+        & x_1 - x_2 \le 1; \quad -x_1 + x_2 \le 1
+      \end{aligned}$$
+      <p>Check the KKT conditions at the following 2 points: $x = [\tfrac12, \tfrac12]$ and $x = [1, 0]$. Show steps demonstrating how you checked the KKT conditions.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>The four constraints together say $|x_1| + |x_2| \le 1$, a diamond. Write $g_1 = x_1 + x_2 - 1$, $g_2 = -x_1 - x_2 - 1$, $g_3 = x_1 - x_2 - 1$, $g_4 = -x_1 + x_2 - 1$, so $\nabla g_1 = (1, 1)$, $\nabla g_2 = (-1, -1)$, $\nabla g_3 = (1, -1)$, $\nabla g_4 = (-1, 1)$. Also $\nabla f = \big(2(x_1 - 2),\ 2(x_2 - 2)\big)$. At each point: find the active constraints, set the others' $\mu$ to 0, solve stationarity, then check the signs.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p><strong>At $x = (\tfrac12, \tfrac12)$.</strong></p>
+      $$\begin{aligned}
+        g &= (0,\ -2,\ -1,\ -1) \quad \Rightarrow \text{ feasible; only } g_1 \text{ active} \\[8pt]
+        \nabla f &= (-3,\ -3) \\[8pt]
+        (-3, -3) + \mu_1 (1, 1) &= (0, 0) \;\Rightarrow\; \mu_1 = 3 \\[8pt]
+        \mu &= (3, 0, 0, 0)
+      \end{aligned}$$
+      <p>Feasible ✓, stationarity ✓ with $\mu_1 = 3 \ge 0$ ✓, complementary slackness ✓ (inactive constraints have $\mu = 0$). <strong>KKT holds.</strong> The problem is convex (convex objective, linear constraints), so this is the global minimum, with $f = 4.5$. It is simply the point of the diamond closest to $(2, 2)$.</p>
+      <p><strong>At $x = (1, 0)$.</strong></p>
+      $$\begin{aligned}
+        g &= (0,\ -2,\ 0,\ -2) \quad \Rightarrow \text{ feasible; } g_1, g_3 \text{ active} \\[8pt]
+        \nabla f &= (-2,\ -4) \\[8pt]
+        (-2, -4) + \mu_1(1, 1) + \mu_3(1, -1) &= (0, 0) \\[8pt]
+        \mu_1 + \mu_3 &= 2 \\[6pt]
+        \mu_1 - \mu_3 &= 4 \\[8pt]
+        \mu_1 = 3, \quad \mu_3 &= -1 < 0
+      \end{aligned}$$
+      <p>Stationarity can only be met with a negative multiplier, so dual feasibility fails. <strong>KKT does not hold.</strong> The negative $\mu_3$ says the wall $x_1 - x_2 \le 1$ is not actually holding you back: moving along the edge toward $(\tfrac12, \tfrac12)$ lowers $f$ from 5 toward 4.5.</p>
+      <figure class="fig">
+        <svg viewBox="0 0 640 410" role="img" aria-label="Diamond-shaped feasible region with contour circles around (2,2); the point (1/2,1/2) touches the smallest circle and (1,0) does not">
+      <line x1="68.0" y1="250" x2="562.0" y2="250" stroke="var(--muted)"/><line x1="220" y1="392.5" x2="220" y2="22.0" stroke="var(--muted)"/>
+      <path d="M315.0,250.0 L220.0,155.0 L125.0,250.0 L220.0,345.0 Z" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-width="2"/>
+      <circle cx="410.0" cy="60.0" r="201.5" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="none"/>
+      <circle cx="410.0" cy="60.0" r="212.4" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="6 5"/>
+      <circle cx="410.0" cy="60.0" r="4" fill="var(--text)"/><text x="420.0" y="52.0" font-size="16" fill="var(--text)">(2, 2)</text>
+      <line x1="267.5" y1="202.5" x2="310.2" y2="159.8" stroke="var(--accent)" stroke-width="2.4"/><path d="M310.2,159.8 L306.5,169.0 L301.0,163.5 Z" fill="var(--accent)"/>
+      <line x1="315.0" y1="250.0" x2="343.5" y2="193.0" stroke="var(--accent)" stroke-width="2.4"/><path d="M343.5,193.0 L342.9,203.0 L335.9,199.5 Z" fill="var(--accent)"/>
+      <line x1="315.0" y1="250.0" x2="354.9" y2="289.9" stroke="var(--muted)" stroke-width="2"/><path d="M354.9,289.9 L345.6,286.1 L351.1,280.6 Z" fill="var(--muted)"/>
+      <line x1="315.0" y1="250.0" x2="345.4" y2="219.6" stroke="var(--muted)" stroke-width="2"/><path d="M345.4,219.6 L341.6,228.9 L336.1,223.4 Z" fill="var(--muted)"/>
+      <circle cx="267.5" cy="202.5" r="5" fill="var(--text)"/><text x="253.5" y="228.5" font-size="16" text-anchor="end" fill="var(--text)">(½, ½)  KKT ✓</text>
+      <circle cx="315.0" cy="250.0" r="5" fill="var(--text)"/><text x="301.0" y="280.0" font-size="16" text-anchor="end" fill="var(--text)">(1, 0)  KKT ✗</text>
+      <text x="298.2" y="153.8" font-size="16" text-anchor="end" fill="var(--text)">−∇f = (3, 3)</text>
+      <text x="353.5" y="197.0" font-size="16" fill="var(--text)">−∇f = (2, 4)</text>
+      <text x="129.8" y="368.8" font-size="16" fill="var(--muted)">feasible set |x₁| + |x₂| ≤ 1</text>
+        </svg>
+        <figcaption><strong>Figure 3:</strong> The diamond $|x_1| + |x_2| \le 1$ and circles of constant $f$ around $(2, 2)$. At $(\tfrac12, \tfrac12)$ the downhill direction $-\nabla f$ points straight out through the one active wall: KKT holds. At $(1, 0)$, $-\nabla f = (2, 4)$ is not a non-negative mix of the two wall normals (grey), so there is still a feasible downhill direction along the upper edge.</figcaption>
+      </figure>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Connecting the Dots                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots</h2>
+  <p>
+    Twelve problems, but only a handful of moves. <strong>Counting</strong> handles any finite, equally likely world: poker hands, three coins, the 49 pairs of two dice. <strong>Conditioning</strong> is the same act every time, restricting to what is known and renormalising: in a table of eight coin outcomes, in Bayes' theorem for a medical test, in the first-step equation for two 6s, and in the Gaussian formula, where conditioning on $X_1$ shifts the mean along a regression line. <strong>Going through the CDF</strong> handles any new random variable built from old ones: the max and min of dice, the min of exponentials, $e^X$. And <strong>linear algebra</strong> keeps returning: the stationary distribution is an eigenvector, the covariance matrix drives the conditional normal, and KKT asks whether one vector lies in the cone spanned by others.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Summary: Trigger → Tool → Key Line</div>
+    <div class="math-box-body">
+      <div class="table-scroll">
+      <table class="data-table left">
+        <tr><th>If the question says…</th><th>Tool</th><th>Key line</th></tr>
+        <tr><td>"probability of this hand"</td><td>Counting</td><td>build in stages, divide by $\binom{52}{5}$</td></tr>
+        <tr><td>small fair experiment, "given that"</td><td>Enumerate outcomes</td><td>$\lvert A \cap B\rvert / \lvert B\rvert$</td></tr>
+        <tr><td>exclusive / exhaustive / independent</td><td>Set definitions</td><td>$\cap = \varnothing$; $\cup = S$; $P(\cap) = P\,P$</td></tr>
+        <tr><td>test result, "probability they truly have it"</td><td>Bayes</td><td>branch ÷ all branches with that result</td></tr>
+        <tr><td>min / max of independent variables</td><td>CDF trick</td><td>$P(\max \le y) = \prod P(X_i \le y)$</td></tr>
+        <tr><td>"expected number of tries until…"</td><td>First-step analysis</td><td>$E$ appears on both sides; solve</td></tr>
+        <tr><td>"stationary distribution"</td><td>Eigenvector for eigenvalue 1</td><td>$T\pi = \pi$, $\sum \pi_i = 1$</td></tr>
+        <tr><td>"PDF of $g(X)$"</td><td>CDF method</td><td>$f_Y = \frac{d}{dy}P(g(X) \le y)$</td></tr>
+        <tr><td>"uncorrelated but…", random sign</td><td>Covariance vs independence</td><td>$\operatorname{Cov} = 0 \not\Rightarrow$ independent</td></tr>
+        <tr><td>only the mean is known, "upper bound"</td><td>Markov's inequality</td><td>$P(X \ge a) \le E[X]/a$</td></tr>
+        <tr><td>"distribution of $X_2$ given $X_1 = a$"</td><td>Gaussian conditioning</td><td>$\mu_2 + \frac{\sigma_{12}}{\sigma_{11}}(a - \mu_1)$, $\sigma_{22} - \frac{\sigma_{12}^2}{\sigma_{11}}$</td></tr>
+        <tr><td>"check the KKT conditions"</td><td>KKT</td><td>active set → solve for $\mu$ → check $\mu \ge 0$</td></tr>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

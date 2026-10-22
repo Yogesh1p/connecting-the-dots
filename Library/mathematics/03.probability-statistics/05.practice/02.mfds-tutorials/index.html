@@ -327,30 +327,50 @@
     </div>
     <div class="question-canvas">
       <span class="question-tag">Problem Statement</span>
-      <p>$f_{X,Y}(x, y) = \frac{5x^2}{2}$ for $-1 \le x \le 1$ and $0 \le y \le x^2$, and $0$ otherwise. Find $E\big[7X^2 + 8Y^2 + 2X + 8Y\big]$.</p>
+      <p>$f_{X,Y}(x, y) = \frac{5x^2}{2}$ for $-1 \le x \le 1$, $0 \le y \le x^2$, and $0$ otherwise. Find $E\big[7X^2 + 8Y^2 + 2X + 8Y\big]$.</p>
     </div>
-    <div class="spot"><strong>Which tool:</strong> an expectation of a sum. <strong>Linearity of expectation</strong> says $E[aU + bV] = aE[U] + bE[V]$, always (no independence needed). So split the big expectation into four small ones.</div>
+    <div class="spot"><strong>Which tool:</strong> linearity of expectation splits it into four expectations. Each is $\int\!\!\int g\,f\,dy\,dx$ over the region, with $y$ inside because its upper limit $x^2$ depends on $x$.</div>
+    <figure style="margin: 1.2rem 0;">
+      <svg viewBox="0 0 450 290" width="100%" role="img" aria-label="Region between the x-axis and the parabola y = x squared, for x from -1 to 1" style="max-width: 400px; display: block; margin: 0 auto;">
+        <path d="M60,250 L60.0,90.0 L68.0,105.6 L76.0,120.4 L84.0,134.4 L92.0,147.6 L100.0,160.0 L108.0,171.6 L116.0,182.4 L124.0,192.4 L132.0,201.6 L140.0,210.0 L148.0,217.6 L156.0,224.4 L164.0,230.4 L172.0,235.6 L180.0,240.0 L188.0,243.6 L196.0,246.4 L204.0,248.4 L212.0,249.6 L220.0,250.0 L228.0,249.6 L236.0,248.4 L244.0,246.4 L252.0,243.6 L260.0,240.0 L268.0,235.6 L276.0,230.4 L284.0,224.4 L292.0,217.6 L300.0,210.0 L308.0,201.6 L316.0,192.4 L324.0,182.4 L332.0,171.6 L340.0,160.0 L348.0,147.6 L356.0,134.4 L364.0,120.4 L372.0,105.6 L380.0,90.0 L380,250 Z" fill="var(--highlight)"/>
+        <path d="M60.0,90.0 L68.0,105.6 L76.0,120.4 L84.0,134.4 L92.0,147.6 L100.0,160.0 L108.0,171.6 L116.0,182.4 L124.0,192.4 L132.0,201.6 L140.0,210.0 L148.0,217.6 L156.0,224.4 L164.0,230.4 L172.0,235.6 L180.0,240.0 L188.0,243.6 L196.0,246.4 L204.0,248.4 L212.0,249.6 L220.0,250.0 L228.0,249.6 L236.0,248.4 L244.0,246.4 L252.0,243.6 L260.0,240.0 L268.0,235.6 L276.0,230.4 L284.0,224.4 L292.0,217.6 L300.0,210.0 L308.0,201.6 L316.0,192.4 L324.0,182.4 L332.0,171.6 L340.0,160.0 L348.0,147.6 L356.0,134.4 L364.0,120.4 L372.0,105.6 L380.0,90.0" fill="none" stroke="var(--accent)" stroke-width="3"/>
+        <line x1="40" y1="250" x2="410" y2="250" stroke="var(--muted)" stroke-width="1.5"/>
+        <line x1="220" y1="268" x2="220" y2="60" stroke="var(--muted)" stroke-width="1.5"/>
+        <line x1="316" y1="250" x2="316" y2="192.4" stroke="var(--dark)" stroke-width="5"/>
+        <g fill="var(--text)" font-size="19" font-family="-apple-system, BlinkMacSystemFont, sans-serif">
+          <text x="386" y="96">y = x²</text>
+          <text x="416" y="256">x</text>
+          <text x="226" y="58">y</text>
+          <text x="60" y="276" text-anchor="middle">−1</text>
+          <text x="212" y="276" text-anchor="middle">0</text>
+          <text x="380" y="276" text-anchor="middle">1</text>
+        </g>
+      </svg>
+      <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 1:</strong> For each $x$ in $[-1, 1]$, $y$ runs from $0$ to $x^2$ (dark strip).</figcaption>
+    </figure>
     <span class="solution-heading">Set it up</span>
     $$\begin{aligned}
-      E[\,\cdot\,] &= 7E[X^2] + 8E[Y^2] + 2E[X] + 8E[Y] \\[8pt]
-      E[g(X,Y)] &= \int_{-1}^{1}\int_{0}^{x^2} g(x,y)\,\frac{5x^2}{2}\,dy\,dx
+      E[\,\cdot\,] &= 7E[X^2] + 8E[Y^2] + 2E[X] + 8E[Y] \\[10pt]
+      E[X] &= \int_{-1}^{1}\!\int_{0}^{x^2} x\cdot\frac{5x^2}{2}\,dy\,dx \\[8pt]
+      E[X^2] &= \int_{-1}^{1}\!\int_{0}^{x^2} x^2\cdot\frac{5x^2}{2}\,dy\,dx \\[8pt]
+      E[Y] &= \int_{-1}^{1}\!\int_{0}^{x^2} y\cdot\frac{5x^2}{2}\,dy\,dx \\[8pt]
+      E[Y^2] &= \int_{-1}^{1}\!\int_{0}^{x^2} y^2\cdot\frac{5x^2}{2}\,dy\,dx
     \end{aligned}$$
-    <p>Do the inner $dy$ integral first: its upper limit $x^2$ depends on $x$.</p>
     <details class="toggle">
       <summary>Check your work</summary>
+      <p>Inner integral first, then the outer one. Over $[-1, 1]$, odd powers integrate to $0$ and $\int_{-1}^{1} x^m\,dx = \frac{2}{m+1}$ for even $m$.</p>
       $$\begin{aligned}
-        E[X] &= \int_{-1}^{1} x \cdot \frac{5x^2}{2} \cdot x^2\,dx = \frac{5}{2}\int_{-1}^{1} x^5\,dx = 0 \\[8pt]
-        E[X^2] &= \frac{5}{2}\int_{-1}^{1} x^6\,dx = \frac{5}{2}\cdot\frac{2}{7} = \frac{5}{7} \\[8pt]
-        E[Y] &= \int_{-1}^{1} \frac{x^4}{2}\cdot\frac{5x^2}{2}\,dx = \frac{5}{4}\cdot\frac{2}{7} = \frac{5}{14} \\[8pt]
-        E[Y^2] &= \int_{-1}^{1} \frac{x^6}{3}\cdot\frac{5x^2}{2}\,dx = \frac{5}{6}\cdot\frac{2}{9} = \frac{5}{27}
+        E[X] &= \int_{-1}^{1} \frac{5x^3}{2}\,\big[y\big]_0^{x^2}\,dx = \frac{5}{2}\int_{-1}^{1} x^5\,dx = 0 \\[10pt]
+        E[X^2] &= \int_{-1}^{1} \frac{5x^4}{2}\,\big[y\big]_0^{x^2}\,dx = \frac{5}{2}\int_{-1}^{1} x^6\,dx = \frac{5}{2}\cdot\frac{2}{7} = \frac{5}{7} \\[10pt]
+        E[Y] &= \int_{-1}^{1} \frac{5x^2}{2}\Big[\frac{y^2}{2}\Big]_0^{x^2}dx = \frac{5}{4}\int_{-1}^{1} x^6\,dx = \frac{5}{4}\cdot\frac{2}{7} = \frac{5}{14} \\[10pt]
+        E[Y^2] &= \int_{-1}^{1} \frac{5x^2}{2}\Big[\frac{y^3}{3}\Big]_0^{x^2}dx = \frac{5}{6}\int_{-1}^{1} x^8\,dx = \frac{5}{6}\cdot\frac{2}{9} = \frac{5}{27}
       \end{aligned}$$
       $$\begin{aligned}
-        E[\,\cdot\,] &= 7\cdot\frac{5}{7} + 8\cdot\frac{5}{27} + 0 + 8\cdot\frac{5}{14} \\[6pt]
+        E[\,\cdot\,] &= 7\cdot\frac{5}{7} + 8\cdot\frac{5}{27} + 2\cdot 0 + 8\cdot\frac{5}{14} \\[6pt]
         &= 5 + \frac{40}{27} + \frac{20}{7} \\[6pt]
         &= \frac{945 + 280 + 540}{189} = \frac{1765}{189} \approx 9.339
       \end{aligned}$$
-      <p><em>Note on the tutorial notes:</em> they reach 1765/189 correctly but then mis-simplify it to 588/63 ≈ 9.333. 1765/189 does not reduce; the answer is ≈ 9.339.</p>
-      <p>$E[X] = 0$ because $x^5$ is an odd function on a symmetric interval: positive and negative halves cancel.</p>
+      <p><em>Note:</em> the tutorial notes mis-simplify 1765/189 to 588/63 ≈ 9.333.</p>
     </details>
   </div>
 
@@ -364,21 +384,44 @@
       <span class="question-tag">Problem Statement</span>
       <p>Rod lengths $X_1, X_2, \dots$ are independent and Exponential with mean 20 ($\lambda = 1/20$). Rods are laid end to end until the total length first reaches $t = 100$. Let $N$ be the number of rods used. Find the distribution of $N$, $E[N]$ and $\operatorname{Var}(N)$.</p>
     </div>
-    <div class="spot"><strong>Which tool:</strong> exponential gaps laid end to end <em>are</em> a Poisson process. The rod ends are "events" along a line, at rate $\lambda$ per unit length. Counting events in a stretch of length $t$ gives a Poisson($\lambda t$) count.</div>
+    <div class="spot"><strong>Which tool:</strong> exponential gaps laid end to end form a Poisson process. So the <strong>joints</strong> between rods are Poisson events along the line, at rate $\lambda$ per unit length.</div>
+    <figure style="margin: 1.2rem 0;">
+      <svg viewBox="0 0 470 140" width="100%" role="img" aria-label="Four rods laid end to end; three joints fall before 100 and the fourth rod crosses 100" style="max-width: 470px; display: block; margin: 0 auto;">
+        <line x1="40" y1="70" x2="104.8" y2="70" stroke="var(--accent)" stroke-width="10"/>
+        <line x1="104.8" y1="70" x2="230.8" y2="70" stroke="var(--dark)" stroke-width="10"/>
+        <line x1="230.8" y1="70" x2="310" y2="70" stroke="var(--accent)" stroke-width="10"/>
+        <line x1="310" y1="70" x2="439.6" y2="70" stroke="var(--dark)" stroke-width="10"/>
+        <g fill="var(--bg)" stroke="var(--text)" stroke-width="2">
+          <circle cx="104.8" cy="70" r="6"/>
+          <circle cx="230.8" cy="70" r="6"/>
+          <circle cx="310" cy="70" r="6"/>
+        </g>
+        <line x1="400" y1="30" x2="400" y2="105" stroke="var(--text)" stroke-width="2" stroke-dasharray="5 4"/>
+        <g fill="var(--text)" font-size="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" text-anchor="middle">
+          <text x="72" y="48">rod 1</text>
+          <text x="168" y="48">rod 2</text>
+          <text x="270" y="48">rod 3</text>
+          <text x="355" y="48">rod 4</text>
+          <text x="40" y="100">0</text>
+          <text x="400" y="125">100</text>
+          <text x="208" y="125">3 joints before 100</text>
+        </g>
+      </svg>
+      <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 2:</strong> 3 joints land before 100, so a 4th rod is needed to cross it. Rods used = joints before 100 + 1.</figcaption>
+    </figure>
     <span class="solution-heading">Set it up</span>
-    <p>The number of rod ends that fall <em>before</em> 100 is Poisson with mean $\lambda t$. You need one more rod to cross 100, so:</p>
     $$\begin{aligned}
-      \lambda t &= \frac{1}{20}\times 100 = 5 \\[6pt]
-      N - 1 &\sim \text{Poisson}(5)
+      M &= \text{joints in } [0, 100] \sim \text{Poisson}(\lambda t) \\[6pt]
+      \lambda t &= \tfrac{1}{20}\times 100 = 5 \\[6pt]
+      N &= M + 1
     \end{aligned}$$
     <details class="toggle">
       <summary>Check your work</summary>
       $$\begin{aligned}
-        P(N = n) &= \frac{e^{-5}\,5^{\,n-1}}{(n-1)!}, \quad n = 1, 2, \dots \\[8pt]
-        E[N] &= 1 + 5 = 6 \\[6pt]
-        \operatorname{Var}(N) &= \operatorname{Var}(N - 1) = 5
+        P(N = n) &= P(M = n - 1) = \frac{e^{-5}\,5^{\,n-1}}{(n-1)!}, \quad n = 1, 2, \dots \\[8pt]
+        E[N] &= E[M] + 1 = 6 \\[6pt]
+        \operatorname{Var}(N) &= \operatorname{Var}(M) = 5
       \end{aligned}$$
-      <p>Adding the constant 1 shifts the mean but not the variance.</p>
     </details>
   </div>
 
@@ -459,7 +502,7 @@
         E[Z] &= \tfrac{1}{2}(1) + \tfrac{1}{2}(-1) = 0 \\[6pt]
         \operatorname{Cov}(X_1, X_2) &= E[Z]\,E[X_1^2] - 0 \cdot 0 = 0 \cdot 1 = 0
       \end{aligned}$$
-      <p>Zero covariance, yet they are <strong>not independent</strong>: $|X_2| = |X_1|$ always. If you know $X_1 = 2$, then $X_2$ must be $2$ or $-2$. Every point $(X_1, X_2)$ lies on one of the two lines in Figure 1, which has no linear trend overall.</p>
+      <p>Zero covariance, yet they are <strong>not independent</strong>: $|X_2| = |X_1|$ always. If you know $X_1 = 2$, then $X_2$ must be $2$ or $-2$. Every point $(X_1, X_2)$ lies on one of the two lines in Figure 3, which has no linear trend overall.</p>
       <figure style="margin: 1.5rem 0;">
         <svg viewBox="0 0 400 400" width="100%" role="img" aria-label="All points of X1 and X2 lie on the lines X2 = X1 and X2 = minus X1" style="max-width: 360px; display: block; margin: 0 auto;">
           <line x1="40" y1="200" x2="360" y2="200" stroke="var(--muted)" stroke-width="1.5"/>
@@ -473,7 +516,7 @@
             <text x="268" y="250">Z = −1</text>
           </g>
         </svg>
-        <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 1:</strong> When $Z = +1$ the point lies on $X_2 = X_1$ (solid); when $Z = -1$ it lies on $X_2 = -X_1$ (dashed). The two lines cancel each other's slope, so the covariance is 0, but $X_2$ is completely determined by $X_1$ up to sign.</figcaption>
+        <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 3:</strong> When $Z = +1$ the point lies on $X_2 = X_1$ (solid); when $Z = -1$ it lies on $X_2 = -X_1$ (dashed). The two lines cancel each other's slope, so the covariance is 0, but $X_2$ is completely determined by $X_1$ up to sign.</figcaption>
       </figure>
       <p><strong>Lesson:</strong> independence implies zero covariance, but zero covariance does not imply independence.</p>
     </details>
@@ -706,7 +749,7 @@
           <text x="48" y="356">0</text>
         </g>
       </svg>
-      <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 2:</strong> The support $0 \le y \le x \le 1$ is the triangle below the line $y = x$. Part (d) integrates over the region under $y = x/2$; part (e) asks what fraction of that region's probability lies under $y = x/4$.</figcaption>
+      <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 4:</strong> The support $0 \le y \le x \le 1$ is the triangle below the line $y = x$. Part (d) integrates over the region under $y = x/2$; part (e) asks what fraction of that region's probability lies under $y = x/4$.</figcaption>
     </figure>
     <span class="solution-heading">Set it up</span>
     $$\begin{aligned}

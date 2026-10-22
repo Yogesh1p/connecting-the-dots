@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="fdb7d01d">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Probability & Statistics">
+<meta name="chapter" content="Practice Problems">
+<meta name="chapterorder" content="5">
+<meta name="lessonorder" content="3">
+<meta name="title" content="Hypothesis Tests for Biological Data">
+<meta name="description" content="BT3041 Topic 3 worked through: the normal distribution, z and t tests, two-sample and paired tests, non-parametric alternatives, ANOVA with Tukey, Kruskal-Wallis, chi-square and multiple-testing correction, each with its biology example.">
+<meta name="keywords" content="BT3041, normal distribution, z-score, t-test, pooled t-test, Welch, paired t-test, F-test, Mann-Whitney, Wilcoxon signed-rank, ANOVA, Tukey, Kruskal-Wallis, chi-square, Bonferroni, Benjamini-Hochberg">
+<meta name="status" content="draft">
+<meta name="date" content="2026-10-13">
+<meta name="author" content="Yogesh">
+<meta name="reading_time" content="20">
+
+<title>Hypothesis Tests for Biological Data</title>
+
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .problem-item {
+    margin: 2.6rem 0 2rem;
+    padding-top: 1.6rem;
+    border-top: 1px solid var(--border);
+  }
+  .problem-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+  .problem-header h3 { margin: 0; font-size: 1.25rem; }
+  .problem-badge {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .question-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    margin: 1rem 0 1.4rem;
+  }
+  .question-tag, .solution-heading {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+  }
+  .solution-heading { margin: 1.4rem 0 0.6rem; }
+  .question-canvas p { font-size: 1.05rem; line-height: 1.75; margin-bottom: 0.8rem; }
+  .question-canvas > :first-child { margin-top: 0; }
+  .question-canvas > :last-child { margin-bottom: 0; }
+  .solution-step {
+    margin: 1.2rem 0;
+    padding-left: 1.2rem;
+    border-left: 2px solid var(--border);
+  }
+  .solution-step h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.02rem;
+    color: var(--dark);
+    font-family: 'Lora', serif;
+    font-weight: 600;
+  }
+  .takeaway {
+    margin-top: 1.4rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--accent);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .recipe { counter-reset: step; list-style: none; padding-left: 0 !important; }
+  .recipe > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.2rem;
+    margin-bottom: 0.7rem;
+  }
+  .recipe > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.15rem;
+    width: 1.5rem; height: 1.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--dark);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spot {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 1rem 0 1.2rem;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--accent);
+    background: var(--highlight);
+    border-radius: 0 8px 8px 0;
+  }
+  .spot strong { color: var(--dark); }
+  .toggle summary {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .toggle > :not(summary) { margin-top: 0.8rem; }
+  .data-table { border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; margin: 0.6rem 0; }
+  .data-table th, .data-table td { border: 1px solid var(--border); padding: 0.35rem 0.75rem; text-align: center; }
+  .data-table th { background: var(--surface); font-weight: 600; color: var(--dark); }
+  .data-table td:first-child, .data-table th:first-child { text-align: left; }
+  .table-scroll { overflow-x: auto; max-width: 100%; }
+</style>
+
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <meta property="og:title" content="Hypothesis Tests for Biological Data">
+    <meta property="og:description" content="BT3041 Topic 3 worked through: the normal distribution, z and t tests, two-sample and paired tests, non-parametric alternatives, ANOVA with Tukey, Kruskal-Wallis, chi-square and multiple-testing correction, each with its biology example.">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-hypothesis-tests-for-biological-data.png">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Introduction                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="introduction">
+  <p>
+    A biologist rarely gets to measure every horse, every mouse or every gene. They measure a handful and ask: is the effect I see real, or is it the noise of a small sample? Every method in BT3041 Topic 3 answers some version of that question. They differ only in what is being compared (one mean, two means, many means, counts) and in what can be assumed about the data (normal or not, equal variances or not, paired or not).
+  </p>
+  <p>
+    This page works through every example from the topic. Each one gives the clue that picks the method, the formula with the numbers plugged in, and the answer under <em>Check your work</em>. Where the slides contain an arithmetic slip, the correct value is given.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>What am I comparing, how many groups are there, and can I assume the data are normal?</em></p>
+    </div>
+  </div>
+
+  <h3>Which test? The whole topic on one table</h3>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Question</th><th>Normal data</th><th>Not normal</th></tr>
+    <tr><td>One mean vs a value</td><td>$z$ ($\sigma$ known) or $t$</td><td>—</td></tr>
+    <tr><td>Two independent means</td><td>Pooled $t$ (equal var.) or Welch $t$</td><td>Mann-Whitney U</td></tr>
+    <tr><td>Two paired measurements</td><td>Paired $t$</td><td>Wilcoxon signed-rank</td></tr>
+    <tr><td>Two variances</td><td>$F$-test</td><td>—</td></tr>
+    <tr><td>Three or more means</td><td>ANOVA, then Tukey</td><td>Kruskal-Wallis</td></tr>
+    <tr><td>Counts in categories</td><td colspan="2">$\chi^2$ goodness of fit / contingency table</td></tr>
+    <tr><td>Many tests at once</td><td colspan="2">Bonferroni or Benjamini-Hochberg correction</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1. Normal distribution                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="normal">
+  <h2>1. The Normal Distribution and Z-Scores</h2>
+  <p>
+    With enough data, many biological measurements (bone lengths, seedling heights, sucrose concentrations) pile up into a bell shape. Not every bell is normal, but when one is, a single table answers every probability question about it.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Normal PDF and the Z-Score</div>
+    <div class="math-box-body">
+      $$\begin{aligned}
+        f(x) &= \frac{1}{\sigma\sqrt{2\pi}}\,e^{-(x-\mu)^2/2\sigma^2} \\[8pt]
+        z &= \frac{x - \mu}{\sigma}
+      \end{aligned}$$
+      <p>The <strong>z-score</strong> says how many standard deviations $x$ is from the mean. Z-scores always have mean $0$ and variance $1$: the <strong>standard normal</strong> $N(0, 1)$. That is why one Z-table serves every normal distribution.</p>
+    </div>
+  </div>
+
+  <p>Three rules cover every question: $P(X > x) = P(Z > z)$ from the table; $P(X &lt; x) = 1 - P(X > x)$; and by symmetry $P(Z &lt; -z) = P(Z > z)$.</p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 1.1: Bone Lengths</h3>
+      <span class="problem-badge">Slides 7–9</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Bone lengths are normal with $\mu = 60$ mm, $\sigma = 10$ mm. The population has 2000 bones.</p>
+      <p>(1) What proportion is longer than 66 mm? (2) How many bones is that? (3) What proportion is shorter than 66 mm? (4) What proportion lies between 60 and 66 mm? (5) What proportion is longer than 77.5 mm? (6) How many bones is that?</p>
+    </div>
+    <figure style="margin: 1.2rem 0;">
+      <svg viewBox="0 0 560 270" width="100%" role="img" aria-label="Standard normal curve with the area to the right of z = 0.6 shaded" style="max-width: 560px; display: block; margin: 0 auto;">
+        <path d="M316.0,220 L316.0,86.7 L319.5,91.5 L322.9,96.4 L326.4,101.6 L329.8,107.0 L333.3,112.4 L336.7,118.0 L340.2,123.5 L343.7,129.1 L347.1,134.6 L350.6,140.1 L354.0,145.5 L357.5,150.7 L360.9,155.8 L364.4,160.7 L367.9,165.4 L371.3,169.9 L374.8,174.2 L378.2,178.2 L381.7,182.1 L385.2,185.6 L388.6,189.0 L392.1,192.1 L395.5,195.0 L399.0,197.7 L402.4,200.1 L405.9,202.3 L409.4,204.4 L412.8,206.2 L416.3,207.9 L419.7,209.4 L423.2,210.7 L426.6,211.9 L430.1,213.0 L433.6,214.0 L437.0,214.8 L440.5,215.5 L443.9,216.2 L447.4,216.7 L450.8,217.2 L454.3,217.7 L457.8,218.0 L461.2,218.3 L464.7,218.6 L468.1,218.8 L471.6,219.0 L475.1,219.2 L478.5,219.3 L482.0,219.4 L485.4,219.5 L488.9,219.6 L492.3,219.7 L495.8,219.8 L499.3,219.8 L502.7,219.8 L506.2,219.9 L509.6,219.9 L513.1,219.9 L516.5,219.9 L520.0,219.9 L520.0,220 Z" fill="var(--accent)" fill-opacity="0.35"/>
+        <path d="M40.0,219.9 L43.0,219.9 L46.0,219.9 L49.0,219.9 L52.0,219.9 L55.0,219.9 L58.0,219.8 L61.0,219.8 L64.0,219.8 L67.0,219.7 L70.0,219.7 L73.0,219.6 L76.0,219.5 L79.0,219.4 L82.0,219.3 L85.0,219.2 L88.0,219.0 L91.0,218.9 L94.0,218.7 L97.0,218.5 L100.0,218.2 L103.0,217.9 L106.0,217.6 L109.0,217.3 L112.0,216.8 L115.0,216.4 L118.0,215.8 L121.0,215.2 L124.0,214.6 L127.0,213.8 L130.0,213.0 L133.0,212.1 L136.0,211.0 L139.0,209.9 L142.0,208.7 L145.0,207.3 L148.0,205.8 L151.0,204.2 L154.0,202.4 L157.0,200.5 L160.0,198.4 L163.0,196.2 L166.0,193.8 L169.0,191.2 L172.0,188.4 L175.0,185.5 L178.0,182.4 L181.0,179.1 L184.0,175.6 L187.0,172.0 L190.0,168.2 L193.0,164.2 L196.0,160.1 L199.0,155.8 L202.0,151.5 L205.0,146.9 L208.0,142.3 L211.0,137.6 L214.0,132.9 L217.0,128.0 L220.0,123.2 L223.0,118.4 L226.0,113.6 L229.0,108.8 L232.0,104.1 L235.0,99.5 L238.0,95.1 L241.0,90.8 L244.0,86.7 L247.0,82.8 L250.0,79.2 L253.0,75.8 L256.0,72.7 L259.0,69.9 L262.0,67.4 L265.0,65.3 L268.0,63.6 L271.0,62.2 L274.0,61.2 L277.0,60.6 L280.0,60.4 L283.0,60.6 L286.0,61.2 L289.0,62.2 L292.0,63.6 L295.0,65.3 L298.0,67.4 L301.0,69.9 L304.0,72.7 L307.0,75.8 L310.0,79.2 L313.0,82.8 L316.0,86.7 L319.0,90.8 L322.0,95.1 L325.0,99.5 L328.0,104.1 L331.0,108.8 L334.0,113.6 L337.0,118.4 L340.0,123.2 L343.0,128.0 L346.0,132.9 L349.0,137.6 L352.0,142.3 L355.0,146.9 L358.0,151.5 L361.0,155.8 L364.0,160.1 L367.0,164.2 L370.0,168.2 L373.0,172.0 L376.0,175.6 L379.0,179.1 L382.0,182.4 L385.0,185.5 L388.0,188.4 L391.0,191.2 L394.0,193.8 L397.0,196.2 L400.0,198.4 L403.0,200.5 L406.0,202.4 L409.0,204.2 L412.0,205.8 L415.0,207.3 L418.0,208.7 L421.0,209.9 L424.0,211.0 L427.0,212.1 L430.0,213.0 L433.0,213.8 L436.0,214.6 L439.0,215.2 L442.0,215.8 L445.0,216.4 L448.0,216.8 L451.0,217.3 L454.0,217.6 L457.0,217.9 L460.0,218.2 L463.0,218.5 L466.0,218.7 L469.0,218.9 L472.0,219.0 L475.0,219.2 L478.0,219.3 L481.0,219.4 L484.0,219.5 L487.0,219.6 L490.0,219.7 L493.0,219.7 L496.0,219.8 L499.0,219.8 L502.0,219.8 L505.0,219.9 L508.0,219.9 L511.0,219.9 L514.0,219.9 L517.0,219.9 L520.0,219.9" fill="none" stroke="var(--text)" stroke-width="2.5"/>
+        <line x1="40" y1="220" x2="520" y2="220" stroke="var(--muted)" stroke-width="1.5"/>
+        <line x1="316" y1="220" x2="316" y2="86.7" stroke="var(--dark)" stroke-width="2" stroke-dasharray="5 4"/>
+        <g fill="var(--text)" font-size="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" text-anchor="middle">
+          <text x="100" y="245">−3</text><text x="160" y="245">−2</text><text x="220" y="245">−1</text><text x="280" y="245">0</text><text x="400" y="245">2</text><text x="460" y="245">3</text>
+          <text x="316" y="268">z = 0.6</text>
+          <text x="455" y="140">area = 0.2743</text>
+        </g>
+      </svg>
+      <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 1:</strong> 66 mm is $z = 0.6$ standard deviations above the mean. The shaded tail is the proportion of bones longer than 66 mm.</figcaption>
+    </figure>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      z_{66} &= \frac{66 - 60}{10} \\[6pt]
+      z_{77.5} &= \frac{77.5 - 60}{10}
+    \end{aligned}$$
+    <p>For (4), half the bones are above the mean (60 mm), so "between 60 and 66" is $0.5 - P(X > 66)$.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{(1)} \quad P(X > 66) &= P(Z > 0.6) = 0.2743 \\[6pt]
+        \text{(2)} \quad 0.2743 \times 2000 &\approx 549 \text{ bones} \\[6pt]
+        \text{(3)} \quad P(X < 66) &= 1 - 0.2743 = 0.7257 \\[6pt]
+        \text{(4)} \quad P(60 < X < 66) &= 0.5 - 0.2743 = 0.2257 \\[6pt]
+        \text{(5)} \quad P(X > 77.5) &= P(Z > 1.75) = 0.0401 \\[6pt]
+        \text{(6)} \quad 0.0401 \times 2000 &\approx 80 \text{ bones}
+      \end{aligned}$$
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 1.2: Sucrose Concentrations</h3>
+      <span class="problem-badge">Slides 10–11</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Sucrose concentration is normal with $\mu = 65$ and $\sigma = 25$ mg/100 ml. (1) What proportion is above 85? (2) What proportion is below 45?</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      z_{85} &= \frac{85 - 65}{25}, \quad z_{45} = \frac{45 - 65}{25}
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \text{(1)} \quad P(Z > 0.8) &= 0.2119 \\[6pt]
+        \text{(2)} \quad P(Z < -0.8) &= P(Z > 0.8) = 0.2119
+      \end{aligned}$$
+      <p>85 and 45 are the same distance from the mean on opposite sides, so the two tails are equal. (A z-score has no units: the slides' "0.8 mg/100 ml" should just be 0.8.)</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2. Sampling distribution and z-test                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="z-test">
+  <h2>2. From One Value to a Sample Mean: the Z-Test</h2>
+  <p>
+    Section 1 asked about single bones. Inference asks about the <em>mean</em> of a sample, and a sample mean wobbles less than single values do. A sample never matches the population exactly; that mismatch is <strong>sampling error</strong>, and the standard error measures its size.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Standard Error and the Central Limit Theorem</div>
+    <div class="math-box-body">
+      <p>Means of samples of size $n$ from a normal population are normal. From a non-normal population they become approximately normal as $n$ grows (<strong>central limit theorem</strong>). Either way:</p>
+      $$\begin{aligned}
+        \sigma_{\bar{X}}^2 &= \frac{\sigma^2}{n} \quad \text{(variance of the mean)} \\[6pt]
+        \sigma_{\bar{X}} &= \frac{\sigma}{\sqrt{n}} \quad \text{(standard error of the mean)}
+      \end{aligned}$$
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-box-label">Hypothesis Testing in Four Steps</div>
+    <div class="math-box-body">
+      <ol>
+        <li><strong>Null hypothesis $H_0$:</strong> a statement to test, e.g. $\mu = 0$. The <strong>alternative</strong> $H_1$ is what is true if $H_0$ is false.</li>
+        <li><strong>Significance level $\alpha$:</strong> how unlikely the data must be under $H_0$ before we reject it. Usually 0.05.</li>
+        <li><strong>Test statistic:</strong> compute it from the data and find its probability under $H_0$.</li>
+        <li><strong>Decide:</strong> if that probability (the p-value) is greater than $\alpha$, do not reject $H_0$; otherwise reject.</li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    With $\alpha = 0.05$ two-tailed, a $|z| \ge 1.96$ lands in the outer 5% of the curve: the <strong>rejection regions</strong>. The direction of $H_1$ sets the tails: $\mu \ne 0$ is <strong>two-tailed</strong> ("any change?"), while $\mu > 0$ or $\mu &lt; 0$ is <strong>one-tailed</strong> ("an increase?" / "a decrease?").
+  </p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2.1: Do Horses Gain Weight on an Antibiotic?</h3>
+      <span class="problem-badge">Slides 18–19</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Weight changes (kg) of 17 horses after two weeks on an antibiotic: 2.0, 1.1, 4.4, −3.1, −1.3, 3.9, 3.2, −1.6, 3.5, 1.2, 2.5, 2.3, 1.9, 1.8, 2.9, −0.3, −2.4. Assume the population variance is known: $\sigma^2 = 13.462$ kg². Test $H_0: \mu = 0$ against $H_1: \mu \ne 0$ at $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> one mean, $\sigma$ known → one-sample $z$-test. "$\ne$" → two-tailed.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \bar{X} &= \frac{22.0}{17} \\[6pt]
+      \sigma_{\bar{X}} &= \sqrt{\frac{13.462}{17}} \\[6pt]
+      z &= \frac{\bar{X} - 0}{\sigma_{\bar{X}}}
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \bar{X} &= 1.29 \text{ kg}, \quad \sigma_{\bar{X}} = 0.89 \text{ kg} \\[6pt]
+        z &= \frac{1.29}{0.89} = 1.45 \\[6pt]
+        p &= P(Z \ge 1.45) + P(Z \le -1.45) \\[4pt]
+        &= 0.0735 + 0.0735 = 0.147
+      \end{aligned}$$
+      <p>$0.147 > 0.05$ (and $|1.45| &lt; 1.96$): do not reject $H_0$. No evidence the antibiotic changes weight.</p>
+      <figure style="margin: 1.2rem 0;">
+        <svg viewBox="0 0 560 270" width="100%" role="img" aria-label="Standard normal curve with rejection regions beyond plus and minus 1.96, and the observed z of plus and minus 1.45 inside them" style="max-width: 560px; display: block; margin: 0 auto;">
+          <path d="M40.0,220 L40.0,219.9 L42.1,219.9 L44.1,219.9 L46.2,219.9 L48.3,219.9 L50.4,219.9 L52.4,219.9 L54.5,219.9 L56.6,219.8 L58.7,219.8 L60.7,219.8 L62.8,219.8 L64.9,219.7 L67.0,219.7 L69.0,219.7 L71.1,219.6 L73.2,219.6 L75.3,219.5 L77.3,219.5 L79.4,219.4 L81.5,219.3 L83.6,219.2 L85.6,219.2 L87.7,219.1 L89.8,219.0 L91.9,218.8 L93.9,218.7 L96.0,218.6 L98.1,218.4 L100.2,218.2 L102.2,218.0 L104.3,217.8 L106.4,217.6 L108.5,217.3 L110.5,217.0 L112.6,216.7 L114.7,216.4 L116.8,216.1 L118.8,215.7 L120.9,215.3 L123.0,214.8 L125.1,214.3 L127.1,213.8 L129.2,213.2 L131.3,212.6 L133.4,211.9 L135.4,211.2 L137.5,210.5 L139.6,209.7 L141.7,208.8 L143.7,207.9 L145.8,206.9 L147.9,205.9 L150.0,204.8 L152.0,203.6 L154.1,202.3 L156.2,201.0 L158.3,199.6 L160.3,198.2 L162.4,196.6 L162.4,220 Z" fill="var(--accent)" fill-opacity="0.45"/>
+          <path d="M397.6,220 L397.6,196.6 L399.7,198.2 L401.7,199.6 L403.8,201.0 L405.9,202.3 L408.0,203.6 L410.0,204.8 L412.1,205.9 L414.2,206.9 L416.3,207.9 L418.3,208.8 L420.4,209.7 L422.5,210.5 L424.6,211.2 L426.6,211.9 L428.7,212.6 L430.8,213.2 L432.9,213.8 L434.9,214.3 L437.0,214.8 L439.1,215.3 L441.2,215.7 L443.2,216.1 L445.3,216.4 L447.4,216.7 L449.5,217.0 L451.5,217.3 L453.6,217.6 L455.7,217.8 L457.8,218.0 L459.8,218.2 L461.9,218.4 L464.0,218.6 L466.1,218.7 L468.1,218.8 L470.2,219.0 L472.3,219.1 L474.4,219.2 L476.4,219.2 L478.5,219.3 L480.6,219.4 L482.7,219.5 L484.7,219.5 L486.8,219.6 L488.9,219.6 L491.0,219.7 L493.0,219.7 L495.1,219.7 L497.2,219.8 L499.3,219.8 L501.3,219.8 L503.4,219.8 L505.5,219.9 L507.6,219.9 L509.6,219.9 L511.7,219.9 L513.8,219.9 L515.9,219.9 L517.9,219.9 L520.0,219.9 L520.0,220 Z" fill="var(--accent)" fill-opacity="0.45"/>
+          <path d="M40.0,219.9 L43.0,219.9 L46.0,219.9 L49.0,219.9 L52.0,219.9 L55.0,219.9 L58.0,219.8 L61.0,219.8 L64.0,219.8 L67.0,219.7 L70.0,219.7 L73.0,219.6 L76.0,219.5 L79.0,219.4 L82.0,219.3 L85.0,219.2 L88.0,219.0 L91.0,218.9 L94.0,218.7 L97.0,218.5 L100.0,218.2 L103.0,217.9 L106.0,217.6 L109.0,217.3 L112.0,216.8 L115.0,216.4 L118.0,215.8 L121.0,215.2 L124.0,214.6 L127.0,213.8 L130.0,213.0 L133.0,212.1 L136.0,211.0 L139.0,209.9 L142.0,208.7 L145.0,207.3 L148.0,205.8 L151.0,204.2 L154.0,202.4 L157.0,200.5 L160.0,198.4 L163.0,196.2 L166.0,193.8 L169.0,191.2 L172.0,188.4 L175.0,185.5 L178.0,182.4 L181.0,179.1 L184.0,175.6 L187.0,172.0 L190.0,168.2 L193.0,164.2 L196.0,160.1 L199.0,155.8 L202.0,151.5 L205.0,146.9 L208.0,142.3 L211.0,137.6 L214.0,132.9 L217.0,128.0 L220.0,123.2 L223.0,118.4 L226.0,113.6 L229.0,108.8 L232.0,104.1 L235.0,99.5 L238.0,95.1 L241.0,90.8 L244.0,86.7 L247.0,82.8 L250.0,79.2 L253.0,75.8 L256.0,72.7 L259.0,69.9 L262.0,67.4 L265.0,65.3 L268.0,63.6 L271.0,62.2 L274.0,61.2 L277.0,60.6 L280.0,60.4 L283.0,60.6 L286.0,61.2 L289.0,62.2 L292.0,63.6 L295.0,65.3 L298.0,67.4 L301.0,69.9 L304.0,72.7 L307.0,75.8 L310.0,79.2 L313.0,82.8 L316.0,86.7 L319.0,90.8 L322.0,95.1 L325.0,99.5 L328.0,104.1 L331.0,108.8 L334.0,113.6 L337.0,118.4 L340.0,123.2 L343.0,128.0 L346.0,132.9 L349.0,137.6 L352.0,142.3 L355.0,146.9 L358.0,151.5 L361.0,155.8 L364.0,160.1 L367.0,164.2 L370.0,168.2 L373.0,172.0 L376.0,175.6 L379.0,179.1 L382.0,182.4 L385.0,185.5 L388.0,188.4 L391.0,191.2 L394.0,193.8 L397.0,196.2 L400.0,198.4 L403.0,200.5 L406.0,202.4 L409.0,204.2 L412.0,205.8 L415.0,207.3 L418.0,208.7 L421.0,209.9 L424.0,211.0 L427.0,212.1 L430.0,213.0 L433.0,213.8 L436.0,214.6 L439.0,215.2 L442.0,215.8 L445.0,216.4 L448.0,216.8 L451.0,217.3 L454.0,217.6 L457.0,217.9 L460.0,218.2 L463.0,218.5 L466.0,218.7 L469.0,218.9 L472.0,219.0 L475.0,219.2 L478.0,219.3 L481.0,219.4 L484.0,219.5 L487.0,219.6 L490.0,219.7 L493.0,219.7 L496.0,219.8 L499.0,219.8 L502.0,219.8 L505.0,219.9 L508.0,219.9 L511.0,219.9 L514.0,219.9 L517.0,219.9 L520.0,219.9" fill="none" stroke="var(--text)" stroke-width="2.5"/>
+          <line x1="40" y1="220" x2="520" y2="220" stroke="var(--muted)" stroke-width="1.5"/>
+          <line x1="367" y1="220" x2="367" y2="164.2" stroke="var(--dark)" stroke-width="2.5" stroke-dasharray="5 4"/>
+          <line x1="193" y1="220" x2="193" y2="164.2" stroke="var(--dark)" stroke-width="2.5" stroke-dasharray="5 4"/>
+          <g fill="var(--text)" font-size="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif" text-anchor="middle">
+            <text x="162" y="245">−1.96</text><text x="420" y="245">1.96</text><text x="280" y="245">0</text>
+            <text x="375" y="168" text-anchor="start">1.45</text><text x="185" y="168" text-anchor="end">−1.45</text>
+            <text x="490" y="190">reject</text><text x="70" y="190">reject</text>
+          </g>
+        </svg>
+        <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 2:</strong> The rejection regions (shaded) start at $\pm 1.96$. The observed $z = 1.45$ falls short of them.</figcaption>
+      </figure>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3. t-tests                                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="t-test">
+  <h2>3. When $\sigma$ Is Unknown: the t-Statistic</h2>
+  <p>
+    The horse example cheated: in real biology you almost never know $\sigma$. Replace it with the sample's own $s$ and the statistic is called $t$ (Student's $t$, from W. S. Gosset's pen name). Because $s$ is itself uncertain, the $t$-distribution has fatter tails, so it takes a bigger statistic to reject.
+  </p>
+  $$z = \frac{\bar{X} - \mu}{\sigma_{\bar{X}}} \quad\longrightarrow\quad t = \frac{\bar{X} - \mu}{s_{\bar{X}}}, \qquad s_{\bar{X}} = \frac{s}{\sqrt{n}}$$
+
+  <figure style="margin: 1.2rem 0;">
+    <svg viewBox="0 0 560 260" width="100%" role="img" aria-label="Standard normal curve compared with the t distribution with 3 degrees of freedom, which is lower in the middle and heavier in the tails" style="max-width: 560px; display: block; margin: 0 auto;">
+      <path d="M40.0,219.9 L43.0,219.9 L46.0,219.9 L49.0,219.9 L52.0,219.9 L55.0,219.9 L58.0,219.8 L61.0,219.8 L64.0,219.8 L67.0,219.7 L70.0,219.7 L73.0,219.6 L76.0,219.5 L79.0,219.4 L82.0,219.3 L85.0,219.2 L88.0,219.0 L91.0,218.9 L94.0,218.7 L97.0,218.5 L100.0,218.2 L103.0,217.9 L106.0,217.6 L109.0,217.3 L112.0,216.8 L115.0,216.4 L118.0,215.8 L121.0,215.2 L124.0,214.6 L127.0,213.8 L130.0,213.0 L133.0,212.1 L136.0,211.0 L139.0,209.9 L142.0,208.7 L145.0,207.3 L148.0,205.8 L151.0,204.2 L154.0,202.4 L157.0,200.5 L160.0,198.4 L163.0,196.2 L166.0,193.8 L169.0,191.2 L172.0,188.4 L175.0,185.5 L178.0,182.4 L181.0,179.1 L184.0,175.6 L187.0,172.0 L190.0,168.2 L193.0,164.2 L196.0,160.1 L199.0,155.8 L202.0,151.5 L205.0,146.9 L208.0,142.3 L211.0,137.6 L214.0,132.9 L217.0,128.0 L220.0,123.2 L223.0,118.4 L226.0,113.6 L229.0,108.8 L232.0,104.1 L235.0,99.5 L238.0,95.1 L241.0,90.8 L244.0,86.7 L247.0,82.8 L250.0,79.2 L253.0,75.8 L256.0,72.7 L259.0,69.9 L262.0,67.4 L265.0,65.3 L268.0,63.6 L271.0,62.2 L274.0,61.2 L277.0,60.6 L280.0,60.4 L283.0,60.6 L286.0,61.2 L289.0,62.2 L292.0,63.6 L295.0,65.3 L298.0,67.4 L301.0,69.9 L304.0,72.7 L307.0,75.8 L310.0,79.2 L313.0,82.8 L316.0,86.7 L319.0,90.8 L322.0,95.1 L325.0,99.5 L328.0,104.1 L331.0,108.8 L334.0,113.6 L337.0,118.4 L340.0,123.2 L343.0,128.0 L346.0,132.9 L349.0,137.6 L352.0,142.3 L355.0,146.9 L358.0,151.5 L361.0,155.8 L364.0,160.1 L367.0,164.2 L370.0,168.2 L373.0,172.0 L376.0,175.6 L379.0,179.1 L382.0,182.4 L385.0,185.5 L388.0,188.4 L391.0,191.2 L394.0,193.8 L397.0,196.2 L400.0,198.4 L403.0,200.5 L406.0,202.4 L409.0,204.2 L412.0,205.8 L415.0,207.3 L418.0,208.7 L421.0,209.9 L424.0,211.0 L427.0,212.1 L430.0,213.0 L433.0,213.8 L436.0,214.6 L439.0,215.2 L442.0,215.8 L445.0,216.4 L448.0,216.8 L451.0,217.3 L454.0,217.6 L457.0,217.9 L460.0,218.2 L463.0,218.5 L466.0,218.7 L469.0,218.9 L472.0,219.0 L475.0,219.2 L478.0,219.3 L481.0,219.4 L484.0,219.5 L487.0,219.6 L490.0,219.7 L493.0,219.7 L496.0,219.8 L499.0,219.8 L502.0,219.8 L505.0,219.9 L508.0,219.9 L511.0,219.9 L514.0,219.9 L517.0,219.9 L520.0,219.9" fill="none" stroke="var(--accent)" stroke-width="3"/>
+      <path d="M40.0,216.3 L43.0,216.2 L46.0,216.0 L49.0,215.8 L52.0,215.6 L55.0,215.5 L58.0,215.2 L61.0,215.0 L64.0,214.8 L67.0,214.6 L70.0,214.3 L73.0,214.0 L76.0,213.8 L79.0,213.5 L82.0,213.1 L85.0,212.8 L88.0,212.5 L91.0,212.1 L94.0,211.7 L97.0,211.3 L100.0,210.8 L103.0,210.3 L106.0,209.8 L109.0,209.3 L112.0,208.7 L115.0,208.1 L118.0,207.5 L121.0,206.8 L124.0,206.1 L127.0,205.3 L130.0,204.5 L133.0,203.7 L136.0,202.8 L139.0,201.8 L142.0,200.7 L145.0,199.6 L148.0,198.5 L151.0,197.2 L154.0,195.9 L157.0,194.5 L160.0,193.0 L163.0,191.4 L166.0,189.7 L169.0,187.9 L172.0,186.0 L175.0,184.0 L178.0,181.9 L181.0,179.6 L184.0,177.2 L187.0,174.7 L190.0,172.0 L193.0,169.2 L196.0,166.2 L199.0,163.1 L202.0,159.8 L205.0,156.4 L208.0,152.9 L211.0,149.2 L214.0,145.3 L217.0,141.4 L220.0,137.3 L223.0,133.1 L226.0,128.8 L229.0,124.5 L232.0,120.1 L235.0,115.7 L238.0,111.4 L241.0,107.0 L244.0,102.8 L247.0,98.7 L250.0,94.7 L253.0,91.0 L256.0,87.5 L259.0,84.3 L262.0,81.4 L265.0,78.9 L268.0,76.8 L271.0,75.2 L274.0,74.0 L277.0,73.2 L280.0,73.0 L283.0,73.2 L286.0,74.0 L289.0,75.2 L292.0,76.8 L295.0,78.9 L298.0,81.4 L301.0,84.3 L304.0,87.5 L307.0,91.0 L310.0,94.7 L313.0,98.7 L316.0,102.8 L319.0,107.0 L322.0,111.4 L325.0,115.7 L328.0,120.1 L331.0,124.5 L334.0,128.8 L337.0,133.1 L340.0,137.3 L343.0,141.4 L346.0,145.3 L349.0,149.2 L352.0,152.9 L355.0,156.4 L358.0,159.8 L361.0,163.1 L364.0,166.2 L367.0,169.2 L370.0,172.0 L373.0,174.7 L376.0,177.2 L379.0,179.6 L382.0,181.9 L385.0,184.0 L388.0,186.0 L391.0,187.9 L394.0,189.7 L397.0,191.4 L400.0,193.0 L403.0,194.5 L406.0,195.9 L409.0,197.2 L412.0,198.5 L415.0,199.6 L418.0,200.7 L421.0,201.8 L424.0,202.8 L427.0,203.7 L430.0,204.5 L433.0,205.3 L436.0,206.1 L439.0,206.8 L442.0,207.5 L445.0,208.1 L448.0,208.7 L451.0,209.3 L454.0,209.8 L457.0,210.3 L460.0,210.8 L463.0,211.3 L466.0,211.7 L469.0,212.1 L472.0,212.5 L475.0,212.8 L478.0,213.1 L481.0,213.5 L484.0,213.8 L487.0,214.0 L490.0,214.3 L493.0,214.6 L496.0,214.8 L499.0,215.0 L502.0,215.2 L505.0,215.5 L508.0,215.6 L511.0,215.8 L514.0,216.0 L517.0,216.2 L520.0,216.3" fill="none" stroke="var(--dark)" stroke-width="2.5" stroke-dasharray="7 5"/>
+      <line x1="40" y1="220" x2="520" y2="220" stroke="var(--muted)" stroke-width="1.5"/>
+      <line x1="50" y1="34" x2="84" y2="34" stroke="var(--accent)" stroke-width="3"/>
+      <line x1="50" y1="62" x2="84" y2="62" stroke="var(--dark)" stroke-width="2.5" stroke-dasharray="7 5"/>
+      <g fill="var(--text)" font-size="18" font-family="-apple-system, BlinkMacSystemFont, sans-serif">
+        <text x="92" y="40">normal (z)</text>
+        <text x="92" y="68">t, ν = 3</text>
+        <text x="280" y="245" text-anchor="middle">0</text>
+      </g>
+    </svg>
+    <figcaption style="text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem;"><strong>Figure 3:</strong> With few degrees of freedom the $t$-curve is flatter in the middle and heavier in the tails, so more of its area sits far from 0.</figcaption>
+  </figure>
+
+  <p>
+    <strong>Degrees of freedom</strong> $\nu = n - 1$: how many values are free to vary once the mean is fixed. They set the shape of the curve, and the critical value shrinks towards the $z$ value as $\nu$ grows:
+  </p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Sample</th><th>$\nu$</th><th>Two-tailed cut-off, $\alpha = 0.05$</th></tr>
+    <tr><td>4 mice</td><td>3</td><td>3.18</td></tr>
+    <tr><td>101 mice</td><td>100</td><td>1.984</td></tr>
+    <tr><td>Unlimited</td><td>$\infty$</td><td>1.96 (the $z$ value)</td></tr>
+  </table>
+  </div>
+  <p>
+    The $t$-test is <strong>robust</strong>: it still works if the population is somewhat non-normal, especially for larger $n$ (around 30+). With a small sample from a clearly non-normal population, use a non-parametric test (Section 6).
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Test Statistics and Rejection Regions</div>
+    <div class="math-box-body">
+      <p><strong>One sample</strong>, $H_0: \mu = \mu_0$:</p>
+      $$\begin{aligned}
+        \sigma \text{ known: } z &= \frac{\bar{x} - \mu_0}{\sigma/\sqrt{n}} \\[8pt]
+        \sigma \text{ unknown: } t &= \frac{\bar{x} - \mu_0}{s/\sqrt{n}}, \quad \nu = n - 1
+      \end{aligned}$$
+      <p><strong>Two samples</strong>, $H_0: \mu_1 - \mu_2 = d_0$:</p>
+      $$\begin{aligned}
+        \sigma\text{'s known: } z &= \frac{(\bar{x}_1 - \bar{x}_2) - d_0}{\sqrt{\sigma_1^2/n_1 + \sigma_2^2/n_2}} \\[8pt]
+        \text{pooled: } t &= \frac{(\bar{x}_1 - \bar{x}_2) - d_0}{s_p\sqrt{1/n_1 + 1/n_2}}, \quad \nu = n_1 + n_2 - 2 \\[8pt]
+        s_p^2 &= \frac{(n_1 - 1)s_1^2 + (n_2 - 1)s_2^2}{n_1 + n_2 - 2} \\[8pt]
+        \text{Welch: } t' &= \frac{(\bar{x}_1 - \bar{x}_2) - d_0}{\sqrt{s_1^2/n_1 + s_2^2/n_2}} \\[8pt]
+        \nu &\approx \frac{\big(s_1^2/n_1 + s_2^2/n_2\big)^2}{\frac{(s_1^2/n_1)^2}{n_1 - 1} + \frac{(s_2^2/n_2)^2}{n_2 - 1}}
+      \end{aligned}$$
+      <p><strong>Rejection region</strong> (same pattern for $z$, $t$, $t'$): $H_1$ "$&lt;$" → reject if stat $&lt; -$crit; "$>$" → reject if stat $>$ crit; "$\ne$" → reject if $|$stat$| >$ crit at $\alpha/2$.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4. Two-sample tests                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="two-sample">
+  <h2>4. Comparing Two Samples</h2>
+  <p>Three questions pick the test, in this order:</p>
+  <ol class="recipe">
+    <li><strong>Comparing means or variances?</strong> Variances → $F$-test.</li>
+    <li><strong>Independent samples?</strong> No (each value in sample 1 is paired with one in sample 2) → paired $t$-test.</li>
+    <li><strong>Equal variances?</strong> Yes → pooled-variance $t$. No → separate-variance (Welch's) $t$. The $F$-test is how you decide.</li>
+  </ol>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4.1: Gene Expression in Liver vs Muscle (Pooled t)</h3>
+      <span class="problem-badge">Slides 27–29</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Expression levels of a gene in 15 liver and 15 muscle samples:</p>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><td>Liver</td><td>120, 135, 142, 118, 125, 130, 145, 113, 122, 138, 112, 128, 140, 116, 123</td></tr>
+        <tr><td>Muscle</td><td>115, 128, 132, 105, 110, 122, 138, 102, 114, 126, 100, 118, 130, 108, 112</td></tr>
+      </table>
+      </div>
+      <p>Does expression differ between the tissues? Assume equal variances, $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> two independent groups, equal variances → pooled $t$, $\nu = 15 + 15 - 2 = 28$, two-tailed.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      H_0 &: \mu_1 = \mu_2, \quad H_1: \mu_1 \ne \mu_2 \\[6pt]
+      s_p^2 &= \frac{14\,s_1^2 + 14\,s_2^2}{28} \\[6pt]
+      t &= \frac{\bar{x}_1 - \bar{x}_2}{s_p\sqrt{\frac{1}{15} + \frac{1}{15}}}
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \bar{x}_1 &= 127.13, \quad \bar{x}_2 = 117.33 \\[6pt]
+        s_1^2 &= 116.41, \quad s_2^2 = 134.81 \\[6pt]
+        s_p^2 &= \frac{14(116.41) + 14(134.81)}{28} = 125.61 \\[6pt]
+        t &= \frac{9.80}{\sqrt{125.61}\,\sqrt{2/15}} = \frac{9.80}{4.09} = 2.39 \\[6pt]
+        t_{0.05,\,28} &= 2.048, \quad p = 0.024
+      \end{aligned}$$
+      <p>$2.39 > 2.048$: reject $H_0$. Expression differs between liver and muscle.</p>
+      <p><em>Slide slip:</em> the slides divide the squared deviations by $n = 15$ instead of $n - 1 = 14$, getting variances 108.65 and 125.82, $s_p^2 = 117.35$ and $t = 2.478$. The conclusion is the same.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4.2: Growth-Time Variability, E. coli vs Yeast (F-Test)</h3>
+      <span class="problem-badge">Slides 30–32</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Growth times: 11 E. coli strains, $s_1 = 6.1$; 14 S. cerevisiae strains, $s_2 = 5.3$. Test $H_0: \sigma_1^2 = \sigma_2^2$ against $H_1: \sigma_1^2 > \sigma_2^2$ at $\alpha = 0.05$, using a p-value.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> comparing variances → $F = s_1^2/s_2^2$ with $(n_1 - 1, n_2 - 1)$ df. It's a ratio, so $F \approx 1$ means similar variances. "$>$" → right tail only.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      F &= \frac{6.1^2}{5.3^2}, \quad \nu_1 = 10, \;\; \nu_2 = 13
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        F &= \frac{37.21}{28.09} = 1.32 \\[6pt]
+        F_{0.05,\,10,\,13} &= 2.67 \\[6pt]
+        p &= P(F_{10,13} > 1.32) = 0.31
+      \end{aligned}$$
+      <p>$1.32 &lt; 2.67$: do not reject. No evidence that E. coli's variance is larger. The slides write $H_1$ as $\ne$, but the question and the one-tailed cut-off 2.67 are for $>$.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4.3: Liver vs Muscle Again, Unequal Variances (Welch)</h3>
+      <span class="problem-badge">Slides 34–36</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><td>Liver</td><td>142, 198, 110, 256, 175, 130, 289, 115, 210, 155, 245, 102, 278, 168, 192</td></tr>
+        <tr><td>Muscle</td><td>185, 192, 188, 195, 182, 190, 187, 189, 193, 184, 191, 186, 190, 188, 192</td></tr>
+      </table>
+      </div>
+      <p>Liver values are far more spread out. Do mean expression levels differ? $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> one group's spread is vastly bigger → don't pool. Welch's $t'$ with the approximate $\nu$.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      t' &= \frac{\bar{x}_2 - \bar{x}_1}{\sqrt{\frac{s_1^2}{15} + \frac{s_2^2}{15}}}, \quad \nu \text{ from the Welch formula}
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \bar{x}_1 &= 184.33, \quad \bar{x}_2 = 188.80 \\[6pt]
+        s_1^2 &= 3751.4, \quad s_2^2 = 12.89 \\[6pt]
+        t' &= \frac{4.47}{\sqrt{250.09 + 0.86}} = \frac{4.47}{15.84} = 0.28 \\[6pt]
+        \nu &\approx 14.1, \quad t_{0.05,\,14.1} = 2.14, \quad p = 0.78
+      \end{aligned}$$
+      <p>Do not reject: no evidence the means differ.</p>
+      <p><em>Slide slips:</em> the variances are again divided by 15 instead of 14 (giving $t' = 0.294$), and the slides use $\nu = n_1 + n_2 - 2 = 28$. That is the pooled-test df; Welch's test uses the approximate $\nu \approx 14.1$, with cut-off 2.14 rather than 2.048. The conclusion is unchanged.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4.4: Deer Hindleg vs Foreleg (Paired t)</h3>
+      <span class="problem-badge">Slides 37–38</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>Deer</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th></tr>
+        <tr><td>Hindleg (cm)</td><td>142</td><td>140</td><td>144</td><td>144</td><td>142</td><td>146</td><td>149</td><td>150</td><td>142</td><td>148</td></tr>
+        <tr><td>Foreleg (cm)</td><td>138</td><td>136</td><td>147</td><td>139</td><td>143</td><td>141</td><td>143</td><td>145</td><td>136</td><td>146</td></tr>
+      </table>
+      </div>
+      <p>Are hindleg and foreleg lengths equal? $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> both legs come from the <em>same deer</em>, so the samples are paired. Work with the 10 differences $D = $ hind $-$ fore as one sample.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      D &= 4,\, 4,\, -3,\, 5,\, -1,\, 5,\, 6,\, 5,\, 6,\, 2 \\[6pt]
+      t &= \frac{\bar{D} - 0}{s_D/\sqrt{n}}, \quad \nu = 9
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \bar{D} &= 3.3 \text{ cm}, \quad s_D^2 = 9.344 \\[6pt]
+        s_{\bar{D}} &= \sqrt{9.344/10} = 0.967 \\[6pt]
+        t &= \frac{3.3}{0.967} = 3.41 \\[6pt]
+        t_{0.05,\,9} &= 2.262, \quad p = 0.008
+      \end{aligned}$$
+      <p>Reject $H_0$: hindlegs and forelegs differ in length.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5. Errors                                              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="errors">
+  <h2>5. Errors in Hypothesis Testing</h2>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th></th><th>$H_0$ true</th><th>$H_0$ false</th></tr>
+    <tr><td>Do not reject $H_0$</td><td>Correct</td><td>Type II error ($\beta$)</td></tr>
+    <tr><td>Reject $H_0$</td><td>Type I error ($\alpha$)</td><td>Correct (power $= 1 - \beta$)</td></tr>
+  </table>
+  </div>
+  <p>
+    Lowering $\alpha$ cuts Type I errors but raises Type II errors, and vice versa. The only way to reduce both at once is a larger sample.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6. Non-parametric                                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="non-parametric">
+  <h2>6. When Data Aren't Normal: Rank Tests</h2>
+  <p>
+    <strong>Non-parametric</strong> (distribution-free) tests replace values by their <strong>ranks</strong>, so they need almost no assumptions about the population and are hardly affected by outliers. The price: when the data <em>are</em> normal, they are less powerful (more Type II errors) because ranking throws away information.
+  </p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Parametric test</th><th>Non-parametric alternative</th></tr>
+    <tr><td>Two-sample $t$</td><td>Mann-Whitney U (Wilcoxon rank-sum)</td></tr>
+    <tr><td>Paired $t$</td><td>Wilcoxon signed-rank</td></tr>
+    <tr><td>One-way ANOVA</td><td>Kruskal-Wallis</td></tr>
+  </table>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6.1: Heights of Male vs Female Students (Mann-Whitney U)</h3>
+      <span class="problem-badge">Slides 42–43</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Males (cm): 193, 188, 185, 183, 180, 175, 170. Females (cm): 178, 173, 168, 165, 163. Do the heights differ? $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> two independent groups, no normality assumed → Mann-Whitney U. Rank all 12 heights together (here, tallest = rank 1), then sum the ranks of one group.</div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      U &= n_1 n_2 + \frac{n_1(n_1 + 1)}{2} - R_1 \\[6pt]
+      U' &= n_1 n_2 - U
+    \end{aligned}$$
+    <p>$n_1 = 7$ (males), $n_2 = 5$. Reject $H_0$ if the larger of $U, U'$ exceeds the table value $U_{0.05,\,7,\,5} = 30$.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Male ranks: 1, 2, 3, 4, 5, 7, 9, so $R_1 = 31$. (Female ranks: 6, 8, 10, 11, 12, $R_2 = 47$.)</p>
+      $$\begin{aligned}
+        U &= 35 + \frac{7 \times 8}{2} - 31 = 32 \\[6pt]
+        U' &= 35 - 32 = 3
+      \end{aligned}$$
+      <p>$32 > 30$: reject $H_0$ ($p \approx 0.018$). Heights differ between male and female students.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 6.2: Deer Legs Again (Wilcoxon Signed-Rank)</h3>
+      <span class="problem-badge">Slides 44–45</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Use the deer data from Problem 4.4, but without assuming normality. $\alpha = 0.05$.</p>
+    </div>
+    <div class="spot"><strong>Which tool:</strong> paired data, no normality → Wilcoxon signed-rank. Rank the <em>sizes</em> $|D|$ (tied values share the average rank), put each difference's sign back on its rank, and add the positive and negative ranks separately.</div>
+    <span class="solution-heading">Set it up</span>
+    <div class="table-scroll">
+    <table class="data-table">
+      <tr><th>$D$</th><td>4</td><td>4</td><td>−3</td><td>5</td><td>−1</td><td>5</td><td>6</td><td>5</td><td>6</td><td>2</td></tr>
+      <tr><th>Rank of $|D|$</th><td>4.5</td><td>4.5</td><td>3</td><td>7</td><td>1</td><td>7</td><td>9.5</td><td>7</td><td>9.5</td><td>2</td></tr>
+    </table>
+    </div>
+    <p>$T = \min(T_+, T_-)$. Reject $H_0$ if $T$ is <em>at most</em> the table value $T_{0.05,\,10} = 8$ (small $T$ means one sign dominates).</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        T_+ &= 4.5 + 4.5 + 7 + 7 + 9.5 + 7 + 9.5 + 2 = 51 \\[6pt]
+        T_- &= 3 + 1 = 4 \\[6pt]
+        T &= 4 \le 8
+      \end{aligned}$$
+      <p>Reject $H_0$ ($p \approx 0.012$), matching the paired $t$-test.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7. ANOVA                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="anova">
+  <h2>7. More Than Two Groups: ANOVA, Tukey and Kruskal-Wallis</h2>
+  <p>
+    <strong>One-way ANOVA</strong> (a "completely randomized design") tests whether $k$ group means are all equal: $H_0: \mu_1 = \dots = \mu_k$ against $H_1$: at least two differ. It compares the spread <em>between</em> group means with the spread <em>within</em> groups.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">One-Way ANOVA Table</div>
+    <div class="math-box-body">
+      <p>$k$ groups, $N$ observations in total, group mean $\bar{y}$, grand mean $\bar{G}$, $n$ per group:</p>
+      $$\begin{aligned}
+        SSB &= \sum n(\bar{y} - \bar{G})^2, \quad \nu = k - 1 \\[6pt]
+        SSW &= \sum (y - \bar{y})^2, \quad \nu = N - k \\[6pt]
+        SST &= SSB + SSW, \quad \nu = N - 1 \\[8pt]
+        F &= \frac{SSB/(k-1)}{SSW/(N-k)} = \frac{s_1^2}{s^2}
+      \end{aligned}$$
+      <p>Reject $H_0$ if $F > F_{0.05}[k - 1,\, N - k]$.</p>
+      <p><strong>Assumptions:</strong> random, independent samples (critical); each population normal (the $F$-test tolerates mild departures); equal variances, called <strong>homoscedasticity</strong> (check with Bartlett's or Levene's test; equal group sizes make this matter less).</p>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 7.1: Pig Weights on Four Diets</h3>
+      <span class="problem-badge">Slides 48–50</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>19 pigs are randomly assigned to four feeds. Body weights (kg):</p>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>Feed 1</th><th>Feed 2</th><th>Feed 3</th><th>Feed 4</th></tr>
+        <tr><td>60.8</td><td>68.7</td><td>69.6</td><td>61.9</td></tr>
+        <tr><td>67.0</td><td>67.7</td><td>77.1</td><td>64.2</td></tr>
+        <tr><td>65.0</td><td>75.0</td><td>75.2</td><td>63.1</td></tr>
+        <tr><td>68.6</td><td>73.3</td><td>71.5</td><td>66.7</td></tr>
+        <tr><td>61.7</td><td>71.8</td><td></td><td>60.3</td></tr>
+      </table>
+      </div>
+      <p>Are pig weights the same on all four diets? $\alpha = 0.05$.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \bar{y} &= 64.62,\; 71.30,\; 73.35,\; 63.24 \\[6pt]
+      \bar{G} &= 67.85 \\[8pt]
+      SSB &= 5(64.62 - 67.85)^2 + 5(71.30 - 67.85)^2 \\[4pt]
+      &\quad + 4(73.35 - 67.85)^2 + 5(63.24 - 67.85)^2 \\[8pt]
+      SSW &= (60.8 - 64.62)^2 + (67.0 - 64.62)^2 \\[4pt]
+      &\quad + \dots + (60.3 - 63.24)^2
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        SSB &= 338.94, \quad SSW = 140.75 \\[6pt]
+        s_1^2 &= \frac{338.94}{3} = 112.98 \\[6pt]
+        s^2 &= \frac{140.75}{15} = 9.383 \\[6pt]
+        F &= \frac{112.98}{9.383} = 12.04 \\[6pt]
+        F_{0.05,\,3,\,15} &= 3.29, \quad p = 0.0003
+      \end{aligned}$$
+      <p>Reject $H_0$: at least two diets give different mean weights. Which ones? That needs Tukey's test.</p>
+    </details>
+  </div>
+
+  <h3>Which means differ? Tukey's test</h3>
+  <p>
+    After ANOVA rejects, compare the pairs. Running separate $t$-tests would inflate the <strong>family-wise error rate</strong> (FWER: the chance of at least one false positive across all comparisons). <strong>Tukey's test</strong> controls it. With $k$ means there are $k(k-1)/2$ pairs (6 for $k = 4$, 3 for $k = 3$).
+  </p>
+  $$\begin{aligned}
+    q &= \frac{\bar{X}_B - \bar{X}_A}{SE} \\[8pt]
+    \text{equal } n: \quad SE &= \sqrt{\frac{s^2}{n}} \\[8pt]
+    \text{unequal (Tukey-Kramer): } \quad SE &= \sqrt{\frac{s^2}{2}\Big(\frac{1}{n_A} + \frac{1}{n_B}\Big)}
+  \end{aligned}$$
+  <p>Reject $H_0: \mu_A = \mu_B$ if $q > q_{0.05}[N - k,\, k]$. Rank the means and start with largest vs smallest. If two means are not different, no means between them are tested.</p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 7.2: Tukey's Test on the Pig Diets</h3>
+      <span class="problem-badge">Slides 53–55</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Using Problem 7.1 ($s^2 = 9.383$; feed 3 has $n = 4$, the others $n = 5$), find which diets differ. $q_{0.05,\,15,\,4} = 4.076$.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      SE_{5,5} &= \sqrt{\frac{9.383}{5}} = 1.37 \\[6pt]
+      SE_{4,5} &= \sqrt{\frac{9.383}{2}\Big(\frac{1}{4} + \frac{1}{5}\Big)} = 1.45
+    \end{aligned}$$
+    <p>Use 1.45 for every comparison involving feed 3, and 1.37 for the rest.</p>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>Pair</th><th>Difference</th><th>SE</th><th>$q$</th><th>Decision</th></tr>
+        <tr><td>3 vs 4</td><td>10.11</td><td>1.45</td><td>6.96</td><td>Reject</td></tr>
+        <tr><td>3 vs 1</td><td>8.73</td><td>1.45</td><td>6.01</td><td>Reject</td></tr>
+        <tr><td>3 vs 2</td><td>2.05</td><td>1.45</td><td>1.41</td><td>Do not reject</td></tr>
+        <tr><td>2 vs 4</td><td>8.06</td><td>1.37</td><td>5.88</td><td>Reject</td></tr>
+        <tr><td>2 vs 1</td><td>6.68</td><td>1.37</td><td>4.88</td><td>Reject</td></tr>
+        <tr><td>1 vs 4</td><td>1.38</td><td>1.37</td><td>1.01</td><td>Do not reject</td></tr>
+      </table>
+      </div>
+      <p>Conclusion: $\mu_4 = \mu_1 \ne \mu_2 = \mu_3$. Feeds 2 and 3 give heavier pigs than feeds 1 and 4.</p>
+      <p><em>Slide slip:</em> the slides swap the two SEs (1.37 for comparisons with feed 3, 1.45 for 2 vs 4 and 1 vs 4). The decisions don't change.</p>
+    </details>
+  </div>
+
+  <h3>Kruskal-Wallis: ANOVA on ranks</h3>
+  <p>
+    The non-parametric version of one-way ANOVA (and Mann-Whitney's big brother: with $k = 2$ it reduces to Mann-Whitney). Rank all $N$ values together, sum the ranks $R_i$ in each group, and compare with $\chi^2_{k-1}$.
+  </p>
+  $$\begin{aligned}
+    H &= \frac{12}{N(N+1)}\sum_{i=1}^{k}\frac{R_i^2}{n_i} - 3(N + 1) \\[8pt]
+    H_c &= \frac{H}{C}, \quad C = 1 - \frac{\sum (t^3 - t)}{N^3 - N}
+  \end{aligned}$$
+  <p>$H_c$ corrects for ties: $t$ is the number of values sharing each tied rank.</p>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 7.3: Is pH the Same in Four Ponds?</h3>
+      <span class="problem-badge">Slides 57–59</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>pH of water samples (one container from pond 3 was lost):</p>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>Pond 1</th><th>Pond 2</th><th>Pond 3</th><th>Pond 4</th></tr>
+        <tr><td>7.68</td><td>7.71</td><td>7.74</td><td>7.71</td></tr>
+        <tr><td>7.69</td><td>7.73</td><td>7.75</td><td>7.71</td></tr>
+        <tr><td>7.70</td><td>7.74</td><td>7.77</td><td>7.74</td></tr>
+        <tr><td>7.70</td><td>7.74</td><td>7.78</td><td>7.79</td></tr>
+        <tr><td>7.72</td><td>7.78</td><td>7.80</td><td>7.81</td></tr>
+        <tr><td>7.73</td><td>7.78</td><td>7.81</td><td>7.85</td></tr>
+        <tr><td>7.73</td><td>7.80</td><td>7.84</td><td>7.87</td></tr>
+        <tr><td>7.76</td><td>7.81</td><td></td><td>7.91</td></tr>
+      </table>
+      </div>
+      <p>$H_0$: pH is the same in all four ponds. $\alpha = 0.05$.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    <p>Ranking all 31 values (ties averaged) gives rank sums $R = 55,\; 132.5,\; 145,\; 163.5$ with $n = 8, 8, 7, 8$. There are 7 groups of ties: four of size 3, two of size 2 and one of size 4.</p>
+    $$\begin{aligned}
+      H &= \frac{12}{31 \times 32}\Big[\frac{55^2}{8} + \frac{132.5^2}{8} \\[4pt]
+      &\qquad + \frac{145^2}{7} + \frac{163.5^2}{8}\Big] - 3(32) \\[8pt]
+      \textstyle\sum(t^3 - t) &= 4(3^3 - 3) + 2(2^3 - 2) + (4^3 - 4)
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        H &= 11.876 \\[6pt]
+        \textstyle\sum(t^3 - t) &= 96 + 12 + 60 = 168 \\[6pt]
+        C &= 1 - \frac{168}{29760} = 0.9944 \\[6pt]
+        H_c &= \frac{11.876}{0.9944} = 11.94 \\[6pt]
+        \chi^2_{0.05,\,3} &= 7.815, \quad p = 0.008
+      \end{aligned}$$
+      <p>Reject $H_0$: pH is not the same in all four ponds.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8. Chi-square                                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="chi-square">
+  <h2>8. Counts: Chi-Square Tests</h2>
+  <p>
+    When the data are counts in categories, compare <strong>observed</strong> counts $O$ with the counts <strong>expected</strong> under $H_0$, $E$:
+  </p>
+  $$\chi^2 = \sum \frac{(O - E)^2}{E}$$
+  <ul>
+    <li><strong>Goodness of fit:</strong> one variable vs a theory (e.g. a Mendelian ratio). $E$ = total × theoretical proportion; $\nu$ = categories $- 1$.</li>
+    <li><strong>Contingency table</strong> (cross-tabulation): are two classifications independent? $E = \frac{\text{row total} \times \text{column total}}{n}$; $\nu = (r - 1)(c - 1)$.</li>
+  </ul>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8.1: Does a Pea Cross Fit 3:1?</h3>
+      <span class="problem-badge">Slide 60</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Crossing two heterozygous tall pea plants should give 75% tall, 25% short. Out of 100 offspring, 70 are tall and 30 short. Does the data fit the 3:1 model? $\alpha = 0.05$.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      E &= 75 \text{ tall}, \; 25 \text{ short} \\[6pt]
+      \chi^2 &= \frac{(70 - 75)^2}{75} + \frac{(30 - 25)^2}{25}, \quad \nu = 1
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \chi^2 &= 0.333 + 1.000 = 1.33 \\[6pt]
+        \chi^2_{0.05,\,1} &= 3.841, \quad p = 0.25
+      \end{aligned}$$
+      <p>Do not reject: the data fit the Mendelian 3:1 ratio. (The slides pose this question without working it.)</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 8.2: Is Hair Colour Independent of Sex?</h3>
+      <span class="problem-badge">Slides 61–62</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th></th><th>Black</th><th>Brown</th><th>Blond</th><th>Red</th><th>Total</th></tr>
+        <tr><td>Male</td><td>32</td><td>43</td><td>16</td><td>9</td><td>100</td></tr>
+        <tr><td>Female</td><td>55</td><td>65</td><td>64</td><td>16</td><td>200</td></tr>
+        <tr><td>Total</td><td>87</td><td>108</td><td>80</td><td>25</td><td>300</td></tr>
+      </table>
+      </div>
+      <p>$\alpha = 0.05$.</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      E_{\text{male, black}} &= \frac{100 \times 87}{300} = 29.0 \\[6pt]
+      \nu &= (2 - 1)(4 - 1) = 3
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>Expected</th><th>Black</th><th>Brown</th><th>Blond</th><th>Red</th></tr>
+        <tr><td>Male</td><td>29.00</td><td>36.00</td><td>26.67</td><td>8.33</td></tr>
+        <tr><td>Female</td><td>58.00</td><td>72.00</td><td>53.33</td><td>16.67</td></tr>
+      </table>
+      </div>
+      $$\begin{aligned}
+        \chi^2 &= 0.310 + 1.361 + 4.267 + 0.053 \\[4pt]
+        &\quad + 0.155 + 0.681 + 2.133 + 0.027 = 8.99 \\[6pt]
+        \chi^2_{0.05,\,3} &= 7.815, \quad p = 0.029
+      \end{aligned}$$
+      <p>Reject $H_0$: hair colour and sex are associated in this population. Blond is the biggest contributor (fewer males, more females than expected). The slides title this "goodness of fit", but it is a contingency-table test of independence.</p>
+    </details>
+  </div>
+
+  <p>
+    <strong>In genomics</strong> the same 2×2 table is used for <strong>pathway enrichment</strong>: rows = differentially expressed genes (DEGs) or not, columns = in a pathway (say, apoptosis) or not. The question "is the pathway over-represented in my DEG list?" compares the proportion $a/n$ in the DEGs with $c/m$ in the rest of the genome, usually with <strong>Fisher's exact test</strong>, which works even when counts are small.
+  </p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th></th><th>In pathway</th><th>Not in pathway</th><th>Total</th></tr>
+    <tr><td>DEG</td><td>$a$</td><td>$b$</td><td>$n = a + b$</td></tr>
+    <tr><td>Not DEG</td><td>$c$</td><td>$d$</td><td>$m = c + d$</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  9. Multiple testing                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="multiple-testing">
+  <h2>9. Testing Thousands of Genes: Multiple-Testing Correction</h2>
+  <p>
+    Test 20,000 genes at $\alpha = 0.05$ and about 1,000 will look "significant" by chance alone. Corrections make the bar stricter.
+  </p>
+  <div class="math-box">
+    <div class="math-box-label">Two Corrections</div>
+    <div class="math-box-body">
+      <ul>
+        <li><strong>Bonferroni</strong> controls the <strong>FWER</strong> (chance of even one false positive). Test each of $m$ hypotheses at $\alpha/m$. With 100 tests: $0.05/100 = 0.0005$. Very conservative.</li>
+        <li><strong>Benjamini-Hochberg</strong> controls the <strong>false discovery rate</strong> (FDR $= Q$: the expected fraction of "significant" results that are false). Sort the p-values; with rank $i$ out of $m$, find the largest $i$ with $p_{(i)} \le \frac{i}{m}Q$ and call ranks $1$ to $i$ significant. Equivalently, adjust each p-value to $\frac{m}{i}\,p_{(i)}$ and compare with $Q$.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Illustration 9.1: Bonferroni vs Benjamini-Hochberg</h3>
+      <span class="problem-badge">Not from the slides</span>
+    </div>
+    <div class="question-canvas">
+      <span class="question-tag">Problem Statement</span>
+      <p>Five genes give p-values 0.001, 0.008, 0.039, 0.041, 0.042. Which are significant at FWER 0.05 (Bonferroni) and at FDR $Q = 0.05$ (Benjamini-Hochberg)?</p>
+    </div>
+    <span class="solution-heading">Set it up</span>
+    $$\begin{aligned}
+      \text{Bonferroni cut-off} &= \frac{0.05}{5} \\[6pt]
+      \text{BH cut-offs } \tfrac{i}{5}(0.05) &= 0.01,\; 0.02,\; 0.03,\; 0.04,\; 0.05
+    \end{aligned}$$
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p><strong>Bonferroni</strong> (cut-off 0.01): only 0.001 and 0.008 → 2 genes.</p>
+      <p><strong>BH:</strong> the largest $i$ with $p_{(i)} \le \frac{i}{5}(0.05)$ is $i = 5$ ($0.042 \le 0.05$), so all 5 genes are significant, even though $p_{(3)} = 0.039$ is above its own cut-off of 0.03. BH looks at the whole set of p-values together, which is why it finds more than Bonferroni.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Connecting the Dots                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots</h2>
+  <p>
+    Every test on this page measures a signal against noise. For $z$ and $t$ it is a difference in means over a standard error. For $F$ and ANOVA it is one variance over another. For $\chi^2$ it is the gap between observed and expected counts. Rank tests do the same with ranks instead of values. All of them then ask the same question: how surprising is this ratio if $H_0$ is true?
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Every Example on This Page</div>
+    <div class="math-box-body">
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>Example</th><th>Test</th><th>Statistic</th><th>Decision</th></tr>
+        <tr><td>Horse weights</td><td>One-sample $z$</td><td>$z = 1.45$</td><td>Keep $H_0$</td></tr>
+        <tr><td>Liver vs muscle (1)</td><td>Pooled $t$</td><td>$t = 2.39$</td><td>Reject</td></tr>
+        <tr><td>E. coli vs yeast</td><td>$F$-test</td><td>$F = 1.32$</td><td>Keep $H_0$</td></tr>
+        <tr><td>Liver vs muscle (2)</td><td>Welch $t$</td><td>$t' = 0.28$</td><td>Keep $H_0$</td></tr>
+        <tr><td>Deer legs</td><td>Paired $t$</td><td>$t = 3.41$</td><td>Reject</td></tr>
+        <tr><td>Student heights</td><td>Mann-Whitney</td><td>$U = 32$</td><td>Reject</td></tr>
+        <tr><td>Deer legs</td><td>Wilcoxon signed-rank</td><td>$T = 4$</td><td>Reject</td></tr>
+        <tr><td>Pig diets</td><td>ANOVA + Tukey</td><td>$F = 12.04$</td><td>Reject; $\mu_4 = \mu_1 \ne \mu_2 = \mu_3$</td></tr>
+        <tr><td>Pond pH</td><td>Kruskal-Wallis</td><td>$H_c = 11.94$</td><td>Reject</td></tr>
+        <tr><td>Pea cross</td><td>$\chi^2$ goodness of fit</td><td>$\chi^2 = 1.33$</td><td>Keep $H_0$</td></tr>
+        <tr><td>Hair colour vs sex</td><td>$\chi^2$ contingency</td><td>$\chi^2 = 8.99$</td><td>Reject</td></tr>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

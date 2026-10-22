@@ -1653,12 +1653,12 @@
         <tr>
           <td><strong>Polynomial Kernel</strong><br>$k(x, x') = (x^T x' + c)^p$</td>
           <td>All feature monomials up to degree $p$</td>
-          <td>$pprox inom{d+p}{p} = \mathcal{O}(d^p)$</td>
+          <td>$\approx \binom{d+p}{p} = \mathcal{O}(d^p)$</td>
           <td>$\mathcal{O}(d^p) \;\longrightarrow\; \mathbf{\mathcal{O}(d)}$</td>
           <td>Polynomial manifolds, curved boundaries, and coordinate-combination interactions.</td>
         </tr>
         <tr>
-          <td><strong>Gaussian RBF Kernel</strong><br>$k(x, x') = \exp\left(-rac{\|x - x'\|^2}{2\sigma^2}ight)$</td>
+          <td><strong>Gaussian RBF Kernel</strong><br>$k(x, x') = \exp\left(-\frac{\|x - x'\|^2}{2\sigma^2}\right)$</td>
           <td>Infinite polynomial Taylor series expansion</td>
           <td>$\infty$ (Infinite!)</td>
           <td>$\infty \;\longrightarrow\; \mathbf{\mathcal{O}(d)}$</td>
@@ -1673,7 +1673,7 @@
   </p>
 
   <ul>
-    <li><strong>Linear PCA's Breakdown:</strong> Redundant information is not always linear. On curved sheets and circles, linear covariance evaluates to zero ($	ext{Cov} = 0$), rendering standard PCA blind to geometric dependence.</li>
+    <li><strong>Linear PCA's Breakdown:</strong> Redundant information is not always linear. On curved sheets and circles, linear covariance evaluates to zero ($\text{Cov} = 0$), rendering standard PCA blind to geometric dependence.</li>
     <li><strong>The Combinatorial Curse:</strong> Explicitly lifting data points to higher dimensions $\phi(x) \in \mathbb{R}^D$ turns curved surfaces into flat hyperplanes ($\phi(x)^T u = 0$), but causes an exponential combinatorial explosion in storage and computation.</li>
     <li><strong>The Dual Shortcut:</strong> By calculating scalar dot products directly through $k(x, x')$, the Kernel Trick achieves the benefits of infinite-dimensional feature lifting in just $\mathcal{O}(d)$ arithmetic operations.</li>
     <li><strong>Mercer's Seal of Approval:</strong> A symmetric function is a valid geometric kernel if and only if its Gram matrix $K$ is positive semidefinite ($c^T K c = \|\Phi c\|^2 \geq 0$), guaranteeing that vectors in the transformed space never possess impossible, imaginary squared lengths.</li>
@@ -1681,7 +1681,7 @@
 
   <div class="math-box">
     <div class="math-box-body" style="text-align: center;">
-      <p><em>The Next Dilemma: We now possess the power to evaluate inner products $\langle \phi(x), \phi(x') angle$ across infinite dimensions without calculating coordinates. But how do we run unsupervised learning on data points we cannot see?</em></p>
+      <p><em>The Next Dilemma: We now possess the power to evaluate inner products $\langle \phi(x), \phi(x') \rangle$ across infinite dimensions without calculating coordinates. But how do we run unsupervised learning on data points we cannot see?</em></p>
     </div>
   </div>
 
@@ -1691,7 +1691,7 @@
 
   <ol>
     <li>Centering the data cloud around the origin: $\sum_{i=1}^n \phi(x_i) = \mathbf{0}$.</li>
-    <li>Finding the eigenvectors of the $D 	imes D$ sample covariance matrix $C = rac{1}{n} \Phi \Phi^T$.</li>
+    <li>Finding the eigenvectors of the $D \times D$ sample covariance matrix $C = \frac{1}{n} \Phi \Phi^T$.</li>
   </ol>
 
   <p>
@@ -1699,7 +1699,7 @@
   </p>
 
   <p>
-    In the next article, <a href="../06.kernel-pca/"><strong>Kernel Principal Component Analysis</strong></a>, we discover how the double-centering matrix $H$ and the dual eigenvalue representation allow us to center unseen points in Hilbert space and project non-linear data using pure $n 	imes n$ matrix algebra.
+    In the next article, <a href="../06.kernel-pca/"><strong>Kernel Principal Component Analysis</strong></a>, we discover how the double-centering matrix $H$ and the dual eigenvalue representation allow us to center unseen points in Hilbert space and project non-linear data using pure $n \times n$ matrix algebra.
   </p>
 </section>
 

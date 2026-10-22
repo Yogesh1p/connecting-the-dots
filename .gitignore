@@ -2,3 +2,10 @@
 .DS_Store
 .vscode/
 Library/ai/01.generative-models/03.latent-variable-models/06.jepa/le-wm/
+
+# Private articles: name a folder or file "<name>.private" (e.g. 04.rod-notes.private/).
+# Visible only when served from localhost; never committed.
+*.private/
+*.private.html
+builder/lib-data.private.json
+builder/.meta-cache.private.json

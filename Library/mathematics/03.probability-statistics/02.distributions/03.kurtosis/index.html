@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="article_id" content="a0a6dd03">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="book" content="Mathematics">
+<meta name="section" content="Probability & Statistics">
+<meta name="chapter" content="Distributions">
+<meta name="chapterorder" content="2">
+<meta name="lessonorder" content="3">
+<meta name="title" content="Kurtosis: Tails, Not Peaks">
+<meta name="description" content="What kurtosis really measures: why it is a fourth power, why it detects tails rather than peaks, what higher kurtosis looks like, and where heavy tails come from.">
+<meta name="keywords" content="kurtosis, excess kurtosis, fourth moment, standardised moment, heavy tails, fat tails, leptokurtic, platykurtic, Laplace distribution, Student t, normal mixture, outliers">
+<meta name="status" content="draft">
+<meta name="date" content="2026-10-15">
+<meta name="author" content="Yogesh">
+
+<title>Kurtosis: Tails, Not Peaks</title>
+
+<meta name="theme-color" content="#FDFBF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16100C" media="(prefers-color-scheme: dark)">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../../../../../css/base.css">
+<link rel="stylesheet" href="../../../../../css/articles.css">
+
+<style>
+  .problem-item {
+    margin: 2.2rem 0 1.8rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--border);
+  }
+  .problem-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+  }
+  .problem-header h3 { margin: 0; font-size: 1.2rem; }
+  .problem-badge {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .question-canvas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.4rem;
+    margin: 0.8rem 0 1.2rem;
+  }
+  .question-canvas > :first-child { margin-top: 0; }
+  .question-canvas > :last-child { margin-bottom: 0; }
+  .recipe { counter-reset: step; list-style: none; padding-left: 0 !important; }
+  .recipe > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.2rem;
+    margin-bottom: 0.7rem;
+  }
+  .recipe > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 0.15rem;
+    width: 1.5rem; height: 1.5rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--dark);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .spot {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 1rem 0 1.2rem;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--accent);
+    background: var(--highlight);
+    border-radius: 0 8px 8px 0;
+  }
+  .spot strong { color: var(--dark); }
+  .solution-heading {
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 1rem 0 0.4rem;
+  }
+  .sub-q {
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    margin: 1.4rem 0 0.4rem;
+    padding: 0.7rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .sub-q > div { min-width: 0; }
+  .sub-label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    color: var(--dark);
+    flex: none;
+  }
+  .mix-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.3rem; max-width: 520px; margin: 0 auto 0.8rem; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.95rem; color: var(--text); }
+  .mix-controls input[type="range"] { width: 100%; accent-color: var(--accent); margin-bottom: 0.4rem; }
+  .mix-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1.4rem; margin-top: 0.6rem; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.95rem; color: var(--text); font-variant-numeric: tabular-nums; }
+  .muted-note { color: var(--muted); }
+  .toggle summary {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .toggle > :not(summary) { margin-top: 0.8rem; }
+  .data-table { border-collapse: collapse; font-size: 0.95rem; font-variant-numeric: tabular-nums; margin: 0.6rem 0; }
+  .data-table th, .data-table td { border: 1px solid var(--border); padding: 0.35rem 0.75rem; text-align: center; }
+  .data-table th { background: var(--surface); font-weight: 600; color: var(--dark); }
+  .data-table td:first-child, .data-table th:first-child { text-align: left; }
+  .data-table.left td, .data-table.left th { text-align: left; }
+  .table-scroll { overflow-x: auto; max-width: 100%; }
+  .fig { margin: 1.6rem 0; }
+  .fig > svg { display: block; margin: 0 auto; max-width: 640px; width: 100%; height: auto; }
+  .fig > svg text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+  .fig figcaption { text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 0.6rem; }
+</style>
+
+<script>
+    (() => {
+        const theme = localStorage.getItem("theme") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+</script>
+
+<script src="../../../../../js/base.js" defer></script>
+<script src="../../../../../js/components.js" defer></script>
+<script src="../../../../../js/article_components.js" defer></script>
+
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+        },
+        svg: { fontCache: "global" }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <meta name="reading_time" content="15">
+    <meta property="og:title" content="Kurtosis: Tails, Not Peaks">
+    <meta property="og:description" content="What kurtosis really measures: why it is a fourth power, why it detects tails rather than peaks, what higher kurtosis looks like, and where heavy tails come from.">
+    <meta property="og:image" content="https://yogesh1p.github.io/connecting-the-dots/assets/og/mathematics-kurtosis-tails-not-peaks.png">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+
+    <div id="global-nav" data-root="../../../../../"></div>
+
+    <main class="page-wrap">
+        <div class="article-layout">
+            <div class="reading-container">
+                <article class="reading-content">
+
+                    <div id="article-header"></div>
+
+                    <section class="article-body">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Introduction                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="introduction">
+  <p>
+    Two machines fill bags of chips. Both are set to 100 g and both have a standard deviation of 2 g. On paper they are identical. But the first one wobbles a little on every bag, while the second is almost perfect most of the time and every so often throws out a bag that is wildly off. If you sell chips, these are not the same machine at all: the second one is the one that gets you a complaint about a half-empty bag.
+  </p>
+  <p>
+    The mean tells you where a distribution sits. The variance tells you how spread out it is. Neither can tell those two machines apart. The number that can is the <strong>kurtosis</strong>. In the course slides it gets one line, "fat tailed", followed by a question: <em>if I make the tails fatter, am I not just increasing the variance?</em> This article answers that question properly: what kurtosis measures, why it is built from a fourth power, what a high kurtosis actually looks like, and the common myth that it measures how "peaked" a curve is.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>If two distributions have the same mean and the same variance, what is left to tell them apart?</em></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  1. Obstruction                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="same-mean-same-variance">
+  <h2>1. Same Mean, Same Variance, Different Story</h2>
+  <p>Here are two small data sets, eight values each.</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Data set</th><th>Values</th><th>Mean</th><th>Variance</th></tr>
+    <tr><td>A ("always a bit off")</td><td>−1, −1, −1, −1, 1, 1, 1, 1</td><td>0</td><td>1</td></tr>
+    <tr><td>B ("usually perfect, sometimes far off")</td><td>0, 0, 0, 0, 0, 0, −2, 2</td><td>0</td><td>1</td></tr>
+  </table>
+  </div>
+  <p>Check the variance of B (we divide by $n$ here, treating the data as the whole population):</p>
+  $$\begin{aligned}
+    \sigma^2_B &= \frac{6 \times 0^2 + (-2)^2 + 2^2}{8} \\[6pt]
+    &= \frac{8}{8} = 1
+  \end{aligned}$$
+  <p>
+    Every value in A is exactly one standard deviation from the mean. B has most values sitting <em>on</em> the mean and two values sitting <em>two</em> standard deviations away. Same centre, same spread, completely different shape. We need a summary that reacts to rare, far-away values much more strongly than the variance does.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  2. Definition                                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="definition">
+  <h2>2. The Definition: An Average of Fourth Powers</h2>
+  <p>
+    First remove the location and scale, so we compare shapes only. Each value becomes a <strong>z-score</strong>: how many standard deviations it lies from the mean, $Z = (X - \mu)/\sigma$. By construction $E[Z] = 0$ and $E[Z^2] = 1$ for every distribution, so the first two moments of $Z$ carry no information about shape. The third and fourth do.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Kurtosis and Excess Kurtosis</div>
+    <div class="math-box-body">
+      <p>For a random variable $X$ with mean $\mu$ and standard deviation $\sigma$, the <strong>kurtosis</strong> is the fourth <strong>standardised moment</strong>:</p>
+      $$\kappa = E\!\left[\left(\frac{X - \mu}{\sigma}\right)^{4}\right] = \frac{E\big[(X-\mu)^4\big]}{\sigma^4}$$
+      <p>The <strong>excess kurtosis</strong> is $\kappa - 3$, measured relative to the normal distribution, which has $\kappa = 3$. A distribution with $\kappa > 3$ is called <strong>leptokurtic</strong> (heavier tails than normal). One with $\kappa < 3$ is <strong>platykurtic</strong> (lighter tails). The normal itself is <strong>mesokurtic</strong>.</p>
+    </div>
+  </div>
+
+  <p>Apply it to the two data sets. Their z-scores are just the values themselves, since the mean is 0 and the standard deviation is 1:</p>
+  $$\begin{aligned}
+    \kappa_A &= \frac{8 \times 1^4}{8} \\[6pt]
+    &= 1 \\[10pt]
+    \kappa_B &= \frac{6 \times 0^4 + 2^4 + 2^4}{8} \\[6pt]
+    &= \frac{32}{8} = 4
+  \end{aligned}$$
+  <p>
+    The variance could not tell them apart; the kurtosis separates them by a factor of four. All of B's kurtosis comes from its two far-away values. The six zeros contribute nothing.
+  </p>
+  <div class="spot">
+    <strong>Kurtosis has no units and ignores shifting and scaling.</strong> Because it is built from z-scores, $Y = a + bX$ (with $b \ne 0$) has exactly the same kurtosis as $X$. Weighing in grams or kilograms changes nothing. Kurtosis describes shape and nothing else.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  3. Why the fourth power                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="why-fourth-power">
+  <h2>3. Why a Fourth Power? Kurtosis Is a Tail Detector</h2>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>Why raise to the fourth power, and what does that power do to values near the centre compared with values far out?</em></p>
+    </div>
+  </div>
+
+  <p>Look at what $z^4$ does to a few z-scores:</p>
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>$z$</th><th>0.5</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+    <tr><td>$z^2$ (used by variance)</td><td>0.25</td><td>1</td><td>4</td><td>9</td><td>16</td><td>25</td></tr>
+    <tr><td>$z^4$ (used by kurtosis)</td><td>0.0625</td><td>1</td><td>16</td><td>81</td><td>256</td><td>625</td></tr>
+  </table>
+  </div>
+  <p>
+    Inside one standard deviation, the fourth power <em>shrinks</em> values toward zero. Outside it, the fourth power blows them up: a point 3 standard deviations out counts 81 times as much as a point at 1. So kurtosis is almost blind to what happens near the centre and extremely sensitive to what happens far away. That is the whole idea.
+  </p>
+  <p>We can make "almost blind to the centre" exact. Split the average of $Z^4$ into the part from $|Z| \le 1$ and the part from $|Z| > 1$:</p>
+  $$\begin{aligned}
+    \kappa &= E\big[Z^4 \,;\, |Z| \le 1\big] + E\big[Z^4 \,;\, |Z| > 1\big] \\[8pt]
+    E\big[Z^4 \,;\, |Z| \le 1\big] &\le P(|Z| \le 1) \le 1
+  \end{aligned}$$
+  <p>
+    ($E[Z^4; |Z| \le 1]$ means the average of $Z^4$ counting only outcomes with $|Z| \le 1$.) The second line holds because $z^4 \le 1$ whenever $|z| \le 1$. So <strong>the centre can contribute at most 1 to the kurtosis</strong>, however the distribution is shaped there. Everything above 1 must come from values more than one standard deviation from the mean. For the normal, the central part contributes only 0.11 of its 3.
+  </p>
+  <p>
+    This also gives the smallest possible kurtosis. Since $E[Z^4] \ge \big(E[Z^2]\big)^2 = 1$, every distribution has $\kappa \ge 1$. The minimum is reached by data set A, a fair coin coded as $\pm 1$: every value is exactly one standard deviation away, there is no tail at all, and $\kappa = 1$.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  4. Computing it                                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="examples">
+  <h2>4. The Kurtosis of Familiar Distributions</h2>
+  <p>
+    To compare shapes fairly, give every distribution mean 0 and variance 1. Then $\kappa$ is just $E[Z^4]$.
+  </p>
+
+  <h3>Uniform: no tails at all</h3>
+  <p>A uniform with variance 1 lives on $[-\sqrt3, \sqrt3]$ with density $\frac{1}{2\sqrt3}$:</p>
+  $$\begin{aligned}
+    \kappa &= \frac{1}{2\sqrt3}\int_{-\sqrt3}^{\sqrt3} z^4\,dz \\[6pt]
+    &= \frac{1}{2\sqrt3} \cdot \frac{2(\sqrt3)^5}{5} \\[6pt]
+    &= \frac{(\sqrt3)^4}{5} = \frac{9}{5} = 1.8
+  \end{aligned}$$
+  <p>Nothing can ever land beyond $1.73$ standard deviations, so the tails contribute nothing and $\kappa$ is low.</p>
+
+  <h3>Normal: the benchmark 3</h3>
+  <p>With $\varphi(z) = \frac{1}{\sqrt{2\pi}}e^{-z^2/2}$, use $\varphi'(z) = -z\,\varphi(z)$ and integrate by parts:</p>
+  $$\begin{aligned}
+    E[Z^4] &= \int z^3 \cdot z\varphi(z)\,dz \\[6pt]
+    &= \Big[-z^3\varphi(z)\Big]_{-\infty}^{\infty} + \int 3z^2\varphi(z)\,dz \\[6pt]
+    &= 0 + 3\,E[Z^2] \\[6pt]
+    &= 3
+  \end{aligned}$$
+  <p>This is why "excess kurtosis" subtracts 3: it measures tails relative to the normal.</p>
+
+  <h3>Laplace: exponential tails</h3>
+  <p>
+    The <strong>Laplace</strong> (double exponential) distribution has density $\frac{1}{2b}e^{-|x|/b}$: two exponential distributions placed back to back. Its variance is $2b^2$ and its fourth central moment is $24b^4$, so
+  </p>
+  $$\begin{aligned}
+    \kappa &= \frac{24b^4}{(2b^2)^2} \\[6pt]
+    &= 6
+  \end{aligned}$$
+  <p>
+    The difference is in how fast the tails die: the normal's density falls like $e^{-z^2/2}$, the Laplace's only like $e^{-\sqrt2|z|}$. For large $z$ the square in the exponent wins by an enormous margin.
+  </p>
+
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Distribution (variance 1)</th><th>$\kappa$</th><th>Excess</th><th>Height at 0</th><th>$P(|Z| > 3)$</th><th>$P(|Z| > 4)$</th><th>$P(|Z| > 5)$</th></tr>
+    <tr><td>Coin, $\pm1$</td><td>1</td><td>−2</td><td>—</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>Uniform</td><td>1.8</td><td>−1.2</td><td>0.289</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>Triangular</td><td>2.4</td><td>−0.6</td><td>0.408</td><td>0</td><td>0</td><td>0</td></tr>
+    <tr><td>Normal</td><td>3</td><td>0</td><td>0.399</td><td>0.0027</td><td>0.000063</td><td>0.0000006</td></tr>
+    <tr><td>Laplace</td><td>6</td><td>3</td><td>0.707</td><td>0.0144</td><td>0.0035</td><td>0.00085</td></tr>
+    <tr><td>Student $t_5$</td><td>9</td><td>6</td><td>0.490</td><td>0.0117</td><td>0.0036</td><td>0.0013</td></tr>
+  </table>
+  </div>
+  <p>
+    Read across the tail columns. Beyond 4 standard deviations, the Laplace is about 55 times as likely as the normal to produce a value, and the $t_5$ about 56 times. Beyond 5, the ratios are over 1000 and over 2000. That is what "heavy tails" means in numbers: events the normal calls essentially impossible happen regularly.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  5. Seeing it                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="visualising">
+  <h2>5. What Higher Kurtosis Looks Like</h2>
+  <p>Draw three of these on the same axes, all with mean 0 and variance 1.</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 310" role="img" aria-label="Uniform, normal and Laplace densities with variance 1; the Laplace is taller at the centre and has longer tails">
+      <line x1="60" y1="250" x2="620" y2="250" stroke="var(--muted)"/>
+      <line x1="60.0" y1="250" x2="60.0" y2="256" stroke="var(--muted)"/><text x="60.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">-4</text>
+      <line x1="130.0" y1="250" x2="130.0" y2="256" stroke="var(--muted)"/><text x="130.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">-3</text>
+      <line x1="200.0" y1="250" x2="200.0" y2="256" stroke="var(--muted)"/><text x="200.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">-2</text>
+      <line x1="270.0" y1="250" x2="270.0" y2="256" stroke="var(--muted)"/><text x="270.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">-1</text>
+      <line x1="340.0" y1="250" x2="340.0" y2="256" stroke="var(--muted)"/><text x="340.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">0</text>
+      <line x1="410.0" y1="250" x2="410.0" y2="256" stroke="var(--muted)"/><text x="410.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">1</text>
+      <line x1="480.0" y1="250" x2="480.0" y2="256" stroke="var(--muted)"/><text x="480.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">2</text>
+      <line x1="550.0" y1="250" x2="550.0" y2="256" stroke="var(--muted)"/><text x="550.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">3</text>
+      <line x1="620.0" y1="250" x2="620.0" y2="256" stroke="var(--muted)"/><text x="620.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">4</text>
+      <path d="M60.0,250.0 L218.8,250.0 L218.8,161.5 L461.2,161.5 L461.2,250.0 L620.0,250.0" fill="none" stroke="var(--muted)" stroke-width="2.2" stroke-dasharray="7 6"/>
+      <path d="M60.0,250.0 L61.4,250.0 L62.8,250.0 L64.2,249.9 L65.6,249.9 L67.0,249.9 L68.4,249.9 L69.8,249.9 L71.2,249.9 L72.6,249.9 L74.0,249.9 L75.4,249.9 L76.8,249.9 L78.2,249.9 L79.6,249.9 L81.0,249.9 L82.4,249.9 L83.8,249.8 L85.2,249.8 L86.6,249.8 L88.0,249.8 L89.4,249.8 L90.8,249.8 L92.2,249.8 L93.6,249.8 L95.0,249.7 L96.4,249.7 L97.8,249.7 L99.2,249.7 L100.6,249.6 L102.0,249.6 L103.4,249.6 L104.8,249.6 L106.2,249.5 L107.6,249.5 L109.0,249.5 L110.4,249.4 L111.8,249.4 L113.2,249.4 L114.6,249.3 L116.0,249.3 L117.4,249.2 L118.8,249.2 L120.2,249.1 L121.6,249.1 L123.0,249.0 L124.4,248.9 L125.8,248.9 L127.2,248.8 L128.6,248.7 L130.0,248.6 L131.4,248.6 L132.8,248.5 L134.2,248.4 L135.6,248.3 L137.0,248.2 L138.4,248.1 L139.8,248.0 L141.2,247.8 L142.6,247.7 L144.0,247.6 L145.4,247.4 L146.8,247.3 L148.2,247.1 L149.6,247.0 L151.0,246.8 L152.4,246.6 L153.8,246.4 L155.2,246.2 L156.6,246.0 L158.0,245.8 L159.4,245.6 L160.8,245.4 L162.2,245.1 L163.6,244.9 L165.0,244.6 L166.4,244.4 L167.8,244.1 L169.2,243.8 L170.6,243.5 L172.0,243.1 L173.4,242.8 L174.8,242.4 L176.2,242.1 L177.6,241.7 L179.0,241.3 L180.4,240.9 L181.8,240.5 L183.2,240.0 L184.6,239.6 L186.0,239.1 L187.4,238.6 L188.8,238.1 L190.2,237.6 L191.6,237.1 L193.0,236.5 L194.4,235.9 L195.8,235.3 L197.2,234.7 L198.6,234.1 L200.0,233.4 L201.4,232.8 L202.8,232.1 L204.2,231.4 L205.6,230.6 L207.0,229.9 L208.4,229.1 L209.8,228.3 L211.2,227.5 L212.6,226.6 L214.0,225.8 L215.4,224.9 L216.8,224.0 L218.2,223.1 L219.6,222.1 L221.0,221.2 L222.4,220.2 L223.8,219.2 L225.2,218.1 L226.6,217.1 L228.0,216.0 L229.4,214.9 L230.8,213.8 L232.2,212.6 L233.6,211.5 L235.0,210.3 L236.4,209.1 L237.8,207.9 L239.2,206.6 L240.6,205.4 L242.0,204.1 L243.4,202.8 L244.8,201.5 L246.2,200.1 L247.6,198.8 L249.0,197.4 L250.4,196.1 L251.8,194.7 L253.2,193.3 L254.6,191.9 L256.0,190.4 L257.4,189.0 L258.8,187.6 L260.2,186.1 L261.6,184.7 L263.0,183.2 L264.4,181.7 L265.8,180.2 L267.2,178.8 L268.6,177.3 L270.0,175.8 L271.4,174.3 L272.8,172.8 L274.2,171.3 L275.6,169.9 L277.0,168.4 L278.4,166.9 L279.8,165.5 L281.2,164.0 L282.6,162.6 L284.0,161.2 L285.4,159.7 L286.8,158.3 L288.2,157.0 L289.6,155.6 L291.0,154.2 L292.4,152.9 L293.8,151.6 L295.2,150.3 L296.6,149.1 L298.0,147.8 L299.4,146.6 L300.8,145.4 L302.2,144.3 L303.6,143.1 L305.0,142.0 L306.4,141.0 L307.8,139.9 L309.2,138.9 L310.6,138.0 L312.0,137.1 L313.4,136.2 L314.8,135.3 L316.2,134.5 L317.6,133.8 L319.0,133.0 L320.4,132.4 L321.8,131.7 L323.2,131.1 L324.6,130.6 L326.0,130.1 L327.4,129.6 L328.8,129.2 L330.2,128.9 L331.6,128.5 L333.0,128.3 L334.4,128.0 L335.8,127.9 L337.2,127.8 L338.6,127.7 L340.0,127.7 L341.4,127.7 L342.8,127.8 L344.2,127.9 L345.6,128.0 L347.0,128.3 L348.4,128.5 L349.8,128.9 L351.2,129.2 L352.6,129.6 L354.0,130.1 L355.4,130.6 L356.8,131.1 L358.2,131.7 L359.6,132.4 L361.0,133.0 L362.4,133.8 L363.8,134.5 L365.2,135.3 L366.6,136.2 L368.0,137.1 L369.4,138.0 L370.8,138.9 L372.2,139.9 L373.6,141.0 L375.0,142.0 L376.4,143.1 L377.8,144.3 L379.2,145.4 L380.6,146.6 L382.0,147.8 L383.4,149.1 L384.8,150.3 L386.2,151.6 L387.6,152.9 L389.0,154.2 L390.4,155.6 L391.8,157.0 L393.2,158.3 L394.6,159.7 L396.0,161.2 L397.4,162.6 L398.8,164.0 L400.2,165.5 L401.6,166.9 L403.0,168.4 L404.4,169.9 L405.8,171.3 L407.2,172.8 L408.6,174.3 L410.0,175.8 L411.4,177.3 L412.8,178.8 L414.2,180.2 L415.6,181.7 L417.0,183.2 L418.4,184.7 L419.8,186.1 L421.2,187.6 L422.6,189.0 L424.0,190.4 L425.4,191.9 L426.8,193.3 L428.2,194.7 L429.6,196.1 L431.0,197.4 L432.4,198.8 L433.8,200.1 L435.2,201.5 L436.6,202.8 L438.0,204.1 L439.4,205.4 L440.8,206.6 L442.2,207.9 L443.6,209.1 L445.0,210.3 L446.4,211.5 L447.8,212.6 L449.2,213.8 L450.6,214.9 L452.0,216.0 L453.4,217.1 L454.8,218.1 L456.2,219.2 L457.6,220.2 L459.0,221.2 L460.4,222.1 L461.8,223.1 L463.2,224.0 L464.6,224.9 L466.0,225.8 L467.4,226.6 L468.8,227.5 L470.2,228.3 L471.6,229.1 L473.0,229.9 L474.4,230.6 L475.8,231.4 L477.2,232.1 L478.6,232.8 L480.0,233.4 L481.4,234.1 L482.8,234.7 L484.2,235.3 L485.6,235.9 L487.0,236.5 L488.4,237.1 L489.8,237.6 L491.2,238.1 L492.6,238.6 L494.0,239.1 L495.4,239.6 L496.8,240.0 L498.2,240.5 L499.6,240.9 L501.0,241.3 L502.4,241.7 L503.8,242.1 L505.2,242.4 L506.6,242.8 L508.0,243.1 L509.4,243.5 L510.8,243.8 L512.2,244.1 L513.6,244.4 L515.0,244.6 L516.4,244.9 L517.8,245.1 L519.2,245.4 L520.6,245.6 L522.0,245.8 L523.4,246.0 L524.8,246.2 L526.2,246.4 L527.6,246.6 L529.0,246.8 L530.4,247.0 L531.8,247.1 L533.2,247.3 L534.6,247.4 L536.0,247.6 L537.4,247.7 L538.8,247.8 L540.2,248.0 L541.6,248.1 L543.0,248.2 L544.4,248.3 L545.8,248.4 L547.2,248.5 L548.6,248.6 L550.0,248.6 L551.4,248.7 L552.8,248.8 L554.2,248.9 L555.6,248.9 L557.0,249.0 L558.4,249.1 L559.8,249.1 L561.2,249.2 L562.6,249.2 L564.0,249.3 L565.4,249.3 L566.8,249.4 L568.2,249.4 L569.6,249.4 L571.0,249.5 L572.4,249.5 L573.8,249.5 L575.2,249.6 L576.6,249.6 L578.0,249.6 L579.4,249.6 L580.8,249.7 L582.2,249.7 L583.6,249.7 L585.0,249.7 L586.4,249.8 L587.8,249.8 L589.2,249.8 L590.6,249.8 L592.0,249.8 L593.4,249.8 L594.8,249.8 L596.2,249.8 L597.6,249.9 L599.0,249.9 L600.4,249.9 L601.8,249.9 L603.2,249.9 L604.6,249.9 L606.0,249.9 L607.4,249.9 L608.8,249.9 L610.2,249.9 L611.6,249.9 L613.0,249.9 L614.4,249.9 L615.8,249.9 L617.2,250.0 L618.6,250.0 L620.0,250.0" fill="none" stroke="var(--dark)" stroke-width="2.4"/>
+      <path d="M60.0,249.2 L60.7,249.2 L61.4,249.2 L62.1,249.2 L62.8,249.2 L63.5,249.2 L64.2,249.2 L64.9,249.2 L65.6,249.2 L66.3,249.1 L67.0,249.1 L67.7,249.1 L68.4,249.1 L69.1,249.1 L69.8,249.1 L70.5,249.1 L71.2,249.1 L71.9,249.0 L72.6,249.0 L73.3,249.0 L74.0,249.0 L74.7,249.0 L75.4,249.0 L76.1,249.0 L76.8,248.9 L77.5,248.9 L78.2,248.9 L78.9,248.9 L79.6,248.9 L80.3,248.9 L81.0,248.8 L81.7,248.8 L82.4,248.8 L83.1,248.8 L83.8,248.8 L84.5,248.8 L85.2,248.7 L85.9,248.7 L86.6,248.7 L87.3,248.7 L88.0,248.7 L88.7,248.6 L89.4,248.6 L90.1,248.6 L90.8,248.6 L91.5,248.6 L92.2,248.5 L92.9,248.5 L93.6,248.5 L94.3,248.5 L95.0,248.5 L95.7,248.4 L96.4,248.4 L97.1,248.4 L97.8,248.4 L98.5,248.4 L99.2,248.3 L99.9,248.3 L100.6,248.3 L101.3,248.3 L102.0,248.2 L102.7,248.2 L103.4,248.2 L104.1,248.2 L104.8,248.1 L105.5,248.1 L106.2,248.1 L106.9,248.0 L107.6,248.0 L108.3,248.0 L109.0,248.0 L109.7,247.9 L110.4,247.9 L111.1,247.9 L111.8,247.8 L112.5,247.8 L113.2,247.8 L113.9,247.7 L114.6,247.7 L115.3,247.7 L116.0,247.7 L116.7,247.6 L117.4,247.6 L118.1,247.5 L118.8,247.5 L119.5,247.5 L120.2,247.4 L120.9,247.4 L121.6,247.4 L122.3,247.3 L123.0,247.3 L123.7,247.3 L124.4,247.2 L125.1,247.2 L125.8,247.1 L126.5,247.1 L127.2,247.1 L127.9,247.0 L128.6,247.0 L129.3,246.9 L130.0,246.9 L130.7,246.8 L131.4,246.8 L132.1,246.7 L132.8,246.7 L133.5,246.7 L134.2,246.6 L134.9,246.6 L135.6,246.5 L136.3,246.5 L137.0,246.4 L137.7,246.4 L138.4,246.3 L139.1,246.3 L139.8,246.2 L140.5,246.1 L141.2,246.1 L141.9,246.0 L142.6,246.0 L143.3,245.9 L144.0,245.9 L144.7,245.8 L145.4,245.7 L146.1,245.7 L146.8,245.6 L147.5,245.6 L148.2,245.5 L148.9,245.4 L149.6,245.4 L150.3,245.3 L151.0,245.2 L151.7,245.2 L152.4,245.1 L153.1,245.0 L153.8,245.0 L154.5,244.9 L155.2,244.8 L155.9,244.7 L156.6,244.7 L157.3,244.6 L158.0,244.5 L158.7,244.4 L159.4,244.4 L160.1,244.3 L160.8,244.2 L161.5,244.1 L162.2,244.0 L162.9,243.9 L163.6,243.9 L164.3,243.8 L165.0,243.7 L165.7,243.6 L166.4,243.5 L167.1,243.4 L167.8,243.3 L168.5,243.2 L169.2,243.1 L169.9,243.0 L170.6,242.9 L171.3,242.8 L172.0,242.7 L172.7,242.6 L173.4,242.5 L174.1,242.4 L174.8,242.3 L175.5,242.2 L176.2,242.1 L176.9,242.0 L177.6,241.8 L178.3,241.7 L179.0,241.6 L179.7,241.5 L180.4,241.4 L181.1,241.3 L181.8,241.1 L182.5,241.0 L183.2,240.9 L183.9,240.7 L184.6,240.6 L185.3,240.5 L186.0,240.3 L186.7,240.2 L187.4,240.1 L188.1,239.9 L188.8,239.8 L189.5,239.6 L190.2,239.5 L190.9,239.3 L191.6,239.2 L192.3,239.0 L193.0,238.9 L193.7,238.7 L194.4,238.6 L195.1,238.4 L195.8,238.2 L196.5,238.1 L197.2,237.9 L197.9,237.7 L198.6,237.5 L199.3,237.4 L200.0,237.2 L200.7,237.0 L201.4,236.8 L202.1,236.6 L202.8,236.4 L203.5,236.2 L204.2,236.0 L204.9,235.8 L205.6,235.6 L206.3,235.4 L207.0,235.2 L207.7,235.0 L208.4,234.8 L209.1,234.6 L209.8,234.4 L210.5,234.2 L211.2,233.9 L211.9,233.7 L212.6,233.5 L213.3,233.2 L214.0,233.0 L214.7,232.8 L215.4,232.5 L216.1,232.3 L216.8,232.0 L217.5,231.7 L218.2,231.5 L218.9,231.2 L219.6,231.0 L220.3,230.7 L221.0,230.4 L221.7,230.1 L222.4,229.8 L223.1,229.6 L223.8,229.3 L224.5,229.0 L225.2,228.7 L225.9,228.4 L226.6,228.1 L227.3,227.8 L228.0,227.4 L228.7,227.1 L229.4,226.8 L230.1,226.5 L230.8,226.1 L231.5,225.8 L232.2,225.4 L232.9,225.1 L233.6,224.7 L234.3,224.4 L235.0,224.0 L235.7,223.6 L236.4,223.3 L237.1,222.9 L237.8,222.5 L238.5,222.1 L239.2,221.7 L239.9,221.3 L240.6,220.9 L241.3,220.5 L242.0,220.1 L242.7,219.6 L243.4,219.2 L244.1,218.8 L244.8,218.3 L245.5,217.9 L246.2,217.4 L246.9,216.9 L247.6,216.5 L248.3,216.0 L249.0,215.5 L249.7,215.0 L250.4,214.5 L251.1,214.0 L251.8,213.5 L252.5,213.0 L253.2,212.5 L253.9,211.9 L254.6,211.4 L255.3,210.8 L256.0,210.3 L256.7,209.7 L257.4,209.1 L258.1,208.5 L258.8,208.0 L259.5,207.4 L260.2,206.8 L260.9,206.1 L261.6,205.5 L262.3,204.9 L263.0,204.2 L263.7,203.6 L264.4,202.9 L265.1,202.2 L265.8,201.6 L266.5,200.9 L267.2,200.2 L267.9,199.5 L268.6,198.8 L269.3,198.0 L270.0,197.3 L270.7,196.5 L271.4,195.8 L272.1,195.0 L272.8,194.2 L273.5,193.4 L274.2,192.6 L274.9,191.8 L275.6,191.0 L276.3,190.1 L277.0,189.3 L277.7,188.4 L278.4,187.5 L279.1,186.6 L279.8,185.7 L280.5,184.8 L281.2,183.9 L281.9,183.0 L282.6,182.0 L283.3,181.0 L284.0,180.0 L284.7,179.1 L285.4,178.0 L286.1,177.0 L286.8,176.0 L287.5,174.9 L288.2,173.9 L288.9,172.8 L289.6,171.7 L290.3,170.6 L291.0,169.4 L291.7,168.3 L292.4,167.1 L293.1,165.9 L293.8,164.7 L294.5,163.5 L295.2,162.3 L295.9,161.0 L296.6,159.8 L297.3,158.5 L298.0,157.2 L298.7,155.9 L299.4,154.5 L300.1,153.2 L300.8,151.8 L301.5,150.4 L302.2,149.0 L302.9,147.5 L303.6,146.1 L304.3,144.6 L305.0,143.1 L305.7,141.6 L306.4,140.0 L307.1,138.4 L307.8,136.9 L308.5,135.2 L309.2,133.6 L309.9,132.0 L310.6,130.3 L311.3,128.6 L312.0,126.8 L312.7,125.1 L313.4,123.3 L314.1,121.5 L314.8,119.7 L315.5,117.8 L316.2,115.9 L316.9,114.0 L317.6,112.1 L318.3,110.1 L319.0,108.1 L319.7,106.1 L320.4,104.1 L321.1,102.0 L321.8,99.9 L322.5,97.7 L323.2,95.6 L323.9,93.4 L324.6,91.1 L325.3,88.9 L326.0,86.6 L326.7,84.2 L327.4,81.9 L328.1,79.5 L328.8,77.1 L329.5,74.6 L330.2,72.1 L330.9,69.6 L331.6,67.0 L332.3,64.4 L333.0,61.8 L333.7,59.1 L334.4,56.4 L335.1,53.6 L335.8,50.8 L336.5,48.0 L337.2,45.1 L337.9,42.2 L338.6,39.2 L339.3,36.2 L340.0,33.2 L340.7,36.2 L341.4,39.2 L342.1,42.2 L342.8,45.1 L343.5,48.0 L344.2,50.8 L344.9,53.6 L345.6,56.4 L346.3,59.1 L347.0,61.8 L347.7,64.4 L348.4,67.0 L349.1,69.6 L349.8,72.1 L350.5,74.6 L351.2,77.1 L351.9,79.5 L352.6,81.9 L353.3,84.2 L354.0,86.6 L354.7,88.9 L355.4,91.1 L356.1,93.4 L356.8,95.6 L357.5,97.7 L358.2,99.9 L358.9,102.0 L359.6,104.1 L360.3,106.1 L361.0,108.1 L361.7,110.1 L362.4,112.1 L363.1,114.0 L363.8,115.9 L364.5,117.8 L365.2,119.7 L365.9,121.5 L366.6,123.3 L367.3,125.1 L368.0,126.8 L368.7,128.6 L369.4,130.3 L370.1,132.0 L370.8,133.6 L371.5,135.2 L372.2,136.9 L372.9,138.4 L373.6,140.0 L374.3,141.6 L375.0,143.1 L375.7,144.6 L376.4,146.1 L377.1,147.5 L377.8,149.0 L378.5,150.4 L379.2,151.8 L379.9,153.2 L380.6,154.5 L381.3,155.9 L382.0,157.2 L382.7,158.5 L383.4,159.8 L384.1,161.0 L384.8,162.3 L385.5,163.5 L386.2,164.7 L386.9,165.9 L387.6,167.1 L388.3,168.3 L389.0,169.4 L389.7,170.6 L390.4,171.7 L391.1,172.8 L391.8,173.9 L392.5,174.9 L393.2,176.0 L393.9,177.0 L394.6,178.0 L395.3,179.1 L396.0,180.0 L396.7,181.0 L397.4,182.0 L398.1,183.0 L398.8,183.9 L399.5,184.8 L400.2,185.7 L400.9,186.6 L401.6,187.5 L402.3,188.4 L403.0,189.3 L403.7,190.1 L404.4,191.0 L405.1,191.8 L405.8,192.6 L406.5,193.4 L407.2,194.2 L407.9,195.0 L408.6,195.8 L409.3,196.5 L410.0,197.3 L410.7,198.0 L411.4,198.8 L412.1,199.5 L412.8,200.2 L413.5,200.9 L414.2,201.6 L414.9,202.2 L415.6,202.9 L416.3,203.6 L417.0,204.2 L417.7,204.9 L418.4,205.5 L419.1,206.1 L419.8,206.8 L420.5,207.4 L421.2,208.0 L421.9,208.5 L422.6,209.1 L423.3,209.7 L424.0,210.3 L424.7,210.8 L425.4,211.4 L426.1,211.9 L426.8,212.5 L427.5,213.0 L428.2,213.5 L428.9,214.0 L429.6,214.5 L430.3,215.0 L431.0,215.5 L431.7,216.0 L432.4,216.5 L433.1,216.9 L433.8,217.4 L434.5,217.9 L435.2,218.3 L435.9,218.8 L436.6,219.2 L437.3,219.6 L438.0,220.1 L438.7,220.5 L439.4,220.9 L440.1,221.3 L440.8,221.7 L441.5,222.1 L442.2,222.5 L442.9,222.9 L443.6,223.3 L444.3,223.6 L445.0,224.0 L445.7,224.4 L446.4,224.7 L447.1,225.1 L447.8,225.4 L448.5,225.8 L449.2,226.1 L449.9,226.5 L450.6,226.8 L451.3,227.1 L452.0,227.4 L452.7,227.8 L453.4,228.1 L454.1,228.4 L454.8,228.7 L455.5,229.0 L456.2,229.3 L456.9,229.6 L457.6,229.8 L458.3,230.1 L459.0,230.4 L459.7,230.7 L460.4,231.0 L461.1,231.2 L461.8,231.5 L462.5,231.7 L463.2,232.0 L463.9,232.3 L464.6,232.5 L465.3,232.8 L466.0,233.0 L466.7,233.2 L467.4,233.5 L468.1,233.7 L468.8,233.9 L469.5,234.2 L470.2,234.4 L470.9,234.6 L471.6,234.8 L472.3,235.0 L473.0,235.2 L473.7,235.4 L474.4,235.6 L475.1,235.8 L475.8,236.0 L476.5,236.2 L477.2,236.4 L477.9,236.6 L478.6,236.8 L479.3,237.0 L480.0,237.2 L480.7,237.4 L481.4,237.5 L482.1,237.7 L482.8,237.9 L483.5,238.1 L484.2,238.2 L484.9,238.4 L485.6,238.6 L486.3,238.7 L487.0,238.9 L487.7,239.0 L488.4,239.2 L489.1,239.3 L489.8,239.5 L490.5,239.6 L491.2,239.8 L491.9,239.9 L492.6,240.1 L493.3,240.2 L494.0,240.3 L494.7,240.5 L495.4,240.6 L496.1,240.7 L496.8,240.9 L497.5,241.0 L498.2,241.1 L498.9,241.3 L499.6,241.4 L500.3,241.5 L501.0,241.6 L501.7,241.7 L502.4,241.8 L503.1,242.0 L503.8,242.1 L504.5,242.2 L505.2,242.3 L505.9,242.4 L506.6,242.5 L507.3,242.6 L508.0,242.7 L508.7,242.8 L509.4,242.9 L510.1,243.0 L510.8,243.1 L511.5,243.2 L512.2,243.3 L512.9,243.4 L513.6,243.5 L514.3,243.6 L515.0,243.7 L515.7,243.8 L516.4,243.9 L517.1,243.9 L517.8,244.0 L518.5,244.1 L519.2,244.2 L519.9,244.3 L520.6,244.4 L521.3,244.4 L522.0,244.5 L522.7,244.6 L523.4,244.7 L524.1,244.7 L524.8,244.8 L525.5,244.9 L526.2,245.0 L526.9,245.0 L527.6,245.1 L528.3,245.2 L529.0,245.2 L529.7,245.3 L530.4,245.4 L531.1,245.4 L531.8,245.5 L532.5,245.6 L533.2,245.6 L533.9,245.7 L534.6,245.7 L535.3,245.8 L536.0,245.9 L536.7,245.9 L537.4,246.0 L538.1,246.0 L538.8,246.1 L539.5,246.1 L540.2,246.2 L540.9,246.3 L541.6,246.3 L542.3,246.4 L543.0,246.4 L543.7,246.5 L544.4,246.5 L545.1,246.6 L545.8,246.6 L546.5,246.7 L547.2,246.7 L547.9,246.7 L548.6,246.8 L549.3,246.8 L550.0,246.9 L550.7,246.9 L551.4,247.0 L552.1,247.0 L552.8,247.1 L553.5,247.1 L554.2,247.1 L554.9,247.2 L555.6,247.2 L556.3,247.3 L557.0,247.3 L557.7,247.3 L558.4,247.4 L559.1,247.4 L559.8,247.4 L560.5,247.5 L561.2,247.5 L561.9,247.5 L562.6,247.6 L563.3,247.6 L564.0,247.7 L564.7,247.7 L565.4,247.7 L566.1,247.7 L566.8,247.8 L567.5,247.8 L568.2,247.8 L568.9,247.9 L569.6,247.9 L570.3,247.9 L571.0,248.0 L571.7,248.0 L572.4,248.0 L573.1,248.0 L573.8,248.1 L574.5,248.1 L575.2,248.1 L575.9,248.2 L576.6,248.2 L577.3,248.2 L578.0,248.2 L578.7,248.3 L579.4,248.3 L580.1,248.3 L580.8,248.3 L581.5,248.4 L582.2,248.4 L582.9,248.4 L583.6,248.4 L584.3,248.4 L585.0,248.5 L585.7,248.5 L586.4,248.5 L587.1,248.5 L587.8,248.5 L588.5,248.6 L589.2,248.6 L589.9,248.6 L590.6,248.6 L591.3,248.6 L592.0,248.7 L592.7,248.7 L593.4,248.7 L594.1,248.7 L594.8,248.7 L595.5,248.8 L596.2,248.8 L596.9,248.8 L597.6,248.8 L598.3,248.8 L599.0,248.8 L599.7,248.9 L600.4,248.9 L601.1,248.9 L601.8,248.9 L602.5,248.9 L603.2,248.9 L603.9,249.0 L604.6,249.0 L605.3,249.0 L606.0,249.0 L606.7,249.0 L607.4,249.0 L608.1,249.0 L608.8,249.1 L609.5,249.1 L610.2,249.1 L610.9,249.1 L611.6,249.1 L612.3,249.1 L613.0,249.1 L613.7,249.1 L614.4,249.2 L615.1,249.2 L615.8,249.2 L616.5,249.2 L617.2,249.2 L617.9,249.2 L618.6,249.2 L619.3,249.2 L620.0,249.2" fill="none" stroke="var(--accent)" stroke-width="2.8"/>
+      <text x="364.5" y="35.3" font-size="16" fill="var(--text)">Laplace, κ = 6</text>
+      <text x="399.5" y="139.6" font-size="16" fill="var(--text)">Normal, κ = 3</text>
+      <text x="63.5" y="154.9" font-size="16" fill="var(--muted)">Uniform, κ = 1.8</text>
+      <text x="340.0" y="300" font-size="16" text-anchor="middle" fill="var(--text)">z (standard deviations from the mean)</text>
+    </svg>
+    <figcaption><strong>Figure 1:</strong> Three densities with identical mean (0) and variance (1). The Laplace ($\kappa = 6$) is taller and narrower in the middle, thinner in the "shoulders" around $|z| \approx 1$ to $2$, and sits above the normal again far out. On this linear scale the tails all look like zero.</figcaption>
+  </figure>
+
+  <p>
+    On an ordinary scale the tails are invisible: all three curves seem to hit zero by $|z| = 4$. The difference that drives the kurtosis is in that "zero" region. To see it, put the density on a <strong>logarithmic</strong> scale, where each grid line is ten times smaller than the one above it.
+  </p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 340" role="img" aria-label="Right half of the densities on a log scale; the normal curve bends down steeply while the Laplace is a straight line and the t5 decays even more slowly">
+      <line x1="90" y1="280" x2="620" y2="280" stroke="var(--muted)"/><line x1="90" y1="280" x2="90" y2="20" stroke="var(--muted)"/>
+      <line x1="90.0" y1="280" x2="90.0" y2="286" stroke="var(--muted)"/><text x="90.0" y="306" font-size="16" text-anchor="middle" fill="var(--muted)">0</text>
+      <line x1="178.3" y1="280" x2="178.3" y2="286" stroke="var(--muted)"/><text x="178.3" y="306" font-size="16" text-anchor="middle" fill="var(--muted)">1</text>
+      <line x1="266.7" y1="280" x2="266.7" y2="286" stroke="var(--muted)"/><text x="266.7" y="306" font-size="16" text-anchor="middle" fill="var(--muted)">2</text>
+      <line x1="355.0" y1="280" x2="355.0" y2="286" stroke="var(--muted)"/><text x="355.0" y="306" font-size="16" text-anchor="middle" fill="var(--muted)">3</text>
+      <line x1="443.3" y1="280" x2="443.3" y2="286" stroke="var(--muted)"/><text x="443.3" y="306" font-size="16" text-anchor="middle" fill="var(--muted)">4</text>
+      <line x1="531.7" y1="280" x2="531.7" y2="286" stroke="var(--muted)"/><text x="531.7" y="306" font-size="16" text-anchor="middle" fill="var(--muted)">5</text>
+      <line x1="620.0" y1="280" x2="620.0" y2="286" stroke="var(--muted)"/><text x="620.0" y="306" font-size="16" text-anchor="middle" fill="var(--muted)">6</text>
+      <line x1="84" y1="20.0" x2="620" y2="20.0" stroke="var(--border)"/><text x="78" y="25.0" font-size="16" text-anchor="end" fill="var(--muted)">1</text>
+      <line x1="84" y1="94.3" x2="620" y2="94.3" stroke="var(--border)"/><text x="78" y="99.3" font-size="16" text-anchor="end" fill="var(--muted)">0.01</text>
+      <line x1="84" y1="168.6" x2="620" y2="168.6" stroke="var(--border)"/><text x="78" y="173.6" font-size="16" text-anchor="end" fill="var(--muted)">10⁻⁴</text>
+      <line x1="84" y1="242.9" x2="620" y2="242.9" stroke="var(--border)"/><text x="78" y="247.9" font-size="16" text-anchor="end" fill="var(--muted)">10⁻⁶</text>
+      <path d="M90.0,34.8 L91.8,34.8 L93.5,34.8 L95.3,34.9 L97.1,34.9 L98.8,34.9 L100.6,34.9 L102.4,35.0 L104.1,35.0 L105.9,35.1 L107.7,35.1 L109.4,35.2 L111.2,35.3 L113.0,35.4 L114.7,35.5 L116.5,35.5 L118.3,35.6 L120.0,35.8 L121.8,35.9 L123.6,36.0 L125.3,36.1 L127.1,36.2 L128.9,36.4 L130.6,36.5 L132.4,36.7 L134.2,36.8 L135.9,37.0 L137.7,37.2 L139.5,37.4 L141.2,37.5 L143.0,37.7 L144.8,37.9 L146.5,38.1 L148.3,38.3 L150.1,38.6 L151.8,38.8 L153.6,39.0 L155.4,39.2 L157.1,39.5 L158.9,39.7 L160.7,40.0 L162.4,40.2 L164.2,40.5 L166.0,40.8 L167.7,41.1 L169.5,41.4 L171.3,41.6 L173.0,41.9 L174.8,42.3 L176.6,42.6 L178.3,42.9 L180.1,43.2 L181.9,43.5 L183.6,43.9 L185.4,44.2 L187.2,44.6 L188.9,44.9 L190.7,45.3 L192.5,45.7 L194.2,46.1 L196.0,46.4 L197.8,46.8 L199.5,47.2 L201.3,47.6 L203.1,48.0 L204.8,48.5 L206.6,48.9 L208.4,49.3 L210.1,49.7 L211.9,50.2 L213.7,50.6 L215.4,51.1 L217.2,51.5 L219.0,52.0 L220.7,52.5 L222.5,53.0 L224.3,53.5 L226.0,54.0 L227.8,54.5 L229.6,55.0 L231.3,55.5 L233.1,56.0 L234.9,56.5 L236.6,57.0 L238.4,57.6 L240.2,58.1 L241.9,58.7 L243.7,59.2 L245.5,59.8 L247.2,60.4 L249.0,61.0 L250.8,61.5 L252.5,62.1 L254.3,62.7 L256.1,63.3 L257.8,63.9 L259.6,64.6 L261.4,65.2 L263.1,65.8 L264.9,66.4 L266.7,67.1 L268.4,67.7 L270.2,68.4 L272.0,69.0 L273.7,69.7 L275.5,70.4 L277.3,71.1 L279.0,71.8 L280.8,72.5 L282.6,73.2 L284.3,73.9 L286.1,74.6 L287.9,75.3 L289.6,76.0 L291.4,76.8 L293.2,77.5 L294.9,78.2 L296.7,79.0 L298.5,79.7 L300.2,80.5 L302.0,81.3 L303.8,82.1 L305.5,82.8 L307.3,83.6 L309.1,84.4 L310.8,85.2 L312.6,86.0 L314.4,86.9 L316.1,87.7 L317.9,88.5 L319.7,89.3 L321.4,90.2 L323.2,91.0 L325.0,91.9 L326.7,92.8 L328.5,93.6 L330.3,94.5 L332.0,95.4 L333.8,96.3 L335.6,97.2 L337.3,98.1 L339.1,99.0 L340.9,99.9 L342.6,100.8 L344.4,101.7 L346.2,102.7 L347.9,103.6 L349.7,104.5 L351.5,105.5 L353.2,106.4 L355.0,107.4 L356.8,108.4 L358.5,109.4 L360.3,110.3 L362.1,111.3 L363.8,112.3 L365.6,113.3 L367.4,114.3 L369.1,115.4 L370.9,116.4 L372.7,117.4 L374.4,118.4 L376.2,119.5 L378.0,120.5 L379.7,121.6 L381.5,122.7 L383.3,123.7 L385.0,124.8 L386.8,125.9 L388.6,127.0 L390.3,128.1 L392.1,129.2 L393.9,130.3 L395.6,131.4 L397.4,132.5 L399.2,133.6 L400.9,134.8 L402.7,135.9 L404.5,137.0 L406.2,138.2 L408.0,139.4 L409.8,140.5 L411.5,141.7 L413.3,142.9 L415.1,144.0 L416.8,145.2 L418.6,146.4 L420.4,147.6 L422.1,148.8 L423.9,150.1 L425.7,151.3 L427.4,152.5 L429.2,153.8 L431.0,155.0 L432.7,156.2 L434.5,157.5 L436.3,158.8 L438.0,160.0 L439.8,161.3 L441.6,162.6 L443.3,163.9 L445.1,165.2 L446.9,166.5 L448.6,167.8 L450.4,169.1 L452.2,170.4 L453.9,171.7 L455.7,173.1 L457.5,174.4 L459.2,175.7 L461.0,177.1 L462.8,178.5 L464.5,179.8 L466.3,181.2 L468.1,182.6 L469.8,184.0 L471.6,185.3 L473.4,186.7 L475.1,188.1 L476.9,189.6 L478.7,191.0 L480.4,192.4 L482.2,193.8 L484.0,195.3 L485.7,196.7 L487.5,198.1 L489.3,199.6 L491.0,201.1 L492.8,202.5 L494.6,204.0 L496.3,205.5 L498.1,207.0 L499.9,208.5 L501.6,210.0 L503.4,211.5 L505.2,213.0 L506.9,214.5 L508.7,216.0 L510.5,217.6 L512.2,219.1 L514.0,220.7 L515.8,222.2 L517.5,223.8 L519.3,225.3 L521.1,226.9 L522.8,228.5 L524.6,230.1 L526.4,231.6 L528.1,233.2 L529.9,234.9 L531.7,236.5 L533.4,238.1 L535.2,239.7 L537.0,241.3 L538.7,243.0 L540.5,244.6 L542.3,246.3 L544.0,247.9 L545.8,249.6 L547.6,251.2 L549.3,252.9 L551.1,254.6 L552.9,256.3 L554.6,258.0 L556.4,259.7 L558.2,261.4 L559.9,263.1 L561.7,264.8 L563.5,266.5 L565.2,268.3 L567.0,270.0 L568.8,271.8 L570.5,273.5 L572.3,275.3 L574.1,277.0 L575.8,278.8" fill="none" stroke="var(--dark)" stroke-width="2.4"/>
+      <path d="M90.0,25.6 L91.8,26.0 L93.5,26.5 L95.3,27.0 L97.1,27.4 L98.8,27.9 L100.6,28.3 L102.4,28.8 L104.1,29.2 L105.9,29.7 L107.7,30.2 L109.4,30.6 L111.2,31.1 L113.0,31.5 L114.7,32.0 L116.5,32.4 L118.3,32.9 L120.0,33.3 L121.8,33.8 L123.6,34.3 L125.3,34.7 L127.1,35.2 L128.9,35.6 L130.6,36.1 L132.4,36.5 L134.2,37.0 L135.9,37.5 L137.7,37.9 L139.5,38.4 L141.2,38.8 L143.0,39.3 L144.8,39.7 L146.5,40.2 L148.3,40.6 L150.1,41.1 L151.8,41.6 L153.6,42.0 L155.4,42.5 L157.1,42.9 L158.9,43.4 L160.7,43.8 L162.4,44.3 L164.2,44.8 L166.0,45.2 L167.7,45.7 L169.5,46.1 L171.3,46.6 L173.0,47.0 L174.8,47.5 L176.6,47.9 L178.3,48.4 L180.1,48.9 L181.9,49.3 L183.6,49.8 L185.4,50.2 L187.2,50.7 L188.9,51.1 L190.7,51.6 L192.5,52.1 L194.2,52.5 L196.0,53.0 L197.8,53.4 L199.5,53.9 L201.3,54.3 L203.1,54.8 L204.8,55.2 L206.6,55.7 L208.4,56.2 L210.1,56.6 L211.9,57.1 L213.7,57.5 L215.4,58.0 L217.2,58.4 L219.0,58.9 L220.7,59.4 L222.5,59.8 L224.3,60.3 L226.0,60.7 L227.8,61.2 L229.6,61.6 L231.3,62.1 L233.1,62.5 L234.9,63.0 L236.6,63.5 L238.4,63.9 L240.2,64.4 L241.9,64.8 L243.7,65.3 L245.5,65.7 L247.2,66.2 L249.0,66.7 L250.8,67.1 L252.5,67.6 L254.3,68.0 L256.1,68.5 L257.8,68.9 L259.6,69.4 L261.4,69.8 L263.1,70.3 L264.9,70.8 L266.7,71.2 L268.4,71.7 L270.2,72.1 L272.0,72.6 L273.7,73.0 L275.5,73.5 L277.3,74.0 L279.0,74.4 L280.8,74.9 L282.6,75.3 L284.3,75.8 L286.1,76.2 L287.9,76.7 L289.6,77.1 L291.4,77.6 L293.2,78.1 L294.9,78.5 L296.7,79.0 L298.5,79.4 L300.2,79.9 L302.0,80.3 L303.8,80.8 L305.5,81.3 L307.3,81.7 L309.1,82.2 L310.8,82.6 L312.6,83.1 L314.4,83.5 L316.1,84.0 L317.9,84.4 L319.7,84.9 L321.4,85.4 L323.2,85.8 L325.0,86.3 L326.7,86.7 L328.5,87.2 L330.3,87.6 L332.0,88.1 L333.8,88.6 L335.6,89.0 L337.3,89.5 L339.1,89.9 L340.9,90.4 L342.6,90.8 L344.4,91.3 L346.2,91.7 L347.9,92.2 L349.7,92.7 L351.5,93.1 L353.2,93.6 L355.0,94.0 L356.8,94.5 L358.5,94.9 L360.3,95.4 L362.1,95.9 L363.8,96.3 L365.6,96.8 L367.4,97.2 L369.1,97.7 L370.9,98.1 L372.7,98.6 L374.4,99.0 L376.2,99.5 L378.0,100.0 L379.7,100.4 L381.5,100.9 L383.3,101.3 L385.0,101.8 L386.8,102.2 L388.6,102.7 L390.3,103.2 L392.1,103.6 L393.9,104.1 L395.6,104.5 L397.4,105.0 L399.2,105.4 L400.9,105.9 L402.7,106.3 L404.5,106.8 L406.2,107.3 L408.0,107.7 L409.8,108.2 L411.5,108.6 L413.3,109.1 L415.1,109.5 L416.8,110.0 L418.6,110.5 L420.4,110.9 L422.1,111.4 L423.9,111.8 L425.7,112.3 L427.4,112.7 L429.2,113.2 L431.0,113.6 L432.7,114.1 L434.5,114.6 L436.3,115.0 L438.0,115.5 L439.8,115.9 L441.6,116.4 L443.3,116.8 L445.1,117.3 L446.9,117.8 L448.6,118.2 L450.4,118.7 L452.2,119.1 L453.9,119.6 L455.7,120.0 L457.5,120.5 L459.2,120.9 L461.0,121.4 L462.8,121.9 L464.5,122.3 L466.3,122.8 L468.1,123.2 L469.8,123.7 L471.6,124.1 L473.4,124.6 L475.1,125.1 L476.9,125.5 L478.7,126.0 L480.4,126.4 L482.2,126.9 L484.0,127.3 L485.7,127.8 L487.5,128.2 L489.3,128.7 L491.0,129.2 L492.8,129.6 L494.6,130.1 L496.3,130.5 L498.1,131.0 L499.9,131.4 L501.6,131.9 L503.4,132.4 L505.2,132.8 L506.9,133.3 L508.7,133.7 L510.5,134.2 L512.2,134.6 L514.0,135.1 L515.8,135.5 L517.5,136.0 L519.3,136.5 L521.1,136.9 L522.8,137.4 L524.6,137.8 L526.4,138.3 L528.1,138.7 L529.9,139.2 L531.7,139.7 L533.4,140.1 L535.2,140.6 L537.0,141.0 L538.7,141.5 L540.5,141.9 L542.3,142.4 L544.0,142.8 L545.8,143.3 L547.6,143.8 L549.3,144.2 L551.1,144.7 L552.9,145.1 L554.6,145.6 L556.4,146.0 L558.2,146.5 L559.9,147.0 L561.7,147.4 L563.5,147.9 L565.2,148.3 L567.0,148.8 L568.8,149.2 L570.5,149.7 L572.3,150.1 L574.1,150.6 L575.8,151.1 L577.6,151.5 L579.4,152.0 L581.1,152.4 L582.9,152.9 L584.7,153.3 L586.4,153.8 L588.2,154.3 L590.0,154.7 L591.7,155.2 L593.5,155.6 L595.3,156.1 L597.0,156.5 L598.8,157.0 L600.6,157.4 L602.3,157.9 L604.1,158.4 L605.9,158.8 L607.6,159.3 L609.4,159.7 L611.2,160.2 L612.9,160.6 L614.7,161.1 L616.5,161.6 L618.2,162.0 L620.0,162.5" fill="none" stroke="var(--accent)" stroke-width="2.8"/>
+      <path d="M90.0,31.5 L91.8,31.5 L93.5,31.5 L95.3,31.6 L97.1,31.6 L98.8,31.7 L100.6,31.7 L102.4,31.8 L104.1,31.9 L105.9,32.0 L107.7,32.1 L109.4,32.3 L111.2,32.4 L113.0,32.6 L114.7,32.8 L116.5,32.9 L118.3,33.1 L120.0,33.3 L121.8,33.6 L123.6,33.8 L125.3,34.0 L127.1,34.3 L128.9,34.5 L130.6,34.8 L132.4,35.1 L134.2,35.4 L135.9,35.7 L137.7,36.0 L139.5,36.3 L141.2,36.6 L143.0,37.0 L144.8,37.3 L146.5,37.7 L148.3,38.1 L150.1,38.4 L151.8,38.8 L153.6,39.2 L155.4,39.6 L157.1,40.0 L158.9,40.4 L160.7,40.9 L162.4,41.3 L164.2,41.7 L166.0,42.2 L167.7,42.6 L169.5,43.1 L171.3,43.5 L173.0,44.0 L174.8,44.5 L176.6,44.9 L178.3,45.4 L180.1,45.9 L181.9,46.4 L183.6,46.9 L185.4,47.4 L187.2,47.9 L188.9,48.4 L190.7,48.9 L192.5,49.4 L194.2,50.0 L196.0,50.5 L197.8,51.0 L199.5,51.5 L201.3,52.1 L203.1,52.6 L204.8,53.1 L206.6,53.7 L208.4,54.2 L210.1,54.7 L211.9,55.3 L213.7,55.8 L215.4,56.4 L217.2,56.9 L219.0,57.5 L220.7,58.0 L222.5,58.6 L224.3,59.1 L226.0,59.7 L227.8,60.2 L229.6,60.8 L231.3,61.4 L233.1,61.9 L234.9,62.5 L236.6,63.0 L238.4,63.6 L240.2,64.2 L241.9,64.7 L243.7,65.3 L245.5,65.8 L247.2,66.4 L249.0,66.9 L250.8,67.5 L252.5,68.1 L254.3,68.6 L256.1,69.2 L257.8,69.7 L259.6,70.3 L261.4,70.8 L263.1,71.4 L264.9,72.0 L266.7,72.5 L268.4,73.1 L270.2,73.6 L272.0,74.2 L273.7,74.7 L275.5,75.3 L277.3,75.8 L279.0,76.4 L280.8,76.9 L282.6,77.4 L284.3,78.0 L286.1,78.5 L287.9,79.1 L289.6,79.6 L291.4,80.2 L293.2,80.7 L294.9,81.2 L296.7,81.8 L298.5,82.3 L300.2,82.8 L302.0,83.4 L303.8,83.9 L305.5,84.4 L307.3,84.9 L309.1,85.5 L310.8,86.0 L312.6,86.5 L314.4,87.0 L316.1,87.6 L317.9,88.1 L319.7,88.6 L321.4,89.1 L323.2,89.6 L325.0,90.1 L326.7,90.6 L328.5,91.2 L330.3,91.7 L332.0,92.2 L333.8,92.7 L335.6,93.2 L337.3,93.7 L339.1,94.2 L340.9,94.7 L342.6,95.2 L344.4,95.7 L346.2,96.2 L347.9,96.6 L349.7,97.1 L351.5,97.6 L353.2,98.1 L355.0,98.6 L356.8,99.1 L358.5,99.6 L360.3,100.0 L362.1,100.5 L363.8,101.0 L365.6,101.5 L367.4,101.9 L369.1,102.4 L370.9,102.9 L372.7,103.4 L374.4,103.8 L376.2,104.3 L378.0,104.7 L379.7,105.2 L381.5,105.7 L383.3,106.1 L385.0,106.6 L386.8,107.0 L388.6,107.5 L390.3,107.9 L392.1,108.4 L393.9,108.9 L395.6,109.3 L397.4,109.7 L399.2,110.2 L400.9,110.6 L402.7,111.1 L404.5,111.5 L406.2,112.0 L408.0,112.4 L409.8,112.8 L411.5,113.3 L413.3,113.7 L415.1,114.1 L416.8,114.6 L418.6,115.0 L420.4,115.4 L422.1,115.8 L423.9,116.3 L425.7,116.7 L427.4,117.1 L429.2,117.5 L431.0,117.9 L432.7,118.4 L434.5,118.8 L436.3,119.2 L438.0,119.6 L439.8,120.0 L441.6,120.4 L443.3,120.8 L445.1,121.2 L446.9,121.6 L448.6,122.0 L450.4,122.4 L452.2,122.8 L453.9,123.2 L455.7,123.6 L457.5,124.0 L459.2,124.4 L461.0,124.8 L462.8,125.2 L464.5,125.6 L466.3,126.0 L468.1,126.4 L469.8,126.8 L471.6,127.2 L473.4,127.6 L475.1,127.9 L476.9,128.3 L478.7,128.7 L480.4,129.1 L482.2,129.5 L484.0,129.8 L485.7,130.2 L487.5,130.6 L489.3,131.0 L491.0,131.3 L492.8,131.7 L494.6,132.1 L496.3,132.5 L498.1,132.8 L499.9,133.2 L501.6,133.6 L503.4,133.9 L505.2,134.3 L506.9,134.6 L508.7,135.0 L510.5,135.4 L512.2,135.7 L514.0,136.1 L515.8,136.4 L517.5,136.8 L519.3,137.1 L521.1,137.5 L522.8,137.9 L524.6,138.2 L526.4,138.6 L528.1,138.9 L529.9,139.2 L531.7,139.6 L533.4,139.9 L535.2,140.3 L537.0,140.6 L538.7,141.0 L540.5,141.3 L542.3,141.6 L544.0,142.0 L545.8,142.3 L547.6,142.7 L549.3,143.0 L551.1,143.3 L552.9,143.7 L554.6,144.0 L556.4,144.3 L558.2,144.7 L559.9,145.0 L561.7,145.3 L563.5,145.6 L565.2,146.0 L567.0,146.3 L568.8,146.6 L570.5,146.9 L572.3,147.3 L574.1,147.6 L575.8,147.9 L577.6,148.2 L579.4,148.5 L581.1,148.9 L582.9,149.2 L584.7,149.5 L586.4,149.8 L588.2,150.1 L590.0,150.4 L591.7,150.8 L593.5,151.1 L595.3,151.4 L597.0,151.7 L598.8,152.0 L600.6,152.3 L602.3,152.6 L604.1,152.9 L605.9,153.2 L607.6,153.5 L609.4,153.8 L611.2,154.1 L612.9,154.4 L614.7,154.7 L616.5,155.0 L618.2,155.3 L620.0,155.6" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-dasharray="8 5"/>
+      <path d="M90.0,40.0 L243.0,40.0 L243.0,280" fill="none" stroke="var(--muted)" stroke-width="2.2" stroke-dasharray="7 6"/>
+      <text x="491.9" y="205.5" font-size="16" fill="var(--text)">Normal</text>
+      <text x="558.2" y="172.5" font-size="16" fill="var(--text)">Laplace</text>
+      <text x="478.7" y="110.7" font-size="16" fill="var(--text)">t₅ (κ = 9)</text>
+      <text x="253.4" y="231.7" font-size="16" fill="var(--muted)">Uniform stops at √3</text>
+      <text x="355.0" y="330" font-size="16" text-anchor="middle" fill="var(--text)">z</text>
+      <text x="24" y="150.0" font-size="16" text-anchor="middle" fill="var(--text)" transform="rotate(-90 24 150.0)">density (log scale)</text>
+    </svg>
+    <figcaption><strong>Figure 2:</strong> The right-hand tails on a log scale. The normal bends downward ever more steeply (its log-density is a parabola). The Laplace falls in a straight line (an exponential tail). The $t_5$ flattens out (a power-law tail, so its density falls like $|z|^{-6}$). By $z = 5$ the normal density is about 400 times below the other two.</figcaption>
+  </figure>
+
+  <p>
+    Put Figures 1 and 2 together and you have the honest picture of high kurtosis: <strong>more mass far out in the tails, paid for by less mass in the shoulders.</strong> The extra height at the centre is a side effect, explained in section 7, not the thing being measured.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  6. Where the number comes from                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="where-it-comes-from">
+  <h2>6. Where the Number Comes From</h2>
+  <p>
+    Kurtosis is an integral, $\kappa = \int z^4 f(z)\,dz$, so we can draw the thing being integrated, $z^4 f(z)$, and literally see which values of $z$ produce the kurtosis. The area under each curve is that distribution's $\kappa$.
+  </p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 310" role="img" aria-label="The integrand z to the fourth times f(z) for the normal and Laplace distributions; both are near zero for |z| less than 1 and peak far from the centre">
+      <line x1="60" y1="250" x2="620" y2="250" stroke="var(--muted)"/>
+      <rect x="293.3" y="20" width="93.3" height="230" fill="var(--highlight)"/>
+      <line x1="60.0" y1="250" x2="60.0" y2="256" stroke="var(--muted)"/>
+      <text x="60.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">-6</text>
+      <line x1="106.7" y1="250" x2="106.7" y2="256" stroke="var(--muted)"/>
+      <line x1="153.3" y1="250" x2="153.3" y2="256" stroke="var(--muted)"/>
+      <text x="153.3" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">-4</text>
+      <line x1="200.0" y1="250" x2="200.0" y2="256" stroke="var(--muted)"/>
+      <line x1="246.7" y1="250" x2="246.7" y2="256" stroke="var(--muted)"/>
+      <text x="246.7" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">-2</text>
+      <line x1="293.3" y1="250" x2="293.3" y2="256" stroke="var(--muted)"/>
+      <line x1="340.0" y1="250" x2="340.0" y2="256" stroke="var(--muted)"/>
+      <text x="340.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">0</text>
+      <line x1="386.7" y1="250" x2="386.7" y2="256" stroke="var(--muted)"/>
+      <line x1="433.3" y1="250" x2="433.3" y2="256" stroke="var(--muted)"/>
+      <text x="433.3" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">2</text>
+      <line x1="480.0" y1="250" x2="480.0" y2="256" stroke="var(--muted)"/>
+      <line x1="526.7" y1="250" x2="526.7" y2="256" stroke="var(--muted)"/>
+      <text x="526.7" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">4</text>
+      <line x1="573.3" y1="250" x2="573.3" y2="256" stroke="var(--muted)"/>
+      <line x1="620.0" y1="250" x2="620.0" y2="256" stroke="var(--muted)"/>
+      <text x="620.0" y="276" font-size="16" text-anchor="middle" fill="var(--muted)">6</text>
+      <path d="M60.0,250 L60.0,205.6 L60.9,204.9 L61.9,204.2 L62.8,203.6 L63.7,202.9 L64.7,202.2 L65.6,201.5 L66.5,200.7 L67.5,200.0 L68.4,199.3 L69.3,198.5 L70.3,197.8 L71.2,197.0 L72.1,196.3 L73.1,195.5 L74.0,194.7 L74.9,193.9 L75.9,193.1 L76.8,192.3 L77.7,191.5 L78.7,190.7 L79.6,189.8 L80.5,189.0 L81.5,188.1 L82.4,187.3 L83.3,186.4 L84.3,185.5 L85.2,184.6 L86.1,183.7 L87.1,182.8 L88.0,181.9 L88.9,181.0 L89.9,180.1 L90.8,179.1 L91.7,178.2 L92.7,177.2 L93.6,176.3 L94.5,175.3 L95.5,174.3 L96.4,173.3 L97.3,172.3 L98.3,171.3 L99.2,170.3 L100.1,169.3 L101.1,168.3 L102.0,167.2 L102.9,166.2 L103.9,165.1 L104.8,164.1 L105.7,163.0 L106.7,161.9 L107.6,160.8 L108.5,159.7 L109.5,158.6 L110.4,157.5 L111.3,156.4 L112.3,155.3 L113.2,154.2 L114.1,153.0 L115.1,151.9 L116.0,150.7 L116.9,149.6 L117.9,148.4 L118.8,147.2 L119.7,146.1 L120.7,144.9 L121.6,143.7 L122.5,142.5 L123.5,141.3 L124.4,140.1 L125.3,138.9 L126.3,137.7 L127.2,136.5 L128.1,135.2 L129.1,134.0 L130.0,132.8 L130.9,131.5 L131.9,130.3 L132.8,129.1 L133.7,127.8 L134.7,126.6 L135.6,125.3 L136.5,124.1 L137.5,122.8 L138.4,121.6 L139.3,120.3 L140.3,119.1 L141.2,117.8 L142.1,116.6 L143.1,115.3 L144.0,114.0 L144.9,112.8 L145.9,111.5 L146.8,110.3 L147.7,109.0 L148.7,107.8 L149.6,106.5 L150.5,105.3 L151.5,104.0 L152.4,102.8 L153.3,101.6 L154.3,100.4 L155.2,99.1 L156.1,97.9 L157.1,96.7 L158.0,95.5 L158.9,94.3 L159.9,93.1 L160.8,91.9 L161.7,90.8 L162.7,89.6 L163.6,88.4 L164.5,87.3 L165.5,86.2 L166.4,85.0 L167.3,83.9 L168.3,82.8 L169.2,81.7 L170.1,80.7 L171.1,79.6 L172.0,78.6 L172.9,77.5 L173.9,76.5 L174.8,75.5 L175.7,74.5 L176.7,73.6 L177.6,72.6 L178.5,71.7 L179.5,70.8 L180.4,69.9 L181.3,69.0 L182.3,68.2 L183.2,67.3 L184.1,66.5 L185.1,65.7 L186.0,65.0 L186.9,64.2 L187.9,63.5 L188.8,62.8 L189.7,62.2 L190.7,61.6 L191.6,60.9 L192.5,60.4 L193.5,59.8 L194.4,59.3 L195.3,58.8 L196.3,58.4 L197.2,57.9 L198.1,57.5 L199.1,57.2 L200.0,56.8 L200.9,56.5 L201.9,56.3 L202.8,56.1 L203.7,55.9 L204.7,55.7 L205.6,55.6 L206.5,55.5 L207.5,55.5 L208.4,55.5 L209.3,55.5 L210.3,55.6 L211.2,55.7 L212.1,55.9 L213.1,56.1 L214.0,56.3 L214.9,56.6 L215.9,56.9 L216.8,57.3 L217.7,57.7 L218.7,58.1 L219.6,58.6 L220.5,59.2 L221.5,59.8 L222.4,60.4 L223.3,61.1 L224.3,61.8 L225.2,62.6 L226.1,63.4 L227.1,64.3 L228.0,65.2 L228.9,66.1 L229.9,67.1 L230.8,68.2 L231.7,69.3 L232.7,70.4 L233.6,71.6 L234.5,72.8 L235.5,74.1 L236.4,75.5 L237.3,76.8 L238.3,78.3 L239.2,79.7 L240.1,81.2 L241.1,82.8 L242.0,84.4 L242.9,86.0 L243.9,87.7 L244.8,89.5 L245.7,91.2 L246.7,93.1 L247.6,94.9 L248.5,96.8 L249.5,98.8 L250.4,100.7 L251.3,102.8 L252.3,104.8 L253.2,106.9 L254.1,109.0 L255.1,111.2 L256.0,113.4 L256.9,115.6 L257.9,117.8 L258.8,120.1 L259.7,122.4 L260.7,124.8 L261.6,127.1 L262.5,129.5 L263.5,131.9 L264.4,134.4 L265.3,136.8 L266.3,139.3 L267.2,141.8 L268.1,144.3 L269.1,146.8 L270.0,149.3 L270.9,151.8 L271.9,154.3 L272.8,156.9 L273.7,159.4 L274.7,162.0 L275.6,164.5 L276.5,167.0 L277.5,169.6 L278.4,172.1 L279.3,174.6 L280.3,177.1 L281.2,179.6 L282.1,182.1 L283.1,184.5 L284.0,186.9 L284.9,189.4 L285.9,191.7 L286.8,194.1 L287.7,196.4 L288.7,198.7 L289.6,201.0 L290.5,203.2 L291.5,205.4 L292.4,207.5 L293.3,209.7 L294.3,211.7 L295.2,213.7 L296.1,215.7 L297.1,217.6 L298.0,219.5 L298.9,221.3 L299.9,223.1 L300.8,224.8 L301.7,226.5 L302.7,228.1 L303.6,229.6 L304.5,231.1 L305.5,232.5 L306.4,233.9 L307.3,235.2 L308.3,236.4 L309.2,237.6 L310.1,238.7 L311.1,239.8 L312.0,240.8 L312.9,241.7 L313.9,242.6 L314.8,243.4 L315.7,244.2 L316.7,244.9 L317.6,245.5 L318.5,246.1 L319.5,246.7 L320.4,247.1 L321.3,247.6 L322.3,248.0 L323.2,248.3 L324.1,248.6 L325.1,248.9 L326.0,249.1 L326.9,249.3 L327.9,249.5 L328.8,249.6 L329.7,249.7 L330.7,249.8 L331.6,249.9 L332.5,249.9 L333.5,249.9 L334.4,250.0 L335.3,250.0 L336.3,250.0 L337.2,250.0 L338.1,250.0 L339.1,250.0 L340.0,250.0 L340.9,250.0 L341.9,250.0 L342.8,250.0 L343.7,250.0 L344.7,250.0 L345.6,250.0 L346.5,249.9 L347.5,249.9 L348.4,249.9 L349.3,249.8 L350.3,249.7 L351.2,249.6 L352.1,249.5 L353.1,249.3 L354.0,249.1 L354.9,248.9 L355.9,248.6 L356.8,248.3 L357.7,248.0 L358.7,247.6 L359.6,247.1 L360.5,246.7 L361.5,246.1 L362.4,245.5 L363.3,244.9 L364.3,244.2 L365.2,243.4 L366.1,242.6 L367.1,241.7 L368.0,240.8 L368.9,239.8 L369.9,238.7 L370.8,237.6 L371.7,236.4 L372.7,235.2 L373.6,233.9 L374.5,232.5 L375.5,231.1 L376.4,229.6 L377.3,228.1 L378.3,226.5 L379.2,224.8 L380.1,223.1 L381.1,221.3 L382.0,219.5 L382.9,217.6 L383.9,215.7 L384.8,213.7 L385.7,211.7 L386.7,209.7 L387.6,207.5 L388.5,205.4 L389.5,203.2 L390.4,201.0 L391.3,198.7 L392.3,196.4 L393.2,194.1 L394.1,191.7 L395.1,189.4 L396.0,186.9 L396.9,184.5 L397.9,182.1 L398.8,179.6 L399.7,177.1 L400.7,174.6 L401.6,172.1 L402.5,169.6 L403.5,167.0 L404.4,164.5 L405.3,162.0 L406.3,159.4 L407.2,156.9 L408.1,154.3 L409.1,151.8 L410.0,149.3 L410.9,146.8 L411.9,144.3 L412.8,141.8 L413.7,139.3 L414.7,136.8 L415.6,134.4 L416.5,131.9 L417.5,129.5 L418.4,127.1 L419.3,124.8 L420.3,122.4 L421.2,120.1 L422.1,117.8 L423.1,115.6 L424.0,113.4 L424.9,111.2 L425.9,109.0 L426.8,106.9 L427.7,104.8 L428.7,102.8 L429.6,100.7 L430.5,98.8 L431.5,96.8 L432.4,94.9 L433.3,93.1 L434.3,91.2 L435.2,89.5 L436.1,87.7 L437.1,86.0 L438.0,84.4 L438.9,82.8 L439.9,81.2 L440.8,79.7 L441.7,78.3 L442.7,76.8 L443.6,75.5 L444.5,74.1 L445.5,72.8 L446.4,71.6 L447.3,70.4 L448.3,69.3 L449.2,68.2 L450.1,67.1 L451.1,66.1 L452.0,65.2 L452.9,64.3 L453.9,63.4 L454.8,62.6 L455.7,61.8 L456.7,61.1 L457.6,60.4 L458.5,59.8 L459.5,59.2 L460.4,58.6 L461.3,58.1 L462.3,57.7 L463.2,57.3 L464.1,56.9 L465.1,56.6 L466.0,56.3 L466.9,56.1 L467.9,55.9 L468.8,55.7 L469.7,55.6 L470.7,55.5 L471.6,55.5 L472.5,55.5 L473.5,55.5 L474.4,55.6 L475.3,55.7 L476.3,55.9 L477.2,56.1 L478.1,56.3 L479.1,56.5 L480.0,56.8 L480.9,57.2 L481.9,57.5 L482.8,57.9 L483.7,58.4 L484.7,58.8 L485.6,59.3 L486.5,59.8 L487.5,60.4 L488.4,60.9 L489.3,61.6 L490.3,62.2 L491.2,62.8 L492.1,63.5 L493.1,64.2 L494.0,65.0 L494.9,65.7 L495.9,66.5 L496.8,67.3 L497.7,68.2 L498.7,69.0 L499.6,69.9 L500.5,70.8 L501.5,71.7 L502.4,72.6 L503.3,73.6 L504.3,74.5 L505.2,75.5 L506.1,76.5 L507.1,77.5 L508.0,78.6 L508.9,79.6 L509.9,80.7 L510.8,81.7 L511.7,82.8 L512.7,83.9 L513.6,85.0 L514.5,86.2 L515.5,87.3 L516.4,88.4 L517.3,89.6 L518.3,90.8 L519.2,91.9 L520.1,93.1 L521.1,94.3 L522.0,95.5 L522.9,96.7 L523.9,97.9 L524.8,99.1 L525.7,100.4 L526.7,101.6 L527.6,102.8 L528.5,104.0 L529.5,105.3 L530.4,106.5 L531.3,107.8 L532.3,109.0 L533.2,110.3 L534.1,111.5 L535.1,112.8 L536.0,114.0 L536.9,115.3 L537.9,116.6 L538.8,117.8 L539.7,119.1 L540.7,120.3 L541.6,121.6 L542.5,122.8 L543.5,124.1 L544.4,125.3 L545.3,126.6 L546.3,127.8 L547.2,129.1 L548.1,130.3 L549.1,131.5 L550.0,132.8 L550.9,134.0 L551.9,135.2 L552.8,136.5 L553.7,137.7 L554.7,138.9 L555.6,140.1 L556.5,141.3 L557.5,142.5 L558.4,143.7 L559.3,144.9 L560.3,146.1 L561.2,147.2 L562.1,148.4 L563.1,149.6 L564.0,150.7 L564.9,151.9 L565.9,153.0 L566.8,154.2 L567.7,155.3 L568.7,156.4 L569.6,157.5 L570.5,158.6 L571.5,159.7 L572.4,160.8 L573.3,161.9 L574.3,163.0 L575.2,164.1 L576.1,165.1 L577.1,166.2 L578.0,167.2 L578.9,168.3 L579.9,169.3 L580.8,170.3 L581.7,171.3 L582.7,172.3 L583.6,173.3 L584.5,174.3 L585.5,175.3 L586.4,176.3 L587.3,177.2 L588.3,178.2 L589.2,179.1 L590.1,180.1 L591.1,181.0 L592.0,181.9 L592.9,182.8 L593.9,183.7 L594.8,184.6 L595.7,185.5 L596.7,186.4 L597.6,187.3 L598.5,188.1 L599.5,189.0 L600.4,189.8 L601.3,190.7 L602.3,191.5 L603.2,192.3 L604.1,193.1 L605.1,193.9 L606.0,194.7 L606.9,195.5 L607.9,196.3 L608.8,197.0 L609.7,197.8 L610.7,198.5 L611.6,199.3 L612.5,200.0 L613.5,200.7 L614.4,201.5 L615.3,202.2 L616.3,202.9 L617.2,203.6 L618.1,204.2 L619.1,204.9 L620.0,205.6 L620.0,250 Z" fill="var(--accent)" fill-opacity="0.18"/>
+      <path d="M60.0,205.6 L60.9,204.9 L61.9,204.2 L62.8,203.6 L63.7,202.9 L64.7,202.2 L65.6,201.5 L66.5,200.7 L67.5,200.0 L68.4,199.3 L69.3,198.5 L70.3,197.8 L71.2,197.0 L72.1,196.3 L73.1,195.5 L74.0,194.7 L74.9,193.9 L75.9,193.1 L76.8,192.3 L77.7,191.5 L78.7,190.7 L79.6,189.8 L80.5,189.0 L81.5,188.1 L82.4,187.3 L83.3,186.4 L84.3,185.5 L85.2,184.6 L86.1,183.7 L87.1,182.8 L88.0,181.9 L88.9,181.0 L89.9,180.1 L90.8,179.1 L91.7,178.2 L92.7,177.2 L93.6,176.3 L94.5,175.3 L95.5,174.3 L96.4,173.3 L97.3,172.3 L98.3,171.3 L99.2,170.3 L100.1,169.3 L101.1,168.3 L102.0,167.2 L102.9,166.2 L103.9,165.1 L104.8,164.1 L105.7,163.0 L106.7,161.9 L107.6,160.8 L108.5,159.7 L109.5,158.6 L110.4,157.5 L111.3,156.4 L112.3,155.3 L113.2,154.2 L114.1,153.0 L115.1,151.9 L116.0,150.7 L116.9,149.6 L117.9,148.4 L118.8,147.2 L119.7,146.1 L120.7,144.9 L121.6,143.7 L122.5,142.5 L123.5,141.3 L124.4,140.1 L125.3,138.9 L126.3,137.7 L127.2,136.5 L128.1,135.2 L129.1,134.0 L130.0,132.8 L130.9,131.5 L131.9,130.3 L132.8,129.1 L133.7,127.8 L134.7,126.6 L135.6,125.3 L136.5,124.1 L137.5,122.8 L138.4,121.6 L139.3,120.3 L140.3,119.1 L141.2,117.8 L142.1,116.6 L143.1,115.3 L144.0,114.0 L144.9,112.8 L145.9,111.5 L146.8,110.3 L147.7,109.0 L148.7,107.8 L149.6,106.5 L150.5,105.3 L151.5,104.0 L152.4,102.8 L153.3,101.6 L154.3,100.4 L155.2,99.1 L156.1,97.9 L157.1,96.7 L158.0,95.5 L158.9,94.3 L159.9,93.1 L160.8,91.9 L161.7,90.8 L162.7,89.6 L163.6,88.4 L164.5,87.3 L165.5,86.2 L166.4,85.0 L167.3,83.9 L168.3,82.8 L169.2,81.7 L170.1,80.7 L171.1,79.6 L172.0,78.6 L172.9,77.5 L173.9,76.5 L174.8,75.5 L175.7,74.5 L176.7,73.6 L177.6,72.6 L178.5,71.7 L179.5,70.8 L180.4,69.9 L181.3,69.0 L182.3,68.2 L183.2,67.3 L184.1,66.5 L185.1,65.7 L186.0,65.0 L186.9,64.2 L187.9,63.5 L188.8,62.8 L189.7,62.2 L190.7,61.6 L191.6,60.9 L192.5,60.4 L193.5,59.8 L194.4,59.3 L195.3,58.8 L196.3,58.4 L197.2,57.9 L198.1,57.5 L199.1,57.2 L200.0,56.8 L200.9,56.5 L201.9,56.3 L202.8,56.1 L203.7,55.9 L204.7,55.7 L205.6,55.6 L206.5,55.5 L207.5,55.5 L208.4,55.5 L209.3,55.5 L210.3,55.6 L211.2,55.7 L212.1,55.9 L213.1,56.1 L214.0,56.3 L214.9,56.6 L215.9,56.9 L216.8,57.3 L217.7,57.7 L218.7,58.1 L219.6,58.6 L220.5,59.2 L221.5,59.8 L222.4,60.4 L223.3,61.1 L224.3,61.8 L225.2,62.6 L226.1,63.4 L227.1,64.3 L228.0,65.2 L228.9,66.1 L229.9,67.1 L230.8,68.2 L231.7,69.3 L232.7,70.4 L233.6,71.6 L234.5,72.8 L235.5,74.1 L236.4,75.5 L237.3,76.8 L238.3,78.3 L239.2,79.7 L240.1,81.2 L241.1,82.8 L242.0,84.4 L242.9,86.0 L243.9,87.7 L244.8,89.5 L245.7,91.2 L246.7,93.1 L247.6,94.9 L248.5,96.8 L249.5,98.8 L250.4,100.7 L251.3,102.8 L252.3,104.8 L253.2,106.9 L254.1,109.0 L255.1,111.2 L256.0,113.4 L256.9,115.6 L257.9,117.8 L258.8,120.1 L259.7,122.4 L260.7,124.8 L261.6,127.1 L262.5,129.5 L263.5,131.9 L264.4,134.4 L265.3,136.8 L266.3,139.3 L267.2,141.8 L268.1,144.3 L269.1,146.8 L270.0,149.3 L270.9,151.8 L271.9,154.3 L272.8,156.9 L273.7,159.4 L274.7,162.0 L275.6,164.5 L276.5,167.0 L277.5,169.6 L278.4,172.1 L279.3,174.6 L280.3,177.1 L281.2,179.6 L282.1,182.1 L283.1,184.5 L284.0,186.9 L284.9,189.4 L285.9,191.7 L286.8,194.1 L287.7,196.4 L288.7,198.7 L289.6,201.0 L290.5,203.2 L291.5,205.4 L292.4,207.5 L293.3,209.7 L294.3,211.7 L295.2,213.7 L296.1,215.7 L297.1,217.6 L298.0,219.5 L298.9,221.3 L299.9,223.1 L300.8,224.8 L301.7,226.5 L302.7,228.1 L303.6,229.6 L304.5,231.1 L305.5,232.5 L306.4,233.9 L307.3,235.2 L308.3,236.4 L309.2,237.6 L310.1,238.7 L311.1,239.8 L312.0,240.8 L312.9,241.7 L313.9,242.6 L314.8,243.4 L315.7,244.2 L316.7,244.9 L317.6,245.5 L318.5,246.1 L319.5,246.7 L320.4,247.1 L321.3,247.6 L322.3,248.0 L323.2,248.3 L324.1,248.6 L325.1,248.9 L326.0,249.1 L326.9,249.3 L327.9,249.5 L328.8,249.6 L329.7,249.7 L330.7,249.8 L331.6,249.9 L332.5,249.9 L333.5,249.9 L334.4,250.0 L335.3,250.0 L336.3,250.0 L337.2,250.0 L338.1,250.0 L339.1,250.0 L340.0,250.0 L340.9,250.0 L341.9,250.0 L342.8,250.0 L343.7,250.0 L344.7,250.0 L345.6,250.0 L346.5,249.9 L347.5,249.9 L348.4,249.9 L349.3,249.8 L350.3,249.7 L351.2,249.6 L352.1,249.5 L353.1,249.3 L354.0,249.1 L354.9,248.9 L355.9,248.6 L356.8,248.3 L357.7,248.0 L358.7,247.6 L359.6,247.1 L360.5,246.7 L361.5,246.1 L362.4,245.5 L363.3,244.9 L364.3,244.2 L365.2,243.4 L366.1,242.6 L367.1,241.7 L368.0,240.8 L368.9,239.8 L369.9,238.7 L370.8,237.6 L371.7,236.4 L372.7,235.2 L373.6,233.9 L374.5,232.5 L375.5,231.1 L376.4,229.6 L377.3,228.1 L378.3,226.5 L379.2,224.8 L380.1,223.1 L381.1,221.3 L382.0,219.5 L382.9,217.6 L383.9,215.7 L384.8,213.7 L385.7,211.7 L386.7,209.7 L387.6,207.5 L388.5,205.4 L389.5,203.2 L390.4,201.0 L391.3,198.7 L392.3,196.4 L393.2,194.1 L394.1,191.7 L395.1,189.4 L396.0,186.9 L396.9,184.5 L397.9,182.1 L398.8,179.6 L399.7,177.1 L400.7,174.6 L401.6,172.1 L402.5,169.6 L403.5,167.0 L404.4,164.5 L405.3,162.0 L406.3,159.4 L407.2,156.9 L408.1,154.3 L409.1,151.8 L410.0,149.3 L410.9,146.8 L411.9,144.3 L412.8,141.8 L413.7,139.3 L414.7,136.8 L415.6,134.4 L416.5,131.9 L417.5,129.5 L418.4,127.1 L419.3,124.8 L420.3,122.4 L421.2,120.1 L422.1,117.8 L423.1,115.6 L424.0,113.4 L424.9,111.2 L425.9,109.0 L426.8,106.9 L427.7,104.8 L428.7,102.8 L429.6,100.7 L430.5,98.8 L431.5,96.8 L432.4,94.9 L433.3,93.1 L434.3,91.2 L435.2,89.5 L436.1,87.7 L437.1,86.0 L438.0,84.4 L438.9,82.8 L439.9,81.2 L440.8,79.7 L441.7,78.3 L442.7,76.8 L443.6,75.5 L444.5,74.1 L445.5,72.8 L446.4,71.6 L447.3,70.4 L448.3,69.3 L449.2,68.2 L450.1,67.1 L451.1,66.1 L452.0,65.2 L452.9,64.3 L453.9,63.4 L454.8,62.6 L455.7,61.8 L456.7,61.1 L457.6,60.4 L458.5,59.8 L459.5,59.2 L460.4,58.6 L461.3,58.1 L462.3,57.7 L463.2,57.3 L464.1,56.9 L465.1,56.6 L466.0,56.3 L466.9,56.1 L467.9,55.9 L468.8,55.7 L469.7,55.6 L470.7,55.5 L471.6,55.5 L472.5,55.5 L473.5,55.5 L474.4,55.6 L475.3,55.7 L476.3,55.9 L477.2,56.1 L478.1,56.3 L479.1,56.5 L480.0,56.8 L480.9,57.2 L481.9,57.5 L482.8,57.9 L483.7,58.4 L484.7,58.8 L485.6,59.3 L486.5,59.8 L487.5,60.4 L488.4,60.9 L489.3,61.6 L490.3,62.2 L491.2,62.8 L492.1,63.5 L493.1,64.2 L494.0,65.0 L494.9,65.7 L495.9,66.5 L496.8,67.3 L497.7,68.2 L498.7,69.0 L499.6,69.9 L500.5,70.8 L501.5,71.7 L502.4,72.6 L503.3,73.6 L504.3,74.5 L505.2,75.5 L506.1,76.5 L507.1,77.5 L508.0,78.6 L508.9,79.6 L509.9,80.7 L510.8,81.7 L511.7,82.8 L512.7,83.9 L513.6,85.0 L514.5,86.2 L515.5,87.3 L516.4,88.4 L517.3,89.6 L518.3,90.8 L519.2,91.9 L520.1,93.1 L521.1,94.3 L522.0,95.5 L522.9,96.7 L523.9,97.9 L524.8,99.1 L525.7,100.4 L526.7,101.6 L527.6,102.8 L528.5,104.0 L529.5,105.3 L530.4,106.5 L531.3,107.8 L532.3,109.0 L533.2,110.3 L534.1,111.5 L535.1,112.8 L536.0,114.0 L536.9,115.3 L537.9,116.6 L538.8,117.8 L539.7,119.1 L540.7,120.3 L541.6,121.6 L542.5,122.8 L543.5,124.1 L544.4,125.3 L545.3,126.6 L546.3,127.8 L547.2,129.1 L548.1,130.3 L549.1,131.5 L550.0,132.8 L550.9,134.0 L551.9,135.2 L552.8,136.5 L553.7,137.7 L554.7,138.9 L555.6,140.1 L556.5,141.3 L557.5,142.5 L558.4,143.7 L559.3,144.9 L560.3,146.1 L561.2,147.2 L562.1,148.4 L563.1,149.6 L564.0,150.7 L564.9,151.9 L565.9,153.0 L566.8,154.2 L567.7,155.3 L568.7,156.4 L569.6,157.5 L570.5,158.6 L571.5,159.7 L572.4,160.8 L573.3,161.9 L574.3,163.0 L575.2,164.1 L576.1,165.1 L577.1,166.2 L578.0,167.2 L578.9,168.3 L579.9,169.3 L580.8,170.3 L581.7,171.3 L582.7,172.3 L583.6,173.3 L584.5,174.3 L585.5,175.3 L586.4,176.3 L587.3,177.2 L588.3,178.2 L589.2,179.1 L590.1,180.1 L591.1,181.0 L592.0,181.9 L592.9,182.8 L593.9,183.7 L594.8,184.6 L595.7,185.5 L596.7,186.4 L597.6,187.3 L598.5,188.1 L599.5,189.0 L600.4,189.8 L601.3,190.7 L602.3,191.5 L603.2,192.3 L604.1,193.1 L605.1,193.9 L606.0,194.7 L606.9,195.5 L607.9,196.3 L608.8,197.0 L609.7,197.8 L610.7,198.5 L611.6,199.3 L612.5,200.0 L613.5,200.7 L614.4,201.5 L615.3,202.2 L616.3,202.9 L617.2,203.6 L618.1,204.2 L619.1,204.9 L620.0,205.6" fill="none" stroke="var(--accent)" stroke-width="2.6"/>
+      <path d="M60.0,250 L60.0,250.0 L60.9,250.0 L61.9,250.0 L62.8,250.0 L63.7,250.0 L64.7,250.0 L65.6,250.0 L66.5,250.0 L67.5,250.0 L68.4,250.0 L69.3,250.0 L70.3,250.0 L71.2,250.0 L72.1,250.0 L73.1,250.0 L74.0,250.0 L74.9,250.0 L75.9,250.0 L76.8,250.0 L77.7,250.0 L78.7,250.0 L79.6,250.0 L80.5,250.0 L81.5,250.0 L82.4,250.0 L83.3,250.0 L84.3,250.0 L85.2,250.0 L86.1,250.0 L87.1,250.0 L88.0,250.0 L88.9,250.0 L89.9,250.0 L90.8,250.0 L91.7,249.9 L92.7,249.9 L93.6,249.9 L94.5,249.9 L95.5,249.9 L96.4,249.9 L97.3,249.9 L98.3,249.9 L99.2,249.9 L100.1,249.9 L101.1,249.9 L102.0,249.9 L102.9,249.8 L103.9,249.8 L104.8,249.8 L105.7,249.8 L106.7,249.8 L107.6,249.8 L108.5,249.7 L109.5,249.7 L110.4,249.7 L111.3,249.7 L112.3,249.6 L113.2,249.6 L114.1,249.6 L115.1,249.5 L116.0,249.5 L116.9,249.5 L117.9,249.4 L118.8,249.4 L119.7,249.3 L120.7,249.3 L121.6,249.2 L122.5,249.1 L123.5,249.1 L124.4,249.0 L125.3,248.9 L126.3,248.9 L127.2,248.8 L128.1,248.7 L129.1,248.6 L130.0,248.5 L130.9,248.3 L131.9,248.2 L132.8,248.1 L133.7,248.0 L134.7,247.8 L135.6,247.6 L136.5,247.5 L137.5,247.3 L138.4,247.1 L139.3,246.9 L140.3,246.7 L141.2,246.5 L142.1,246.2 L143.1,246.0 L144.0,245.7 L144.9,245.4 L145.9,245.1 L146.8,244.8 L147.7,244.4 L148.7,244.1 L149.6,243.7 L150.5,243.3 L151.5,242.9 L152.4,242.4 L153.3,242.0 L154.3,241.5 L155.2,240.9 L156.1,240.4 L157.1,239.8 L158.0,239.2 L158.9,238.6 L159.9,237.9 L160.8,237.2 L161.7,236.5 L162.7,235.7 L163.6,234.9 L164.5,234.1 L165.5,233.2 L166.4,232.3 L167.3,231.3 L168.3,230.3 L169.2,229.3 L170.1,228.2 L171.1,227.1 L172.0,225.9 L172.9,224.7 L173.9,223.4 L174.8,222.1 L175.7,220.7 L176.7,219.3 L177.6,217.8 L178.5,216.3 L179.5,214.7 L180.4,213.0 L181.3,211.4 L182.3,209.6 L183.2,207.8 L184.1,205.9 L185.1,204.0 L186.0,202.1 L186.9,200.0 L187.9,197.9 L188.8,195.8 L189.7,193.6 L190.7,191.3 L191.6,189.0 L192.5,186.6 L193.5,184.2 L194.4,181.7 L195.3,179.2 L196.3,176.6 L197.2,174.0 L198.1,171.3 L199.1,168.5 L200.0,165.7 L200.9,162.9 L201.9,160.0 L202.8,157.1 L203.7,154.2 L204.7,151.2 L205.6,148.2 L206.5,145.1 L207.5,142.0 L208.4,138.9 L209.3,135.8 L210.3,132.7 L211.2,129.5 L212.1,126.4 L213.1,123.2 L214.0,120.0 L214.9,116.9 L215.9,113.7 L216.8,110.6 L217.7,107.4 L218.7,104.3 L219.6,101.2 L220.5,98.2 L221.5,95.2 L222.4,92.2 L223.3,89.3 L224.3,86.4 L225.2,83.6 L226.1,80.9 L227.1,78.2 L228.0,75.6 L228.9,73.1 L229.9,70.7 L230.8,68.3 L231.7,66.1 L232.7,64.0 L233.6,61.9 L234.5,60.0 L235.5,58.2 L236.4,56.5 L237.3,55.0 L238.3,53.5 L239.2,52.3 L240.1,51.1 L241.1,50.1 L242.0,49.2 L242.9,48.5 L243.9,48.0 L244.8,47.6 L245.7,47.3 L246.7,47.3 L247.6,47.3 L248.5,47.6 L249.5,48.0 L250.4,48.6 L251.3,49.3 L252.3,50.2 L253.2,51.3 L254.1,52.5 L255.1,53.9 L256.0,55.5 L256.9,57.2 L257.9,59.1 L258.8,61.1 L259.7,63.3 L260.7,65.6 L261.6,68.1 L262.5,70.7 L263.5,73.5 L264.4,76.4 L265.3,79.4 L266.3,82.5 L267.2,85.8 L268.1,89.1 L269.1,92.6 L270.0,96.1 L270.9,99.7 L271.9,103.5 L272.8,107.2 L273.7,111.1 L274.7,115.0 L275.6,119.0 L276.5,123.0 L277.5,127.0 L278.4,131.1 L279.3,135.1 L280.3,139.2 L281.2,143.3 L282.1,147.4 L283.1,151.5 L284.0,155.5 L284.9,159.5 L285.9,163.5 L286.8,167.4 L287.7,171.3 L288.7,175.1 L289.6,178.9 L290.5,182.6 L291.5,186.2 L292.4,189.8 L293.3,193.2 L294.3,196.6 L295.2,199.8 L296.1,203.0 L297.1,206.1 L298.0,209.0 L298.9,211.9 L299.9,214.6 L300.8,217.2 L301.7,219.8 L302.7,222.2 L303.6,224.4 L304.5,226.6 L305.5,228.6 L306.4,230.6 L307.3,232.4 L308.3,234.1 L309.2,235.7 L310.1,237.2 L311.1,238.6 L312.0,239.9 L312.9,241.0 L313.9,242.1 L314.8,243.1 L315.7,244.0 L316.7,244.8 L317.6,245.6 L318.5,246.2 L319.5,246.8 L320.4,247.3 L321.3,247.8 L322.3,248.2 L323.2,248.5 L324.1,248.8 L325.1,249.1 L326.0,249.3 L326.9,249.4 L327.9,249.6 L328.8,249.7 L329.7,249.8 L330.7,249.9 L331.6,249.9 L332.5,249.9 L333.5,250.0 L334.4,250.0 L335.3,250.0 L336.3,250.0 L337.2,250.0 L338.1,250.0 L339.1,250.0 L340.0,250.0 L340.9,250.0 L341.9,250.0 L342.8,250.0 L343.7,250.0 L344.7,250.0 L345.6,250.0 L346.5,250.0 L347.5,249.9 L348.4,249.9 L349.3,249.9 L350.3,249.8 L351.2,249.7 L352.1,249.6 L353.1,249.4 L354.0,249.3 L354.9,249.1 L355.9,248.8 L356.8,248.5 L357.7,248.2 L358.7,247.8 L359.6,247.3 L360.5,246.8 L361.5,246.2 L362.4,245.6 L363.3,244.8 L364.3,244.0 L365.2,243.1 L366.1,242.1 L367.1,241.0 L368.0,239.9 L368.9,238.6 L369.9,237.2 L370.8,235.7 L371.7,234.1 L372.7,232.4 L373.6,230.6 L374.5,228.6 L375.5,226.6 L376.4,224.4 L377.3,222.2 L378.3,219.8 L379.2,217.2 L380.1,214.6 L381.1,211.9 L382.0,209.0 L382.9,206.1 L383.9,203.0 L384.8,199.8 L385.7,196.6 L386.7,193.2 L387.6,189.8 L388.5,186.2 L389.5,182.6 L390.4,178.9 L391.3,175.1 L392.3,171.3 L393.2,167.4 L394.1,163.5 L395.1,159.5 L396.0,155.5 L396.9,151.5 L397.9,147.4 L398.8,143.3 L399.7,139.2 L400.7,135.1 L401.6,131.1 L402.5,127.0 L403.5,123.0 L404.4,119.0 L405.3,115.0 L406.3,111.1 L407.2,107.2 L408.1,103.5 L409.1,99.7 L410.0,96.1 L410.9,92.6 L411.9,89.1 L412.8,85.8 L413.7,82.5 L414.7,79.4 L415.6,76.4 L416.5,73.5 L417.5,70.7 L418.4,68.1 L419.3,65.6 L420.3,63.3 L421.2,61.1 L422.1,59.1 L423.1,57.2 L424.0,55.5 L424.9,53.9 L425.9,52.5 L426.8,51.3 L427.7,50.2 L428.7,49.3 L429.6,48.6 L430.5,48.0 L431.5,47.6 L432.4,47.3 L433.3,47.3 L434.3,47.3 L435.2,47.6 L436.1,48.0 L437.1,48.5 L438.0,49.2 L438.9,50.1 L439.9,51.1 L440.8,52.3 L441.7,53.5 L442.7,55.0 L443.6,56.5 L444.5,58.2 L445.5,60.0 L446.4,61.9 L447.3,64.0 L448.3,66.1 L449.2,68.3 L450.1,70.7 L451.1,73.1 L452.0,75.6 L452.9,78.2 L453.9,80.9 L454.8,83.6 L455.7,86.4 L456.7,89.3 L457.6,92.2 L458.5,95.2 L459.5,98.2 L460.4,101.2 L461.3,104.3 L462.3,107.4 L463.2,110.6 L464.1,113.7 L465.1,116.9 L466.0,120.0 L466.9,123.2 L467.9,126.4 L468.8,129.5 L469.7,132.7 L470.7,135.8 L471.6,138.9 L472.5,142.0 L473.5,145.1 L474.4,148.2 L475.3,151.2 L476.3,154.2 L477.2,157.1 L478.1,160.0 L479.1,162.9 L480.0,165.7 L480.9,168.5 L481.9,171.3 L482.8,174.0 L483.7,176.6 L484.7,179.2 L485.6,181.7 L486.5,184.2 L487.5,186.6 L488.4,189.0 L489.3,191.3 L490.3,193.6 L491.2,195.8 L492.1,197.9 L493.1,200.0 L494.0,202.1 L494.9,204.0 L495.9,205.9 L496.8,207.8 L497.7,209.6 L498.7,211.4 L499.6,213.0 L500.5,214.7 L501.5,216.3 L502.4,217.8 L503.3,219.3 L504.3,220.7 L505.2,222.1 L506.1,223.4 L507.1,224.7 L508.0,225.9 L508.9,227.1 L509.9,228.2 L510.8,229.3 L511.7,230.3 L512.7,231.3 L513.6,232.3 L514.5,233.2 L515.5,234.1 L516.4,234.9 L517.3,235.7 L518.3,236.5 L519.2,237.2 L520.1,237.9 L521.1,238.6 L522.0,239.2 L522.9,239.8 L523.9,240.4 L524.8,240.9 L525.7,241.5 L526.7,242.0 L527.6,242.4 L528.5,242.9 L529.5,243.3 L530.4,243.7 L531.3,244.1 L532.3,244.4 L533.2,244.8 L534.1,245.1 L535.1,245.4 L536.0,245.7 L536.9,246.0 L537.9,246.2 L538.8,246.5 L539.7,246.7 L540.7,246.9 L541.6,247.1 L542.5,247.3 L543.5,247.5 L544.4,247.6 L545.3,247.8 L546.3,248.0 L547.2,248.1 L548.1,248.2 L549.1,248.3 L550.0,248.5 L550.9,248.6 L551.9,248.7 L552.8,248.8 L553.7,248.9 L554.7,248.9 L555.6,249.0 L556.5,249.1 L557.5,249.1 L558.4,249.2 L559.3,249.3 L560.3,249.3 L561.2,249.4 L562.1,249.4 L563.1,249.5 L564.0,249.5 L564.9,249.5 L565.9,249.6 L566.8,249.6 L567.7,249.6 L568.7,249.7 L569.6,249.7 L570.5,249.7 L571.5,249.7 L572.4,249.8 L573.3,249.8 L574.3,249.8 L575.2,249.8 L576.1,249.8 L577.1,249.8 L578.0,249.9 L578.9,249.9 L579.9,249.9 L580.8,249.9 L581.7,249.9 L582.7,249.9 L583.6,249.9 L584.5,249.9 L585.5,249.9 L586.4,249.9 L587.3,249.9 L588.3,249.9 L589.2,250.0 L590.1,250.0 L591.1,250.0 L592.0,250.0 L592.9,250.0 L593.9,250.0 L594.8,250.0 L595.7,250.0 L596.7,250.0 L597.6,250.0 L598.5,250.0 L599.5,250.0 L600.4,250.0 L601.3,250.0 L602.3,250.0 L603.2,250.0 L604.1,250.0 L605.1,250.0 L606.0,250.0 L606.9,250.0 L607.9,250.0 L608.8,250.0 L609.7,250.0 L610.7,250.0 L611.6,250.0 L612.5,250.0 L613.5,250.0 L614.4,250.0 L615.3,250.0 L616.3,250.0 L617.2,250.0 L618.1,250.0 L619.1,250.0 L620.0,250.0 L620.0,250 Z" fill="var(--dark)" fill-opacity="0.12"/>
+      <path d="M60.0,250.0 L60.9,250.0 L61.9,250.0 L62.8,250.0 L63.7,250.0 L64.7,250.0 L65.6,250.0 L66.5,250.0 L67.5,250.0 L68.4,250.0 L69.3,250.0 L70.3,250.0 L71.2,250.0 L72.1,250.0 L73.1,250.0 L74.0,250.0 L74.9,250.0 L75.9,250.0 L76.8,250.0 L77.7,250.0 L78.7,250.0 L79.6,250.0 L80.5,250.0 L81.5,250.0 L82.4,250.0 L83.3,250.0 L84.3,250.0 L85.2,250.0 L86.1,250.0 L87.1,250.0 L88.0,250.0 L88.9,250.0 L89.9,250.0 L90.8,250.0 L91.7,249.9 L92.7,249.9 L93.6,249.9 L94.5,249.9 L95.5,249.9 L96.4,249.9 L97.3,249.9 L98.3,249.9 L99.2,249.9 L100.1,249.9 L101.1,249.9 L102.0,249.9 L102.9,249.8 L103.9,249.8 L104.8,249.8 L105.7,249.8 L106.7,249.8 L107.6,249.8 L108.5,249.7 L109.5,249.7 L110.4,249.7 L111.3,249.7 L112.3,249.6 L113.2,249.6 L114.1,249.6 L115.1,249.5 L116.0,249.5 L116.9,249.5 L117.9,249.4 L118.8,249.4 L119.7,249.3 L120.7,249.3 L121.6,249.2 L122.5,249.1 L123.5,249.1 L124.4,249.0 L125.3,248.9 L126.3,248.9 L127.2,248.8 L128.1,248.7 L129.1,248.6 L130.0,248.5 L130.9,248.3 L131.9,248.2 L132.8,248.1 L133.7,248.0 L134.7,247.8 L135.6,247.6 L136.5,247.5 L137.5,247.3 L138.4,247.1 L139.3,246.9 L140.3,246.7 L141.2,246.5 L142.1,246.2 L143.1,246.0 L144.0,245.7 L144.9,245.4 L145.9,245.1 L146.8,244.8 L147.7,244.4 L148.7,244.1 L149.6,243.7 L150.5,243.3 L151.5,242.9 L152.4,242.4 L153.3,242.0 L154.3,241.5 L155.2,240.9 L156.1,240.4 L157.1,239.8 L158.0,239.2 L158.9,238.6 L159.9,237.9 L160.8,237.2 L161.7,236.5 L162.7,235.7 L163.6,234.9 L164.5,234.1 L165.5,233.2 L166.4,232.3 L167.3,231.3 L168.3,230.3 L169.2,229.3 L170.1,228.2 L171.1,227.1 L172.0,225.9 L172.9,224.7 L173.9,223.4 L174.8,222.1 L175.7,220.7 L176.7,219.3 L177.6,217.8 L178.5,216.3 L179.5,214.7 L180.4,213.0 L181.3,211.4 L182.3,209.6 L183.2,207.8 L184.1,205.9 L185.1,204.0 L186.0,202.1 L186.9,200.0 L187.9,197.9 L188.8,195.8 L189.7,193.6 L190.7,191.3 L191.6,189.0 L192.5,186.6 L193.5,184.2 L194.4,181.7 L195.3,179.2 L196.3,176.6 L197.2,174.0 L198.1,171.3 L199.1,168.5 L200.0,165.7 L200.9,162.9 L201.9,160.0 L202.8,157.1 L203.7,154.2 L204.7,151.2 L205.6,148.2 L206.5,145.1 L207.5,142.0 L208.4,138.9 L209.3,135.8 L210.3,132.7 L211.2,129.5 L212.1,126.4 L213.1,123.2 L214.0,120.0 L214.9,116.9 L215.9,113.7 L216.8,110.6 L217.7,107.4 L218.7,104.3 L219.6,101.2 L220.5,98.2 L221.5,95.2 L222.4,92.2 L223.3,89.3 L224.3,86.4 L225.2,83.6 L226.1,80.9 L227.1,78.2 L228.0,75.6 L228.9,73.1 L229.9,70.7 L230.8,68.3 L231.7,66.1 L232.7,64.0 L233.6,61.9 L234.5,60.0 L235.5,58.2 L236.4,56.5 L237.3,55.0 L238.3,53.5 L239.2,52.3 L240.1,51.1 L241.1,50.1 L242.0,49.2 L242.9,48.5 L243.9,48.0 L244.8,47.6 L245.7,47.3 L246.7,47.3 L247.6,47.3 L248.5,47.6 L249.5,48.0 L250.4,48.6 L251.3,49.3 L252.3,50.2 L253.2,51.3 L254.1,52.5 L255.1,53.9 L256.0,55.5 L256.9,57.2 L257.9,59.1 L258.8,61.1 L259.7,63.3 L260.7,65.6 L261.6,68.1 L262.5,70.7 L263.5,73.5 L264.4,76.4 L265.3,79.4 L266.3,82.5 L267.2,85.8 L268.1,89.1 L269.1,92.6 L270.0,96.1 L270.9,99.7 L271.9,103.5 L272.8,107.2 L273.7,111.1 L274.7,115.0 L275.6,119.0 L276.5,123.0 L277.5,127.0 L278.4,131.1 L279.3,135.1 L280.3,139.2 L281.2,143.3 L282.1,147.4 L283.1,151.5 L284.0,155.5 L284.9,159.5 L285.9,163.5 L286.8,167.4 L287.7,171.3 L288.7,175.1 L289.6,178.9 L290.5,182.6 L291.5,186.2 L292.4,189.8 L293.3,193.2 L294.3,196.6 L295.2,199.8 L296.1,203.0 L297.1,206.1 L298.0,209.0 L298.9,211.9 L299.9,214.6 L300.8,217.2 L301.7,219.8 L302.7,222.2 L303.6,224.4 L304.5,226.6 L305.5,228.6 L306.4,230.6 L307.3,232.4 L308.3,234.1 L309.2,235.7 L310.1,237.2 L311.1,238.6 L312.0,239.9 L312.9,241.0 L313.9,242.1 L314.8,243.1 L315.7,244.0 L316.7,244.8 L317.6,245.6 L318.5,246.2 L319.5,246.8 L320.4,247.3 L321.3,247.8 L322.3,248.2 L323.2,248.5 L324.1,248.8 L325.1,249.1 L326.0,249.3 L326.9,249.4 L327.9,249.6 L328.8,249.7 L329.7,249.8 L330.7,249.9 L331.6,249.9 L332.5,249.9 L333.5,250.0 L334.4,250.0 L335.3,250.0 L336.3,250.0 L337.2,250.0 L338.1,250.0 L339.1,250.0 L340.0,250.0 L340.9,250.0 L341.9,250.0 L342.8,250.0 L343.7,250.0 L344.7,250.0 L345.6,250.0 L346.5,250.0 L347.5,249.9 L348.4,249.9 L349.3,249.9 L350.3,249.8 L351.2,249.7 L352.1,249.6 L353.1,249.4 L354.0,249.3 L354.9,249.1 L355.9,248.8 L356.8,248.5 L357.7,248.2 L358.7,247.8 L359.6,247.3 L360.5,246.8 L361.5,246.2 L362.4,245.6 L363.3,244.8 L364.3,244.0 L365.2,243.1 L366.1,242.1 L367.1,241.0 L368.0,239.9 L368.9,238.6 L369.9,237.2 L370.8,235.7 L371.7,234.1 L372.7,232.4 L373.6,230.6 L374.5,228.6 L375.5,226.6 L376.4,224.4 L377.3,222.2 L378.3,219.8 L379.2,217.2 L380.1,214.6 L381.1,211.9 L382.0,209.0 L382.9,206.1 L383.9,203.0 L384.8,199.8 L385.7,196.6 L386.7,193.2 L387.6,189.8 L388.5,186.2 L389.5,182.6 L390.4,178.9 L391.3,175.1 L392.3,171.3 L393.2,167.4 L394.1,163.5 L395.1,159.5 L396.0,155.5 L396.9,151.5 L397.9,147.4 L398.8,143.3 L399.7,139.2 L400.7,135.1 L401.6,131.1 L402.5,127.0 L403.5,123.0 L404.4,119.0 L405.3,115.0 L406.3,111.1 L407.2,107.2 L408.1,103.5 L409.1,99.7 L410.0,96.1 L410.9,92.6 L411.9,89.1 L412.8,85.8 L413.7,82.5 L414.7,79.4 L415.6,76.4 L416.5,73.5 L417.5,70.7 L418.4,68.1 L419.3,65.6 L420.3,63.3 L421.2,61.1 L422.1,59.1 L423.1,57.2 L424.0,55.5 L424.9,53.9 L425.9,52.5 L426.8,51.3 L427.7,50.2 L428.7,49.3 L429.6,48.6 L430.5,48.0 L431.5,47.6 L432.4,47.3 L433.3,47.3 L434.3,47.3 L435.2,47.6 L436.1,48.0 L437.1,48.5 L438.0,49.2 L438.9,50.1 L439.9,51.1 L440.8,52.3 L441.7,53.5 L442.7,55.0 L443.6,56.5 L444.5,58.2 L445.5,60.0 L446.4,61.9 L447.3,64.0 L448.3,66.1 L449.2,68.3 L450.1,70.7 L451.1,73.1 L452.0,75.6 L452.9,78.2 L453.9,80.9 L454.8,83.6 L455.7,86.4 L456.7,89.3 L457.6,92.2 L458.5,95.2 L459.5,98.2 L460.4,101.2 L461.3,104.3 L462.3,107.4 L463.2,110.6 L464.1,113.7 L465.1,116.9 L466.0,120.0 L466.9,123.2 L467.9,126.4 L468.8,129.5 L469.7,132.7 L470.7,135.8 L471.6,138.9 L472.5,142.0 L473.5,145.1 L474.4,148.2 L475.3,151.2 L476.3,154.2 L477.2,157.1 L478.1,160.0 L479.1,162.9 L480.0,165.7 L480.9,168.5 L481.9,171.3 L482.8,174.0 L483.7,176.6 L484.7,179.2 L485.6,181.7 L486.5,184.2 L487.5,186.6 L488.4,189.0 L489.3,191.3 L490.3,193.6 L491.2,195.8 L492.1,197.9 L493.1,200.0 L494.0,202.1 L494.9,204.0 L495.9,205.9 L496.8,207.8 L497.7,209.6 L498.7,211.4 L499.6,213.0 L500.5,214.7 L501.5,216.3 L502.4,217.8 L503.3,219.3 L504.3,220.7 L505.2,222.1 L506.1,223.4 L507.1,224.7 L508.0,225.9 L508.9,227.1 L509.9,228.2 L510.8,229.3 L511.7,230.3 L512.7,231.3 L513.6,232.3 L514.5,233.2 L515.5,234.1 L516.4,234.9 L517.3,235.7 L518.3,236.5 L519.2,237.2 L520.1,237.9 L521.1,238.6 L522.0,239.2 L522.9,239.8 L523.9,240.4 L524.8,240.9 L525.7,241.5 L526.7,242.0 L527.6,242.4 L528.5,242.9 L529.5,243.3 L530.4,243.7 L531.3,244.1 L532.3,244.4 L533.2,244.8 L534.1,245.1 L535.1,245.4 L536.0,245.7 L536.9,246.0 L537.9,246.2 L538.8,246.5 L539.7,246.7 L540.7,246.9 L541.6,247.1 L542.5,247.3 L543.5,247.5 L544.4,247.6 L545.3,247.8 L546.3,248.0 L547.2,248.1 L548.1,248.2 L549.1,248.3 L550.0,248.5 L550.9,248.6 L551.9,248.7 L552.8,248.8 L553.7,248.9 L554.7,248.9 L555.6,249.0 L556.5,249.1 L557.5,249.1 L558.4,249.2 L559.3,249.3 L560.3,249.3 L561.2,249.4 L562.1,249.4 L563.1,249.5 L564.0,249.5 L564.9,249.5 L565.9,249.6 L566.8,249.6 L567.7,249.6 L568.7,249.7 L569.6,249.7 L570.5,249.7 L571.5,249.7 L572.4,249.8 L573.3,249.8 L574.3,249.8 L575.2,249.8 L576.1,249.8 L577.1,249.8 L578.0,249.9 L578.9,249.9 L579.9,249.9 L580.8,249.9 L581.7,249.9 L582.7,249.9 L583.6,249.9 L584.5,249.9 L585.5,249.9 L586.4,249.9 L587.3,249.9 L588.3,249.9 L589.2,250.0 L590.1,250.0 L591.1,250.0 L592.0,250.0 L592.9,250.0 L593.9,250.0 L594.8,250.0 L595.7,250.0 L596.7,250.0 L597.6,250.0 L598.5,250.0 L599.5,250.0 L600.4,250.0 L601.3,250.0 L602.3,250.0 L603.2,250.0 L604.1,250.0 L605.1,250.0 L606.0,250.0 L606.9,250.0 L607.9,250.0 L608.8,250.0 L609.7,250.0 L610.7,250.0 L611.6,250.0 L612.5,250.0 L613.5,250.0 L614.4,250.0 L615.3,250.0 L616.3,250.0 L617.2,250.0 L618.1,250.0 L619.1,250.0 L620.0,250.0" fill="none" stroke="var(--dark)" stroke-width="2.4"/>
+      <text x="477.7" y="45.5" font-size="16" fill="var(--text)">Laplace: area = 6</text>
+      <text x="64.7" y="29.4" font-size="16" fill="var(--text)">Normal: area = 3</text>
+      <text x="340.0" y="40" font-size="16" text-anchor="middle" fill="var(--text)">|z| ≤ 1</text>
+      <text x="340.0" y="300" font-size="16" text-anchor="middle" fill="var(--text)">z</text>
+    </svg>
+    <figcaption><strong>Figure 3:</strong> The integrand $z^4 f(z)$, whose total area is the kurtosis. The shaded strip $|z| \le 1$, where both densities are tallest, contributes almost nothing. The normal's contributions peak at $|z| = 2$ and are over by $|z| \approx 4$. The Laplace's peak at $|z| = 2\sqrt2 \approx 2.8$ and keep going well past 5, which is why its area is twice as large.</figcaption>
+  </figure>
+
+  <div class="table-scroll">
+  <table class="data-table">
+    <tr><th>Distribution</th><th>$\kappa$</th><th>From $|z| \le 1$</th><th>From $|z| > 2$</th><th>Share from $|z| > 2$</th></tr>
+    <tr><td>Uniform</td><td>1.8</td><td>0.12</td><td>0</td><td>0%</td></tr>
+    <tr><td>Normal</td><td>3</td><td>0.11</td><td>1.65</td><td>55%</td></tr>
+    <tr><td>Laplace</td><td>6</td><td>0.09</td><td>5.06</td><td>84%</td></tr>
+    <tr><td>Student $t_5$</td><td>9</td><td>0.11</td><td>8.0</td><td>89%</td></tr>
+  </table>
+  </div>
+  <p>
+    The middle column barely moves: about 0.1 for every distribution, as the bound in section 3 promised. Everything that separates a kurtosis of 3 from a kurtosis of 9 happens beyond two standard deviations. For the $t_5$, the contribution from beyond $|z| = 80$ alone is about 0.3: an extremely rare region still moves the number noticeably, which is also why kurtosis estimated from data is so unstable.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  7. The variance budget and the peak myth               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="peak-myth">
+  <h2>7. Fatter Tails, Not Just More Variance, and Not Peakedness</h2>
+  <p>Now the slide's question can be answered.</p>
+
+  <div class="math-box">
+    <div class="math-box-body" style="text-align: center;">
+      <p><em>"If I make the tails fatter, am I not just increasing the variance?"</em></p>
+    </div>
+  </div>
+  <p>
+    Yes, if you only move mass outward. Kurtosis is measured <em>after</em> standardising, so the comparison is always made at a fixed variance. Think of the variance as a budget: $E[Z^2] = 1$. Moving some probability out to $|z| = 4$ spends a lot of that budget ($4^2 = 16$ per unit of mass). To stay at variance 1, the distribution has to save it elsewhere, by pulling other mass in from the shoulders toward the centre, where $z^2$ is cheap. The fourth power treats the two moves very differently. Say you move a sliver of mass $\delta$ out to $|z| = 4$: that costs $16\delta$ of variance and adds $256\delta$ to $\kappa$. To pay the $16\delta$ back, pull about $7\delta$ of mass in from the shoulder at $|z| = 1.5$ to the centre ($7 \times 1.5^2 \approx 16$). That removes only $7 \times 1.5^4 \approx 35\delta$ from $\kappa$. Net change: about $+221\delta$. Same variance, much larger kurtosis.
+  </p>
+  <p>
+    That is why high-kurtosis curves usually <em>look</em> tall and narrow in the middle, like the Laplace in Figure 1. The tall centre is the bill for the heavy tails. It is not what the number measures.
+  </p>
+
+  <div class="spot">
+    <strong>The "peakedness" myth.</strong> Many textbooks describe kurtosis as "how peaked" a distribution is. The bound in section 3 shows why that is wrong: the region within one standard deviation can contribute at most 1 to $\kappa$. For a direct counterexample, look at the table in section 4. The triangular distribution has a sharp point at its centre and is <em>taller</em> there than the normal (0.408 vs 0.399), yet its kurtosis is lower (2.4 vs 3), because its tails stop dead at $\pm\sqrt6 \approx 2.45$. Conversely, a distribution can have a flat, rounded centre and still have enormous kurtosis if it has a few far-away values. Read kurtosis as <strong>tail weight</strong>, or as "propensity to produce outliers".
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  8. Mixtures                                            -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="calm-and-wild">
+  <h2>8. Where High Kurtosis Comes From: Calm Most Days, Wild Some Days</h2>
+  <p>
+    Go back to the second chip machine. Most of the time it runs with a small spread; occasionally (a jam, a sensor glitch) it runs with a much larger spread. That is a <strong>mixture</strong>: with probability $1 - p$ a value comes from a calm normal with standard deviation $a$, and with probability $p$ from a wild normal with standard deviation $c \cdot a$. Daily stock returns behave the same way: quiet days punctuated by turbulent ones.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Kurtosis of a Scale Mixture of Normals</div>
+    <div class="math-box-body">
+      <p>If $X$ is normal with mean 0 given a random standard deviation $S$, then</p>
+      $$\begin{aligned}
+        E[X^2] &= E[S^2] \\[6pt]
+        E[X^4] &= 3\,E[S^4] \\[8pt]
+        \kappa &= \frac{3\,E[S^4]}{\big(E[S^2]\big)^2} \;\ge\; 3
+      \end{aligned}$$
+      <p>The inequality is $E[S^4] \ge (E[S^2])^2$, i.e. $\operatorname{Var}(S^2) \ge 0$, with equality only when $S$ never changes. <strong>Any randomness in the spread pushes the kurtosis above the normal's 3.</strong></p>
+    </div>
+  </div>
+
+  <p>For the two-component mixture above, $E[S^2] = a^2(1 - p + pc^2)$ and $E[S^4] = a^4(1 - p + pc^4)$, so</p>
+  $$\kappa = \frac{3\,(1 - p + p\,c^4)}{(1 - p + p\,c^2)^2}$$
+  <p>With a 10% chance of a day three times as volatile ($p = 0.1$, $c = 3$):</p>
+  $$\begin{aligned}
+    \kappa &= \frac{3\,(0.9 + 0.1 \times 81)}{(0.9 + 0.1 \times 9)^2} \\[6pt]
+    &= \frac{3 \times 9}{3.24} \\[6pt]
+    &\approx 8.33
+  \end{aligned}$$
+  <p>
+    Use the controls below to build your own mixture. The total variance is held at 1 throughout, so every change you see is a change of shape, not of spread.
+  </p>
+
+  <figure class="fig" id="mixture-explorer">
+    <div class="mix-controls">
+      <label for="mix-p">Chance of a wild value $p$: <strong id="mix-p-out">0.10</strong></label>
+      <input type="range" id="mix-p" min="0" max="0.4" step="0.01" value="0.1">
+      <label for="mix-c">How much wilder $c$: <strong id="mix-c-out">3.0</strong>×</label>
+      <input type="range" id="mix-c" min="1" max="6" step="0.1" value="3">
+    </div>
+    <svg id="mix-svg" viewBox="0 0 640 300" role="img" aria-label="Interactive plot of a two-component normal mixture with variance 1 against the standard normal"></svg>
+    <div class="mix-stats">
+      <span>Kurtosis $\kappa$: <strong id="mix-k">8.33</strong></span>
+      <span>$P(|Z| > 3)$: <strong id="mix-t3">0.018</strong> <span class="muted-note">(normal: 0.0027)</span></span>
+      <span>$P(|Z| > 4)$: <strong id="mix-t4">0.0074</strong> <span class="muted-note">(normal: 0.00006)</span></span>
+    </div>
+    <figcaption><strong>Figure 4:</strong> A mixture of a calm and a wild normal (solid), scaled to variance 1, against the standard normal (dashed). Raising $p$ or $c$ makes the centre taller and the shoulders thinner, and lifts the far tails. The kurtosis and the tail probabilities rise together; the variance never moves.</figcaption>
+  </figure>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  9. From data                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="sample-kurtosis">
+  <h2>9. Kurtosis from Data</h2>
+  <p>With data $x_1, \dots, x_n$ and sample mean $\bar{x}$, replace the expectations with averages:</p>
+  $$\begin{aligned}
+    m_2 &= \frac{1}{n}\sum_{i=1}^{n}(x_i - \bar{x})^2 \\[6pt]
+    m_4 &= \frac{1}{n}\sum_{i=1}^{n}(x_i - \bar{x})^4 \\[8pt]
+    \hat\kappa &= \frac{m_4}{m_2^2}
+  \end{aligned}$$
+  <p>Two practical warnings:</p>
+  <ul>
+    <li><strong>Software usually reports excess kurtosis.</strong> Excel's <code>=KURT()</code> and most statistics packages return $\hat\kappa - 3$, often with a small-sample correction. A value near 0 means "normal-like tails", not "no kurtosis".</li>
+    <li><strong>It is a noisy estimate.</strong> Because $z^4$ is dominated by the few most extreme points, a single outlier can move $\hat\kappa$ a lot, and heavy-tailed data can need thousands of observations before the estimate settles. Treat a sample kurtosis from 20 points with suspicion.</li>
+  </ul>
+
+  <h3>Why it matters</h3>
+  <ul>
+    <li><strong>Risk.</strong> A model that assumes normal returns uses $P(|Z| > 4) \approx 0.00006$. If the real returns look like a Laplace, the true figure is about 55 times larger. That gap is how "once in a thousand years" losses happen every few years.</li>
+    <li><strong>Outliers.</strong> High kurtosis is a warning that the data will produce extreme values, so a mean or a standard deviation computed from it may be unstable.</li>
+    <li><strong>Tests and intervals.</strong> Confidence intervals and tests for a <em>variance</em> (the $\chi^2$ interval, the F-test) assume normal data and break down badly when kurtosis is high, much more than tests for a mean do.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Practice                                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="practice">
+  <h2>Practice</h2>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 1: Ten Values</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>Find the kurtosis of the data set $-3, 0, 0, 0, 0, 0, 0, 0, 0, 3$ (divide by $n$).</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \sigma^2 &= \frac{9 + 9}{10} = 1.8 \\[6pt]
+        z_{\pm} &= \frac{\pm 3}{\sqrt{1.8}} \;\Rightarrow\; z^4 = \frac{81}{3.24} = 25 \\[6pt]
+        \kappa &= \frac{25 + 25}{10} = 5
+      \end{aligned}$$
+      <p>Two points out of ten produce the entire kurtosis.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 2: Changing Units</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>$X$ has kurtosis 6. What is the kurtosis of $Y = 5 - 2X$?</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      <p>Still 6. The z-score of $Y$ is $\frac{Y - E[Y]}{\operatorname{SD}(Y)} = \frac{-2(X - \mu)}{2\sigma} = -Z$, and $(-Z)^4 = Z^4$.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 3: Rare Events</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>A Bernoulli variable with success probability $p$ has kurtosis $\kappa = \dfrac{1 - 3p(1-p)}{p(1-p)}$. Evaluate it for $p = 0.5$ and $p = 0.1$, and explain the difference.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        p = 0.5:\quad \kappa &= \frac{1 - 0.75}{0.25} = 1 \\[8pt]
+        p = 0.1:\quad \kappa &= \frac{1 - 0.27}{0.09} \approx 8.1
+      \end{aligned}$$
+      <p>A fair coin has no tail: both outcomes sit one standard deviation from the mean, the minimum possible kurtosis. With $p = 0.1$, the rare success sits $\frac{0.9}{0.3} = 3$ standard deviations above the mean, so it is an outlier, and the kurtosis is high. Rare events and high kurtosis go together.</p>
+    </details>
+  </div>
+
+  <div class="problem-item">
+    <div class="problem-header">
+      <h3>Problem 4: A Rarer, Wilder Machine</h3>
+      <span class="problem-badge">Practice</span>
+    </div>
+    <div class="question-canvas">
+      <p>A machine is wild 5% of the time, with a spread 4 times its normal spread ($p = 0.05$, $c = 4$). Find its kurtosis and compare it with $p = 0.1$, $c = 3$ (κ ≈ 8.33). Check your answer with Figure 4.</p>
+    </div>
+    <details class="toggle">
+      <summary>Check your work</summary>
+      $$\begin{aligned}
+        \kappa &= \frac{3\,(0.95 + 0.05 \times 256)}{(0.95 + 0.05 \times 16)^2} \\[6pt]
+        &= \frac{3 \times 13.75}{3.0625} \\[6pt]
+        &\approx 13.5
+      \end{aligned}$$
+      <p>Rarer but more extreme bad days give a higher kurtosis: the fourth power rewards "how far" much more than "how often".</p>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  Connecting the Dots                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="connecting-the-dots">
+  <h2>Connecting the Dots</h2>
+  <p>
+    The four moments form a ladder. The mean ($E[X]$) fixes location. The variance ($E[Z^2]$ before standardising) fixes scale. Once those two are removed by turning values into z-scores, the shape is what remains: the third moment, skewness, asks whether the far-out values lean left or right, and the fourth, kurtosis, asks how much far-out mass there is at all. Because the fourth power shrinks everything within one standard deviation and magnifies everything beyond it, kurtosis is in effect a tail detector, and its familiar "tall, narrow" look is only the price a fixed variance charges for heavy tails. The same idea links back to the course: in the <a href="../../05.practice/04.mfds-midsem-guide/">MFDS Midsem Guide</a> kurtosis appears as one of the four moments; here we have seen why it gets its own number, and why a model built on normal tails can badly underrate the chance of an extreme day.
+  </p>
+
+  <div class="math-box">
+    <div class="math-box-label">Summary</div>
+    <div class="math-box-body">
+      <div class="table-scroll">
+      <table class="data-table left">
+        <tr><th>Idea</th><th>Statement</th></tr>
+        <tr><td>Definition</td><td>$\kappa = E[Z^4]$, with $Z = (X - \mu)/\sigma$; excess kurtosis $= \kappa - 3$</td></tr>
+        <tr><td>Range</td><td>$\kappa \ge 1$; equals 1 only for a two-point $\pm\sigma$ distribution</td></tr>
+        <tr><td>Benchmarks</td><td>uniform 1.8, triangular 2.4, normal 3, Laplace 6, $t_5$ 9</td></tr>
+        <tr><td>What it measures</td><td>tail weight: the centre ($|z| \le 1$) contributes at most 1</td></tr>
+        <tr><td>Why it looks peaked</td><td>at fixed variance, heavy tails are paid for by thinner shoulders and a taller centre</td></tr>
+        <tr><td>Not peakedness</td><td>triangular is taller than normal at 0 but has lower $\kappa$</td></tr>
+        <tr><td>Typical cause</td><td>a spread that varies (calm and wild periods): $\kappa = 3E[S^4]/E[S^2]^2 \ge 3$</td></tr>
+        <tr><td>From data</td><td>$m_4/m_2^2$; software often reports excess; very sensitive to outliers</td></tr>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+                    </section>
+                </article>
+            </div>
+        </div>
+    </main>
+
+<script>
+(() => {
+  const svg = document.getElementById('mix-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const pIn = document.getElementById('mix-p'), cIn = document.getElementById('mix-c');
+  const phi = z => Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI);
+  const Phi = z => { const t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2);
+    const q = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+    return z > 0 ? 1 - q : q; };
+  const L = 60, R = 620, B = 240, T = 20, X = z => L + (z + 5) / 10 * (R - L);
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
+  function draw() {
+    const p = +pIn.value, c = +cIn.value;
+    const v = 1 - p + p * c * c, a = 1 / Math.sqrt(v);
+    const f = z => (1 - p) * phi(z / a) / a + p * phi(z / (c * a)) / (c * a);
+    const peak = Math.max(f(0), phi(0)) * 1.08, Y = y => B - y / peak * (B - T);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    mk('line', { x1: L, y1: B, x2: R, y2: B, stroke: 'var(--muted)' });
+    for (let z = -5; z <= 5; z++) {
+      mk('line', { x1: X(z), y1: B, x2: X(z), y2: B + 6, stroke: 'var(--muted)' });
+      const t = mk('text', { x: X(z), y: B + 26, 'font-size': 16, 'text-anchor': 'middle', fill: 'var(--muted)' }); t.textContent = z;
+    }
+    const path = g => { let d = ''; for (let i = 0; i <= 400; i++) { const z = -5 + 10 * i / 400; d += (i ? ' L' : 'M') + X(z).toFixed(1) + ',' + Y(g(z)).toFixed(1); } return d; };
+    mk('path', { d: path(phi), fill: 'none', stroke: 'var(--muted)', 'stroke-width': 2, 'stroke-dasharray': '7 6' });
+    mk('path', { d: path(f) + ` L${X(5)},${B} L${X(-5)},${B} Z`, fill: 'var(--accent)', 'fill-opacity': 0.15, stroke: 'none' });
+    mk('path', { d: path(f), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2.6 });
+    const l1 = mk('text', { x: X(1.1), y: Y(phi(1.1)) - 10, 'font-size': 16, fill: 'var(--muted)' }); l1.textContent = 'normal';
+    const l2 = mk('text', { x: X(0.25), y: Math.max(T + 16, Y(f(0)) + 2), 'font-size': 16, fill: 'var(--text)' }); l2.textContent = 'mixture';
+    const k = 3 * (1 - p + p * c ** 4) / (v * v);
+    const tail = z => 2 * ((1 - p) * (1 - Phi(z / a)) + p * (1 - Phi(z / (c * a))));
+    document.getElementById('mix-p-out').textContent = p.toFixed(2);
+    document.getElementById('mix-c-out').textContent = c.toFixed(1);
+    document.getElementById('mix-k').textContent = k.toFixed(2);
+    document.getElementById('mix-t3').textContent = tail(3).toFixed(4);
+    document.getElementById('mix-t4').textContent = tail(4) < 0.0001 ? tail(4).toExponential(1) : tail(4).toFixed(4);
+  }
+  pIn.addEventListener('input', draw); cIn.addEventListener('input', draw); draw();
+})();
+</script>
+
+</body>
+</html>

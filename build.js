@@ -83,6 +83,16 @@ const libraryDir    = path.join(projectRoot, "Library");
 const builderDir    = path.join(projectRoot, "builder");
 const ogOutputDir   = path.join(projectRoot, "assets", "og");
 const metaCachePath = path.join(builderDir, ".meta-cache.json");
+// Local-only list of private pages (gitignored). lib-data.js merges it in on localhost.
+const privateDataPath = path.join(builderDir, "lib-data.private.json");
+const privateCachePath = path.join(builderDir, ".meta-cache.private.json");
+
+// A folder or file whose name ends in ".private" (e.g. 04.rod-notes.private/) is gitignored
+// and kept out of every committed build output.
+function isPrivatePath(relativePath) {
+    return relativePath.replace(/\\/g, "/").split("/")
+        .some(segment => /\.private(\.html)?$/i.test(segment));
+}
 
 if (!fs.existsSync(ogOutputDir)) fs.mkdirSync(ogOutputDir, { recursive: true });
 if (!fs.existsSync(builderDir))  fs.mkdirSync(builderDir,  { recursive: true });
@@ -467,8 +477,24 @@ function buildStaticIndex(libPages) {
     return html;
 }
 
+// On localhost only, synchronously merge builder/lib-data.private.json (never committed).
+const PRIVATE_LOADER = `(function () {
+  if (!/^(localhost|127\\.0\\.0\\.1|\\[::1\\])$/.test(location.hostname)) return;
+  var me = document.currentScript && document.currentScript.src;
+  if (!me) return;
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", me.replace(/lib-data\\.js(\\?.*)?$/, "lib-data.private.json"), false);
+    xhr.send();
+    if (xhr.status !== 200) return;
+    var priv = JSON.parse(xhr.responseText);
+    window.rawPages = window.rawPages.concat(priv.pages || []);
+    window.rawLinks = window.rawLinks.concat(priv.links || []);
+  } catch (_) {}
+})();`;
+
 function buildLibData(libPages, crossLinks = []) {
-    return `// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\nwindow.rawLinks = ${JSON.stringify(crossLinks, null, 2)};\n`;
+    return `// AUTO-GENERATED — do not edit\nwindow.rawPages = ${JSON.stringify(libPages, null, 2)};\nwindow.rawLinks = ${JSON.stringify(crossLinks, null, 2)};\n${PRIVATE_LOADER}\n`;
 }
 
 function isPublicPage(page) {
@@ -510,6 +536,11 @@ async function build() {
     if (fs.existsSync(metaCachePath) && !force) {
         try { cachedHashMap = JSON.parse(fs.readFileSync(metaCachePath, "utf8")); } catch (_) {}
     }
+    // Private pages are hashed in their own gitignored cache
+    let cachedPrivateHashMap = {};
+    if (fs.existsSync(privateCachePath) && !force) {
+        try { cachedPrivateHashMap = JSON.parse(fs.readFileSync(privateCachePath, "utf8")); } catch (_) {}
+    }
 
     // Pass 0: Compute properties first to check if structural attributes changed
     const changedFiles = new Set();
@@ -525,8 +556,15 @@ async function build() {
         const relativePath = path.relative(libraryDir, f);
         const readingTime = estimateReadingTime(content);
         const pageObj = createPageObject(relativePath, content, readingTime);
-        
-        computedPages.push({ f, content, pageObj, readingTime, relativePath });
+        const isPrivate = isPrivatePath(relativePath);
+
+        computedPages.push({ f, content, pageObj, readingTime, relativePath, isPrivate });
+
+        // Private pages have no OG card, so only their hash decides
+        if (isPrivate) {
+            if (force || cachedPrivateHashMap[f] !== getHash(content)) changedFiles.add(f);
+            continue;
+        }
 
         const ogImageName = `${slugify(pageObj.book || "lib")}-${slugify(pageObj.title)}.png`;
         const expectedOgPath = path.join(ogOutputDir, ogImageName);
@@ -545,7 +583,11 @@ async function build() {
         console.log(`📝 ${changedCount} file(s) changed or missing OG images — processing…`);
     }
 
-    if (changedCount === 0 && !force) {
+    // A private page that was deleted or renamed leaves a stale entry, which also needs a rebuild
+    const currentPrivateFiles = new Set(computedPages.filter(p => p.isPrivate).map(p => p.f));
+    const privateRemoved = Object.keys(cachedPrivateHashMap).some(f => !currentPrivateFiles.has(f));
+
+    if (changedCount === 0 && !force && !privateRemoved) {
         console.log("✅ Nothing changed. Skipping build.");
         return;
     }
@@ -578,10 +620,11 @@ async function build() {
 
     const tempPageCache = [];
     const newHashMap = force ? {} : { ...cachedHashMap };
+    const newPrivateHashMap = {};
 
     // Pass 1: Build structural components, output IDs, and generate OG cards
     for (const item of computedPages) {
-        const { f: filePath, relativePath, readingTime } = item;
+        const { f: filePath, relativePath, readingTime, isPrivate } = item;
         let content = item.content;
         let pageObj = item.pageObj;
         let fileChanged = false;
@@ -605,10 +648,11 @@ async function build() {
                 const withTime = syncReadingTime(content, readingTime);
                 if (withTime !== content) { content = withTime; fileChanged = true; }
 
-                const ogMeta = ensureOgMetaTags(content, pageObj, ogImageName);
+                // Private pages get no OG tags or card: assets/og is committed
+                const ogMeta = isPrivate ? { changed: false } : ensureOgMetaTags(content, pageObj, ogImageName);
                 if (ogMeta.changed) { content = ogMeta.content; fileChanged = true; }
 
-                if ((!fs.existsSync(targetOgPath) || force) && fonts && satori) {
+                if (!isPrivate && (!fs.existsSync(targetOgPath) || force) && fonts && satori) {
                     console.log(`🎨 Generating OG Card Image -> ${ogImageName}`);
                     const markupNode = buildOgMarkup(html, pageObj);
                     const svg = await satori(markupNode, { width: 1200, height: 630, fonts });
@@ -621,26 +665,33 @@ async function build() {
                 fs.writeFileSync(filePath, content, "utf8");
             }
 
-            // Always cache the absolute latest version text hash
-            newHashMap[filePath] = getHash(content);
-            tempPageCache.push({ filePath, content, pageObj });
+            // Always cache the absolute latest version text hash (the cache is committed, so not for private pages)
+            (isPrivate ? newPrivateHashMap : newHashMap)[filePath] = getHash(content);
+            tempPageCache.push({ filePath, content, pageObj, isPrivate });
         } catch (err) {
             console.warn(`⚠️  Skipped ${filePath}: ${err.message}`);
         }
     }
 
     fs.writeFileSync(metaCachePath, JSON.stringify(newHashMap, null, 2), "utf8");
+    if (Object.keys(newPrivateHashMap).length) {
+        fs.writeFileSync(privateCachePath, JSON.stringify(newPrivateHashMap, null, 2), "utf8");
+    } else if (fs.existsSync(privateCachePath)) {
+        fs.unlinkSync(privateCachePath);
+    }
     // Pass 2: Extract explicit cross reference mapping lists
     const crossLinks = [];
-    const activePagesList = tempPageCache.map(p => p.pageObj).filter(isPublicPage);
+    const privateLinks = [];
+    const visibleEntries = tempPageCache.filter(p => isPublicPage(p.pageObj));
+    const activePagesList = visibleEntries.filter(p => !p.isPrivate).map(p => p.pageObj);
+    const privatePagesList = visibleEntries.filter(p => p.isPrivate).map(p => p.pageObj);
 
-    for (const source of tempPageCache) {
-        if (!isPublicPage(source.pageObj)) continue;
-
+    for (const source of visibleEntries) {
         const sourceObj = source.pageObj;
         const sourceNodeId = `title_${sourceObj.book}_${sourceObj.section}_${sourceObj.chapter}_${sourceObj.title}`;
 
-        for (const targetObj of activePagesList) {
+        for (const target of visibleEntries) {
+            const targetObj = target.pageObj;
             if (targetObj.article_id === sourceObj.article_id || !targetObj.article_id) continue;
 
             const targetIdToken = `/article/${targetObj.article_id}`;
@@ -648,7 +699,8 @@ async function build() {
             if (source.content.includes(targetIdToken) || source.content.includes(targetObj.article_id)) {
                 const targetNodeId = `title_${targetObj.book}_${targetObj.section}_${targetObj.chapter}_${targetObj.title}`;
 
-                crossLinks.push({
+                // Any link touching a private page stays in the local-only file
+                (source.isPrivate || target.isPrivate ? privateLinks : crossLinks).push({
                     source: sourceNodeId,
                     target: targetNodeId,
                     type: "cross_reference"
@@ -658,6 +710,12 @@ async function build() {
     }
 
     fs.writeFileSync(path.join(builderDir, "lib-data.js"), buildLibData(activePagesList, crossLinks), "utf8");
+    if (privatePagesList.length) {
+        fs.writeFileSync(privateDataPath, JSON.stringify({ pages: privatePagesList, links: privateLinks }, null, 2), "utf8");
+        console.log(`  🔒 ${privatePagesList.length} private page(s) written to builder/lib-data.private.json (local only).`);
+    } else if (fs.existsSync(privateDataPath)) {
+        fs.unlinkSync(privateDataPath);
+    }
     console.log(`  ✅ Data engine synced successfully. Mapped ${crossLinks.length} precise cross-references.`);
 
     const indexPath = path.join(libraryDir, "index.html");

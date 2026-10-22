@@ -1012,7 +1012,7 @@ window.rawPages = [
     "tier": "core",
     "keywords": "probability, distributions, statistics, normal distribution, binomial, poisson, exponential, PMF, PDF, CDF",
     "status": "live",
-    "readingTime": 4
+    "readingTime": 10
   },
   {
     "article_id": "c0e062d5",
@@ -1039,6 +1039,32 @@ window.rawPages = [
     "keywords": "Central Limit Theorem, CLT, Normal Distribution, Gaussian, Maximum Entropy, Probability Density Function, Information Theory",
     "status": "draft",
     "readingTime": 6
+  },
+  {
+    "article_id": "a0a6dd03",
+    "url": "../Library/mathematics/03.probability-statistics/02.distributions/03.kurtosis/",
+    "cleanUrl": "../Library/mathematics/probability-statistics/distributions/kurtosis/",
+    "sourcePath": "Library/mathematics/03.probability-statistics/02.distributions/03.kurtosis/index.html",
+    "publicPath": "Library/mathematics/03.probability-statistics/02.distributions/03.kurtosis/",
+    "cleanPath": "Library/mathematics/probability-statistics/distributions/kurtosis/",
+    "book": "Mathematics",
+    "bookTitle": "Mathematics",
+    "bookSlug": "mathematics",
+    "bookOrder": 999,
+    "title": "Kurtosis: Tails, Not Peaks",
+    "description": "What kurtosis really measures: why it is a fourth power, why it detects tails rather than peaks, what higher kurtosis looks like, and where heavy tails come from.",
+    "date": "2026-10-15",
+    "section": "Probability & Statistics",
+    "chapter": "Distributions",
+    "chapterOrder": 2,
+    "chapterNumber": "2",
+    "lessonorder": 3,
+    "lessonNumber": "3",
+    "part": "Main",
+    "tier": "core",
+    "keywords": "kurtosis, excess kurtosis, fourth moment, standardised moment, heavy tails, fat tails, leptokurtic, platykurtic, Laplace distribution, Student t, normal mixture, outliers",
+    "status": "draft",
+    "readingTime": 15
   },
   {
     "article_id": "64e96823",
@@ -1143,6 +1169,84 @@ window.rawPages = [
     "keywords": "DA5000, MFDS, tutorial, Bayes, joint pdf, expectation, Poisson, exponential, Markov chain, Welch t-test, pooled t-test, paired t-test, F-test, two-proportion z-test, power, goodness of fit, chi-square",
     "status": "draft",
     "readingTime": 28
+  },
+  {
+    "article_id": "fdb7d01d",
+    "url": "../Library/mathematics/03.probability-statistics/05.practice/03.bt3041-hypothesis-tests/",
+    "cleanUrl": "../Library/mathematics/probability-statistics/practice/bt3041-hypothesis-tests/",
+    "sourcePath": "Library/mathematics/03.probability-statistics/05.practice/03.bt3041-hypothesis-tests/index.html",
+    "publicPath": "Library/mathematics/03.probability-statistics/05.practice/03.bt3041-hypothesis-tests/",
+    "cleanPath": "Library/mathematics/probability-statistics/practice/bt3041-hypothesis-tests/",
+    "book": "Mathematics",
+    "bookTitle": "Mathematics",
+    "bookSlug": "mathematics",
+    "bookOrder": 999,
+    "title": "Hypothesis Tests for Biological Data",
+    "description": "BT3041 Topic 3 worked through: the normal distribution, z and t tests, two-sample and paired tests, non-parametric alternatives, ANOVA with Tukey, Kruskal-Wallis, chi-square and multiple-testing correction, each with its biology example.",
+    "date": "2026-10-13",
+    "section": "Probability & Statistics",
+    "chapter": "Practice",
+    "chapterOrder": 5,
+    "chapterNumber": "5",
+    "lessonorder": 3,
+    "lessonNumber": "3",
+    "part": "Main",
+    "tier": "core",
+    "keywords": "BT3041, normal distribution, z-score, t-test, pooled t-test, Welch, paired t-test, F-test, Mann-Whitney, Wilcoxon signed-rank, ANOVA, Tukey, Kruskal-Wallis, chi-square, Bonferroni, Benjamini-Hochberg",
+    "status": "draft",
+    "readingTime": 20
+  },
+  {
+    "article_id": "ce0df3bd",
+    "url": "../Library/mathematics/03.probability-statistics/05.practice/04.mfds-midsem-guide/",
+    "cleanUrl": "../Library/mathematics/probability-statistics/practice/mfds-midsem-guide/",
+    "sourcePath": "Library/mathematics/03.probability-statistics/05.practice/04.mfds-midsem-guide/index.html",
+    "publicPath": "Library/mathematics/03.probability-statistics/05.practice/04.mfds-midsem-guide/",
+    "cleanPath": "Library/mathematics/probability-statistics/practice/mfds-midsem-guide/",
+    "book": "Mathematics",
+    "bookTitle": "Mathematics",
+    "bookSlug": "mathematics",
+    "bookOrder": 999,
+    "title": "The MFDS Midsem Guide",
+    "description": "DA5000 sessions 1–6 built up from first principles: why each idea is needed, what every term means, the formulas with real numbers, and practice problems with hidden answers.",
+    "date": "2026-10-15",
+    "section": "Probability & Statistics",
+    "chapter": "Practice",
+    "chapterOrder": 5,
+    "chapterNumber": "5",
+    "lessonorder": 4,
+    "lessonNumber": "4",
+    "part": "Main",
+    "tier": "core",
+    "keywords": "DA5000, MFDS, midsem, random variables, moments, Bayes theorem, EVPI, EVSI, distributions, central limit theorem, confidence intervals, hypothesis testing, type II error, ANOVA, chi-square",
+    "status": "draft",
+    "readingTime": 44
+  },
+  {
+    "article_id": "247850e7",
+    "url": "../Library/mathematics/03.probability-statistics/05.practice/05.mfds-2024-mini-quizzes/",
+    "cleanUrl": "../Library/mathematics/probability-statistics/practice/mfds-2024-mini-quizzes/",
+    "sourcePath": "Library/mathematics/03.probability-statistics/05.practice/05.mfds-2024-mini-quizzes/index.html",
+    "publicPath": "Library/mathematics/03.probability-statistics/05.practice/05.mfds-2024-mini-quizzes/",
+    "cleanPath": "Library/mathematics/probability-statistics/practice/mfds-2024-mini-quizzes/",
+    "book": "Mathematics",
+    "bookTitle": "Mathematics",
+    "bookSlug": "mathematics",
+    "bookOrder": 999,
+    "title": "2024 Mini-Quizzes, Solved",
+    "description": "Four 2024 mini-quizzes worked step by step: poker counting, conditioning on coins, Bayes for a COVID test, min/max of random variables, Markov chains, transformations, Markov's inequality, Gaussian conditioning and KKT.",
+    "date": "2026-10-15",
+    "section": "Probability & Statistics",
+    "chapter": "Practice",
+    "chapterOrder": 5,
+    "chapterNumber": "5",
+    "lessonorder": 5,
+    "lessonNumber": "5",
+    "part": "Main",
+    "tier": "core",
+    "keywords": "DA5000, MFDS, mini-quiz, 2024, poker probability, Bayes theorem, stationary distribution, Markov chain, exponential minimum, CDF method, covariance, independence, Markov inequality, multivariate normal, KKT conditions",
+    "status": "draft",
+    "readingTime": 24
   },
   {
     "article_id": "82e94368",
@@ -1463,3 +1567,17 @@ window.rawLinks = [
     "type": "cross_reference"
   }
 ];
+(function () {
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+  var me = document.currentScript && document.currentScript.src;
+  if (!me) return;
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", me.replace(/lib-data\.js(\?.*)?$/, "lib-data.private.json"), false);
+    xhr.send();
+    if (xhr.status !== 200) return;
+    var priv = JSON.parse(xhr.responseText);
+    window.rawPages = window.rawPages.concat(priv.pages || []);
+    window.rawLinks = window.rawLinks.concat(priv.links || []);
+  } catch (_) {}
+})();
